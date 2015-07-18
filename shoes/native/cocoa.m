@@ -491,7 +491,7 @@
 }
 @end
 
-@implementation ShoesAlert
+@implementation ShoesDialogAsk
 - (id)init
 {
   if ((self = [super initWithContentRect: NSMakeRect(0, 0, 340, 140)
@@ -1287,7 +1287,7 @@ shoes_native_edit_line_set_text(SHOES_CONTROL_REF ref, char *msg)
 VALUE
 shoes_native_edit_line_cursor_to_end(SHOES_CONTROL_REF ref)
 {
-  // TODO: 
+  // TODO:
 }
 
 
@@ -1523,8 +1523,8 @@ shoes_native_dialog_color(shoes_app *app)
 VALUE
 shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
 {
-  //GLOBAL_APP(app);
-  ACTUAL_APP(app);
+  GLOBAL_APP(app);
+  //ACTUAL_APP(app);
   NSString *appstr = [[NSString alloc] initWithUTF8String: RSTRING_PTR(app->title)];
   rb_arg_list args;
   rb_parse_args(argc, argv, "S|h", &args);
@@ -1565,8 +1565,8 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
   VALUE answer = Qnil;
-  //GLOBAL_APP(app);
-  ACTUAL_APP(app);
+  GLOBAL_APP(app);
+  //ACTUAL_APP(app);
   char *rbcTitle = RSTRING_PTR(app->title);
   NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
   rb_parse_args(argc, argv, "S|h", &args);
@@ -1589,14 +1589,28 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
       }
     }
 
+    ShoesDialogAsk *alert = [[ShoesDialogAsk alloc] init];
+    NSRect iconPanelRect = NSMakeRect(0,0, 80, 300);
+    NSView *iconPanelView = [[NSView alloc] initWithFrame: iconPanelRect];
+    NSRect ctlPanelRect = NSMakeRect(81, 0, 220, 300);
+    NSView *ctlPanelView = [[NSView alloc] initWithFrame: ctlPanelRect];
+    [[alert contentView] addSubview: iconPanelView];
+    [[alert contentView] addSubview: ctlPanelView];
+
     NSApplication *NSApp = [NSApplication sharedApplication];
-    ShoesAlert *alert = [[ShoesAlert alloc] init];
+    NSImage *icon = [NSApp applicationIconImage];
+    NSRect iconRect = NSMakeRect(10,50,64,64);
+    NSImageView *ictl = [[NSImageView alloc] initWithFrame: iconRect];
+    [ictl setImage: icon];
+    [ictl setEditable: false];
+    [iconPanelView addSubview: ictl];
+
     NSButton *okButton = [[[NSButton alloc] initWithFrame:
-    NSMakeRect(244, 10, 88, 30)] autorelease];
+      NSMakeRect(244, 10, 88, 30)] autorelease];
     NSButton *cancelButton = [[[NSButton alloc] initWithFrame:
-    NSMakeRect(156, 10, 88, 30)] autorelease];
+      NSMakeRect(156, 10, 88, 30)] autorelease];
     NSTextField *text = [[[NSTextField alloc] initWithFrame:
-    NSMakeRect(20, 110, 260, 18)] autorelease];
+      NSMakeRect(20, 110, 260, 18)] autorelease];
     NSTextField *input;
     if (RTEST(ATTR(args.a[1], secret)))
       input = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(20, 72, 300, 24)];
@@ -1609,19 +1623,23 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
     [text setBackgroundColor: [NSColor windowBackgroundColor]];
     [text setEditable: NO];
     [text setSelectable: NO];
-    [[alert contentView] addSubview: text];
+    //[[alert contentView] addSubview: text];
+    [ctlPanelView addSubview: text];
     [input setStringValue:@""];
-    [[alert contentView] addSubview: input];
+    //[[alert contentView] addSubview: input];
+    [ctlPanelView addSubview: input];
     [okButton setTitle: @"OK"];
     [okButton setBezelStyle: 1];
     [okButton setTarget: alert];
     [okButton setAction: @selector(okClick:)];
     [[alert contentView] addSubview: okButton];
+    //[ctlPanelView addSubview: okButton];
     [cancelButton setTitle: @"Cancel"];
     [cancelButton setBezelStyle: 1];
     [cancelButton setTarget: alert];
     [cancelButton setAction: @selector(cancelClick:)];
     [[alert contentView] addSubview: cancelButton];
+    //[ctlPanelView addSubview: cancelButton];
     [alert setDefaultButtonCell: okButton];
     [NSApp runModalForWindow: alert];
     if ([alert accepted])
@@ -1637,8 +1655,8 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
   char *msg;
   VALUE quiz;
   VALUE answer = Qnil;
-  //GLOBAL_APP(app);
-  ACTUAL_APP(app);
+  GLOBAL_APP(app);
+  //ACTUAL_APP(app);
   char *rbcTitle = RSTRING_PTR(app->title);
   NSString *appstr = [[NSString alloc] initWithCString: rbcTitle encoding: NSUTF8StringEncoding];
   rb_arg_list args;
@@ -1664,12 +1682,22 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
     quiz = args.a[0];
     quiz = shoes_native_to_s(quiz);
     msg = RSTRING_PTR(quiz);
+    /*
     NSAlert *alert = [NSAlert alertWithMessageText: deftitle
       defaultButton: @"OK" alternateButton: @"Cancel" otherButton:nil
       informativeTextWithFormat: [NSString stringWithUTF8String: msg]];
     answer = ([alert runModal] == NSOKButton ? Qtrue : Qfalse);
-  });
-  return answer;
+    });
+    return answer;
+    */
+    NSAlert *alert = [[NSAlert alloc] init];
+    [alert setMessageText: deftitle];
+    [alert setInformativeText: [NSString stringWithUTF8String: msg]];
+    [alert addButtonWithTitle: @"OK"];
+    [alert addButtonWithTitle: @"Cancel"];
+    answer = ([alert runModal] == NSAlertFirstButtonReturn ? Qtrue : Qfalse);
+    });
+    return answer;
 }
 
 VALUE

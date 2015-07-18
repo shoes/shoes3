@@ -71,12 +71,40 @@ class Shoes
       show_manual
     end
 
+    opts.on("--console", "display console") do |c|
+      if ENV['console_loop']
+        show_log # need something on the screen for Shoes- FIXME
+        show_console
+        require 'readline'
+        require 'io/console'
+        Thread.new do
+          loop do
+            #$stdout.write "prompt: "
+            #ln = $stdin.gets
+            #ln = $stdin.readline
+            #Readline::vi_editing_mode
+            ln = Readline::readline('> ', false)
+            #ln = STDIN.cooked(&:gets)
+
+            if ln.strip == 'quit' 
+              $stderr.write "really quit (y/n)"
+              ans = $stdin.gets.strip
+              exit if ans == 'y'
+            end
+            $stdout.puts "Shoes: #{ln}"
+          end
+        end
+      else
+        show_console
+      end
+    end
+    
     opts.on("--old-package",
             "(Obsolete) Package a Shoes app for Windows, OS X and Linux.") do |s|
       make_pack
     end
-
-    opts.on("-p", "--cobbler",
+ 
+    opts.on("-c", "--cobbler", 
             "Maintain Shoes installation") do |c|
       cobbler
     end
@@ -184,10 +212,10 @@ class Shoes
         stack do
           background black(0.2), :curve => 8
           para link(strong("Open an App")) { Shoes.show_selector and close }, :margin => 10, :margin_bottom => 4
-#          para link(strong("Debug an App")) { Shoes.show_selector true and close }, :margin => 10, :margin_bottom => 4
+#         para link(strong("Debug an App")) { Shoes.show_selector true and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Package my script (shy)")) { Shoes.package_app and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Package an App with Shoes")) {Shoes.app_package and close }, :margin => 10, :margin_bottom => 4
-#          para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
+#         para link("Obsolete: Package") { Shoes.make_pack and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Read the Manual")) { Shoes.show_manual and close }, :margin => 10, :margin_bottom => 4
           para link(strong("Maintain Shoes")) {Shoes.cobbler and close}, :margin => 10
         end
