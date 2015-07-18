@@ -179,11 +179,11 @@ void tesi_moveCursor(void *p, int x, int y) {
 
 	
 }
-void tesi_insertLine(void *p) {
+void tesi_insertLine(void *p, int y) {
 	printf("Insert Line\n");
 }
 
-void tesi_eraseLine(void *p) {
+void tesi_eraseLine(void *p, int y) {
 	GtkTextIter iter, s, e;
 	GtkTextBuffer *buffer;
 	GtkTextView *view = GTK_TEXT_VIEW(p);
