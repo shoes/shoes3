@@ -390,7 +390,8 @@ shoes_app_visit(shoes_app *app, char *path)
   shoes_native_slot_clear(canvas);
   shoes_app_clear(app);
   shoes_app_reset_styles(app);
-   meth = rb_funcall(cShoes, s_run, 1, app->location = rb_str_new2(path));
+  // calling Shoes.run in shoes.rb
+  meth = rb_funcall(cShoes, s_run, 1, app->location = rb_str_new2(path));
 
   VALUE app_block = rb_iv_get(app->self, "@main_app");
   if (!NIL_P(app_block))
@@ -399,15 +400,17 @@ shoes_app_visit(shoes_app *app, char *path)
   exec.app = app;
   exec.block = rb_ary_entry(meth, 0);
   exec.args = rb_ary_entry(meth, 1);
-  if (rb_obj_is_kind_of(exec.block, rb_cUnboundMethod)) {
+  if (rb_obj_is_kind_of(exec.block, rb_cUnboundMethod)) { // Class style Shoes.app
     // VALUE klass = rb_unbound_get_class(exec.block);
     VALUE klass = rb_ary_entry(meth, 2);
+    // ssNestSlot = {:height => 1.0}; this slot becomes a fixed canvas nested in app->canvas
+    // this is going to be app.slot in Shoes side
     exec.canvas = app->nestslot = shoes_slot_new(klass, ssNestSlot, app->canvas);
     exec.block = rb_funcall(exec.block, s_bind, 1, exec.canvas);
     exec.ieval = 0;
     rb_ary_push(canvas->contents, exec.canvas);
-  } else {
-    exec.canvas = app->nestslot = app->canvas;
+  } else {                                                // Regular Shoes.app
+    exec.canvas = app->nestslot = app->canvas;  // app.slot in Shoes side
     exec.ieval = 1;
   }
 

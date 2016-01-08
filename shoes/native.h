@@ -1,3 +1,6 @@
+
+#include "canvas.h"
+
 //
 // shoes/native.h
 // Common native Shoes routines.

@@ -275,7 +275,12 @@ void shoes_native_slot_clear(shoes_canvas *canvas)
 
 void shoes_native_slot_paint(SHOES_SLOT_OS *slot)
 {
+  printf("queue draw :: canvas->stage : %d\n", ((shoes_canvas *)slot->owner)->stage);
   gtk_widget_queue_draw(slot->oscanvas);
+//  if (gtk_widget_get_window(slot->oscanvas) != 0) {
+//    GdkWindow *win = gtk_widget_get_window(slot->oscanvas);
+//    gdk_window_process_updates(win, TRUE);
+//  }
 }
 
 void shoes_native_slot_lengthen(SHOES_SLOT_OS *slot, int height, int endy)
@@ -536,7 +541,8 @@ shoes_canvas_gtk_paint(GtkWidget *widget, cairo_t *cr, gpointer data)
   // getting widget dirty area, already clipped
   cairo_rectangle_int_t rect;
   gdk_cairo_get_clip_rectangle(cr, &rect);
-  
+  printf("shoes_canvas_gtk_paint :: canvas->stage : %d\n", canvas->stage);
+  printf("shoes_canvas_gtk_paint :: canvas->attr :start ? : %d\n", RTEST(ATTR(canvas->attr, start)));
   shoes_canvas_paint(c);
   // Gtk3 doc says gtk_container_foreach is preferable over gtk_container_forall
   gtk_container_foreach(GTK_CONTAINER(widget), shoes_canvas_gtk_paint_children, canvas);

@@ -4543,6 +4543,49 @@ shoes_font(VALUE self, VALUE path)
     return shoes_canvas_c_##func(argc, argv, canvas); \
   }
 
+// FUNC_M(name, func, argn)
+// f(".start", start, -1)
+VALUE shoes_canvas_c_start(int argc, VALUE *argv, VALUE self)
+{
+  VALUE canvas, obj;
+  GET_STRUCT(canvas, self_t);
+  if (rb_ary_entry(self_t->app->nesting, 0) == self ||
+       ((rb_obj_is_kind_of(self, cWidget) || self == self_t->app->nestslot) &&
+        RARRAY_LEN(self_t->app->nesting) > 0))
+    canvas = rb_ary_entry(self_t->app->nesting, RARRAY_LEN(self_t->app->nesting) - 1);
+  else
+    canvas = self;
+
+  if (!rb_obj_is_kind_of(canvas, cCanvas)) {
+    printf("shoes_canvas_c_start :: Not a cCanvas : %s\n", "");
+    return ts_funcall2(canvas, rb_intern("start"), argc, argv);
+  }
+  printf("shoes_canvas_c_start :: a cCanvas : %s\n", "");
+  obj = call_cfunc(CASTHOOK(shoes_canvas_start), canvas, -1, argc, argv);
+//  name = ".start"
+//  char *n = ".start";
+//  if (n[0] == '+' && RARRAY_LEN(self_t->app->nesting) == 0) 
+//    shoes_canvas_repaint_all(self);
+
+  return obj;
+}
+VALUE shoes_app_c_start(int argc, VALUE *argv, VALUE self)
+{
+  VALUE canvas;
+  GET_STRUCT(app, app);
+  if (RARRAY_LEN(app->nesting) > 0)
+    canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1);
+  else
+    canvas = app->canvas;
+
+  if (!rb_obj_is_kind_of(canvas, cCanvas)) {
+    printf("shoes_app_c_start :: Not a cCanvas : %s\n", "");
+    return ts_funcall2(canvas, rb_intern("start"), argc, argv);
+  }
+  printf("shoes_app_c_start :: a cCanvas : %s\n", "");
+  return shoes_canvas_c_start(argc, argv, canvas);
+}
+
 //
 // See ruby.h for the complete list of App methods which redirect to Canvas.
 //
@@ -4698,6 +4741,9 @@ shoes_ruby_init()
 
   CANVAS_DEFS(RUBY_M);
 
+  rb_define_method(cCanvas, "start", CASTHOOK(shoes_canvas_c_start), -1);
+  rb_define_method(cApp, "start", CASTHOOK(shoes_app_c_start), -1);
+  
   //
   // Shoes Kernel methods
   //

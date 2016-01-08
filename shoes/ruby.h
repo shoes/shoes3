@@ -282,7 +282,7 @@ SYMBOL_DEFS(SYMBOL_EXTERN);
   f("+stack", stack, -1); \
   f("+mask", mask, -1); \
   f("+widget", widget, -1); \
-  f(".start", start, -1); \
+  /*f(".start", start, -1);*/ \
   f(".finish", finish, -1); \
   f(".hover", hover, -1); \
   f(".leave", leave, -1); \
