@@ -690,12 +690,6 @@ shoes_canvas_border(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
-shoes_canvas_video(int argc, VALUE *argv, VALUE self)
-{
-  rb_raise(eNotImpl, "no video support");
-}
-
-VALUE
 shoes_canvas_image(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
