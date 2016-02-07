@@ -14,6 +14,9 @@ if ENV['GDB']
 else
   LINUX_CFLAGS = "-O -Wall"
 end
+
+ENV['VIDEO'] = "true"
+
 # figure out which ruby we need.
 rv =  RUBY_VERSION[/\d.\d/]
 
@@ -22,11 +25,13 @@ LINUX_CFLAGS << " -DRUBY_1_9"
 LINUX_CFLAGS << " -DDEBUG" if ENV['DEBUG']
 LINUX_CFLAGS << " -DGTK3" unless APP['GTK'] == 'gtk+-2.0'
 LINUX_CFLAGS << " -DSHOES_GTK -fPIC -shared"
+LINUX_CFLAGS << " -DVIDEO" if ENV['VIDEO']
 # Following line may need handcrafting
 LINUX_CFLAGS << " -I/usr/include/"
 LINUX_CFLAGS << " #{`pkg-config --cflags #{APP['GTK']}`.strip}"
 
 CC = "gcc"
+
 if APP['GTK'] == 'gtk+-2.0'
   file_list = %w(shoes/native/gtk.c shoes/http/rbload.c) + ["shoes/*.c"] + ["shoes/console/*.c"]
 else
@@ -35,6 +40,8 @@ else
                shoes/native/gtkscrolledwindowalt.c shoes/native/gtkprogressbaralt.c 
                shoes/http/rbload.c) + ["shoes/*.c"] + ["shoes/console/*.c"]
 end
+file_list << "shoes/video/video.c" if ENV['VIDEO']
+
 SRC = FileList[*file_list]
 OBJ = SRC.map do |x|
   x.gsub(/\.\w+$/, '.o')

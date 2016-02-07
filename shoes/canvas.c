@@ -690,12 +690,6 @@ shoes_canvas_border(int argc, VALUE *argv, VALUE self)
 }
 
 VALUE
-shoes_canvas_video(int argc, VALUE *argv, VALUE self)
-{
-  rb_raise(eNotImpl, "no video support");
-}
-
-VALUE
 shoes_canvas_image(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
@@ -1708,7 +1702,7 @@ shoes_canvas_ccall(VALUE self, ccallfunc func, ccallfunc2 func2, unsigned char c
   shoes_canvas *self_t, *pc;
   Data_Get_Struct(self, shoes_canvas, self_t);
 
-  if (check)
+  if (check) // check if already hidden by a parent canvas
   {
     pc = self_t;
     while (!NIL_P(pc->parent))
@@ -1722,7 +1716,7 @@ shoes_canvas_ccall(VALUE self, ccallfunc func, ccallfunc2 func2, unsigned char c
   if (!NIL_P(self_t->parent))
   {
     Data_Get_Struct(self_t->parent, shoes_canvas, pc);
-    if (DC(self_t->slot) != DC(pc->slot))
+    if (DC(self_t->slot) != DC(pc->slot)) // if actual canvas native widget != parent canvas native widget
       func2(DC(self_t->slot));
   }
 
@@ -1827,6 +1821,11 @@ shoes_canvas_send_start(VALUE self)
       shoes_safe_block(self, start, rb_ary_new3(1, self));
     }
   }
+  
+  /* internal private attribute used in fiddle-video protocol 
+     letting Shoes know when drawable is avalaible, so we don't hijack start event
+   */ 
+  shoes_hash_set(canvas->attr, rb_intern("started"), Qtrue);
 }
 
 static void
