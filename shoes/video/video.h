@@ -21,7 +21,7 @@ typedef struct {
 } shoes_video;
 
 VALUE cVideo; // ruby.c line 16
-
+const rb_data_type_t shoes_video_type;
 
 VALUE shoes_canvas_video(int, VALUE*, VALUE);
 VALUE shoes_canvas_c_video(int, VALUE*, VALUE);

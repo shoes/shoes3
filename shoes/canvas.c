@@ -1294,7 +1294,8 @@ shoes_canvas_draw(VALUE self, VALUE c, VALUE actual)
     {
       shoes_canvas *c1;
       VALUE ele = rb_ary_entry(self_t->contents, i);
-      Data_Get_Struct(ele, shoes_canvas, c1);
+      if (rb_obj_is_kind_of(ele, cCanvas))
+        Data_Get_Struct(ele, shoes_canvas, c1);
 
       if (shoes_canvas_inherits(ele, self_t))
       {

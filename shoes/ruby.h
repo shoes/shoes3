@@ -136,6 +136,16 @@ VALUE shoes_exit_setup(VALUE);
   shoes_##ele *var; \
   Data_Get_Struct(self, shoes_##ele, var)
 
+#define GET_TypedSTRUCT(ele, var) \
+  shoes_##ele *var; \
+  TypedData_Get_Struct(self, shoes_##ele, &shoes_##ele##_type, var)
+
+#define GET_TypedSTRUCT2(rbObject, ele, var) \
+  shoes_##ele *var; \
+  TypedData_Get_Struct(rbObject, shoes_##ele, &shoes_##ele##_type, var)
+
+#define TYPED_STRUCT_SZ(base) (size_t (*)(const void *))sizeof(base)
+
 
 //
 // Common funcs for dealing with attribute hashes

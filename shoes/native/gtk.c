@@ -1123,8 +1123,10 @@ shoes_native_control_free(SHOES_CONTROL_REF ref)
 void
 surface_on_realize(SHOES_CONTROL_REF ref, gpointer data) {
   VALUE rbvideo = (VALUE)data;
-  shoes_video *video;
-  Data_Get_Struct(rbvideo, shoes_video, video);
+//  shoes_video *video;
+//  Data_Get_Struct(rbvideo, shoes_video, video);
+//  TypedData_Get_Struct(rbvideo, shoes_video, &shoes_video_type, video);
+  GET_TypedSTRUCT2(rbvideo, video, video);
   video->realized = 1;
 }
 

@@ -606,8 +606,13 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
 VALUE
 shoes_basic_remove(VALUE self)
 {
-  GET_STRUCT(basic, self_t);
-  shoes_canvas_remove_item(self_t->parent, self, 0, 0);
+  /* Temporary while fixing TypedData new API */
+  shoes_basic* self_t;
+  if (RTYPEDDATA_P(self))
+    self_t = (shoes_basic*)RTYPEDDATA_DATA(self);
+  else 
+    self_t = (shoes_basic*)rb_data_object_get(self);
+  
   shoes_canvas_repaint_all(self_t->parent);
   return self;
 }
