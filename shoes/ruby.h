@@ -136,6 +136,9 @@ VALUE shoes_exit_setup(VALUE);
   shoes_##ele *var; \
   Data_Get_Struct(self, shoes_##ele, var)
 
+/*
+ * New Extension API 
+ */
 #define GET_TypedSTRUCT(ele, var) \
   shoes_##ele *var; \
   TypedData_Get_Struct(self, shoes_##ele, &shoes_##ele##_type, var)
@@ -145,6 +148,18 @@ VALUE shoes_exit_setup(VALUE);
   TypedData_Get_Struct(rbObject, shoes_##ele, &shoes_##ele##_type, var)
 
 #define TYPED_STRUCT_SZ(base) (size_t (*)(const void *))sizeof(base)
+
+#define TypedData_type_new(base) \
+const rb_data_type_t base##_type = { \
+    #base "_type", \
+    { \
+      (void (*)(void *))base##_mark, \
+      (void (*)(void *))base##_free, \
+      (size_t (*)(const void *))sizeof(base), \
+    }, \
+    0, 0, \
+    RUBY_TYPED_FREE_IMMEDIATELY, \
+}
 
 
 //

@@ -94,26 +94,26 @@ void shoes_video_mark(shoes_video *video) {
   rb_gc_mark_maybe(video->attr);
 }
 
-
 static void shoes_video_free(shoes_video *video) {
   RUBY_CRITICAL(SHOE_FREE(video));
 }
 
-const rb_data_type_t shoes_video_type = {
-    "video_type",
-    {
-      (void (*)(void *))shoes_video_mark, 
-      (void (*)(void *))shoes_video_free, 
-      TYPED_STRUCT_SZ(shoes_video),
-    },
-    0, 0,
-    RUBY_TYPED_FREE_IMMEDIATELY,
-};
+// const rb_data_type_t shoes_video_type = {
+//     "video_type",
+//     {
+//       (void (*)(void *))shoes_video_mark, 
+//       (void (*)(void *))shoes_video_free, 
+//       TYPED_STRUCT_SZ(shoes_video),
+//     },
+//     0, 0,
+//     RUBY_TYPED_FREE_IMMEDIATELY,
+// };
+TypedData_type_new(shoes_video);
 
 VALUE shoes_video_alloc(VALUE klass) {
   shoes_video *video = SHOE_ALLOC(shoes_video);
   SHOE_MEMZERO(video, shoes_video, 1);
-
+  
 //  VALUE obj = Data_Wrap_Struct(klass, shoes_video_mark, shoes_video_free, video);
   VALUE obj = TypedData_Wrap_Struct(klass, &shoes_video_type, video);
   video->attr = Qnil;
@@ -128,6 +128,7 @@ VALUE shoes_video_new(VALUE attr, VALUE parent)
   VALUE obj = shoes_video_alloc(cVideo);
 //  Data_Get_Struct(obj, shoes_video, video);
   TypedData_Get_Struct(obj, shoes_video, &shoes_video_type, video);
+printf("shoes_video_type %s", RTYPEDDATA_TYPE(obj)->wrap_struct_name);
 
   if (NIL_P(attr)) attr = rb_hash_new();
   video->attr = attr;
@@ -167,10 +168,10 @@ VALUE shoes_video_new(VALUE attr, VALUE parent)
  * in ruby side via Fiddle
  */
 VALUE shoes_video_get_drawable(VALUE self) {
-//  shoes_video *self_t;
+  shoes_video *self_t;
 //  Data_Get_Struct(self, shoes_video, self_t);
-//  TypedData_Get_Struct(self, shoes_video, &shoes_video_type, self_t);
-  GET_TypedSTRUCT(video, self_t);
+  TypedData_Get_Struct(self, shoes_video, &shoes_video_type, self_t);
+  //GET_TypedSTRUCT(video, self_t);
 #ifdef SHOES_GTK_WIN32
   return ULONG2NUM(GDK_WINDOW_HWND(gtk_widget_get_window(self_t->ref)));
 #else
@@ -187,10 +188,10 @@ VALUE shoes_video_get_drawable(VALUE self) {
 */ 
 VALUE
 shoes_video_get_realized(VALUE self) {
-//  shoes_video *self_t;
+  shoes_video *self_t;
 //  Data_Get_Struct(self, shoes_video, self_t);
-//  TypedData_Get_Struct(self, shoes_video, &shoes_video_type, self_t);
-  GET_TypedSTRUCT(video, self_t);
+  TypedData_Get_Struct(self, shoes_video, &shoes_video_type, self_t);
+  //GET_TypedSTRUCT(video, self_t);
   
   return self_t->realized ? Qtrue : Qfalse;
 }
