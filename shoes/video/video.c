@@ -128,7 +128,7 @@ VALUE shoes_video_new(VALUE attr, VALUE parent)
   VALUE obj = shoes_video_alloc(cVideo);
 //  Data_Get_Struct(obj, shoes_video, video);
   TypedData_Get_Struct(obj, shoes_video, &shoes_video_type, video);
-printf("shoes_video_type %s", RTYPEDDATA_TYPE(obj)->wrap_struct_name);
+printf("wrap_struct_name : %s\n", RTYPEDDATA_TYPE(obj)->wrap_struct_name);
 
   if (NIL_P(attr)) attr = rb_hash_new();
   video->attr = attr;
