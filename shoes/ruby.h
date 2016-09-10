@@ -141,27 +141,23 @@ VALUE shoes_exit_setup(VALUE);
 /*
  * New Extension API 
  */
-#define GET_TypedSTRUCT(ele, var) \
-  shoes_##ele *var; \
-  TypedData_Get_Struct(self, shoes_##ele, &shoes_##ele##_type, var)
+#define GET_TypedSTRUCT(wrapped, var) \
+  wrapped *var; \
+  TypedData_Get_Struct(self, wrapped, &wrapped##_type, var)
 
-#define GET_TypedSTRUCT2(rbObject, ele, var) \
-  shoes_##ele *var; \
-  TypedData_Get_Struct(rbObject, shoes_##ele, &shoes_##ele##_type, var)
-
-#define GET_TypedSTRUCT2b(rbObject, wrapped, var) \
+#define GET_TypedSTRUCT2(rbObject, wrapped, var) \
   wrapped *var; \
   TypedData_Get_Struct(rbObject, wrapped, &wrapped##_type, var)
 
-#define TYPED_STRUCT_SZ(base) (size_t (*)(const void *))sizeof(base)
+#define TYPED_STRUCT_SZ(wrapped) (size_t (*)(const void *))sizeof(wrapped)
 
-#define TypedDATA_type_new(base) \
-const rb_data_type_t base##_type = { \
-    #base "_type", \
+#define TypedDATA_type_new(wrapped) \
+const rb_data_type_t wrapped##_type = { \
+    #wrapped "_type", \
     { \
-      (void (*)(void *))base##_mark, \
-      (void (*)(void *))base##_free, \
-      (size_t (*)(const void *))sizeof(base), \
+      (void (*)(void *))wrapped##_mark, \
+      (void (*)(void *))wrapped##_free, \
+      (size_t (*)(const void *))sizeof(wrapped), \
     }, \
     0, 0, \
     RUBY_TYPED_FREE_IMMEDIATELY, \

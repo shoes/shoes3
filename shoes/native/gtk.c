@@ -1126,7 +1126,7 @@ surface_on_realize(SHOES_CONTROL_REF ref, gpointer data) {
   //shoes_video *video;
   //  Data_Get_Struct(rbvideo, shoes_video, video);
   //TypedData_Get_Struct(rbvideo, shoes_video, &shoes_video_type, video);
-  GET_TypedSTRUCT2(rbvideo, video, video);
+  GET_TypedSTRUCT2(rbvideo, shoes_video, video);
   video->realized = 1;
 }
 

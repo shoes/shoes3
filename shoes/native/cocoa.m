@@ -360,7 +360,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 //    shoes_video *vid;
 //    Data_Get_Struct(video, shoes_video, vid);
 //    TypedData_Get_Struct(video, shoes_video, &shoes_video_type, vid);
-    GET_TypedSTRUCT2(video, video, vid);
+    GET_TypedSTRUCT2(video, shoes_video, vid);
     vid->realized = 1;
   }
 }

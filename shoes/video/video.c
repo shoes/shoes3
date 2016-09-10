@@ -114,7 +114,7 @@ VALUE shoes_video_alloc(VALUE klass) {
 VALUE shoes_video_new(VALUE attr, VALUE parent)
 {
   VALUE obj = shoes_video_alloc(cVideo);
-  GET_TypedSTRUCT2(obj, video, self_t);
+  GET_TypedSTRUCT2(obj, shoes_video, self_t);
 
   if (NIL_P(attr)) attr = rb_hash_new();
   self_t->attr = attr;
@@ -154,7 +154,7 @@ VALUE shoes_video_new(VALUE attr, VALUE parent)
  * in ruby side via Fiddle
  */
 VALUE shoes_video_get_drawable(VALUE self) {
-  GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(shoes_video, self_t);
 #ifdef SHOES_GTK_WIN32
   return ULONG2NUM(GDK_WINDOW_HWND(gtk_widget_get_window(self_t->ref)));
 #else
@@ -172,7 +172,7 @@ VALUE shoes_video_get_drawable(VALUE self) {
  */ 
 VALUE
 shoes_video_get_realized(VALUE self) {
-  GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(shoes_video, self_t);
   
   return self_t->realized ? Qtrue : Qfalse;
 }
@@ -193,7 +193,7 @@ shoes_video_get_realized(VALUE self) {
 VALUE shoes_video_draw(VALUE self, VALUE c, VALUE actual) {
   shoes_place place;
   shoes_canvas *canvas;
-  GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(shoes_video, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
 
   shoes_place_decide(&place, c, self_t->attr, canvas->place.iw, canvas->place.ih, REL_CANVAS, TRUE);
@@ -217,32 +217,32 @@ VALUE shoes_video_draw(VALUE self, VALUE c, VALUE actual) {
 
 
 VALUE shoes_video_get_parent(VALUE self) {
-  GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(shoes_video, self_t);
   return self_t->parent;
 }
 
 VALUE shoes_video_get_left(VALUE self) {
-  GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(shoes_video, self_t);
   return INT2NUM(self_t->place.ix + self_t->place.dx);
 }
 
 VALUE shoes_video_get_top(VALUE self) {
-  GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(shoes_video, self_t);
   return INT2NUM(self_t->place.iy + self_t->place.dy);
 }
 
 VALUE shoes_video_get_height(VALUE self) {
-  GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(shoes_video, self_t);
   return INT2NUM(self_t->place.h);
 }
 
 VALUE shoes_video_get_width(VALUE self) {
-  GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(shoes_video, self_t);
   return INT2NUM(self_t->place.w);
 }
 
 VALUE shoes_video_show(VALUE self) {
-  GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(shoes_video, self_t);
   ATTRSET(self_t->attr, hidden, Qfalse);
   shoes_native_control_show(self_t->ref);
   shoes_canvas_repaint_all(self_t->parent);
@@ -250,7 +250,7 @@ VALUE shoes_video_show(VALUE self) {
 }
 
 VALUE shoes_video_hide(VALUE self) {
-  GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(shoes_video, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
   shoes_native_control_hide(self_t->ref);
   shoes_canvas_repaint_all(self_t->parent);
@@ -258,14 +258,14 @@ VALUE shoes_video_hide(VALUE self) {
 }
 
 VALUE shoes_video_toggle(VALUE self) {
-  GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(shoes_video, self_t);
   ATTR(self_t->attr, hidden) == Qtrue ?
   shoes_video_show(self) : shoes_video_hide(self);
   return self; 
 }
 
 VALUE shoes_video_remove(VALUE self) {
-  GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(shoes_video, self_t);
   shoes_canvas *canvas;
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
 
@@ -285,7 +285,7 @@ VALUE shoes_video_remove(VALUE self) {
 
 VALUE shoes_video_style(int argc, VALUE *argv, VALUE self) {
   rb_arg_list args;
-  GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(shoes_video, self_t);
   switch (rb_parse_args(argc, argv, "h,", &args)) {
     case 1:
       if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new();
@@ -298,7 +298,7 @@ VALUE shoes_video_style(int argc, VALUE *argv, VALUE self) {
 }
 
 VALUE shoes_video_displace(VALUE self, VALUE x, VALUE y) {
-  GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(shoes_video, self_t);
   ATTRSET(self_t->attr, displace_left, x);
   ATTRSET(self_t->attr, displace_top, y);
   shoes_canvas_repaint_all(self_t->parent);
@@ -306,7 +306,7 @@ VALUE shoes_video_displace(VALUE self, VALUE x, VALUE y) {
 }
 
 VALUE shoes_video_move(VALUE self, VALUE x, VALUE y) {
-  GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(shoes_video, self_t);
   ATTRSET(self_t->attr, left, x);
   ATTRSET(self_t->attr, top, y);
   shoes_canvas_repaint_all(self_t->parent);
