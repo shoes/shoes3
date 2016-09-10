@@ -98,23 +98,12 @@ static void shoes_video_free(shoes_video *video) {
   RUBY_CRITICAL(SHOE_FREE(video));
 }
 
-// const rb_data_type_t shoes_video_type = {
-//     "video_type",
-//     {
-//       (void (*)(void *))shoes_video_mark, 
-//       (void (*)(void *))shoes_video_free, 
-//       TYPED_STRUCT_SZ(shoes_video),
-//     },
-//     0, 0,
-//     RUBY_TYPED_FREE_IMMEDIATELY,
-// };
-TypedData_type_new(shoes_video);
+TypedDATA_type_new(shoes_video);
 
 VALUE shoes_video_alloc(VALUE klass) {
   shoes_video *video = SHOE_ALLOC(shoes_video);
   SHOE_MEMZERO(video, shoes_video, 1);
   
-//  VALUE obj = Data_Wrap_Struct(klass, shoes_video_mark, shoes_video_free, video);
   VALUE obj = TypedData_Wrap_Struct(klass, &shoes_video_type, video);
   video->attr = Qnil;
   video->parent = Qnil;
@@ -124,20 +113,17 @@ VALUE shoes_video_alloc(VALUE klass) {
 
 VALUE shoes_video_new(VALUE attr, VALUE parent)
 {
-  shoes_video *video;
   VALUE obj = shoes_video_alloc(cVideo);
-//  Data_Get_Struct(obj, shoes_video, video);
-  TypedData_Get_Struct(obj, shoes_video, &shoes_video_type, video);
-printf("wrap_struct_name : %s\n", RTYPEDDATA_TYPE(obj)->wrap_struct_name);
+  GET_TypedSTRUCT2(obj, video, self_t);
 
   if (NIL_P(attr)) attr = rb_hash_new();
-  video->attr = attr;
-  video->parent = shoes_find_canvas(parent);
+  self_t->attr = attr;
+  self_t->parent = shoes_find_canvas(parent);
   
   /* getting surface dimensions, first try at video widget, then parent canvas, then video track size */
   // TODO: this needs review to make sure it does what was intended
   shoes_canvas *canvas;
-  Data_Get_Struct(video->parent, shoes_canvas, canvas);
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
   if ( !RTEST(ATTR(attr, width)) ) {
     if ( RTEST(ATTR(canvas->attr, width)) ) {
       ATTRSET(attr, width, ATTR(canvas->attr, width));
@@ -159,7 +145,7 @@ printf("wrap_struct_name : %s\n", RTYPEDDATA_TYPE(obj)->wrap_struct_name);
       rb_hash_aset(attr, ID2SYM(rb_intern("using_video_dim")), Qtrue);
     }
   }
-  video->ref = shoes_native_surface_new(attr, obj);
+  self_t->ref = shoes_native_surface_new(attr, obj);
   return obj;
 }
 
@@ -168,10 +154,7 @@ printf("wrap_struct_name : %s\n", RTYPEDDATA_TYPE(obj)->wrap_struct_name);
  * in ruby side via Fiddle
  */
 VALUE shoes_video_get_drawable(VALUE self) {
-  shoes_video *self_t;
-//  Data_Get_Struct(self, shoes_video, self_t);
-  TypedData_Get_Struct(self, shoes_video, &shoes_video_type, self_t);
-  //GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(video, self_t);
 #ifdef SHOES_GTK_WIN32
   return ULONG2NUM(GDK_WINDOW_HWND(gtk_widget_get_window(self_t->ref)));
 #else
@@ -183,15 +166,13 @@ VALUE shoes_video_get_drawable(VALUE self) {
 #endif
 }
 
-/* internal method used in fiddle-video protocol 
-*  letting Shoes know when drawable is avalaible 
-*/ 
+/* 
+ *  internal method used in fiddle-video protocol 
+ *  letting Shoes know when drawable is avalaible 
+ */ 
 VALUE
 shoes_video_get_realized(VALUE self) {
-  shoes_video *self_t;
-//  Data_Get_Struct(self, shoes_video, self_t);
-  TypedData_Get_Struct(self, shoes_video, &shoes_video_type, self_t);
-  //GET_TypedSTRUCT(video, self_t);
+  GET_TypedSTRUCT(video, self_t);
   
   return self_t->realized ? Qtrue : Qfalse;
 }
@@ -210,11 +191,9 @@ shoes_video_get_realized(VALUE self) {
   }
 
 VALUE shoes_video_draw(VALUE self, VALUE c, VALUE actual) {
-  shoes_video *self_t;
   shoes_place place;
   shoes_canvas *canvas;
-//  Data_Get_Struct(self, shoes_video, self_t);
-  TypedData_Get_Struct(self, shoes_video, &shoes_video_type, self_t);
+  GET_TypedSTRUCT(video, self_t);
   Data_Get_Struct(c, shoes_canvas, canvas);
 
   shoes_place_decide(&place, c, self_t->attr, canvas->place.iw, canvas->place.ih, REL_CANVAS, TRUE);
@@ -238,37 +217,31 @@ VALUE shoes_video_draw(VALUE self, VALUE c, VALUE actual) {
 
 
 VALUE shoes_video_get_parent(VALUE self) {
-//  GET_STRUCT(video, self_t);
   GET_TypedSTRUCT(video, self_t);
   return self_t->parent;
 }
 
 VALUE shoes_video_get_left(VALUE self) {
-//  GET_STRUCT(video, self_t);
   GET_TypedSTRUCT(video, self_t);
   return INT2NUM(self_t->place.ix + self_t->place.dx);
 }
 
 VALUE shoes_video_get_top(VALUE self) {
-//  GET_STRUCT(video, self_t);
   GET_TypedSTRUCT(video, self_t);
   return INT2NUM(self_t->place.iy + self_t->place.dy);
 }
 
 VALUE shoes_video_get_height(VALUE self) {
-//  GET_STRUCT(video, self_t);
   GET_TypedSTRUCT(video, self_t);
   return INT2NUM(self_t->place.h);
 }
 
 VALUE shoes_video_get_width(VALUE self) {
-//  GET_STRUCT(video, self_t);
   GET_TypedSTRUCT(video, self_t);
   return INT2NUM(self_t->place.w);
 }
 
 VALUE shoes_video_show(VALUE self) {
-//  GET_STRUCT(video, self_t);
   GET_TypedSTRUCT(video, self_t);
   ATTRSET(self_t->attr, hidden, Qfalse);
   shoes_native_control_show(self_t->ref);
@@ -277,7 +250,6 @@ VALUE shoes_video_show(VALUE self) {
 }
 
 VALUE shoes_video_hide(VALUE self) {
-//  GET_STRUCT(video, self_t);
   GET_TypedSTRUCT(video, self_t);
   ATTRSET(self_t->attr, hidden, Qtrue);
   shoes_native_control_hide(self_t->ref);
@@ -286,7 +258,6 @@ VALUE shoes_video_hide(VALUE self) {
 }
 
 VALUE shoes_video_toggle(VALUE self) {
-//  GET_STRUCT(video, self_t);
   GET_TypedSTRUCT(video, self_t);
   ATTR(self_t->attr, hidden) == Qtrue ?
   shoes_video_show(self) : shoes_video_hide(self);
@@ -294,7 +265,6 @@ VALUE shoes_video_toggle(VALUE self) {
 }
 
 VALUE shoes_video_remove(VALUE self) {
-//  GET_STRUCT(video, self_t);
   GET_TypedSTRUCT(video, self_t);
   shoes_canvas *canvas;
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
@@ -315,7 +285,6 @@ VALUE shoes_video_remove(VALUE self) {
 
 VALUE shoes_video_style(int argc, VALUE *argv, VALUE self) {
   rb_arg_list args;
-//  GET_STRUCT(video, self_t);
   GET_TypedSTRUCT(video, self_t);
   switch (rb_parse_args(argc, argv, "h,", &args)) {
     case 1:
@@ -329,7 +298,6 @@ VALUE shoes_video_style(int argc, VALUE *argv, VALUE self) {
 }
 
 VALUE shoes_video_displace(VALUE self, VALUE x, VALUE y) {
-//  GET_STRUCT(video, self_t);
   GET_TypedSTRUCT(video, self_t);
   ATTRSET(self_t->attr, displace_left, x);
   ATTRSET(self_t->attr, displace_top, y);
@@ -338,7 +306,6 @@ VALUE shoes_video_displace(VALUE self, VALUE x, VALUE y) {
 }
 
 VALUE shoes_video_move(VALUE self, VALUE x, VALUE y) {
-//  GET_STRUCT(video, self_t);
   GET_TypedSTRUCT(video, self_t);
   ATTRSET(self_t->attr, left, x);
   ATTRSET(self_t->attr, top, y);
@@ -382,7 +349,7 @@ void shoes_ruby_video_init() {
 
   /* video_c so we can use method 'video' on ruby side */
   rb_define_method(cCanvas, "+video_c" + 1, CASTHOOK(shoes_canvas_c_video), -1); /* from CANVAS_DEFS(RUBY_M) in ruby.c */
-  rb_define_method(cApp, "+video_c" + 1, CASTHOOK(shoes_app_c_video), -1);       /**/
+  rb_define_method(cApp, "+video_c" + 1, CASTHOOK(shoes_app_c_video), -1);       /* ditto */
 
   cVideo = rb_define_class_under(cTypes, "Video", rb_cObject);
   rb_define_alloc_func(cVideo, shoes_video_alloc);

@@ -132,6 +132,8 @@ VALUE shoes_exit_setup(VALUE);
 
 #define NUM2RGBINT(x) (rb_obj_is_kind_of(x, rb_cFloat) ? ROUND(NUM2DBL(x) * 255) : NUM2INT(x))
 #define DEF_COLOR(name, r, g, b) rb_hash_aset(cColors, ID2SYM(rb_intern("" # name)), shoes_color_new(r, g, b, 255))
+
+/* Deprecated Extension API */
 #define GET_STRUCT(ele, var) \
   shoes_##ele *var; \
   Data_Get_Struct(self, shoes_##ele, var)
@@ -149,7 +151,7 @@ VALUE shoes_exit_setup(VALUE);
 
 #define TYPED_STRUCT_SZ(base) (size_t (*)(const void *))sizeof(base)
 
-#define TypedData_type_new(base) \
+#define TypedDATA_type_new(base) \
 const rb_data_type_t base##_type = { \
     #base "_type", \
     { \

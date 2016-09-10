@@ -62,13 +62,13 @@ typedef struct {
   unsigned char flags;
 } shoes_place;
 
+/* Temporary while fixing TypedData new API */
 #define SETUP_BASIC() \
   shoes_basic *basic; \
   if (RTYPEDDATA_P(self)) \
     basic = (shoes_basic*)RTYPEDDATA_DATA(self); \
   else  \
     basic = (shoes_basic*)rb_data_object_get(self);
-//Data_Get_Struct(self, shoes_basic, basic);
 
 #define COPY_PENS(attr1, attr2) \
   if (NIL_P(ATTR(attr1, stroke))) ATTRSET(attr1, stroke, ATTR(attr2, stroke)); \
