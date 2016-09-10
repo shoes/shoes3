@@ -613,6 +613,7 @@ shoes_basic_remove(VALUE self)
   else 
     self_t = (shoes_basic*)rb_data_object_get(self);
   
+  shoes_canvas_remove_item(self_t->parent, self, 0, 0);
   shoes_canvas_repaint_all(self_t->parent);
   return self;
 }
