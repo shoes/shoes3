@@ -334,7 +334,8 @@ VALUE shoes_canvas_c_video(int argc, VALUE *argv, VALUE self) {
 VALUE shoes_app_c_video(int argc, VALUE *argv, VALUE self) {
   VALUE canvas;
   char *n = "+video";
-  GET_STRUCT(app, app);
+  GET_TypedSTRUCT(shoes_app, app);
+
   if (RARRAY_LEN(app->nesting) > 0)
     canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1);
   else

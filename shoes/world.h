@@ -36,19 +36,19 @@ extern SHOES_EXTERN shoes_world_t *shoes_world;
 #define GLOBAL_APP(appvar) \
   shoes_app *appvar = NULL; \
   if (RARRAY_LEN(shoes_world->apps) > 0) \
-    Data_Get_Struct(rb_ary_entry(shoes_world->apps, 0), shoes_app, appvar)\
+    TypedData_Get_Struct(rb_ary_entry(shoes_world->apps, 0), shoes_app, &shoes_app_type, appvar)
     
 // gtk uses this   
 #define GTK_APP_VAR(appvar) \
   shoes_app *appvar = NULL; \
   VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); \
-  Data_Get_Struct(actual_app, shoes_app, appvar);
+  TypedData_Get_Struct(actual_app, shoes_app, &shoes_app_type, appvar);
   
 // no longer used - TODO: remove after testing.
 #define ACTUAL_APP_NOPE(appvar) \
   shoes_app *appvar = NULL; \
   VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); \
-  Data_Get_Struct(actual_app, shoes_app, appvar);
+  TypedData_Get_Struct(actual_app, shoes_app, &shoes_app_type, appvar);
 
 #define ROUND(x) ((x) >= 0 ? (int)round((x)+0.5) : (int)round((x)-0.5))
 

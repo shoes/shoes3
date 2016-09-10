@@ -548,7 +548,11 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
         if ((REL_COORDS(rel) & REL_STICKY) && shoes_is_element(stuck))
         {
           shoes_element *element;
-          Data_Get_Struct(stuck, shoes_element, element);
+          if (RTYPEDDATA_P(stuck))   /* Temporary while fixing TypedData new API */
+            element = (shoes_element*)RTYPEDDATA_DATA(stuck);
+          else
+            element = (shoes_element*)rb_data_object_get(stuck);
+            // Data_Get_Struct(stuck, shoes_element, element);
           ox = element->place.x;
           oy = element->place.y;
         }
@@ -2045,7 +2049,7 @@ VALUE
 shoes_app_method_missing(int argc, VALUE *argv, VALUE self)
 {
   VALUE cname, canvas;
-  GET_STRUCT(app, app);
+  GET_TypedSTRUCT(shoes_app, app);
 
   cname = argv[0];
   canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1);
@@ -4554,7 +4558,7 @@ shoes_font(VALUE self, VALUE path)
   { \
     VALUE canvas; \
     char *n = name; \
-    GET_STRUCT(app, app); \
+    GET_TypedSTRUCT(shoes_app, app); \
     if (RARRAY_LEN(app->nesting) > 0) \
       canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
     else \

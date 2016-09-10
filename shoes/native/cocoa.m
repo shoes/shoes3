@@ -121,10 +121,11 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 }
 - (void)sendMotion: (NSEvent *)e ofType: (ID)type withButton: (int)b
 {
-  shoes_app *a;
+  // shoes_app *a;
   shoes_canvas *canvas;
   NSPoint p = [e locationInWindow];
-  Data_Get_Struct(app, shoes_app, a);
+  // Data_Get_Struct(app, shoes_app, a);
+  GET_TypedSTRUCT2(app, shoes_app, a);
   Data_Get_Struct(a->canvas, shoes_canvas, canvas);
   if (type == s_motion)
     shoes_app_motion(a, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly);
@@ -178,7 +179,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
   ID wheel;
   CGFloat dy = [e deltaY];
   NSPoint p = [e locationInWindow];
-  shoes_app *a;
+  // shoes_app *a;
 
   if (dy == 0)
     return;
@@ -190,19 +191,21 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
     dy = -dy;
   }
 
-  Data_Get_Struct(app, shoes_app, a);
+  // Data_Get_Struct(app, shoes_app, a);
+  GET_TypedSTRUCT2(app, shoes_app, a);
   for (; dy > 0.; dy--)
     shoes_app_wheel(a, wheel, ROUND(p.x), ROUND(p.y));
 }
 - (void)keyDown: (NSEvent *)e
 {
-  shoes_app *a;
+  // shoes_app *a;
   VALUE v = Qnil;
   NSUInteger modifier = [e modifierFlags];
   unsigned short key = [e keyCode];
   INIT;
 
-  Data_Get_Struct(app, shoes_app, a);
+  // Data_Get_Struct(app, shoes_app, a);
+  GET_TypedSTRUCT2(app, shoes_app, a);
   KEY_SYM(ESCAPE, escape)
   KEY_SYM(INSERT, insert)
   KEY_SYM(DELETE, delete)
@@ -272,8 +275,9 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 - (void)windowWillClose: (NSNotification *)n
 {
   if (!NIL_P(app)) {
-    shoes_app *a;
-    Data_Get_Struct(app, shoes_app, a);
+    // shoes_app *a;
+    // Data_Get_Struct(app, shoes_app, a);
+    GET_TypedSTRUCT2(app, shoes_app, a);
     shoes_app_remove(a);
   }
 }
