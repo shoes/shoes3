@@ -149,6 +149,10 @@ VALUE shoes_exit_setup(VALUE);
   shoes_##ele *var; \
   TypedData_Get_Struct(rbObject, shoes_##ele, &shoes_##ele##_type, var)
 
+#define GET_TypedSTRUCT2b(rbObject, wrapped, var) \
+  wrapped *var; \
+  TypedData_Get_Struct(rbObject, wrapped, &wrapped##_type, var)
+
 #define TYPED_STRUCT_SZ(base) (size_t (*)(const void *))sizeof(base)
 
 #define TypedDATA_type_new(base) \

@@ -21,6 +21,8 @@ typedef struct {
 } shoes_video;
 
 VALUE cVideo; // ruby.c line 16
+
+/* new extension API */
 const rb_data_type_t shoes_video_type;
 
 VALUE shoes_canvas_video(int, VALUE*, VALUE);
