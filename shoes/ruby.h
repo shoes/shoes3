@@ -141,17 +141,8 @@ VALUE shoes_exit_setup(VALUE);
 /*
  * New Extension API 
  */
-#define GET_TypedSTRUCT(wrapped, var) \
-  wrapped *var; \
-  TypedData_Get_Struct(self, wrapped, &wrapped##_type, var)
-
-#define GET_TypedSTRUCT2(rbObject, wrapped, var) \
-  wrapped *var; \
-  TypedData_Get_Struct(rbObject, wrapped, &wrapped##_type, var)
-
-#define TYPED_STRUCT_SZ(wrapped) (size_t (*)(const void *))sizeof(wrapped)
-
-#define TypedDATA_type_new(wrapped) \
+// creates the rb_data_type_t part of underlaying C foundation of a becoming ruby object
+#define TypedData_Type_New(wrapped) \
 const rb_data_type_t wrapped##_type = { \
     #wrapped "_type", \
     { \
@@ -162,6 +153,20 @@ const rb_data_type_t wrapped##_type = { \
     0, 0, \
     RUBY_TYPED_FREE_IMMEDIATELY, \
 }
+
+// unwraps a ruby object (implicit self), declare var of type wrapped
+#define Get_TypedStruct(wrapped, var) \
+  wrapped *var; \
+  TypedData_Get_Struct(self, wrapped, &wrapped##_type, var)
+
+// unwraps a ruby object (rbObject), declare var of type wrapped
+#define Get_TypedStruct2(rbObject, wrapped, var) \
+  wrapped *var; \
+  TypedData_Get_Struct(rbObject, wrapped, &wrapped##_type, var)
+
+// unwraps a ruby object (rbObject), "returns" the wrapped struct
+#define Get_TypedStruct3(rbObject, wrapped) \
+  (wrapped*)rb_check_typeddata((rbObject), (&wrapped##_type))
 
 
 //

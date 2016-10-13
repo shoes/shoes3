@@ -125,7 +125,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
   shoes_canvas *canvas;
   NSPoint p = [e locationInWindow];
   // Data_Get_Struct(app, shoes_app, a);
-  GET_TypedSTRUCT2(app, shoes_app, a);
+  Get_TypedStruct2(app, shoes_app, a);
   Data_Get_Struct(a->canvas, shoes_canvas, canvas);
   if (type == s_motion)
     shoes_app_motion(a, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly);
@@ -192,7 +192,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
   }
 
   // Data_Get_Struct(app, shoes_app, a);
-  GET_TypedSTRUCT2(app, shoes_app, a);
+  Get_TypedStruct2(app, shoes_app, a);
   for (; dy > 0.; dy--)
     shoes_app_wheel(a, wheel, ROUND(p.x), ROUND(p.y));
 }
@@ -205,7 +205,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
   INIT;
 
   // Data_Get_Struct(app, shoes_app, a);
-  GET_TypedSTRUCT2(app, shoes_app, a);
+  Get_TypedStruct2(app, shoes_app, a);
   KEY_SYM(ESCAPE, escape)
   KEY_SYM(INSERT, insert)
   KEY_SYM(DELETE, delete)
@@ -277,7 +277,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
   if (!NIL_P(app)) {
     // shoes_app *a;
     // Data_Get_Struct(app, shoes_app, a);
-    GET_TypedSTRUCT2(app, shoes_app, a);
+    Get_TypedStruct2(app, shoes_app, a);
     shoes_app_remove(a);
   }
 }
@@ -364,7 +364,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 //    shoes_video *vid;
 //    Data_Get_Struct(video, shoes_video, vid);
 //    TypedData_Get_Struct(video, shoes_video, &shoes_video_type, vid);
-    GET_TypedSTRUCT2(video, shoes_video, vid);
+    Get_TypedStruct2(video, shoes_video, vid);
     vid->realized = 1;
   }
 }

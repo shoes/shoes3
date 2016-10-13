@@ -577,6 +577,9 @@ VALUE shoes_svghandle_get_width(VALUE);
 VALUE shoes_svghandle_get_height(VALUE);
 VALUE shoes_svghandle_has_group(VALUE, VALUE);
 
+const rb_data_type_t shoes_svghandle_type;
+const rb_data_type_t shoes_svg_type;
+
 VALUE shoes_svg_new(int, VALUE *, VALUE);
 VALUE shoes_svg_alloc(VALUE);
 VALUE shoes_svg_draw(VALUE, VALUE, VALUE);

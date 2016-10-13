@@ -34,7 +34,8 @@ shoes_app_free(shoes_app *app)
   RUBY_CRITICAL(free(app));
 }
 
-TypedDATA_type_new(shoes_app);
+// creates struct shoes_app_type
+TypedData_Type_New(shoes_app);
 
 VALUE
 shoes_app_alloc(VALUE klass)
@@ -125,7 +126,7 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
   VALUE attr = Qnil;
   VALUE app = shoes_app_new(self == cDialog ? cDialog : cApp);
   char *url = "/";
-  GET_TypedSTRUCT2(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
 
   switch (rb_parse_args(argc, argv, "h,s|h,", &args))
   {
@@ -167,21 +168,21 @@ shoes_app_main(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_app_slot(VALUE app)
 {
-  GET_TypedSTRUCT2(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   return app_t->nestslot;
 }
 
 VALUE
 shoes_app_get_width(VALUE app)
 {
-  GET_TypedSTRUCT2(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   return INT2NUM(app_t->width);
 }
 
 VALUE
 shoes_app_get_height(VALUE app)
 {
-  GET_TypedSTRUCT2(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   return INT2NUM(app_t->height);
 }
 
@@ -189,7 +190,7 @@ VALUE
 shoes_app_set_icon(VALUE app, VALUE icon_path)
 {
   char *path;
-  GET_TypedSTRUCT2(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   path = RSTRING_PTR(icon_path);
   shoes_native_app_set_icon(app_t, path);
   return Qtrue;
@@ -199,7 +200,7 @@ VALUE
 shoes_app_set_wtitle(VALUE app, VALUE title)
 {
   char *wtitle;
-  GET_TypedSTRUCT2(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   app_t->title = title;
   wtitle = RSTRING_PTR(title);
   shoes_native_app_set_wtitle(app_t, wtitle);
@@ -209,28 +210,28 @@ shoes_app_set_wtitle(VALUE app, VALUE title)
 VALUE
 shoes_app_get_title(VALUE app)
 {
-  GET_TypedSTRUCT2(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   return app_t->title;
 }
 
 VALUE
 shoes_app_set_title(VALUE app, VALUE title)
 {
-  GET_TypedSTRUCT2(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   return app_t->title = title;
 }
 
 VALUE
 shoes_app_get_fullscreen(VALUE app)
 {
-  GET_TypedSTRUCT2(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   return app_t->fullscreen ? Qtrue : Qfalse;
 }
 
 VALUE
 shoes_app_set_fullscreen(VALUE app, VALUE yn)
 {
-  GET_TypedSTRUCT2(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   shoes_native_app_fullscreen(app_t, app_t->fullscreen = RTEST(yn));
   return yn;
 }
@@ -256,7 +257,7 @@ shoes_app_start(VALUE allapps, char *uri)
   for (i = 0; i < RARRAY_LEN(allapps); i++)
   {
     VALUE appobj2 = rb_ary_entry(allapps, i);
-    GET_TypedSTRUCT2(appobj2, shoes_app, app_t);
+    Get_TypedStruct2(appobj2, shoes_app, app_t);
     if (!app_t->started)
     {
       code = shoes_app_open(app_t, uri);
@@ -587,21 +588,21 @@ shoes_app_close_window(shoes_app *app)
 VALUE
 shoes_app_location(VALUE self)
 {
-  GET_TypedSTRUCT(shoes_app, app_t);
+  Get_TypedStruct(shoes_app, app_t);
   return app_t->location;
 }
 
 VALUE
 shoes_app_is_started(VALUE self)
 {
-  GET_TypedSTRUCT(shoes_app, app_t);
+  Get_TypedStruct(shoes_app, app_t);
   return app_t->started ? Qtrue : Qfalse;
 }
 
 VALUE
 shoes_app_contents(VALUE self)
 {
-  GET_TypedSTRUCT(shoes_app, app_t);
+  Get_TypedStruct(shoes_app, app_t);
   return shoes_canvas_contents(app_t->canvas);
 }
 
