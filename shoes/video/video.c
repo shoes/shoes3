@@ -158,7 +158,7 @@ VALUE shoes_video_new(VALUE attr, VALUE parent)
 VALUE shoes_video_get_drawable(VALUE self) {
   Get_TypedStruct(shoes_video, self_t);
 #ifdef SHOES_GTK_WIN32
-  return ULONG2NUM(GDK_WINDOW_HWND(gtk_widget_get_window(self_t->ref)));
+  return ULONG2NUM((unsigned long)GDK_WINDOW_HWND(gtk_widget_get_window(self_t->ref)));
 #else
 #ifdef SHOES_QUARTZ
   return ULONG2NUM((unsigned long)self_t->ref);

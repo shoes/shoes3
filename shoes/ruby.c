@@ -15,7 +15,7 @@
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cShape, cImage, cEffect, cTimerBase, cTimer, cEvery, cAnim, cPattern, cBorder, cBackground, cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription, cTextClass, cSpan, cDel, cStrong, cSub, cSup, cCode, cEm, cIns, cLinkUrl, cNative, cButton, cCheck, cRadio, cEditLine, cEditBox, cListBox, cProgress, cSlider, cColor, cDownload, cResponse, cColors, cLink, cLinkHover, ssNestSlot;
 VALUE cTextEditBox;
-VALUE cSvgHandle, cSvg, cPlot; // cTimeSeries;
+VALUE cSvgHandle, cSvg, cPlot, cChartSeries;
 VALUE eVlcError, eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
@@ -4614,6 +4614,7 @@ shoes_ruby_init()
   symAltEqual = ID2SYM(rb_intern("alt_="));
   symAltDot = ID2SYM(rb_intern("alt_."));
   symAltSemiColon = ID2SYM(rb_intern("alt_;"));
+  
   //
   // I want all elements to be addressed Shoes::Name, but also available in
   // a separate mixin (cTypes), for inclusion in every Shoes.app block.
@@ -4691,12 +4692,16 @@ shoes_ruby_init()
   rb_define_method(cApp, "set_window_icon_path", CASTHOOK(shoes_app_set_icon), 1); // New in 3.2.19
   rb_define_method(cApp, "set_window_title", CASTHOOK(shoes_app_set_wtitle), 1); // New in 3.2.19
   rb_define_method(cApp, "svghandle", CASTHOOK(shoes_svghandle_new), -1); 
+  rb_define_method(cApp, "chart_series", CASTHOOK(shoes_chart_series_new), -1);
   
   cSvgHandle = rb_define_class_under(cTypes, "SvgHandle", rb_cObject); // new with 3.3.0
   rb_define_alloc_func(cSvgHandle, shoes_svghandle_alloc);
   rb_define_method(cSvgHandle, "width", CASTHOOK(shoes_svghandle_get_width), 0);
   rb_define_method(cSvgHandle, "height", CASTHOOK(shoes_svghandle_get_height), 0);
   rb_define_method(cSvgHandle, "group?", CASTHOOK(shoes_svghandle_has_group), 1);
+  
+  cChartSeries =rb_define_class_under(cTypes, "ChartSeries", rb_cObject); // 3.3.2
+  rb_define_alloc_func(cChartSeries, shoes_chart_series_alloc);
 
   cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 
@@ -5300,8 +5305,8 @@ shoes_ruby_init()
   rb_define_method(rb_mKernel, "font", CASTHOOK(shoes_font), 1);
 }
 
-// unused?
 VALUE shoes_exit_setup(VALUE self) {
   rb_define_method(rb_mKernel, "quit", CASTHOOK(shoes_app_quit), 0);
   rb_define_method(rb_mKernel, "exit", CASTHOOK(shoes_app_quit), 0);
+  return Qtrue;
 }

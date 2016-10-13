@@ -160,19 +160,25 @@ Shoes.app width: 620, height: 610 do
     @grf.zoom @zoom_beg, @zoom_end
   end
   
+  @loaddir = Dir.getwd
+  #puts "default load dir #{@loaddir}"
   stack do
     flow do 
       button "quit" do Shoes.quit end
-      button "load csv..." do 
-        Dir.chdir("/home/ccoupe/Projects/JModel-1.4/Data/93-13/") do 
+      button "Load Dir" do
+        ndir = ask_open_folder 
+        @loaddir = ndir if ndir
+      end
+      button "load file" do 
+        Dir.chdir(@loaddir) do 
           filename = ask_open_file
           if filename 
               @series << DataSeries.new(filename)
               newidx = @series.size - 1
               #puts "newidx = #{newidx}"
               ser = @series[newidx]
-              @grf.add  num_obs: ser.size, values: ser.values, maxv: ser.max * 1.01,
-                minv: ser.min, name: ser.name, xobs: ser.obvs, nubs: :true
+              @grf.add values: ser.values, max: ser.max * 1.01,
+                min: ser.min, name: ser.name, labels: ser.obvs, points: :true
               @zoom_end = ser.size
           end
         end
@@ -192,7 +198,7 @@ Shoes.app width: 620, height: 610 do
       end
     end
     @grf = plot 600, 400,  title: "Explore Market Data", caption: "depends on the data. eh?",
-      x_ticks: 8, y_ticks: 10,  auto_grid: true, click: proc {|btn, l, t| zoom_center l}
+      x_ticks: 8, y_ticks: 10,  auto_grid: true, click: proc {|btn, l, t| zoom_center l}, chart: "timeseries"
     keypress do |k|
       #puts "key: #{k.inspect}"
       case k
