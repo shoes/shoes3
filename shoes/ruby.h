@@ -132,9 +132,41 @@ VALUE shoes_exit_setup(VALUE);
 
 #define NUM2RGBINT(x) (rb_obj_is_kind_of(x, rb_cFloat) ? ROUND(NUM2DBL(x) * 255) : NUM2INT(x))
 #define DEF_COLOR(name, r, g, b) rb_hash_aset(cColors, ID2SYM(rb_intern("" # name)), shoes_color_new(r, g, b, 255))
+
+/* Deprecated Extension API */
 #define GET_STRUCT(ele, var) \
   shoes_##ele *var; \
   Data_Get_Struct(self, shoes_##ele, var)
+
+/*
+ * New Extension API 
+ */
+// creates the rb_data_type_t part of underlaying C foundation of a becoming ruby object
+#define TypedData_Type_New(wrapped) \
+const rb_data_type_t wrapped##_type = { \
+    #wrapped "_type", \
+    { \
+      (void (*)(void *))wrapped##_mark, \
+      (void (*)(void *))wrapped##_free, \
+      (size_t (*)(const void *))sizeof(wrapped), \
+    }, \
+    0, 0, \
+    RUBY_TYPED_FREE_IMMEDIATELY, \
+}
+
+// unwraps a ruby object (implicit self), declare var of type wrapped
+#define Get_TypedStruct(wrapped, var) \
+  wrapped *var; \
+  TypedData_Get_Struct(self, wrapped, &wrapped##_type, var)
+
+// unwraps a ruby object (rbObject), declare var of type wrapped
+#define Get_TypedStruct2(rbObject, wrapped, var) \
+  wrapped *var; \
+  TypedData_Get_Struct(rbObject, wrapped, &wrapped##_type, var)
+
+// unwraps a ruby object (rbObject), "returns" the wrapped struct
+#define Get_TypedStruct3(rbObject, wrapped) \
+  (wrapped*)rb_check_typeddata((rbObject), (&wrapped##_type))
 
 
 //

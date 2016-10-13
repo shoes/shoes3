@@ -34,6 +34,9 @@ shoes_app_free(shoes_app *app)
   RUBY_CRITICAL(free(app));
 }
 
+// creates struct shoes_app_type
+TypedData_Type_New(shoes_app);
+
 VALUE
 shoes_app_alloc(VALUE klass)
 {
@@ -61,7 +64,7 @@ shoes_app_alloc(VALUE klass)
   app->resizable = TRUE;
   app->cursor = s_arrow;
   app->scratch = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
-  app->self = Data_Wrap_Struct(klass, shoes_app_mark, shoes_app_free, app);
+  app->self = TypedData_Wrap_Struct(klass, &shoes_app_type, app);
   rb_extend_object(app->self, cTypes);
   return app->self;
 }
@@ -122,9 +125,8 @@ shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner)
   rb_arg_list args;
   VALUE attr = Qnil;
   VALUE app = shoes_app_new(self == cDialog ? cDialog : cApp);
-  shoes_app *app_t;
   char *url = "/";
-  Data_Get_Struct(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
 
   switch (rb_parse_args(argc, argv, "h,s|h,", &args))
   {
@@ -166,33 +168,29 @@ shoes_app_main(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_app_slot(VALUE app)
 {
-  shoes_app *app_t;
-  Data_Get_Struct(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   return app_t->nestslot;
 }
 
 VALUE
 shoes_app_get_width(VALUE app)
 {
-  shoes_app *app_t;
-  Data_Get_Struct(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   return INT2NUM(app_t->width);
 }
 
 VALUE
 shoes_app_get_height(VALUE app)
 {
-  shoes_app *app_t;
-  Data_Get_Struct(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   return INT2NUM(app_t->height);
 }
 
 VALUE
 shoes_app_set_icon(VALUE app, VALUE icon_path)
 {
-  shoes_app *app_t;
   char *path;
-  Data_Get_Struct(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   path = RSTRING_PTR(icon_path);
   shoes_native_app_set_icon(app_t, path);
   return Qtrue;
@@ -201,9 +199,8 @@ shoes_app_set_icon(VALUE app, VALUE icon_path)
 VALUE
 shoes_app_set_wtitle(VALUE app, VALUE title)
 {
-  shoes_app *app_t;
   char *wtitle;
-  Data_Get_Struct(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   app_t->title = title;
   wtitle = RSTRING_PTR(title);
   shoes_native_app_set_wtitle(app_t, wtitle);
@@ -213,32 +210,28 @@ shoes_app_set_wtitle(VALUE app, VALUE title)
 VALUE
 shoes_app_get_title(VALUE app)
 {
-  shoes_app *app_t;
-  Data_Get_Struct(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   return app_t->title;
 }
 
 VALUE
 shoes_app_set_title(VALUE app, VALUE title)
 {
-  shoes_app *app_t;
-  Data_Get_Struct(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   return app_t->title = title;
 }
 
 VALUE
 shoes_app_get_fullscreen(VALUE app)
 {
-  shoes_app *app_t;
-  Data_Get_Struct(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   return app_t->fullscreen ? Qtrue : Qfalse;
 }
 
 VALUE
 shoes_app_set_fullscreen(VALUE app, VALUE yn)
 {
-  shoes_app *app_t;
-  Data_Get_Struct(app, shoes_app, app_t);
+  Get_TypedStruct2(app, shoes_app, app_t);
   shoes_native_app_fullscreen(app_t, app_t->fullscreen = RTEST(yn));
   return yn;
 }
@@ -260,16 +253,15 @@ shoes_app_start(VALUE allapps, char *uri)
 {
   int i;
   shoes_code code;
-  shoes_app *app;
 
   for (i = 0; i < RARRAY_LEN(allapps); i++)
   {
     VALUE appobj2 = rb_ary_entry(allapps, i);
-    Data_Get_Struct(appobj2, shoes_app, app);
-    if (!app->started)
+    Get_TypedStruct2(appobj2, shoes_app, app_t);
+    if (!app_t->started)
     {
-      code = shoes_app_open(app, uri);
-      app->started = TRUE;
+      code = shoes_app_open(app_t, uri);
+      app_t->started = TRUE;
       if (code != SHOES_OK)
         return code;
     }
@@ -596,25 +588,22 @@ shoes_app_close_window(shoes_app *app)
 VALUE
 shoes_app_location(VALUE self)
 {
-  shoes_app *app;
-  Data_Get_Struct(self, shoes_app, app);
-  return app->location;
+  Get_TypedStruct(shoes_app, app_t);
+  return app_t->location;
 }
 
 VALUE
 shoes_app_is_started(VALUE self)
 {
-  shoes_app *app;
-  Data_Get_Struct(self, shoes_app, app);
-  return app->started ? Qtrue : Qfalse;
+  Get_TypedStruct(shoes_app, app_t);
+  return app_t->started ? Qtrue : Qfalse;
 }
 
 VALUE
 shoes_app_contents(VALUE self)
 {
-  shoes_app *app;
-  Data_Get_Struct(self, shoes_app, app);
-  return shoes_canvas_contents(app->canvas);
+  Get_TypedStruct(shoes_app, app_t);
+  return shoes_canvas_contents(app_t->canvas);
 }
 
 VALUE

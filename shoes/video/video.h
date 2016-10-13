@@ -22,6 +22,8 @@ typedef struct {
 
 VALUE cVideo; // ruby.c line 16
 
+/* new extension API */
+const rb_data_type_t shoes_video_type;
 
 VALUE shoes_canvas_video(int, VALUE*, VALUE);
 VALUE shoes_canvas_c_video(int, VALUE*, VALUE);

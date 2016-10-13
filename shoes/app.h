@@ -49,6 +49,9 @@ typedef struct _shoes_app {
   VALUE owner;
 } shoes_app;
 
+/* new extension API */
+const rb_data_type_t shoes_app_type;
+
 //
 // function signatures
 //

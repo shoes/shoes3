@@ -548,7 +548,12 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
         if ((REL_COORDS(rel) & REL_STICKY) && shoes_is_element(stuck))
         {
           shoes_element *element;
-          Data_Get_Struct(stuck, shoes_element, element);
+          /* Temporary while fixing TypedData new API */
+          if (RTYPEDDATA_P(stuck))
+            element = (shoes_element*)RTYPEDDATA_DATA(stuck);
+          else
+            element = (shoes_element*)rb_data_object_get(stuck);
+            // Data_Get_Struct(stuck, shoes_element, element);
           ox = element->place.x;
           oy = element->place.y;
         }
@@ -606,7 +611,13 @@ shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsi
 VALUE
 shoes_basic_remove(VALUE self)
 {
-  GET_STRUCT(basic, self_t);
+  /* Temporary while fixing TypedData new API */
+  shoes_basic* self_t;
+  if (RTYPEDDATA_P(self))
+    self_t = (shoes_basic*)RTYPEDDATA_DATA(self);
+  else 
+    self_t = (shoes_basic*)rb_data_object_get(self);
+  
   shoes_canvas_remove_item(self_t->parent, self, 0, 0);
   shoes_canvas_repaint_all(self_t->parent);
   return self;
@@ -618,7 +629,11 @@ shoes_is_element_p(VALUE ele, unsigned char any)
   void *dmark;
   if (TYPE(ele) != T_DATA)
     return 0;
+  
   dmark = RDATA(ele)->dmark;
+  /* Temporary while fixing TypedData new API */
+  if (RTYPEDDATA_P(ele)) dmark = RTYPEDDATA_TYPE(ele)->function.dmark;
+
   return (dmark == shoes_canvas_mark || dmark == shoes_shape_mark ||
     dmark == shoes_image_mark || dmark == shoes_effect_mark ||
     dmark == shoes_pattern_mark || dmark == shoes_textblock_mark ||
@@ -2039,7 +2054,7 @@ VALUE
 shoes_app_method_missing(int argc, VALUE *argv, VALUE self)
 {
   VALUE cname, canvas;
-  GET_STRUCT(app, app);
+  Get_TypedStruct(shoes_app, app);
 
   cname = argv[0];
   canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1);
@@ -4552,7 +4567,7 @@ shoes_font(VALUE self, VALUE path)
   { \
     VALUE canvas; \
     char *n = name; \
-    GET_STRUCT(app, app); \
+    Get_TypedStruct(shoes_app, app); \
     if (RARRAY_LEN(app->nesting) > 0) \
       canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
     else \
