@@ -85,13 +85,16 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
   
   if (!NIL_P(subidObj) && (RSTRING_LEN(subidObj) > 0))
   {
-    self_t->subid = RSTRING_PTR(subidObj);
-    if (!rsvg_handle_has_sub(self_t->handle, self_t->subid))
-      printf("not a id %s\n",self_t->subid);
-    if (!rsvg_handle_get_dimensions_sub(self_t->handle, &self_t->svghdim, self_t->subid))
-      printf("no dim for %s\n", self_t->subid);
-    if (!rsvg_handle_get_position_sub(self_t->handle, &self_t->svghpos, self_t->subid))
-      printf("no pos for %s\n",self_t->subid);
+    if (rsvg_handle_has_sub(self_t->handle, RSTRING_PTR(subidObj))) {
+      self_t->subid = strdup(RSTRING_PTR(subidObj));
+      if (!rsvg_handle_get_dimensions_sub(self_t->handle, &self_t->svghdim, self_t->subid))
+        printf("no dim for %s\n", self_t->subid);
+      if (!rsvg_handle_get_position_sub(self_t->handle, &self_t->svghpos, self_t->subid))
+        printf("no pos for %s\n",self_t->subid);
+    } else {
+      printf("not a valid id %s\n",self_t->subid);
+      self_t->subid = NULL;
+    }
   }
   else
   {
@@ -330,14 +333,8 @@ shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, int i
     cairo_scale(cr, self_t->scalew, self_t->scaleh);          // order of scaling + translate matters !!!
     cairo_translate(cr, -svghan->svghpos.x, -svghan->svghpos.y);
   }
-
-  printf("shoes_svg_draw_surface self_t null ? : %d\n", self_t == NULL);
-  printf("shoes_svg_draw_surface cr null ? : %d\n", cr == NULL);
-  printf("shoes_svg_draw_surface svghan->handle null ? : %d\n", svghan->handle == NULL);
-  printf("shoes_svg_draw_surface svghan->subid ? : %s\n", svghan->subid);
   
   int result = rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
-  printf("rsvg_handle_render_cairo_sub result : %d\n", result);
 
   shoes_undo_transformation(cr, self_t->st, place, 0); // doing cairo_restore(cr)
   
@@ -359,7 +356,6 @@ VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual)
   
   if (RTEST(actual)) {
     shoes_svg_draw_surface( CCR(canvas), self_t, &place, place.w, place.h);
-    printf("RTEST(actual) drawing surface @ %d %d \n", place.w, place.h);
   }
   
   if (!ABSY(place)) { 

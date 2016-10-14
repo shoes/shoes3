@@ -363,7 +363,6 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
     // NSLog(@"vid moved to Window");
 //    shoes_video *vid;
 //    Data_Get_Struct(video, shoes_video, vid);
-//    TypedData_Get_Struct(video, shoes_video, &shoes_video_type, vid);
     Get_TypedStruct2(video, shoes_video, vid);
     vid->realized = 1;
   }
@@ -1407,7 +1406,7 @@ shoes_native_surface_new(VALUE attr, VALUE video)
   //[nativeView setWantsLayer:YES];
   //[nativeView.layer setBackgroundColor:[[NSColor blackColor] CGColor]];
   //shoes_video *vid;
-  //Data_Get_Struct(video, shoes_video, vid);
+  //Get_TypedStruct2(video, shoes_video, vid);
   //vid->realized = 1;
   return (SHOES_CONTROL_REF)nativeView;
 }
