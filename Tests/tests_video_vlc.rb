@@ -98,8 +98,7 @@ Shoes.app title: "Testing Shoes video" do
                 stack do
                     flow do
                         para "Silent tests : "
-                        #@no_output = check checked: true
-                        @no_output = check checked: false
+                        @no_output = check checked: true
                     end
                     flow do
                         para "stop tests on failure : "

@@ -331,7 +331,7 @@ typedef struct {
   VALUE minv;
   VALUE values;
   VALUE name;  
-  VALUE desc; // for y axis display?? Someday
+  VALUE desc; 
   VALUE labels; 
   VALUE strokes;
   VALUE point_type;
@@ -352,20 +352,10 @@ typedef struct {
   int boundbox;
   int missing;   // repurposed in pie_charts so beware
   VALUE background;
-  // warning these will be moving to a separate ruby class/struct: in series
-  VALUE maxvs;  // these will be Ruby arrays of things (0..seriescnt)
-  VALUE minvs;
-  VALUE values;
-  VALUE names;  
-  VALUE long_names; // for y axis display?? Someday
-  VALUE xobs; 
-  VALUE strokes;
-  VALUE nubs;
-  VALUE color;
-  // now the singles for the plot
   VALUE title;  
   VALUE legend; 
   VALUE caption;
+  VALUE default_colors;
   void *c_things; 
   int x_ticks;   // number of x_axis (which means a vertical grid line draw)
   int y_ticks;   // number of (left side) y axis horizontial grid lines)
@@ -502,7 +492,9 @@ VALUE shoes_canvas_animate(int, VALUE *, VALUE);
 VALUE shoes_canvas_every(int, VALUE *, VALUE);
 VALUE shoes_canvas_timer(int, VALUE *, VALUE);
 VALUE shoes_canvas_svg(int, VALUE *, VALUE);
+VALUE shoes_canvas_svghandle(int, VALUE *, VALUE);
 VALUE shoes_canvas_plot(int, VALUE *, VALUE);
+VALUE shoes_canvas_chart_series(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
 VALUE shoes_canvas_shape(int, VALUE *, VALUE);
 void shoes_canvas_remove_item(VALUE, VALUE, char, char);
