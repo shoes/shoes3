@@ -25,6 +25,7 @@ shoes_plot_mark(shoes_plot *self_t)
   rb_gc_mark_maybe(self_t->caption);
   rb_gc_mark_maybe(self_t->legend);
   rb_gc_mark_maybe(self_t->background);
+  rb_gc_mark_maybe(self_t->default_colors);
 }
 
 void
@@ -64,6 +65,8 @@ shoes_plot_alloc(VALUE klass)
   plot->missing = MISSING_SKIP;
   plot->chart_type = LINE_CHART;
   plot->background = Qnil;
+  plot->default_colors = rb_ary_new();
+  shoes_plot_util_default_colors(plot);
   plot->c_things = NULL;
   return obj;
 }
@@ -75,7 +78,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   VALUE title = Qnil, caption = Qnil, fontreq = Qnil, auto_grid = Qnil;
   VALUE x_ticks = Qnil, y_ticks = Qnil, boundbox = Qnil;
   VALUE missing = Qnil, chart_type = Qnil, background = Qnil;
-  VALUE pie_pct = Qnil;
+  VALUE pie_pct = Qnil, colors = Qnil;
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
@@ -101,6 +104,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     background = shoes_hash_get(attr, rb_intern("background"));
     boundbox = shoes_hash_get(attr, rb_intern("boundary_box"));
     pie_pct = shoes_hash_get(attr, rb_intern("pie_percent"));
+    colors = shoes_hash_get(attr, rb_intern("colors"));
     // there may be many other things in that hash :-)
   } else {
     rb_raise(rb_eArgError, "Plot: missing mandatory {options}");
@@ -238,9 +242,20 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   } else {
     self_t->background = shoes_hash_get(cColors, rb_intern("white"));
   }
+  
+  //Override series default colors? (created in alloc)
+  if  (! NIL_P(colors) && TYPE(colors) == T_ARRAY) {
+    int sz = RARRAY_LEN(colors);
+    int i;
+    for (i = 0; i < sz; i++) {
+      char *clrn = RSTRING_PTR(rb_ary_entry(colors, i));
+      VALUE ndclr = shoes_hash_get(cColors, rb_intern(clrn));
+      rb_ary_store(self_t->default_colors, i, ndclr);
+    }
+  } 
+  
   self_t->parent = parent;
   self_t->attr = attr;
-  
   // initialize cairo matrice used in transform methods (rotate, scale, skew, translate)
   self_t->st = shoes_transform_touch(canvas->st);
   
@@ -306,7 +321,7 @@ void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_plot *sel
     self_t->place = *place;
 }
 
-VALUE shoes_plot_add(VALUE self, VALUE newseries) 
+VALUE shoes_plot_add(VALUE self, VALUE theseries) 
 {
   shoes_plot *self_t;
   VALUE rbsz, rbvals, rbobs, rbmin, rbmax, rbshname, rblgname, rbcolor;
@@ -314,16 +329,21 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
   VALUE color_wrapped = Qnil;
   Data_Get_Struct(self, shoes_plot, self_t); 
   int i = self_t->seriescnt; // track number of series to plot.
+  VALUE newseries = theseries;
   if (i >= 6) {
     rb_raise(rb_eArgError, "Maximum of 6 series");
   }
-  // chartseries has already parsed it's args. 
+  // we got hash - convert it to a chart_series
+  if (TYPE(theseries) == T_HASH) { 
+    newseries = shoes_chart_series_new(1, &theseries, self);
+  }
+
   if (rb_obj_is_kind_of(newseries, cChartSeries)) {
     shoes_chart_series *cs;
     Data_Get_Struct(newseries, shoes_chart_series, cs);
-    rbsz = RARRAY_LEN(cs->values);
+    int nobs = RARRAY_LEN(cs->values);
     self_t->beg_idx = 0;
-    self_t->end_idx = NUM2INT(rbsz);
+    self_t->end_idx = nobs;
     self_t->seriescnt++;
     rb_ary_store(self_t->series, i, newseries);
     // radar & pie chart types need to pre-compute some geometery and store it
@@ -332,149 +352,16 @@ VALUE shoes_plot_add(VALUE self, VALUE newseries)
       shoes_plot_pie_init(self_t);
     else if (self_t->chart_type == RADAR_CHART) 
      shoes_plot_radar_init(self_t);
-    
+    // We need to specify a default color if we don't have an explicit one
+    if (NIL_P(cs->color)) {
+      cs->color = rb_ary_entry(self_t->default_colors, i);
+    }
     shoes_canvas_repaint_all(self_t->parent);
     return self;
   }
-  
-  if (TYPE(newseries) == T_HASH) {
-
-    rbvals = shoes_hash_get(newseries, rb_intern("values"));
-    rbobs = shoes_hash_get(newseries, rb_intern("labels"));
-    rbmin = shoes_hash_get(newseries, rb_intern("min"));
-    rbmax = shoes_hash_get(newseries, rb_intern("max"));
-    rbshname = shoes_hash_get(newseries, rb_intern("name"));
-    rblgname = shoes_hash_get(newseries, rb_intern("desc"));
-    rbcolor  = shoes_hash_get(newseries, rb_intern("color"));
-    rbstroke = shoes_hash_get(newseries, rb_intern("strokewidth"));
-    rbnubs = shoes_hash_get(newseries, rb_intern("points"));
-    
-    if ( NIL_P(rbvals) || TYPE(rbvals) != T_ARRAY ) {
-      rb_raise(rb_eArgError, "plot.add: Missing an Array of values");
-    }
-    int valsz = RARRAY_LEN(rbvals);
-    // printf("values rarray_len: %d\n", valsz);
-    rbsz = INT2NUM(valsz);
-    if (NIL_P(rbmin) || NIL_P(rbmax)) {
-      rb_raise(rb_eArgError, "plot.add: Missing minv: or maxv: option");
-    }
-    int need_x_strings = (self_t->chart_type == LINE_CHART ||
-        self_t->chart_type == COLUMN_CHART || 
-        self_t->chart_type == TIMESERIES_CHART);
-    if ( NIL_P(rbobs) && need_x_strings) {
-      // we can fake it - poorly - TODO: call a user given proc ?
-      int l = NUM2INT(rbsz);
-      int i;
-      rbobs = rb_ary_new2(l);
-      for (i = 0; i < l; i++) {
-        char t[8];
-        sprintf(t, "%i", i+1);
-        VALUE foostr = rb_str_new2(t);
-        rb_ary_store(rbobs, i, foostr);
-      }
-    }
-    if (need_x_strings && TYPE(rbobs) != T_ARRAY ) {
-      rb_raise(rb_eArgError, "plot.add xobs is not an array");
-    } 
-    if (NIL_P(rbshname)) 
-      rb_raise(rb_eArgError, "plot.add missing name:");
-      
-    if (NIL_P(rblgname)) {
-      rblgname = rbshname;
-    } 
-    
-    // handle colors
-    if (! NIL_P(rbcolor)) {
-      if (TYPE(rbcolor) != T_STRING)
-        rb_raise(rb_eArgError, "plot.add color must be a string");
-      char *cstr = RSTRING_PTR(rbcolor);
-      color_wrapped = shoes_hash_get(cColors, rb_intern(cstr));
-      if (NIL_P(color_wrapped))
-        rb_raise(rb_eArgError, "plot.add color: not a known color");
-    } else {
-      switch (i) {
-      case 0: 
-        color_wrapped = shoes_hash_get(cColors, rb_intern("blue"));
-        break;
-      case 1:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("red"));
-        break;
-      case 2:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("green"));
-        break;
-      case 3:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("coral"));
-        break;
-      case 4:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("purple"));
-        break;
-      case 5:
-        color_wrapped = shoes_hash_get(cColors, rb_intern("orange"));
-        break;
-      }
-    }
-    
-    if (!NIL_P(rbstroke)) {
-      if (TYPE(rbstroke) != T_FIXNUM) 
-        rb_raise(rb_eArgError, "plot.add strokewidth not an integer\n");
-    } else {
-      rbstroke = INT2NUM(1); // default
-    }
-    
-    // This is weird. We handle :true, :false/nil and string.
-    if (NIL_P(rbnubs)) {
-      rbnubtype = INT2NUM(NUB_NONE);
-    } else if (TYPE(rbnubs) == T_STRING) {
-      char *req = RSTRING_PTR(rbnubs);
-      if (!strcmp(req, "dot"))
-        rbnubtype = INT2NUM(NUB_DOT);
-      else if (!strcmp(req, "circle"))
-        rbnubtype = INT2NUM(NUB_CIRCLE);
-      else if (!strcmp(req, "box"))
-        rbnubtype = INT2NUM(NUB_BOX);
-      else if (!strcmp(req, "rect"))
-        rbnubtype = INT2NUM(NUB_RECT);
-      else
-        rb_raise(rb_eArgError, "plot.add nubs: string does not match know nub types\n");
-    } else if (TYPE(rbnubs) == T_TRUE) {
-        rbnubtype = INT2NUM(NUB_DOT);
-    } else if (TYPE(rbnubs) == T_FALSE) {
-        rbnubtype = INT2NUM(NUB_NONE);
-    }
-  } else {
-    rb_raise(rb_eArgError, "misssing something in plot.add \n");
-  }
-  // transition code
-  VALUE cs;
-  shoes_chart_series *ser;
-  switch (self_t->chart_type) {
-    // charts using the new chart_series class
-    case PIE_CHART:
-    case RADAR_CHART: 
-    case SCATTER_CHART:
-    case COLUMN_CHART:
-    case LINE_CHART:
-    case TIMESERIES_CHART:
-      cs = shoes_chart_series_alloc(cChartSeries);
-      Data_Get_Struct(cs, shoes_chart_series, ser);
-      shoes_chart_series_Cinit(ser, rbvals, rbobs, rbmax, rbmin, rbshname, rblgname,
-      rbstroke, rbnubtype, color_wrapped);
-      break;
-    default:  // these charts use the old code
-      ;
-  }
-  rb_ary_store(self_t->series, i, cs);
-  self_t->beg_idx = 0;
-  self_t->end_idx = NUM2INT(rbsz);
-  self_t->seriescnt++;
-  // radar & pie chart types need to pre-compute some geometery and store it
-  // in their own structs.  
-  if (self_t->chart_type == PIE_CHART) 
-    shoes_plot_pie_init(self_t);
-  else if (self_t->chart_type == RADAR_CHART) 
-    shoes_plot_radar_init(self_t);
-    
-  shoes_canvas_repaint_all(self_t->parent);
+  // if we get here, we don't have a chart_series and we couldn't create one
+  // odds are exceptions have been raised already, but just in case:
+  rb_raise(rb_eArgError, "plot.add: not a valid hash or chart_series");
   return self;
 }
 

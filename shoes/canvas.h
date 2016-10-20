@@ -355,6 +355,7 @@ typedef struct {
   VALUE title;  
   VALUE legend; 
   VALUE caption;
+  VALUE default_colors;
   void *c_things; 
   int x_ticks;   // number of x_axis (which means a vertical grid line draw)
   int y_ticks;   // number of (left side) y axis horizontial grid lines)
@@ -491,7 +492,9 @@ VALUE shoes_canvas_animate(int, VALUE *, VALUE);
 VALUE shoes_canvas_every(int, VALUE *, VALUE);
 VALUE shoes_canvas_timer(int, VALUE *, VALUE);
 VALUE shoes_canvas_svg(int, VALUE *, VALUE);
+VALUE shoes_canvas_svghandle(int, VALUE *, VALUE);
 VALUE shoes_canvas_plot(int, VALUE *, VALUE);
+VALUE shoes_canvas_chart_series(int, VALUE *, VALUE);
 VALUE shoes_canvas_imagesize(VALUE, VALUE);
 VALUE shoes_canvas_shape(int, VALUE *, VALUE);
 void shoes_canvas_remove_item(VALUE, VALUE, char, char);
