@@ -82,11 +82,7 @@ shoes_svghandle_new(int argc, VALUE *argv, VALUE parent)
     if (self_t->handle == NULL) {
       self_t->data = NULL;
       printf("Failed SVG: %s\n", gerror->message);
-<<<<<<< HEAD
     } else self_t->data = strdup(RSTRING_PTR(fromstring));
-=======
-    } //else self_t->data = strdup(RSTRING_PTR(fromstring));
->>>>>>> e950ad12b4fd92740fecbe01ceea704e5a4c98a0
     
   } else {
     // never reached, handled by shoes_svg_new
