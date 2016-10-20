@@ -63,7 +63,11 @@ shoes_app_alloc(VALUE klass)
   app->fullscreen = FALSE;
   app->resizable = TRUE;
   app->cursor = s_arrow;
-  app->scratch = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
+
+  cairo_surface_t *surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
+  app->scratch = cairo_create(surf);
+  cairo_surface_destroy(surf);
+
   app->self = TypedData_Wrap_Struct(klass, &shoes_app_type, app);
   rb_extend_object(app->self, cTypes);
   return app->self;

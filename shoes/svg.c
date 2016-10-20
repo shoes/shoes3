@@ -16,17 +16,22 @@
 // ------svghandle --------
 
 void
-shoes_svghandle_mark(shoes_svghandle *handle)
+shoes_svghandle_mark(shoes_svghandle *self_t)
 {
   // we don't have any Ruby objects to mark.
 }
 
 static void
-shoes_svghandle_free(shoes_svghandle *handle)
+shoes_svghandle_free(shoes_svghandle *self_t)
 {
-  if (handle->handle != NULL)
-    g_object_unref(handle->handle);
-  RUBY_CRITICAL(SHOE_FREE(handle));
+  if (self_t->handle != NULL) {
+    g_object_unref(self_t->handle);
+    self_t->handle = NULL;
+  }
+  RUBY_CRITICAL(SHOE_FREE(self_t->subid));
+  RUBY_CRITICAL(SHOE_FREE(self_t->path));
+  RUBY_CRITICAL(SHOE_FREE(self_t->data));
+  RUBY_CRITICAL(SHOE_FREE(self_t));
 }
 
 // creates struct shoes_svghandle_type
@@ -389,7 +394,7 @@ shoes_svg_set_handle(VALUE self, VALUE han)
   if ( !NIL_P(han) && (rb_obj_is_kind_of(han, cSvgHandle)) ) {
     self_t->svghandle = han;
     // force a garbage collection, cSvgHandles could pile up if set at a fast rate
-    // rb_gc();
+    rb_gc();
     
     Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
     svg_aspect_ratio(ATTR(self_t->attr, width), ATTR(self_t->attr, height), self_t, svghan);
