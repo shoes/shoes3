@@ -48,7 +48,7 @@ void shoes_plot_radar_init(shoes_plot *plot) {
     slice->startAngle = 2 * angle * SHOES_PI;
     slice->endAngle = 2 * (angle + fraction) * SHOES_PI;
     VALUE wedge_color = rb_ary_entry(plot->default_colors, i);
-    Data_Get_Struct(wedge_color, shoes_color, slice->color);
+    TypedData_Get_Struct(wedge_color, shoes_color, &shoes_color_type, slice->color);
   }
 }
 

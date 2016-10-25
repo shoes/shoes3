@@ -51,7 +51,7 @@ void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot)
     maximums[i] = NUM2DBL(cs->maxv);
     minimums[i] = NUM2DBL(cs->minv);
     nubs[i] = (width / range > 10) ? RTEST(cs->point_type) : 0;
-    Data_Get_Struct(cs->color, shoes_color, colors[i]);
+    TypedData_Get_Struct(cs->color, shoes_color, &shoes_color_type, colors[i]);
     int sw = NUM2INT(cs->strokes);
     if (sw < 4) sw = 4;
     strokesw[i] = sw;
@@ -71,7 +71,7 @@ void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot)
     //strokesw[i] = sw;
     //colsw += sw;
     //vScales[i] = (height / (maximums[i] - minimums[i]));
-    //Data_Get_Struct(rbcolor, shoes_color, colors[i]);
+    //TypedData_Get_Struct(rbcolor, shoes_color, &shoes_color_type, colors[i]);
   }
   int ncolsw = width / (range) ; // 
   int xinset = left + (ncolsw / 2); // start inside the box, half a width

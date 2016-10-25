@@ -45,7 +45,7 @@ void shoes_plot_pie_init(shoes_plot *plot) {
     slice->endAngle = 2 * (angle + fraction) * SHOES_PI;
     //VALUE wedge_color = shoes_plot_pie_color(i);
     VALUE wedge_color = rb_ary_entry(plot->default_colors, i);
-    Data_Get_Struct(wedge_color, shoes_color, slice->color);
+    TypedData_Get_Struct(wedge_color, shoes_color, &shoes_color_type, slice->color);
   }
 }
 
@@ -161,9 +161,8 @@ void shoes_plot_draw_pie_legend(cairo_t *cr, shoes_plot *self_t) {
   // Draw strings using layout
   for (i = 0; i < numstrs; i++) {
     cairo_move_to(cr, box_x, box_y);
-    shoes_color *color;
     VALUE rbcolor = rb_ary_entry(self_t->default_colors, i);
-    Data_Get_Struct(rbcolor, shoes_color, color);
+    Get_TypedStruct2(rbcolor, shoes_color, color);
     cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
        color->b / 255.0, color->a / 255.0);
     pango_cairo_show_layout(cr, layouts[i]);

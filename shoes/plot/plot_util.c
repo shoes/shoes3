@@ -20,8 +20,7 @@ void shoes_plot_draw_fill(cairo_t *cr, shoes_plot *plot)
   if (NIL_P(plot->background)) {
     cairo_set_source_rgba(cr, 0.99, 0.99, 0.99, 0.99);
   } else {
-    shoes_color *color;
-    Data_Get_Struct(plot->background, shoes_color, color);
+    Get_TypedStruct2(plot->background, shoes_color, color);
     cairo_set_source_rgba(cr,
         color->r / 255.0 ,
         color->g / 255.0 ,
@@ -189,8 +188,7 @@ void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot)
     shoes_chart_series *ser;
     Data_Get_Struct(cs, shoes_chart_series, ser);
     VALUE rbcolor = ser->color;
-    shoes_color *color;
-    Data_Get_Struct(rbcolor, shoes_color, color);
+    Get_TypedStruct2(rbcolor, shoes_color, color);
     cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
        color->b / 255.0, color->a / 255.0); 
     pango_cairo_show_layout(cr, layouts[i]);
@@ -299,8 +297,7 @@ void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot)
 void shoes_plot_draw_nub(cairo_t *cr, shoes_plot *plot,  double x, double y, int nubt, int szhint )
 {
  
-  shoes_color *bgcolor;
-  Data_Get_Struct(plot->background, shoes_color, bgcolor);
+  Get_TypedStruct2(plot->background, shoes_color, bgcolor);
   switch (nubt) {
     case NUB_NONE:
       return; // probably shouldn't happen but just in case
