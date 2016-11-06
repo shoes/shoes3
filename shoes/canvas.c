@@ -1768,9 +1768,15 @@ shoes_canvas_ccall(VALUE self, ccallfunc func, ccallfunc2 func2, unsigned char c
     long i;
     for (i = 0; i < RARRAY_LEN(self_t->contents); i++)
     {
-      shoes_basic *basic;
       VALUE ele = rb_ary_entry(self_t->contents, i);
-      Data_Get_Struct(ele, shoes_basic, basic);
+
+      /* Temporary while fixing TypedData new API */
+      shoes_basic *basic;
+      if (RTYPEDDATA_P(ele))
+        basic = (shoes_basic*)RTYPEDDATA_DATA(ele);
+      else 
+        basic = (shoes_basic*)rb_data_object_get(ele);
+      
       if (!RTEST(ATTR(basic->attr, hidden)))
       {
         if (rb_obj_is_kind_of(ele, cNative))

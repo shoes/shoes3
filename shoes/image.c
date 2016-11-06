@@ -279,6 +279,14 @@ done:
   return surface;
 }
 
+#if GIFLIB_MAJOR > 5 || GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1
+  #define GIF_OPEN_FILE(filename) DGifOpenFileName(filename, NULL);
+  #define GIF_CLOSE_FILE(gif) DGifCloseFile(gif, NULL)
+#else
+  #define GIF_OPEN_FILE(filename) DGifOpenFileName(filename);
+  #define GIF_CLOSE_FILE(gif) DGifCloseFile(gif)
+#endif
+
 cairo_surface_t *
 shoes_surface_create_from_gif(char *filename, int *width, int *height, unsigned char load)
 {
@@ -294,7 +302,7 @@ shoes_surface_create_from_gif(char *filename, int *width, int *height, unsigned 
   int intjump[] = { 8, 8, 4, 2 };
 
   transp = -1;
-  gif = DGifOpenFileName(filename);
+  gif = GIF_OPEN_FILE(filename);
   if (gif == NULL)
     goto done;
 
@@ -405,7 +413,7 @@ shoes_surface_create_from_gif(char *filename, int *width, int *height, unsigned 
   surface = shoes_surface_create_from_pixels(pixels, w, h);
 
 done:
-  if (gif != NULL) DGifCloseFile(gif);
+  if (gif != NULL) GIF_CLOSE_FILE(gif);
   if (pixels != NULL) SHOE_FREE(pixels);
   if (rows != NULL) {
     for (i = 0; i < h; i++)

@@ -1028,6 +1028,10 @@ shoes_shape_new(VALUE parent, ID name, VALUE attr, shoes_transform *st, cairo_pa
   path->attr = attr;
   path->name = name;
   path->st = shoes_transform_touch(st);
+  if (st != NULL) printf("st->refs : %d\n", st->refs);
+  else printf("st->refs : %s\n", "st is NULL");
+  if (path->st != NULL) printf("path->st->refs : %d\n", path->st->refs);
+  else printf("path->st->refs : %s\n", "path->st is NULL");
   path->line = line;
   COPY_PENS(path->attr, canvas->attr);
   return obj;
@@ -1620,7 +1624,6 @@ shoes_pattern_alloc(VALUE klass)
   VALUE obj;
   shoes_pattern *pattern = SHOE_ALLOC(shoes_pattern);
   SHOE_MEMZERO(pattern, shoes_pattern, 1);
-  // obj = Data_Wrap_Struct(klass, shoes_pattern_mark, shoes_pattern_free, pattern);
   obj = TypedData_Wrap_Struct(klass, &shoes_pattern_type, pattern);
   pattern->source = Qnil;
   pattern->attr = Qnil;
@@ -4732,7 +4735,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "toggle", CASTHOOK(shoes_canvas_toggle), 0);
   rb_define_method(cCanvas, "remove", CASTHOOK(shoes_canvas_remove), 0);
   rb_define_method(cCanvas, "refresh_slot", CASTHOOK(shoes_canvas_refresh_slot), 0);
-  rb_define_method(cCanvas, "cursor=", CASTHOOK(shoes_canvas_get_cursor), 0);
+  rb_define_method(cCanvas, "cursor", CASTHOOK(shoes_canvas_get_cursor), 0);
   rb_define_method(cCanvas, "cursor=", CASTHOOK(shoes_canvas_set_cursor), 1);
 
   cShoes = rb_define_class("Shoes", cCanvas);
