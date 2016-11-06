@@ -279,6 +279,7 @@ done:
   return surface;
 }
 
+
 #if GIFLIB_MAJOR > 5 || GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1
   #define GIF_OPEN_FILE(filename) DGifOpenFileName(filename, NULL);
   #define GIF_CLOSE_FILE(gif) DGifCloseFile(gif, NULL)
