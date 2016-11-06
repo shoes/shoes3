@@ -722,17 +722,21 @@ shoes_app_cursor(shoes_app *app, ID cursor)
     goto done;
 
   GdkCursor *c;
+  GdkDisplay *display = gtk_widget_get_display(app->os.window);
   if (cursor == s_hand || cursor == s_link)
   {
-    c = gdk_cursor_new(GDK_HAND2);
+    // c = gdk_cursor_new(GDK_HAND2);
+    c = gdk_cursor_new_for_display(display, GDK_HAND2);
   }
   else if (cursor == s_arrow)
   {
-    c = gdk_cursor_new(GDK_ARROW);
+    // c = gdk_cursor_new(GDK_ARROW);
+    c = gdk_cursor_new_for_display(display, GDK_ARROW);
   }
   else if (cursor == s_text)
   {
-    c = gdk_cursor_new(GDK_XTERM);
+    // c = gdk_cursor_new(GDK_XTERM);
+    c = gdk_cursor_new_for_display(display, GDK_XTERM);
   }
   else
     goto done;
