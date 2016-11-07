@@ -1661,6 +1661,15 @@ shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
     return Qnil;
 }
 
+#if GTK_MAJOR_VERSION > 3 || GTK_MAJOR_VERSION == 3 && GTK_MINOR_VERSION >= 14
+  #define LABEL_SET_ALIGNEMENT(widget, x, y) \
+    gtk_label_set_xalign(GTK_LABEL(widget), 0); \
+    gtk_label_set_yalign(GTK_LABEL(widget), 0);
+#else
+  #define LABEL_SET_ALIGNEMENT(widget, x, y) \
+    gtk_misc_set_alignment(GTK_MISC(widget), x, y);
+#endif
+
 VALUE
 shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
@@ -1700,7 +1709,7 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
   gtk_container_set_border_width(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), 6);
   GtkWidget *question = gtk_label_new(RSTRING_PTR(shoes_native_to_s(args.a[0])));
-  gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
+  LABEL_SET_ALIGNEMENT(question, 0, 0);
   GtkWidget *_answer = gtk_entry_new();
   if (RTEST(ATTR(args.a[1], secret))) shoes_native_secrecy(_answer);
   gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), question, FALSE, FALSE, 3);
@@ -1758,7 +1767,7 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
   gtk_container_set_border_width(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), 6);
 
   GtkWidget *question = gtk_label_new(RSTRING_PTR(quiz));
-  gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
+  LABEL_SET_ALIGNEMENT(question, 0, 0);
 
   gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), question, FALSE, FALSE, 3);
 
