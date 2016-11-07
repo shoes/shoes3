@@ -302,7 +302,7 @@ static void initattr(GtkTextBuffer *buffer) {
   capture.open = 0;
 }
 
-static void initgame(columns, rows) {
+static void initgame(int columns, int rows) {
   blank_line = malloc(columns+2);
   int i;
   for (i = 0; i < columns; i++) blank_line[i] = ' ';
@@ -523,7 +523,6 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   GtkWidget *vbox;
   GtkScrolledWindow *sw;
   PangoFontDescription *pfd;  // for terminal
-  PangoFontDescription *bpfd; // for Label in button panel
 
   struct tesiObject *t;
   // create the debugging capture buffer. expands as needed.
@@ -551,8 +550,6 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   gtk_box_pack_start (GTK_BOX(btnpnl), icon, 1, 0, 0);
   
   GtkWidget *announce = gtk_label_new(title? title : "Shoes Terminal");
-  bpfd = pango_font_description_from_string ("Sans-Serif Italic 14");
-  gtk_widget_override_font (announce, bpfd);
   gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
   
   GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
@@ -582,26 +579,36 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(canvas), GTK_WRAP_CHAR);
   //gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(canvas), GTK_WRAP_NONE);
   
-  // Deal with the colors of the terminal widget. Note: these functions
-  // are deprecated at gtk 3.16
-  GdkRGBA bg_color, fg_color;
-  if (fg) 
-    gdk_rgba_parse(&fg_color, fg);
-  else
-    gdk_rgba_parse(&fg_color, "black");
-  gtk_widget_override_color(canvas, GTK_STATE_FLAG_NORMAL, &fg_color);
-  if (bg)
-    gdk_rgba_parse(&bg_color, bg);
-  else
-    gdk_rgba_parse(&bg_color, "white");
-  gtk_widget_override_background_color(canvas, GTK_STATE_FLAG_NORMAL, &bg_color);
-  
-  // set font for scrollable window
+  // set font for pango layout
   char fontnm[64];
   sprintf(fontnm,"monospace %d", fontsize);
   pfd = pango_font_description_from_string (fontnm);
-  //pfd = pango_font_description_from_string ("monospace 12");
-  gtk_widget_override_font (canvas, pfd);
+
+  // style some elements using css style provider (deprecated methods)
+  gtk_widget_set_name(GTK_WIDGET(canvas), "canvas_textview");
+  gtk_widget_set_name(GTK_WIDGET(announce), "announce_label");
+  if (!fg) fg = "rgb(0,0,0)";
+  if (!bg) bg = "rgb(255,255,255)";
+
+  GdkDisplay *display = gtk_widget_get_display(GTK_WIDGET(window));
+  GdkScreen *screen = gdk_display_get_default_screen(display);
+  GtkCssProvider *provider = gtk_css_provider_new();
+  gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider), 
+                                            GTK_STYLE_PROVIDER_PRIORITY_USER);
+  char css[1024];
+  snprintf(css, 1024,
+          "GtkTextView#canvas_textview {\n"
+          "  font: monospace %d;\n"
+          "  color: %s;\n"
+          "  background-color: %s;\n"
+          "}\n"
+          "GtkLabel#announce_label {\n"
+          "  font: Sans-Serif Italic 14;\n"
+          "}\n"
+          , fontsize, fg, bg);
+  gtk_css_provider_load_from_data(GTK_CSS_PROVIDER(provider), css, -1, NULL);
+  g_object_unref(provider);
+
 
   // compute 'char' width, and tab settings.
   PangoLayout *playout;
@@ -679,7 +686,6 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
   
   // TODO: some clean up here. Complete ?
   pango_font_description_free(pfd);
-  pango_font_description_free(bpfd);
   pango_tab_array_free(tab_array);
   g_object_unref(playout);
   return;
