@@ -1028,10 +1028,6 @@ shoes_shape_new(VALUE parent, ID name, VALUE attr, shoes_transform *st, cairo_pa
   path->attr = attr;
   path->name = name;
   path->st = shoes_transform_touch(st);
-  if (st != NULL) printf("st->refs : %d\n", st->refs);
-  else printf("st->refs : %s\n", "st is NULL");
-  if (path->st != NULL) printf("path->st->refs : %d\n", path->st->refs);
-  else printf("path->st->refs : %s\n", "path->st is NULL");
   path->line = line;
   COPY_PENS(path->attr, canvas->attr);
   return obj;
