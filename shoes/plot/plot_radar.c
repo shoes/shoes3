@@ -304,6 +304,7 @@ double shoes_plot_radar_getNormalisedAngle(radar_pole_t *self) {
   return normalisedAngle;
 }
 
+void
 shoes_plot_radar_tick_position(cairo_t *cr, radar_chart_t * chart, radar_pole_t *slice, double angle)
 {
   int text_height = slice->lh;
