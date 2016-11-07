@@ -356,6 +356,7 @@ typedef struct {
   VALUE legend; 
   VALUE caption;
   VALUE default_colors;
+  VALUE column_opts;
   void *c_things; 
   int x_ticks;   // number of x_axis (which means a vertical grid line draw)
   int y_ticks;   // number of (left side) y axis horizontial grid lines)
@@ -369,6 +370,7 @@ typedef struct {
   int legend_h; 
   PangoFontDescription *legend_pfd;
   PangoFontDescription *label_pfd; 
+  PangoFontDescription *tiny_pfd;
   int yaxis_offset; // don't like
   int graph_h;  // to where the dots are drawn
   int graph_w;
@@ -619,6 +621,24 @@ void shoes_svg_send_release(VALUE, int, int, int);
 
 VALUE shoes_chart_series_new(int, VALUE *, VALUE);
 VALUE shoes_chart_series_alloc(VALUE);
+VALUE shoes_chart_series_values(VALUE);
+VALUE shoes_chart_series_labels(VALUE);
+VALUE shoes_chart_series_min(VALUE);
+VALUE shoes_chart_series_min_set(VALUE, VALUE);
+VALUE shoes_chart_series_max(VALUE);
+VALUE shoes_chart_series_max_set(VALUE, VALUE);
+VALUE shoes_chart_series_name(VALUE);
+VALUE shoes_chart_series_desc(VALUE);
+VALUE shoes_chart_series_desc_set(VALUE, VALUE);
+VALUE shoes_chart_series_color(VALUE);
+VALUE shoes_chart_series_color_set(VALUE, VALUE);
+VALUE shoes_chart_series_strokewidth(VALUE);
+VALUE shoes_chart_series_strokewidth_set(VALUE, VALUE);
+VALUE shoes_chart_series_points(VALUE);
+VALUE shoes_chart_series_points_set(VALUE, VALUE);
+
+VALUE shoes_chart_series_get(VALUE, VALUE);
+VALUE shoes_chart_series_set(VALUE, VALUE, VALUE);
 
 VALUE shoes_plot_new(int, VALUE *, VALUE);
 VALUE shoes_plot_alloc(VALUE);

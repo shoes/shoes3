@@ -4966,8 +4966,28 @@ shoes_ruby_init()
 
   cChartSeries = rb_define_class_under(cTypes, "chart_series", rb_cObject); // 3.3.2
   rb_define_alloc_func(cChartSeries, shoes_chart_series_alloc);
+  //  simple getters/setters
+  rb_define_method(cChartSeries, "values", CASTHOOK(shoes_chart_series_values), 0);
+  rb_define_method(cChartSeries, "labels", CASTHOOK(shoes_chart_series_labels), 0);
+  rb_define_method(cChartSeries, "min", CASTHOOK(shoes_chart_series_min), 0);
+  rb_define_method(cChartSeries, "min=", CASTHOOK(shoes_chart_series_min_set), 1);
+  rb_define_method(cChartSeries, "max", CASTHOOK(shoes_chart_series_max), 0);
+  rb_define_method(cChartSeries, "max=", CASTHOOK(shoes_chart_series_max_set), 1);
+  rb_define_method(cChartSeries, "name", CASTHOOK(shoes_chart_series_name), 0);
+  rb_define_method(cChartSeries, "desc", CASTHOOK(shoes_chart_series_desc), 0);
+  rb_define_method(cChartSeries, "desc=", CASTHOOK(shoes_chart_series_desc_set), 1);
+  rb_define_method(cChartSeries, "color", CASTHOOK(shoes_chart_series_color), 0);
+  rb_define_method(cChartSeries, "color=", CASTHOOK(shoes_chart_series_color_set), 1);
+  rb_define_method(cChartSeries, "strokewidth", CASTHOOK(shoes_chart_series_strokewidth), 0);
+  rb_define_method(cChartSeries, "strokewidth=", CASTHOOK(shoes_chart_series_strokewidth_set), 1);
+  rb_define_method(cChartSeries, "points", CASTHOOK(shoes_chart_series_points), 0);
+  rb_define_method(cChartSeries, "points=", CASTHOOK(shoes_chart_series_points_set), 1);
+  // more complcated methods
+  rb_define_method(cChartSeries, "at", CASTHOOK(shoes_chart_series_get), 1);
+  rb_define_method(cChartSeries, "get", CASTHOOK(shoes_chart_series_get), 1);
+  rb_define_method(cChartSeries, "set", CASTHOOK(shoes_chart_series_set), 2);
 
-  cPlot   = rb_define_class_under(cTypes, "Plot", rb_cObject);
+  cPlot   = rb_define_class_under(cTypes, "Plot", rb_cObject); // 3.3.2
   rb_define_alloc_func(cPlot, shoes_plot_alloc);
   // methods unique to plot
   rb_define_method(cPlot, "add", CASTHOOK(shoes_plot_add), 1);
