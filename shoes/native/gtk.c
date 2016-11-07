@@ -722,17 +722,18 @@ shoes_app_cursor(shoes_app *app, ID cursor)
     goto done;
 
   GdkCursor *c;
+  GdkDisplay *display = gtk_widget_get_display(app->os.window);
   if (cursor == s_hand || cursor == s_link)
   {
-    c = gdk_cursor_new(GDK_HAND2);
+    c = gdk_cursor_new_for_display(display, GDK_HAND2);
   }
   else if (cursor == s_arrow)
   {
-    c = gdk_cursor_new(GDK_ARROW);
+    c = gdk_cursor_new_for_display(display, GDK_ARROW);
   }
   else if (cursor == s_text)
   {
-    c = gdk_cursor_new(GDK_XTERM);
+    c = gdk_cursor_new_for_display(display, GDK_XTERM);
   }
   else
     goto done;
@@ -1136,17 +1137,29 @@ shoes_native_surface_new(VALUE attr, VALUE video)
   SHOES_CONTROL_REF da = gtk_drawing_area_new();
   gtk_widget_set_size_request(da, NUM2INT(ATTR(attr, width)), NUM2INT(ATTR(attr, height)));
   
+  VALUE default_color = shoes_color_new(0,0,0,0xFF);
+  Get_TypedStruct2(default_color, shoes_color, color);
+
   VALUE uc = Qnil;
   if (!NIL_P(attr)) uc = ATTR(attr, bg_color);
 
-  // TODO (better with GtkStyleProvider)
-  GdkRGBA color = {.0, .0, .0, 1.0};
   if (!NIL_P(uc)) {
-    shoes_color *col;
-    Data_Get_Struct(uc, shoes_color, col);
-    color.red = col->r/255.0; color.green = col->g/255.0; color.blue = col->b/255.0;
+    color = Get_TypedStruct3(uc, shoes_color);
   }
-  gtk_widget_override_background_color(GTK_WIDGET(da), 0, &color);  
+
+  gtk_widget_set_name (GTK_WIDGET(da), "vlc_drawingarea");
+  GdkDisplay *display = gtk_widget_get_display(GTK_WIDGET(da));
+  GdkScreen *screen = gdk_display_get_default_screen(display);
+  GtkCssProvider *provider = gtk_css_provider_new();
+  gtk_style_context_add_provider_for_screen(screen, GTK_STYLE_PROVIDER(provider), 
+                                            GTK_STYLE_PROVIDER_PRIORITY_USER);
+  char css[128];
+  snprintf(css, 128,
+          "GtkDrawingArea#vlc_drawingarea {\n"
+          "   background-color: rgb(%d,%d,%d);\n"
+          "}\n", color->r, color->g, color->b);
+  gtk_css_provider_load_from_data(GTK_CSS_PROVIDER(provider), css, -1, NULL);
+  g_object_unref(provider);
 
   g_signal_connect(G_OBJECT(da), "realize", 
                    G_CALLBACK(surface_on_realize), 
@@ -1648,6 +1661,15 @@ shoes_dialog_alert(int argc, VALUE *argv, VALUE self)
     return Qnil;
 }
 
+#if GTK_MAJOR_VERSION > 3 || GTK_MAJOR_VERSION == 3 && GTK_MINOR_VERSION >= 14
+  #define LABEL_SET_ALIGNEMENT(widget, x, y) \
+    gtk_label_set_xalign(GTK_LABEL(widget), 0); \
+    gtk_label_set_yalign(GTK_LABEL(widget), 0);
+#else
+  #define LABEL_SET_ALIGNEMENT(widget, x, y) \
+    gtk_misc_set_alignment(GTK_MISC(widget), x, y);
+#endif
+
 VALUE
 shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
 {
@@ -1687,7 +1709,7 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
   gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
   gtk_container_set_border_width(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), 6);
   GtkWidget *question = gtk_label_new(RSTRING_PTR(shoes_native_to_s(args.a[0])));
-  gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
+  LABEL_SET_ALIGNEMENT(question, 0, 0);
   GtkWidget *_answer = gtk_entry_new();
   if (RTEST(ATTR(args.a[1], secret))) shoes_native_secrecy(_answer);
   gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), question, FALSE, FALSE, 3);
@@ -1745,7 +1767,7 @@ shoes_dialog_confirm(int argc, VALUE *argv, VALUE self)
   gtk_container_set_border_width(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), 6);
 
   GtkWidget *question = gtk_label_new(RSTRING_PTR(quiz));
-  gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
+  LABEL_SET_ALIGNEMENT(question, 0, 0);
 
   gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), question, FALSE, FALSE, 3);
 
@@ -1823,9 +1845,27 @@ VALUE
 shoes_dialog_open(int argc, VALUE *argv, VALUE self)
 {
   rb_arg_list args;
+#if 0
+  VALUE attr = Qnil;
+  char *title;
+  switch (rb_parse_args(argc, argv, "|h", &args)) {
+    case 0:
+      title = strdup("Open file...");
+      break;
+    case 1:
+      attr = args.a[0];
+      title = strdup(RSTRING_PTR(shoes_hash_get(attr, rb_intern("title"))));
+      break;
+  }
+  shoes_dialog_chooser(self, title, GTK_FILE_CHOOSER_ACTION_OPEN,
+    _("_Open"), args.a[0]);
+  free(title); 
+  return;
+#else
   rb_parse_args(argc, argv, "|h", &args);
   return shoes_dialog_chooser(self, "Open file...", GTK_FILE_CHOOSER_ACTION_OPEN,
-    _("_Open"), args.a[0]);
+     _("_Open"), args.a[0]);
+#endif
 }
 
 VALUE

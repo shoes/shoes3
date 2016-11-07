@@ -21,8 +21,7 @@ void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
     VALUE rbminv = cs->minv;
     double minimum = NUM2DBL(rbminv);
     int strokew = NUM2INT(cs->strokes);
-    shoes_color *color;
-    Data_Get_Struct(cs->color, shoes_color, color);
+    Get_TypedStruct2(cs->color, shoes_color, color);
     /*
     VALUE rbvalues = rb_ary_entry(plot->values, i);
     VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);
@@ -30,8 +29,7 @@ void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot)
     VALUE rbstroke = rb_ary_entry(plot->strokes, i);
     VALUE rbnubs = rb_ary_entry(plot->nubs, i);
     VALUE shcolor = rb_ary_entry(plot->color, i);
-    shoes_color *color;
-    Data_Get_Struct(shcolor, shoes_color, color);
+    Get_TypedStruct2(shcolor, shoes_color, color);
     double maximum = NUM2DBL(rbmaxv);
     double minimum = NUM2DBL(rbminv);
     int strokew = NUM2INT(rbstroke);

@@ -743,6 +743,15 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
   shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, REL_COORDS(rel) == REL_CANVAS)
 
+  /* TODO Temporary while fixing TypedData new API */
+#define SETUP_T(self_type, rel, dw, dh) \
+  shoes_place place; \
+  shoes_canvas *canvas; \
+  Get_TypedStruct(self_type, self_t); \
+  Data_Get_Struct(c, shoes_canvas, canvas); \
+  if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
+  shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, REL_COORDS(rel) == REL_CANVAS)
+
 #define SETUP_CONTROL(dh, dw, flex) \
   char *msg = ""; \
   int len = dw ? dw : 200; \
@@ -822,8 +831,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
     cairo_set_line_width(cr, sw); \
     if (rb_obj_is_kind_of(p, cColor)) \
     { \
-      shoes_color *color; \
-      Data_Get_Struct(p, shoes_color, color); \
+      Get_TypedStruct2(p, shoes_color, color); \
       cairo_set_source_rgba(cr, color->r / 255., color->g / 255., color->b / 255., color->a / 255.); \
       cfunc(cr); \
     } \
@@ -832,8 +840,7 @@ shoes_control_show_ref(SHOES_CONTROL_REF ref)
       if (!rb_obj_is_kind_of(p, cPattern)) \
         ATTRSET(attr, pen, p = shoes_pattern_new(cPattern, p, Qnil, Qnil)); \
       cairo_matrix_t matrix1, matrix2; \
-      shoes_pattern *pattern; \
-      Data_Get_Struct(p, shoes_pattern, pattern); \
+      Get_TypedStruct2(p, shoes_pattern, pattern); \
       PATTERN_SCALE(pattern, (place), sw); \
       cairo_set_source(cr, PATTERN(pattern)); \
       cfunc(cr); \
@@ -1277,8 +1284,7 @@ shoes_image_set_pixel(VALUE self, VALUE _x, VALUE _y, VALUE col)
       col = shoes_color_parse(cColor, col);
     if (rb_obj_is_kind_of(col, cColor))
     {
-      shoes_color *color;
-      Data_Get_Struct(col, shoes_color, color);
+      Get_TypedStruct2(col, shoes_color, color);
       pixels[0] = color->b;
       pixels[1] = color->g;
       pixels[2] = color->r;
@@ -1528,8 +1534,7 @@ shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE attr)
 VALUE
 shoes_pattern_set_fill(VALUE self, VALUE source)
 {
-  shoes_pattern *pattern;
-  Data_Get_Struct(self, shoes_pattern, pattern);
+  Get_TypedStruct(shoes_pattern, pattern);
 
   if (pattern->pattern != NULL)
     cairo_pattern_destroy(pattern->pattern);
@@ -1569,8 +1574,7 @@ shoes_pattern_set_fill(VALUE self, VALUE source)
 VALUE
 shoes_pattern_get_fill(VALUE self)
 {
-  shoes_pattern *pattern;
-  Data_Get_Struct(self, shoes_pattern, pattern);
+  Get_TypedStruct(shoes_pattern, pattern);
   return pattern->source;
 }
 
@@ -1592,9 +1596,8 @@ shoes_pattern_args(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent)
 {
-  shoes_pattern *pattern;
   VALUE obj = shoes_pattern_alloc(klass);
-  Data_Get_Struct(obj, shoes_pattern, pattern);
+  Get_TypedStruct2(obj, shoes_pattern, pattern);
   pattern->source = Qnil;
   pattern->attr = attr;
   pattern->parent = parent;
@@ -1608,13 +1611,16 @@ shoes_pattern_method(VALUE klass, VALUE source)
   return shoes_pattern_new(cPattern, source, Qnil, Qnil);
 }
 
+// creates struct shoes_pattern_type
+TypedData_Type_New(shoes_pattern);
+
 VALUE
 shoes_pattern_alloc(VALUE klass)
 {
   VALUE obj;
   shoes_pattern *pattern = SHOE_ALLOC(shoes_pattern);
   SHOE_MEMZERO(pattern, shoes_pattern, 1);
-  obj = Data_Wrap_Struct(klass, shoes_pattern_mark, shoes_pattern_free, pattern);
+  obj = TypedData_Wrap_Struct(klass, &shoes_pattern_type, pattern);
   pattern->source = Qnil;
   pattern->attr = Qnil;
   pattern->parent = Qnil;
@@ -1626,7 +1632,7 @@ shoes_background_draw(VALUE self, VALUE c, VALUE actual)
 {
   cairo_matrix_t matrix1, matrix2;
   double r = 0., sw = 1.;
-  SETUP(shoes_pattern, REL_TILE, PATTERN_DIM(self_t, width), PATTERN_DIM(self_t, height));
+  SETUP_T(shoes_pattern, REL_TILE, PATTERN_DIM(self_t, width), PATTERN_DIM(self_t, height));
   r = ATTR2(dbl, self_t->attr, curve, 0.);
 
   if (RTEST(actual))
@@ -1655,7 +1661,7 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
   ID cap = s_rect;
   ID dash = s_nodot;
   double r = 0., sw = 1.;
-  SETUP(shoes_pattern, REL_TILE, PATTERN_DIM(self_t, width), PATTERN_DIM(self_t, height));
+  SETUP_T(shoes_pattern, REL_TILE, PATTERN_DIM(self_t, width), PATTERN_DIM(self_t, height));
   r = ATTR2(dbl, self_t->attr, curve, 0.);
   sw = ATTR2(dbl, self_t->attr, strokewidth, 1.);
   if (!NIL_P(ATTR(self_t->attr, cap))) cap = SYM2ID(ATTR(self_t->attr, cap));
@@ -1692,10 +1698,9 @@ shoes_border_draw(VALUE self, VALUE c, VALUE actual)
 VALUE
 shoes_subpattern_new(VALUE klass, VALUE pat, VALUE parent)
 {
-  shoes_pattern *back, *pattern;
   VALUE obj = shoes_pattern_alloc(klass);
-  Data_Get_Struct(obj, shoes_pattern, back);
-  Data_Get_Struct(pat, shoes_pattern, pattern);
+  Get_TypedStruct2(obj, shoes_pattern, back);
+  Get_TypedStruct2(pat, shoes_pattern, pattern);
   back->source = pattern->source;
   back->cached = pattern->cached;
   back->pattern = pattern->pattern;
@@ -1722,9 +1727,8 @@ shoes_color_free(shoes_color *color)
 VALUE
 shoes_color_new(int r, int g, int b, int a)
 {
-  shoes_color *color;
   VALUE obj = shoes_color_alloc(cColor);
-  Data_Get_Struct(obj, shoes_color, color);
+  Get_TypedStruct2(obj, shoes_color, color);
   color->r = r;
   color->g = g;
   color->b = b;
@@ -1732,13 +1736,17 @@ shoes_color_new(int r, int g, int b, int a)
   return obj;
 }
 
+// creates struct shoes_color_type
+TypedData_Type_New(shoes_color);
+
 VALUE
 shoes_color_alloc(VALUE klass)
 {
   VALUE obj;
   shoes_color *color = SHOE_ALLOC(shoes_color);
   SHOE_MEMZERO(color, shoes_color, 1);
-  obj = Data_Wrap_Struct(klass, shoes_color_mark, shoes_color_free, color);
+  // obj = Data_Wrap_Struct(klass, shoes_color_mark, shoes_color_free, color);
+  obj = TypedData_Wrap_Struct(klass, &shoes_color_type, color);
   color->a = SHOES_COLOR_OPAQUE;
   color->on = TRUE;
   return obj;
@@ -1759,14 +1767,13 @@ shoes_color_rgb(int argc, VALUE *argv, VALUE self)
 VALUE
 shoes_color_gradient(int argc, VALUE *argv, VALUE self)
 {
-  shoes_pattern *pattern;
   VALUE obj, r1, r2;
   VALUE attr = Qnil;
   rb_scan_args(argc, argv, "21", &r1, &r2, &attr);
   CHECK_HASH(attr);
 
   obj = shoes_pattern_alloc(cPattern);
-  Data_Get_Struct(obj, shoes_pattern, pattern);
+  Get_TypedStruct2(obj, shoes_pattern, pattern);
   pattern->source = Qnil;
   shoes_pattern_gradient(pattern, r1, r2, attr);
   return obj;
@@ -1789,7 +1796,7 @@ shoes_color_gray(int argc, VALUE *argv, VALUE self)
 cairo_pattern_t *
 shoes_color_pattern(VALUE self)
 {
-  GET_STRUCT(color, color);
+  Get_TypedStruct(shoes_color, color);
   if (color->a == 255)
     return cairo_pattern_create_rgb(color->r / 255., color->g / 255., color->b / 255.);
   else
@@ -1799,7 +1806,7 @@ shoes_color_pattern(VALUE self)
 void
 shoes_color_grad_stop(cairo_pattern_t *pattern, double stop, VALUE self)
 {
-  GET_STRUCT(color, color);
+  Get_TypedStruct(shoes_color, color);
   if (color->a == 255)
     return cairo_pattern_add_color_stop_rgb(pattern, stop, color->r / 255., color->g / 255., color->b / 255.);
   else
@@ -1827,7 +1834,7 @@ shoes_color_args(int argc, VALUE *argv, VALUE self)
 #define NEW_COLOR(v, o) \
   shoes_color *v; \
   VALUE o = shoes_color_alloc(cColor); \
-  Data_Get_Struct(o, shoes_color, v)
+  TypedData_Get_Struct(o, shoes_color, &shoes_color_type, v);
 
 VALUE
 shoes_color_parse(VALUE self, VALUE source)
@@ -1899,10 +1906,9 @@ VALUE
 shoes_color_spaceship(VALUE self, VALUE c2)
 {
   int v1, v2;
-  shoes_color *color2;
-  GET_STRUCT(color, color);
+  Get_TypedStruct(shoes_color, color);
   if (!rb_obj_is_kind_of(c2, cColor)) return Qnil;
-  Data_Get_Struct(c2, shoes_color, color2);
+  Get_TypedStruct2(c2, shoes_color, color2);
   v1 = color->r + color->g + color->b;
   v2 = color2->r + color2->g + color2->b;
   if (v1 == v2) return INT2FIX(0);
@@ -1915,9 +1921,8 @@ shoes_color_equal(VALUE self, VALUE c2)
 {
   if (!rb_obj_is_kind_of(c2, cColor)) return Qnil;
   
-  GET_STRUCT(color, color);
-  shoes_color *color2;
-  Data_Get_Struct(c2, shoes_color, color2);
+  Get_TypedStruct(shoes_color, color);
+  Get_TypedStruct2(c2, shoes_color, color2);
   if (color->r == color2->r && color->g == color2->g && 
         color->b == color2->b && color->a == color2->a ) {
     return Qtrue;
@@ -1927,77 +1932,77 @@ shoes_color_equal(VALUE self, VALUE c2)
 VALUE
 shoes_color_get_red(VALUE self)
 {
-  GET_STRUCT(color, color);
+  Get_TypedStruct(shoes_color, color);
   return INT2NUM(color->r);
 }
 
 VALUE
 shoes_color_get_green(VALUE self)
 {
-  GET_STRUCT(color, color);
+  Get_TypedStruct(shoes_color, color);
   return INT2NUM(color->g);
 }
 
 VALUE
 shoes_color_get_blue(VALUE self)
 {
-  GET_STRUCT(color, color);
+  Get_TypedStruct(shoes_color, color);
   return INT2NUM(color->b);
 }
 
 VALUE
 shoes_color_get_alpha(VALUE self)
 {
-  GET_STRUCT(color, color);
+  Get_TypedStruct(shoes_color, color);
   return INT2NUM(color->a);
 }
 
 VALUE
 shoes_color_is_black(VALUE self)
 {
-  GET_STRUCT(color, color);
+  Get_TypedStruct(shoes_color, color);
   return (color->r + color->g + color->b == 0) ? Qtrue : Qfalse;
 }
 
 VALUE
 shoes_color_is_dark(VALUE self)
 {
-  GET_STRUCT(color, color);
+  Get_TypedStruct(shoes_color, color);
   return ((int)color->r + (int)color->g + (int)color->b < SHOES_COLOR_DARK) ? Qtrue : Qfalse;
 }
 
 VALUE
 shoes_color_is_light(VALUE self)
 {
-  GET_STRUCT(color, color);
+  Get_TypedStruct(shoes_color, color);
   return ((int)color->r + (int)color->g + (int)color->b > SHOES_COLOR_LIGHT) ? Qtrue : Qfalse;
 }
 
 VALUE
 shoes_color_is_opaque(VALUE self)
 {
-  GET_STRUCT(color, color);
+  Get_TypedStruct(shoes_color, color);
   return (color->a == SHOES_COLOR_OPAQUE) ? Qtrue : Qfalse;
 }
 
 VALUE
 shoes_color_is_transparent(VALUE self)
 {
-  GET_STRUCT(color, color);
+  Get_TypedStruct(shoes_color, color);
   return (color->a == SHOES_COLOR_TRANSPARENT) ? Qtrue : Qfalse;
 }
 
 VALUE
 shoes_color_is_white(VALUE self)
 {
-  GET_STRUCT(color, color);
+  Get_TypedStruct(shoes_color, color);
   return (color->r + color->g + color->b == 765) ? Qtrue : Qfalse;
 }
 
 VALUE
 shoes_color_invert(VALUE self)
 {
-  GET_STRUCT(color, color);
+  Get_TypedStruct(shoes_color, color);
   NEW_COLOR(color2, obj);
   color2->r = 255 - color->r; color2->g = 255 - color->g; color2->b = 255 - color->b; color2->a = color->a;
   return obj;
@@ -2006,7 +2011,7 @@ shoes_color_invert(VALUE self)
 VALUE
 shoes_color_to_s(VALUE self)
 {
-  GET_STRUCT(color, color);
+  Get_TypedStruct(shoes_color, color);
 
   VALUE ary = rb_ary_new3(4,
     INT2NUM(color->r), INT2NUM(color->g), INT2NUM(color->b),
@@ -2042,8 +2047,7 @@ shoes_color_method_missing(int argc, VALUE *argv, VALUE self)
   rb_scan_args(argc, argv, "11", &cname, &alpha);
   if (!NIL_P(alpha))
   {
-    shoes_color *color;
-    Data_Get_Struct(c, shoes_color, color);
+    Get_TypedStruct2(c, shoes_color, color);
     c = shoes_color_new(color->r, color->g, color->b, NUM2RGBINT(alpha));
   }
 
@@ -2489,8 +2493,7 @@ shoes_textblock_send_release(VALUE self, int button, int x, int y)
       str = shoes_color_parse(cColor, str); \
     if (rb_obj_is_kind_of(str, cColor)) \
     { \
-      shoes_color *color; \
-      Data_Get_Struct(str, shoes_color, color); \
+      Get_TypedStruct2(str, shoes_color, color); \
       attr = pango_attr_##func##_new(color->r * 255, color->g * 255, color-> b * 255); \
     } \
     APPLY_ATTR(); \
@@ -3753,6 +3756,11 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   return self;
 }
 
+/* 
+ * TODO in all following macros
+ * Temporary "if (RTYPEDDATA_P(self) else ..." while fixing TypedData new API 
+ * should be "Get_TypedStruct(shoes_##ele, self_t)" when fixed 
+*/
 //
 // Transformations
 //
@@ -3760,7 +3768,11 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_transform(VALUE self, VALUE _m) \
   { \
-    GET_STRUCT(ele, self_t); \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     ID m = SYM2ID(_m); \
     if (m == s_center || m == s_corner) \
     { \
@@ -3776,8 +3788,12 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_translate(VALUE self, VALUE _x, VALUE _y) \
   { \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     double x, y; \
-    GET_STRUCT(ele, self_t); \
     x = NUM2DBL(_x); \
     y = NUM2DBL(_y); \
     self_t->st = shoes_transform_detach(self_t->st); \
@@ -3787,8 +3803,12 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_rotate(VALUE self, VALUE _deg) \
   { \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     double rad; \
-    GET_STRUCT(ele, self_t); \
     rad = NUM2DBL(_deg) * SHOES_RAD2PI; \
     self_t->st = shoes_transform_detach(self_t->st); \
     cairo_matrix_rotate(&self_t->st->tf, -rad); \
@@ -3798,9 +3818,13 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_scale(int argc, VALUE *argv, VALUE self) \
   { \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     VALUE _sx, _sy; \
     double sx, sy; \
-    GET_STRUCT(ele, self_t); \
     rb_scan_args(argc, argv, "11", &_sx, &_sy); \
     sx = NUM2DBL(_sx); \
     if (NIL_P(_sy)) sy = sx; \
@@ -3813,10 +3837,14 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_skew(int argc, VALUE *argv, VALUE self) \
   { \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     cairo_matrix_t matrix; \
     VALUE _sx, _sy; \
     double sx, sy; \
-    GET_STRUCT(ele, self_t); \
     rb_scan_args(argc, argv, "11", &_sx, &_sy); \
     sx = NUM2DBL(_sx) * SHOES_RAD2PI; \
     sy = 0.0; \
@@ -3832,10 +3860,14 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_replace(int argc, VALUE *argv, VALUE self) \
   { \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     long i; \
     shoes_textblock *block_t; \
     VALUE texts, attr, block; \
-    GET_STRUCT(ele, self_t); \
     attr = Qnil; \
     texts = rb_ary_new(); \
     for (i = 0; i < argc; i++) \
@@ -3861,8 +3893,12 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_##sym(int argc, VALUE *argv, VALUE self) \
   { \
+    shoes_##est *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##est, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##est, self_t); \
     VALUE str = Qnil, blk = Qnil; \
-    GET_STRUCT(est, self_t); \
   \
     rb_scan_args(argc, argv, "01&", &str, &blk); \
     if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new(); \
@@ -3874,8 +3910,12 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_style(int argc, VALUE *argv, VALUE self) \
   { \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     rb_arg_list args; \
-    GET_STRUCT(ele, self_t); \
     switch (rb_parse_args(argc, argv, "h,", &args)) { \
       case 1: \
         if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new(); \
@@ -3890,7 +3930,11 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_displace(VALUE self, VALUE x, VALUE y) \
   { \
-    GET_STRUCT(ele, self_t); \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     ATTRSET(self_t->attr, displace_left, x); \
     ATTRSET(self_t->attr, displace_top, y); \
     shoes_canvas_repaint_all(self_t->parent); \
@@ -3900,7 +3944,11 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_move(VALUE self, VALUE x, VALUE y) \
   { \
-    GET_STRUCT(ele, self_t); \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     ATTRSET(self_t->attr, left, x); \
     ATTRSET(self_t->attr, top, y); \
     shoes_canvas_repaint_all(self_t->parent); \
@@ -3911,7 +3959,11 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_hide(VALUE self) \
   { \
-    GET_STRUCT(ele, self_t); \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     ATTRSET(self_t->attr, hidden, Qtrue); \
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
@@ -3920,7 +3972,11 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_show(VALUE self) \
   { \
-    GET_STRUCT(ele, self_t); \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     ATTRSET(self_t->attr, hidden, Qfalse); \
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
@@ -3929,7 +3985,11 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_toggle(VALUE self) \
   { \
-    GET_STRUCT(ele, self_t); \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     ATTRSET(self_t->attr, hidden, ATTR(self_t->attr, hidden) == Qtrue ? Qfalse : Qtrue); \
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
@@ -3938,7 +3998,11 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_is_hidden(VALUE self) \
   { \
-    GET_STRUCT(ele, self_t); \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     if (RTEST(ATTR(self_t->attr, hidden))) \
       return ATTR(self_t->attr, hidden); \
     else return Qfalse; \
@@ -3954,15 +4018,23 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_get_parent(VALUE self) \
   { \
-    GET_STRUCT(ele, self_t); \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     return self_t->parent; \
   } \
   \
   VALUE \
   shoes_##ele##_get_left(VALUE self) \
   { \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     shoes_canvas *canvas = NULL; \
-    GET_STRUCT(ele, self_t); \
     if (!NIL_P(self_t->parent)) { \
       Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
     } else { \
@@ -3974,8 +4046,12 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_get_top(VALUE self) \
   { \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     shoes_canvas *canvas = NULL; \
-    GET_STRUCT(ele, self_t); \
     if (!NIL_P(self_t->parent)) { \
       Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
     } else { \
@@ -3987,14 +4063,22 @@ shoes_radio_draw(VALUE self, VALUE c, VALUE actual)
   VALUE \
   shoes_##ele##_get_height(VALUE self) \
   { \
-    GET_STRUCT(ele, self_t); \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     return INT2NUM(self_t->place.h); \
   } \
   \
   VALUE \
   shoes_##ele##_get_width(VALUE self) \
   { \
-    GET_STRUCT(ele, self_t); \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
     return INT2NUM(self_t->place.w); \
   }
 
@@ -4647,7 +4731,7 @@ shoes_ruby_init()
   rb_define_method(cCanvas, "toggle", CASTHOOK(shoes_canvas_toggle), 0);
   rb_define_method(cCanvas, "remove", CASTHOOK(shoes_canvas_remove), 0);
   rb_define_method(cCanvas, "refresh_slot", CASTHOOK(shoes_canvas_refresh_slot), 0);
-  rb_define_method(cCanvas, "cursor=", CASTHOOK(shoes_canvas_get_cursor), 0);
+  rb_define_method(cCanvas, "cursor", CASTHOOK(shoes_canvas_get_cursor), 0);
   rb_define_method(cCanvas, "cursor=", CASTHOOK(shoes_canvas_set_cursor), 1);
 
   cShoes = rb_define_class("Shoes", cCanvas);
@@ -4878,8 +4962,28 @@ shoes_ruby_init()
 
   cChartSeries = rb_define_class_under(cTypes, "chart_series", rb_cObject); // 3.3.2
   rb_define_alloc_func(cChartSeries, shoes_chart_series_alloc);
+  //  simple getters/setters
+  rb_define_method(cChartSeries, "values", CASTHOOK(shoes_chart_series_values), 0);
+  rb_define_method(cChartSeries, "labels", CASTHOOK(shoes_chart_series_labels), 0);
+  rb_define_method(cChartSeries, "min", CASTHOOK(shoes_chart_series_min), 0);
+  rb_define_method(cChartSeries, "min=", CASTHOOK(shoes_chart_series_min_set), 1);
+  rb_define_method(cChartSeries, "max", CASTHOOK(shoes_chart_series_max), 0);
+  rb_define_method(cChartSeries, "max=", CASTHOOK(shoes_chart_series_max_set), 1);
+  rb_define_method(cChartSeries, "name", CASTHOOK(shoes_chart_series_name), 0);
+  rb_define_method(cChartSeries, "desc", CASTHOOK(shoes_chart_series_desc), 0);
+  rb_define_method(cChartSeries, "desc=", CASTHOOK(shoes_chart_series_desc_set), 1);
+  rb_define_method(cChartSeries, "color", CASTHOOK(shoes_chart_series_color), 0);
+  rb_define_method(cChartSeries, "color=", CASTHOOK(shoes_chart_series_color_set), 1);
+  rb_define_method(cChartSeries, "strokewidth", CASTHOOK(shoes_chart_series_strokewidth), 0);
+  rb_define_method(cChartSeries, "strokewidth=", CASTHOOK(shoes_chart_series_strokewidth_set), 1);
+  rb_define_method(cChartSeries, "points", CASTHOOK(shoes_chart_series_points), 0);
+  rb_define_method(cChartSeries, "points=", CASTHOOK(shoes_chart_series_points_set), 1);
+  // more complcated methods
+  rb_define_method(cChartSeries, "at", CASTHOOK(shoes_chart_series_get), 1);
+  rb_define_method(cChartSeries, "get", CASTHOOK(shoes_chart_series_get), 1);
+  rb_define_method(cChartSeries, "set", CASTHOOK(shoes_chart_series_set), 2);
 
-  cPlot   = rb_define_class_under(cTypes, "Plot", rb_cObject);
+  cPlot   = rb_define_class_under(cTypes, "Plot", rb_cObject); // 3.3.2
   rb_define_alloc_func(cPlot, shoes_plot_alloc);
   // methods unique to plot
   rb_define_method(cPlot, "add", CASTHOOK(shoes_plot_add), 1);

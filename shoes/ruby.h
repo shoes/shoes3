@@ -168,6 +168,10 @@ const rb_data_type_t wrapped##_type = { \
 #define Get_TypedStruct3(rbObject, wrapped) \
   (wrapped*)rb_check_typeddata((rbObject), (&wrapped##_type))
 
+// declare some rb_data_type_t types
+const rb_data_type_t shoes_color_type;
+const rb_data_type_t shoes_pattern_type;
+
 
 //
 // Common funcs for dealing with attribute hashes

@@ -227,14 +227,12 @@ shoes_layer_blur_filter(cairo_t *cr, VALUE attr, shoes_place *place,
     cairo_set_source_rgb(cr2, 0., 0., 0.);
   else if (rb_obj_is_kind_of(fill, cColor))
   {
-    shoes_color *color;
-    Data_Get_Struct(fill, shoes_color, color);
+    Get_TypedStruct2(fill, shoes_color, color);
     cairo_set_source_rgba(cr2, color->r / 255., color->g / 255., color->b / 255., color->a / 255.);
   }
   else
   {
-    shoes_pattern *pattern;
-    Data_Get_Struct(fill, shoes_pattern, pattern);
+    Get_TypedStruct2(fill, shoes_pattern, pattern);
     cairo_set_source(cr2, PATTERN(pattern));
   }
   cairo_rectangle(cr2, 0, 0, width, height);

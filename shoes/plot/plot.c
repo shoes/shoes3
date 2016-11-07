@@ -26,6 +26,7 @@ shoes_plot_mark(shoes_plot *self_t)
   rb_gc_mark_maybe(self_t->legend);
   rb_gc_mark_maybe(self_t->background);
   rb_gc_mark_maybe(self_t->default_colors);
+  rb_gc_mark_maybe(self_t->column_opts);
 }
 
 void
@@ -57,6 +58,7 @@ shoes_plot_alloc(VALUE klass)
   SHOE_MEMZERO(plot, shoes_plot, 1);
   obj = Data_Wrap_Struct(klass, shoes_plot_mark, shoes_plot_free, plot);
   plot->parent = Qnil;
+  plot->column_opts = Qnil;
   plot->series = rb_ary_new();
   plot->st = NULL;
   plot->auto_grid = 0;
@@ -78,7 +80,8 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   VALUE title = Qnil, caption = Qnil, fontreq = Qnil, auto_grid = Qnil;
   VALUE x_ticks = Qnil, y_ticks = Qnil, boundbox = Qnil;
   VALUE missing = Qnil, chart_type = Qnil, background = Qnil;
-  VALUE pie_pct = Qnil, colors = Qnil;
+  VALUE pie_pct = Qnil, colors = Qnil, radar_opts = Qnil;
+  VALUE rbcol_settings = Qnil;
   shoes_canvas *canvas;
   Data_Get_Struct(parent, shoes_canvas, canvas);
   
@@ -105,6 +108,7 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     boundbox = shoes_hash_get(attr, rb_intern("boundary_box"));
     pie_pct = shoes_hash_get(attr, rb_intern("pie_percent"));
     colors = shoes_hash_get(attr, rb_intern("colors"));
+    radar_opts = shoes_hash_get(attr, rb_intern("column_settings"));
     // there may be many other things in that hash :-)
   } else {
     rb_raise(rb_eArgError, "Plot: missing mandatory {options}");
@@ -134,10 +138,36 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
         self_t->chart_type = SCATTER_CHART;
       else if (! strcmp(str, "pie"))
         self_t->chart_type = PIE_CHART;
-      else if (! strcmp(str, "radar"))
+      else if (! strcmp(str, "radar")) {
         self_t->chart_type = RADAR_CHART;
-        //self_t->chart_type = PIE_CHART;
-      else 
+        if (NIL_P(radar_opts))
+          rb_raise(rb_eArgError, "Plot: radar chart requires column settings");
+        else {
+          // returns an array of arrays
+          rbcol_settings = shoes_plot_parse_column_settings(radar_opts);
+          self_t->column_opts = rbcol_settings;
+          // type check parser
+          int i, cnt; VALUE rbval = Qnil;
+          cnt = RARRAY_LEN(rbcol_settings);
+          for (i = 0; i < cnt; i++) {
+            VALUE rbcol = rb_ary_entry(rbcol_settings, i);
+            int csz = RARRAY_LEN(rbcol);
+            VALUE rbv;
+            rbv = rb_ary_entry(rbcol, 0); // string - xaxis label
+            if (TYPE(rbv) != T_STRING)
+              rb_raise(rb_eArgError, "Plot: column_settings label [0] is not a string");
+            rbv = rb_ary_entry(rbcol, 1);  // number - xaxis min
+            if (TYPE(rbv) != T_FIXNUM && (TYPE(rbv) != T_FLOAT)) 
+              rb_raise(rb_eArgError, "Plot: column_settings min [1] is not a number");
+            rbv = rb_ary_entry(rbcol, 2);  // number - xaxis max
+            if (TYPE(rbv) != T_FIXNUM && (TYPE(rbv) != T_FLOAT)) 
+              rb_raise(rb_eArgError, "Plot: column_settings max [2] is not a number");
+            rbv = rb_ary_entry(rbcol, 3); // optional format string
+            if (! NIL_P(rbv) && (TYPE(rbv) != T_STRING))
+              rb_raise(rb_eArgError, "Plot: column_settings format [3] is not a string");
+          }
+        }
+      } else 
         err = 1;
     } else err = 1;
     if (err)    
@@ -215,6 +245,12 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   pango_font_description_set_weight (self_t->label_pfd, PANGO_WEIGHT_NORMAL);
   pango_font_description_set_absolute_size (self_t->label_pfd, 12 * PANGO_SCALE); 
   
+  // setup pangocairo for realy small (used by radar)
+  self_t->tiny_pfd = pango_font_description_new ();
+  pango_font_description_set_family (self_t->tiny_pfd, self_t->fontname);
+  pango_font_description_set_weight (self_t->tiny_pfd, PANGO_WEIGHT_NORMAL);
+  pango_font_description_set_absolute_size (self_t->tiny_pfd, 10 * PANGO_SCALE);
+  
   // TODO: these should be computed based on heuristics (% of vertical?)
   // and font sizes
   self_t->title_h = 50;
@@ -231,14 +267,8 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
   if (!NIL_P(y_ticks))
     self_t->y_ticks = NUM2INT(y_ticks);
     
-  if (! NIL_P(background)) {
-    if (TYPE(background) != T_STRING)
-        rb_raise(rb_eArgError, "plot backround color must be a string");
-    char *cstr = RSTRING_PTR(background);
-    VALUE cval = shoes_hash_get(cColors, rb_intern(cstr)); // segfault or raise? 
-    if (NIL_P(cval))
-      rb_raise(rb_eArgError, "plot.add color: not a known color");
-    self_t->background = cval;
+  if (! NIL_P(background) && rb_obj_is_kind_of(background, cColor)) {
+    self_t->background = background;
   } else {
     self_t->background = shoes_hash_get(cColors, rb_intern("white"));
   }
@@ -248,9 +278,8 @@ shoes_plot_new(int argc, VALUE *argv, VALUE parent)
     int sz = RARRAY_LEN(colors);
     int i;
     for (i = 0; i < sz; i++) {
-      char *clrn = RSTRING_PTR(rb_ary_entry(colors, i));
-      VALUE ndclr = shoes_hash_get(cColors, rb_intern(clrn));
-      rb_ary_store(self_t->default_colors, i, ndclr);
+      VALUE clr = rb_ary_entry(colors, i);
+      rb_ary_store(self_t->default_colors, i, clr);
     }
   } 
   
@@ -333,7 +362,7 @@ VALUE shoes_plot_add(VALUE self, VALUE theseries)
   if (i >= 6) {
     rb_raise(rb_eArgError, "Maximum of 6 series");
   }
-  // we got hash - convert it to a chart_series
+  // we got a hash - convert it to a chart_series
   if (TYPE(theseries) == T_HASH) { 
     newseries = shoes_chart_series_new(1, &theseries, self);
   }
@@ -357,7 +386,7 @@ VALUE shoes_plot_add(VALUE self, VALUE theseries)
       cs->color = rb_ary_entry(self_t->default_colors, i);
     }
     shoes_canvas_repaint_all(self_t->parent);
-    return self;
+    return newseries;
   }
   // if we get here, we don't have a chart_series and we couldn't create one
   // odds are exceptions have been raised already, but just in case:
