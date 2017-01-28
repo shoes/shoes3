@@ -5048,8 +5048,10 @@ shoes_ruby_init()
   cBorder = rb_define_class_under(cTypes, "Border", cPattern);
   rb_define_method(cBorder, "draw", CASTHOOK(shoes_border_draw), 2);
 
-  cTextBlock = rb_define_class_under(cTypes, "TextBlock", rb_cObject);
-  rb_define_alloc_func(cTextBlock, shoes_textblock_alloc);
+  //cTextBlock = rb_define_class_under(cTypes, "TextBlock", rb_cObject);
+  //rb_define_alloc_func(cTextBlock, shoes_textblock_alloc);
+  cTextBlock = rb_define_class_under(cTypes, "TextBlock", rb_cData);
+  rb_undef_method(CLASS_OF(cTextBlock), "new");
   rb_define_method(cTextBlock, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cTextBlock, "contents", CASTHOOK(shoes_textblock_children), 0);
   rb_define_method(cTextBlock, "children", CASTHOOK(shoes_textblock_children), 0);
@@ -5083,15 +5085,24 @@ shoes_ruby_init()
   rb_define_method(cTextBlock, "hover", CASTHOOK(shoes_textblock_hover), -1);
   rb_define_method(cTextBlock, "leave", CASTHOOK(shoes_textblock_leave), -1);
   cPara = rb_define_class_under(cTypes, "Para", cTextBlock);
+  rb_undef_method(CLASS_OF(cPara), "new");
   cBanner = rb_define_class_under(cTypes, "Banner", cTextBlock);
+  rb_undef_method(CLASS_OF(cBanner), "new");
   cTitle = rb_define_class_under(cTypes, "Title", cTextBlock);
+  rb_undef_method(CLASS_OF(cTitle), "new");
   cSubtitle = rb_define_class_under(cTypes, "Subtitle", cTextBlock);
+  rb_undef_method(CLASS_OF(cSubtitle), "new");
   cTagline = rb_define_class_under(cTypes, "Tagline", cTextBlock);
+  rb_undef_method(CLASS_OF(cTagline), "new");
   cCaption = rb_define_class_under(cTypes, "Caption", cTextBlock);
+  rb_undef_method(CLASS_OF(cCaption), "new");
   cInscription = rb_define_class_under(cTypes, "Inscription", cTextBlock);
+  rb_undef_method(CLASS_OF(cInscription), "new");
 
-  cTextClass = rb_define_class_under(cTypes, "Text", rb_cObject);
-  rb_define_alloc_func(cTextClass, shoes_text_alloc);
+  //cTextClass = rb_define_class_under(cTypes, "Text", rb_cObject);
+  //b_define_alloc_func(cTextClass, shoes_text_alloc);
+  cTextClass = rb_define_class_under(cTypes, "Text", rb_cData);
+  rb_undef_method(CLASS_OF(cTextClass), "new");
   rb_define_method(cTextClass, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cTextClass, "contents", CASTHOOK(shoes_text_children), 0);
   rb_define_method(cTextClass, "children", CASTHOOK(shoes_text_children), 0);
@@ -5102,15 +5113,24 @@ shoes_ruby_init()
   rb_define_method(cTextClass, "text=", CASTHOOK(shoes_text_replace), -1);
   rb_define_method(cTextClass, "replace", CASTHOOK(shoes_text_replace), -1);
   cCode      = rb_define_class_under(cTypes, "Code", cTextClass);
+  rb_undef_method(CLASS_OF(cCode), "new");
   cDel       = rb_define_class_under(cTypes, "Del", cTextClass);
+  rb_undef_method(CLASS_OF(cDel), "new");
   cEm        = rb_define_class_under(cTypes, "Em", cTextClass);
+  rb_undef_method(CLASS_OF(cEm), "new");
   cIns       = rb_define_class_under(cTypes, "Ins", cTextClass);
+  rb_undef_method(CLASS_OF(cIns), "new");
   cSpan      = rb_define_class_under(cTypes, "Span", cTextClass);
+  rb_undef_method(CLASS_OF(cSpan), "new");
   cStrong    = rb_define_class_under(cTypes, "Strong", cTextClass);
+  rb_undef_method(CLASS_OF(cStrong), "new");
   cSub       = rb_define_class_under(cTypes, "Sub", cTextClass);
+  rb_undef_method(CLASS_OF(cSub), "new");
   cSup       = rb_define_class_under(cTypes, "Sup", cTextClass);
-
+  rb_undef_method(CLASS_OF(cSup), "new");
   cLink      = rb_define_class_under(cTypes, "Link", cTextClass);
+  rb_undef_method(CLASS_OF(cLink), "new");
+  
   rb_define_method(cTextClass, "click", CASTHOOK(shoes_linktext_click), -1);
   rb_define_method(cTextClass, "release", CASTHOOK(shoes_linktext_release), -1);
   rb_define_method(cTextClass, "hover", CASTHOOK(shoes_linktext_hover), -1);
