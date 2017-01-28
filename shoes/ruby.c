@@ -5224,19 +5224,25 @@ shoes_ruby_init()
   rb_define_method(cRadio, "checked=", CASTHOOK(shoes_check_set_checked_m), 1);
   rb_define_method(cRadio, "click", CASTHOOK(shoes_control_click), -1);
 
-  cTimerBase   = rb_define_class_under(cTypes, "TimerBase", rb_cObject);
-  rb_define_alloc_func(cTimerBase, shoes_timer_alloc);
+  cTimerBase   = rb_define_class_under(cTypes, "TimerBase", rb_cData);
+  //rb_define_alloc_func(cTimerBase, shoes_timer_alloc);
+  rb_undef_method(CLASS_OF(cTimerBase), "new");
   rb_define_method(cTimerBase, "draw", CASTHOOK(shoes_timer_draw), 2);
   rb_define_method(cTimerBase, "remove", CASTHOOK(shoes_timer_remove), 0);
   rb_define_method(cTimerBase, "start", CASTHOOK(shoes_timer_start), 0);
   rb_define_method(cTimerBase, "stop", CASTHOOK(shoes_timer_stop), 0);
   rb_define_method(cTimerBase, "toggle", CASTHOOK(shoes_timer_toggle), 0);
   cAnim    = rb_define_class_under(cTypes, "Animation", cTimerBase);
+  rb_undef_method(CLASS_OF(cAnim), "new");
   cEvery   = rb_define_class_under(cTypes, "Every", cTimerBase);
+  rb_undef_method(CLASS_OF(cEvery), "new");
   cTimer   = rb_define_class_under(cTypes, "Timer", cTimerBase);
+  rb_undef_method(CLASS_OF(cTimer), "new");
 
-  cColor   = rb_define_class_under(cTypes, "Color", rb_cObject);
-  rb_define_alloc_func(cColor, shoes_color_alloc);
+  //cColor   = rb_define_class_under(cTypes, "Color", rb_cObject);
+  // rb_define_alloc_func(cColor, shoes_color_alloc);
+  cColor   = rb_define_class_under(cTypes, "Color", rb_cData);
+  rb_undef_method(CLASS_OF(cColor), "new");
   rb_define_method(rb_mKernel, "rgb", CASTHOOK(shoes_color_rgb), -1);
   rb_define_method(rb_mKernel, "gray", CASTHOOK(shoes_color_gray), -1);
   rb_define_singleton_method(cColor, "rgb", CASTHOOK(shoes_color_rgb), -1);
