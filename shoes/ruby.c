@@ -5137,8 +5137,10 @@ shoes_ruby_init()
   rb_define_method(cTextClass, "leave", CASTHOOK(shoes_linktext_leave), -1);
   cLinkHover = rb_define_class_under(cTypes, "LinkHover", cTextClass);
 
-  cNative  = rb_define_class_under(cTypes, "Native", rb_cObject);
-  rb_define_alloc_func(cNative, shoes_control_alloc);
+  //cNative  = rb_define_class_under(cTypes, "Native", rb_cObject);
+  //rb_define_alloc_func(cNative, shoes_control_alloc);
+  cNative  = rb_define_class_under(cTypes, "Native", rb_cData);
+  rb_undef_method(CLASS_OF(cNative), "new");
   rb_define_method(cNative, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cNative, "parent", CASTHOOK(shoes_control_get_parent), 0);
   rb_define_method(cNative, "style", CASTHOOK(shoes_control_style), -1);
@@ -5155,9 +5157,11 @@ shoes_ruby_init()
   rb_define_method(cNative, "height", CASTHOOK(shoes_control_get_height), 0);
   rb_define_method(cNative, "remove", CASTHOOK(shoes_control_remove), 0);
   cButton  = rb_define_class_under(cTypes, "Button", cNative);
+  rb_undef_method(CLASS_OF(cButton), "new");
   rb_define_method(cButton, "draw", CASTHOOK(shoes_button_draw), 2);
   rb_define_method(cButton, "click", CASTHOOK(shoes_control_click), -1);
   cEditLine  = rb_define_class_under(cTypes, "EditLine", cNative);
+  rb_undef_method(CLASS_OF(cEditLine), "new");
   rb_define_method(cEditLine, "text", CASTHOOK(shoes_edit_line_get_text), 0);
   rb_define_method(cEditLine, "text=", CASTHOOK(shoes_edit_line_set_text), 1);
   rb_define_method(cEditLine, "draw", CASTHOOK(shoes_edit_line_draw), 2);
@@ -5165,6 +5169,7 @@ shoes_ruby_init()
   rb_define_method(cEditLine, "finish=", CASTHOOK(shoes_edit_line_enterkey), 1);
   rb_define_method(cEditLine, "to_end", CASTHOOK(shoes_edit_line_cursor_to_end), 0);
   cEditBox  = rb_define_class_under(cTypes, "EditBox", cNative);
+  rb_undef_method(CLASS_OF(cEditBox), "new");
   rb_define_method(cEditBox, "text", CASTHOOK(shoes_edit_box_get_text), 0);
   rb_define_method(cEditBox, "text=", CASTHOOK(shoes_edit_box_set_text), 1);
   rb_define_method(cEditBox, "draw", CASTHOOK(shoes_edit_box_draw), 2);
@@ -5172,14 +5177,16 @@ shoes_ruby_init()
   rb_define_method(cEditBox, "append", CASTHOOK(shoes_edit_box_append), 1);
   rb_define_method(cEditBox, "scroll_to_end", CASTHOOK(shoes_edit_box_scroll_to_end), 0);
   cListBox  = rb_define_class_under(cTypes, "ListBox", cNative);
+  rb_undef_method(CLASS_OF(cListBox), "new");
   rb_define_method(cListBox, "text", CASTHOOK(shoes_list_box_text), 0);
   rb_define_method(cListBox, "draw", CASTHOOK(shoes_list_box_draw), 2);
   rb_define_method(cListBox, "choose", CASTHOOK(shoes_list_box_choose), 1);
   rb_define_method(cListBox, "change", CASTHOOK(shoes_control_change), -1);
   rb_define_method(cListBox, "items", CASTHOOK(shoes_list_box_items_get), 0);
   rb_define_method(cListBox, "items=", CASTHOOK(shoes_list_box_items_set), 1);
-  // text_edit_box is new with 3.2.25
+  // text_edit_box is new with 3.2.25 but not well documented or complete
   cTextEditBox  = rb_define_class_under(cTypes, "TextEditBox", cNative);
+  rb_undef_method(CLASS_OF(cTextEditBox), "new");
   rb_define_method(cTextEditBox, "text", CASTHOOK(shoes_text_edit_box_get_text), 0);
   rb_define_method(cTextEditBox, "text=", CASTHOOK(shoes_text_edit_box_set_text), 1);
   rb_define_method(cTextEditBox, "draw", CASTHOOK(shoes_text_edit_box_draw), 2);
@@ -5194,20 +5201,24 @@ shoes_ruby_init()
   rb_define_method(cTextEditBox, "scroll_to_end", CASTHOOK(shoes_text_edit_box_scroll_to_end), 0);
 
   cProgress  = rb_define_class_under(cTypes, "Progress", cNative);
+  rb_undef_method(CLASS_OF(cProgress), "new");
   rb_define_method(cProgress, "draw", CASTHOOK(shoes_progress_draw), 2);
   rb_define_method(cProgress, "fraction", CASTHOOK(shoes_progress_get_fraction), 0);
   rb_define_method(cProgress, "fraction=", CASTHOOK(shoes_progress_set_fraction), 1);
   cSlider  = rb_define_class_under(cTypes, "Slider", cNative);
+  rb_undef_method(CLASS_OF(cSlider), "new");
   rb_define_method(cSlider, "draw", CASTHOOK(shoes_slider_draw), 2);
   rb_define_method(cSlider, "fraction", CASTHOOK(shoes_slider_get_fraction), 0);
   rb_define_method(cSlider, "fraction=", CASTHOOK(shoes_slider_set_fraction), 1);
   rb_define_method(cSlider, "change", CASTHOOK(shoes_control_change), -1);
   cCheck  = rb_define_class_under(cTypes, "Check", cNative);
+  rb_undef_method(CLASS_OF(cCheck), "new");
   rb_define_method(cCheck, "draw", CASTHOOK(shoes_check_draw), 2);
   rb_define_method(cCheck, "checked?", CASTHOOK(shoes_check_is_checked), 0);
   rb_define_method(cCheck, "checked=", CASTHOOK(shoes_check_set_checked), 1);
   rb_define_method(cCheck, "click", CASTHOOK(shoes_control_click), -1);
   cRadio  = rb_define_class_under(cTypes, "Radio", cNative);
+  rb_undef_method(CLASS_OF(cRadio), "new");
   rb_define_method(cRadio, "draw", CASTHOOK(shoes_radio_draw), 2);
   rb_define_method(cRadio, "checked?", CASTHOOK(shoes_check_is_checked), 0);
   rb_define_method(cRadio, "checked=", CASTHOOK(shoes_check_set_checked_m), 1);
