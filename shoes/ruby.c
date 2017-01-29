@@ -5024,8 +5024,10 @@ shoes_ruby_init()
   rb_define_method(cPlot, "skew", CASTHOOK(shoes_plot_skew), -1);
 
 
-  cEffect   = rb_define_class_under(cTypes, "Effect", rb_cObject);
-  rb_define_alloc_func(cEffect, shoes_effect_alloc);
+  //cEffect   = rb_define_class_under(cTypes, "Effect", rb_cObject);
+  //rb_define_alloc_func(cEffect, shoes_effect_alloc);
+  cEffect   = rb_define_class_under(cTypes, "Effect", rb_cData);
+  rb_undef_method(CLASS_OF(cEffect), "new");
   rb_define_method(cEffect, "draw", CASTHOOK(shoes_effect_draw), 2);
   rb_define_method(cEffect, "remove", CASTHOOK(shoes_basic_remove), 0);
   
