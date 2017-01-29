@@ -4960,8 +4960,10 @@ shoes_ruby_init()
   rb_define_method(cSvgHandle, "height", CASTHOOK(shoes_svghandle_get_height), 0);
   rb_define_method(cSvgHandle, "group?", CASTHOOK(shoes_svghandle_has_group), 1);
 
-  cChartSeries = rb_define_class_under(cTypes, "chart_series", rb_cObject); // 3.3.2
-  rb_define_alloc_func(cChartSeries, shoes_chart_series_alloc);
+  //cChartSeries = rb_define_class_under(cTypes, "chart_series", rb_cObject); // 3.3.2
+  //rb_define_alloc_func(cChartSeries, shoes_chart_series_alloc);
+  cChartSeries = rb_define_class_under(cTypes, "chart_series", rb_cData); // 3.3.2
+  rb_undef_method(CLASS_OF(cChartSeries), "new");
   //  simple getters/setters
   rb_define_method(cChartSeries, "values", CASTHOOK(shoes_chart_series_values), 0);
   rb_define_method(cChartSeries, "labels", CASTHOOK(shoes_chart_series_labels), 0);
