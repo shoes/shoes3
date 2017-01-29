@@ -4839,8 +4839,10 @@ shoes_ruby_init()
   cMask       = rb_define_class_under(cTypes, "Mask", cShoes);
   cWidget     = rb_define_class_under(cTypes, "Widget", cShoes);
 
-  cShape    = rb_define_class_under(cTypes, "Shape", rb_cObject);
-  rb_define_alloc_func(cShape, shoes_shape_alloc);
+  //cShape    = rb_define_class_under(cTypes, "Shape", rb_cObject);
+  //rb_define_alloc_func(cShape, shoes_shape_alloc);
+  cShape    = rb_define_class_under(cTypes, "Shape", rb_cData);
+  rb_undef_method(CLASS_OF(cImage), "new");
   rb_define_method(cShape, "app", CASTHOOK(shoes_canvas_get_app), 0);
   rb_define_method(cShape, "displace", CASTHOOK(shoes_shape_displace), 2);
   rb_define_method(cShape, "draw", CASTHOOK(shoes_shape_draw), 2);
