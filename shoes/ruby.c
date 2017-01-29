@@ -4983,8 +4983,10 @@ shoes_ruby_init()
   rb_define_method(cChartSeries, "get", CASTHOOK(shoes_chart_series_get), 1);
   rb_define_method(cChartSeries, "set", CASTHOOK(shoes_chart_series_set), 2);
 
-  cPlot   = rb_define_class_under(cTypes, "Plot", rb_cObject); // 3.3.2
-  rb_define_alloc_func(cPlot, shoes_plot_alloc);
+  //cPlot   = rb_define_class_under(cTypes, "Plot", rb_cObject); // 3.3.2
+  //rb_define_alloc_func(cPlot, shoes_plot_alloc);
+  cPlot   = rb_define_class_under(cTypes, "Plot", rb_cData); // 3.3.2
+  rb_undef_method(CLASS_OF(cPlot), "new");
   // methods unique to plot
   rb_define_method(cPlot, "add", CASTHOOK(shoes_plot_add), 1);
   rb_define_method(cPlot, "redraw_to", CASTHOOK(shoes_plot_redraw_to), 1);
