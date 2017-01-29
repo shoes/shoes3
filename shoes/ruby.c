@@ -4860,8 +4860,10 @@ shoes_ruby_init()
   rb_define_method(cShape, "hover", CASTHOOK(shoes_shape_hover), -1);
   rb_define_method(cShape, "leave", CASTHOOK(shoes_shape_leave), -1);
 
-  cImage    = rb_define_class_under(cTypes, "Image", rb_cObject);
-  rb_define_alloc_func(cImage, shoes_image_alloc);
+  //cImage    = rb_define_class_under(cTypes, "Image", rb_cObject);
+  //rb_define_alloc_func(cImage, shoes_image_alloc);
+  cImage    = rb_define_class_under(cTypes, "Image", rb_cData);
+  rb_undef_method(CLASS_OF(cImage), "new");
   rb_define_method(cImage, "[]", CASTHOOK(shoes_image_get_pixel), 2);
   rb_define_method(cImage, "[]=", CASTHOOK(shoes_image_set_pixel), 3);
   rb_define_method(cImage, "nostroke", CASTHOOK(shoes_canvas_nostroke), 0);
