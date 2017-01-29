@@ -4917,8 +4917,10 @@ shoes_ruby_init()
   
   // svg is kind of like cImage with different methods
   // do not call draw from Shoes scripts - just don't do it!
-  cSvg   = rb_define_class_under(cTypes, "Svg", rb_cObject);
-  rb_define_alloc_func(cSvg, shoes_svg_alloc);
+  //cSvg   = rb_define_class_under(cTypes, "Svg", rb_cObject);
+  //rb_define_alloc_func(cSvg, shoes_svg_alloc);
+  cSvg   = rb_define_class_under(cTypes, "Svg", rb_cData);
+  rb_undef_method(CLASS_OF(cSvg), "new");
   rb_define_method(cSvg, "draw", CASTHOOK(shoes_svg_draw), 2);
   rb_define_method(cSvg, "preferred_width", CASTHOOK(shoes_svg_preferred_width), 0);
   rb_define_method(cSvg, "preferred_height", CASTHOOK(shoes_svg_preferred_height),0);
@@ -4954,8 +4956,10 @@ shoes_ruby_init()
   rb_define_method(cSvg, "scale", CASTHOOK(shoes_svg_scale), -1);
   rb_define_method(cSvg, "skew", CASTHOOK(shoes_svg_skew), -1);
   
-  cSvgHandle = rb_define_class_under(cTypes, "SvgHandle", rb_cObject); // new with 3.3.0
-  rb_define_alloc_func(cSvgHandle, shoes_svghandle_alloc);
+  //cSvgHandle = rb_define_class_under(cTypes, "SvgHandle", rb_cObject); // new with 3.3.0
+  //rb_define_alloc_func(cSvgHandle, shoes_svghandle_alloc);
+  cSvgHandle = rb_define_class_under(cTypes, "SvgHandle", rb_cData); // new with 3.3.0
+  rb_undef_method(CLASS_OF(cChartSeries), "new");
   rb_define_method(cSvgHandle, "width", CASTHOOK(shoes_svghandle_get_width), 0);
   rb_define_method(cSvgHandle, "height", CASTHOOK(shoes_svghandle_get_height), 0);
   rb_define_method(cSvgHandle, "group?", CASTHOOK(shoes_svghandle_has_group), 1);
