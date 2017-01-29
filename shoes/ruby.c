@@ -5031,8 +5031,10 @@ shoes_ruby_init()
   
   shoes_ruby_video_init();
 
-  cPattern = rb_define_class_under(cTypes, "Pattern", rb_cObject);
-  rb_define_alloc_func(cPattern, shoes_pattern_alloc);
+  //cPattern = rb_define_class_under(cTypes, "Pattern", rb_cObject);
+  //rb_define_alloc_func(cPattern, shoes_pattern_alloc);
+  cPattern = rb_define_class_under(cTypes, "Pattern", rb_cData);
+  rb_undef_method(CLASS_OF(cPattern), "new");
   rb_define_method(cPattern, "displace", CASTHOOK(shoes_pattern_displace), 2);
   rb_define_method(cPattern, "move", CASTHOOK(shoes_pattern_move), 2);
   rb_define_method(cPattern, "remove", CASTHOOK(shoes_basic_remove), 0);
@@ -5044,8 +5046,10 @@ shoes_ruby_init()
   rb_define_method(cPattern, "show", CASTHOOK(shoes_pattern_show), 0);
   rb_define_method(cPattern, "toggle", CASTHOOK(shoes_pattern_toggle), 0);
   cBackground = rb_define_class_under(cTypes, "Background", cPattern);
+  rb_undef_method(CLASS_OF(cBackground), "new");
   rb_define_method(cBackground, "draw", CASTHOOK(shoes_background_draw), 2);
   cBorder = rb_define_class_under(cTypes, "Border", cPattern);
+  rb_undef_method(CLASS_OF(cBorder), "new");
   rb_define_method(cBorder, "draw", CASTHOOK(shoes_border_draw), 2);
 
   //cTextBlock = rb_define_class_under(cTypes, "TextBlock", rb_cObject);
@@ -5267,7 +5271,10 @@ shoes_ruby_init()
   rb_define_method(cColor, "transparent?", CASTHOOK(shoes_color_is_transparent), 0);
   rb_define_method(cColor, "white?", CASTHOOK(shoes_color_is_white), 0);
 
-  cDownload   = rb_define_class_under(cTypes, "Download", rb_cObject);
+  //cDownload   = rb_define_class_under(cTypes, "Download", rb_cObject);
+  //rb_define_alloc_func(cDownload, shoes_http_alloc);
+  cDownload   = rb_define_class_under(cTypes, "Download", rb_cData);
+  rb_undef_method(CLASS_OF(cDownload), "new");
   rb_define_alloc_func(cDownload, shoes_http_alloc);
   rb_define_method(cDownload, "abort", CASTHOOK(shoes_http_abort), 0);
   rb_define_method(cDownload, "finish", CASTHOOK(shoes_http_finish), -1);
@@ -5280,6 +5287,7 @@ shoes_ruby_init()
   rb_define_method(cDownload, "start", CASTHOOK(shoes_http_start), -1);
   rb_define_method(cDownload, "transferred", CASTHOOK(shoes_http_transferred), 0);
 
+  // in this case we do want to allow 'new'
   cResponse   = rb_define_class_under(cDownload, "Response", rb_cObject);
   rb_define_method(cResponse, "body", CASTHOOK(shoes_response_body), 0);
   rb_define_method(cResponse, "headers", CASTHOOK(shoes_response_headers), 0);
