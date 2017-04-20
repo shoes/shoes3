@@ -1,0 +1,77 @@
+# inherit_from: .rubocop_todo.yml
+
+AllCops:
+  TargetRubyVersion: 2.3
+  Exclude:
+    - testing/**/*.rb
+    - vendor/**/*
+
+# IRB sample is a rare example where we need to use eval
+Security/Eval:
+  Exclude:
+    - lib/shoes.rb
+    - samples/expert_irb.rb
+
+# Don't require new lines between one-liner methods
+Style/EmptyLineBetweenDefs:
+  AllowAdjacentOneLineDefs: true
+
+# We sometimes need Java method names for interoperability
+# Like java calling our methods like `controlResized`
+Style/MethodName:
+  Enabled: false
+
+# We don't care if we do kind_of? or is_a?
+Style/ClassCheck:
+  Enabled: false
+
+# Don't ever try to take my `inject` from me, reduce is ok too
+Style/CollectionMethods:
+  PreferredMethods:
+    inject: 'inject'
+
+# To make these actually constants is going to require significant changes to
+# Shoes internals
+Style/MutableConstant:
+  Enabled: false
+
+# We prefer to avoid loop control magic
+Style/Next:
+  Enabled: false
+
+# We don't have a strong opinion on how you use spaces inside braces
+Style/SpaceInsideHashLiteralBraces:
+  Enabled: false
+
+# Shoes4: We like to be flexible if we want to add in interpolation, see discussion #859
+# Shoes3: You bet we want double quotes
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+  Enabled: true
+
+# We like the flexibility of adding additional items to the hash
+# see discussion in #859
+Style/TrailingCommaInLiteral:
+  Enabled: false
+
+# We dislike the 'variable, = []' style and prefer you put the _
+# see discussion https://github.com/shoes/shoes4/pull/1310#discussion_r89694266
+Style/TrailingUnderscoreVariable:
+  Enabled: false
+
+# We have several places where, because of instance scoping in apps,
+# we don't want to use attr_reader. (Also misattributes on predicate
+# methods)
+Style/TrivialAccessors:
+  Enabled: false
+
+# We don't care if you use %w or literal string arrays
+Style/WordArray:
+  Enabled: false
+  
+Style/IndentationWidth:
+  Width: 3
+   
+Lint/UnusedMethodArgument:
+  Exclude:
+    - lib/shoes/help.rb
