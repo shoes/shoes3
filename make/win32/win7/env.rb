@@ -1,4 +1,4 @@
-#require "devkit" unless ENV['MINGW_PREFIX']
+require "devkit"
 cf =(ENV['ENV_CUSTOM'] || "win7-custom.yaml")
 gtk_version = '3'
 if File.exists? cf
@@ -144,7 +144,11 @@ SOLOCS.merge!(
     'thread'      => "#{bindll}/libgthread-2.0-0.dll",
     'zlib1'       => "#{bindll}/zlib1.dll",
     'pthread'     => "#{devdll}/libwinpthread-1.dll",
-    'sjlj'        => "#{devdll}/libgcc_s_sjlj-1.dll" 
+    'sjlj'        => "#{devdll}/libgcc_s_sjlj-1.dll",
+    'curl'        => "#{bindll}/libcurl-4.dll"
   }
 )
+ReNames = {
+   "libcurl-4.dll" => "libcurl.dll"
+}
 

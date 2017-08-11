@@ -158,8 +158,12 @@ SOLOCS.merge!(
     'rsvg'        => "#{bindll}/librsvg-2-2.dll",
     'thread'      => "#{bindll}/libgthread-2.0-0.dll",
     'zlib1'       => "#{bindll}/zlib1.dll",
+    'curl'        => "#{bindll}/libcurl-4.dll",
     'siji'        => "/usr/lib/gcc/i686-w64-mingw32/4.8/libgcc_s_sjlj-1.dll",
     'pthread'     => "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll" 
     }
 )
+ReNames = {
+   "libcurl-4.dll" => "libcurl.dll"
+}
 
