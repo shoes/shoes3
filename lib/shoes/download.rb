@@ -1,9 +1,9 @@
 # Borrowed/backported from Shoes 4 which I modified to fix some bugs 
 # and conform better to the Shoes 3.2 manual. I hope. 
 # https://github.com/shoes/shoes4/commit/b0e7cfafe9705f223bcbbd1031acfac02e9f79c6
-require 'shoes/open-uri-patch'
-require 'shoes/HttpResponse'
-require 'openssl'
+#
+# now using typhoeus instead of open uri
+require 'typhoeus'
 class Shoes
   class Download
     attr_reader :progress, :response, :content_length, :gui, :transferred 
@@ -16,29 +16,61 @@ class Shoes
     def initialize(url, opts = {}, &blk)
       @opts = opts
       @blk = blk
-      @response = HttpResponse.new
       @finished = false
       @transferred = 0
       @length = 0
+      @body = []
       start_download url
     end
 
     
     def start_download(url)
-      puts "download method: starting for #{url}"
-      #require 'open-uri'
+      $stderr.puts "download method: starting for #{url}"
       @thread = Thread.new do
-        uri_opts = {}
-        uri_opts[:content_length_proc] = content_length_proc
-        uri_opts[:progress_proc] = progress_proc if @opts[:progress]
-        uri_opts[:redirect_to_https] = true
-        uri_opts[:ssl_verify_mode] = OpenSSL::SSL::VERIFY_NONE
-        
-        open url, uri_opts do |f|
-          # everything has been downloaded at this point. f is a tempfile
-          finish_download f
+        @request = Typhoeus::Request.new(url, followlocation: true)
+        $stderr.puts "Request created"
+        @request.on_headers do |response| 
+          hdrs = response.headers
+          if response.code == 200
+            if @opts[:save]
+               @outf = open(@opts[:save], 'wb')  
+            end
+          else
+             raise "Request got a #{response.code}"
+          end
+          # get length out of the header
+          @length = hdrs['Content-Length'].to_i
+          @content_length = content_length
+          @percent = 0.0
+          @started = true
+          eval_block(@opts[:start], self) if @opts[:start]
+          $stderr.puts "File sz: #{@length}"
+        end
+        @request.on_body do |chunk|
+          if @opts[:save] 
+            @outf.write(chunk) 
+          else
+            @body << chunk
+          end
+          if @opts[:progress]
+            size = chunk.length
+            if size > 0
+              @transferred = @transferred + size
+              @percent = @transferred.to_f / @length.to_f
+              eval_block(@opts[:progress], self)
+              sleep @opts[:pause] if @opts[:pause]
+            end
+          end
+        end
+        @request.on_complete do |response|
+          if @opts[:save]
+            @outf.close
+          end
+          $stderr.puts "finishing request"
+          eval_block(@opts[:finish], self) if @opts[:finish] 
           @thread.join
         end
+        @request.run
       end
     end
       
@@ -87,7 +119,6 @@ class Shoes
 
     def eval_block(blk, result)
       blk.call result
-      # @gui.eval_block(blk, result)
     end
 
     def save_to_file(str)
