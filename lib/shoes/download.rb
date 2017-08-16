@@ -2,7 +2,7 @@
 # and conform better to the Shoes 3.2 manual. I hope. 
 # https://github.com/shoes/shoes4/commit/b0e7cfafe9705f223bcbbd1031acfac02e9f79c6
 #
-# now using typhoeus instead of open uri
+# August 2017, now using typhoeus instead of open_uri
 require 'typhoeus'
 class Shoes
   class Download
@@ -25,17 +25,19 @@ class Shoes
 
     
     def start_download(url)
-      $stderr.puts "download method: starting for #{url}"
+      #$stderr.puts "download method: starting for #{url}"
       @thread = Thread.new do
         @request = Typhoeus::Request.new(url, followlocation: true)
-        $stderr.puts "Request created"
+        #$stderr.puts "Request created"
         @request.on_headers do |response| 
+          @response = response
           hdrs = response.headers
           if response.code == 200
             if @opts[:save]
                @outf = open(@opts[:save], 'wb')  
             end
           else
+             $stderr.puts "Got a #{response.code}"
              raise "Request got a #{response.code}"
           end
           # get length out of the header
@@ -44,11 +46,12 @@ class Shoes
           @percent = 0.0
           @started = true
           eval_block(@opts[:start], self) if @opts[:start]
-          $stderr.puts "File sz: #{@length}"
+          #$stderr.puts "File sz: #{@length}"
         end
         @request.on_body do |chunk|
           if @opts[:save] 
             @outf.write(chunk) 
+            @body = []
           else
             @body << chunk
           end
@@ -67,13 +70,20 @@ class Shoes
             @outf.close
           end
           $stderr.puts "finishing request"
+          @finished = true
           eval_block(@opts[:finish], self) if @opts[:finish] 
+          eval_block(@blk, self) if @blk
           @thread.join
         end
         @request.run
+        return self
       end
     end
-      
+    
+    def eval_block(blk, result)
+      blk.call result
+    end
+=begin     
     def content_length_proc
       lambda do |content_length|
         download_started(content_length)
@@ -117,10 +127,6 @@ class Shoes
       end
     end
 
-    def eval_block(blk, result)
-      blk.call result
-    end
-
     def save_to_file(str)
       #puts "Saving to #{str}"
       @outf = open(str, 'wb')  
@@ -136,7 +142,7 @@ class Shoes
       eval_block(@opts[:start], self) if @opts[:start]
       #puts "download started #{@length} bytes"
     end
-
+=end
   end
 end
 
