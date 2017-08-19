@@ -1,7 +1,7 @@
-require 'shoes/open-uri-patch'
+#require 'shoes/open-uri-patch'
 require 'shoes/HttpResponse'
-require 'openssl'
-#require 'digest/sha1'
+#require 'openssl'
+require 'typhoeus'
 
 class Shoes
   def self.image_temp_path uri, uext
@@ -19,10 +19,29 @@ class Shoes
   # something that rbload.c can deal with
   # assumes HttpResponse from download.rb has been require'd
   # and with magic of duck typing, it looks like cResponse. 
+  #
+  # 2017-08-17 now using typhoenus instead of open_uri
   def self.image_download_sync url, opts
-    # puts "image_download_sync called"
-    #require 'open-uri'
+    #$stderr.puts "image_download_sync called #{url}"
     tmpf = File.open(opts[:save],'wb')
+    result = HttpResponse.new
+    if url =~ /http/
+      #$stderr.puts "Download image #{url}"
+      request = Typhoeus::Request.new(url, followlocation: true)
+      request.on_complete do |resp| 
+        result.headers = resp.headers
+        result.body = resp.body
+        result.status = resp.code
+        tmpf.write(resp.body)
+        tmpf.close
+      end
+      request.run
+    else 
+      $stderr.puts "File url #{url}"
+    end
+    #$stderr.puts "image_download_sync finished"
+    return result
+=begin
     result = HttpResponse.new
     begin
       uri_opts = {}
@@ -42,6 +61,7 @@ class Shoes
     end
     puts "image_download_sync finished"
     return result
+=end
   end
   
 #  def snapshot(options = {}, &block)

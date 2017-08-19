@@ -108,7 +108,7 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
 	    end
 	  end
     @options_panel = stack do
-     para "Include a full copy of Shoes (10 to 17 MB) or download if needed?"
+     para "Include a full copy of Shoes (11 to 22 MB) or download if needed?"
       flow do
         @inclcheck = check; para "Shoes will be included with my app."
       end
@@ -183,8 +183,8 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
               end
               @select_panel.clear
               @select_panel.background white
-			  @platforms.each_key do |k| 
-			    ln = @platforms[k]
+			        @platforms.each_key do |k| 
+			          ln = @platforms[k]
                 flds = ln.split(' ')
                 parts = flds[2].split('-')
                 @select_panel.append do 
@@ -200,7 +200,7 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
                     para " #{parts[0]}  #{parts[1]}"
                   end
                 end
-			  end
+			        end
             else
               @info_panel = para "Failed"
             end
@@ -290,8 +290,8 @@ Shoes.app height: 600, :title =>"Shoes Packager" do
           @dnlmenu= para @dnlurl, " [", link("cancel") { @dlnthr.exit }, "]", :margin => 0
           @dnlstat = inscription "Beginning transfer.", :margin => 0
           @dnlbar = progress :width => 1.0, :height => 14 
-	      @dlnthr = download @dnlurl, :save =>  @work_path,
-		     :progress => proc { |dl| 
+	      @dlnthr = download @dnlurl, :save =>  @work_path, :pause => 0.3,
+		      :progress => proc { |dl| 
 		          @dnlstat.text = "Transferred #{dl.transferred} of #{dl.length} bytes (#{sprintf('%2i',dl.percent * 100)}%)"
 		          @dnlbar.fraction = dl.percent 
 		         },

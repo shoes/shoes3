@@ -30,6 +30,7 @@ Shoes.app do
                      kb = dl.length < 1024 ? 1: dl.length / 1024
                      d.text = "Download completed KB/s: #{kb/secs} seconds:#{secs}"
                   }
+              para "Should appear after button press"
             end
           end
         end

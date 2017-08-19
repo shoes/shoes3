@@ -56,7 +56,9 @@ void shoes_queue_download(shoes_http_request *req) {
         }
         //printf("key=%s\n",RSTRING_PTR(key));
     }
-    side->etag = RSTRING_PTR(rb_hash_aref(hdrs, etag));
+    if (! NIL_P(etag)) {
+      side->etag = RSTRING_PTR(rb_hash_aref(hdrs, etag));
+    }
     //VALUE rbetag = rb_hash_aref(hdrs, rb_intern("etag"));
     //printf("%s\n",RSTRING_PTR(rbetag));
     shoes_catch_message(SHOES_IMAGE_DOWNLOAD, Qnil, side);

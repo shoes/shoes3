@@ -53,7 +53,8 @@ class Shoes
             @outf.write(chunk) 
             @body = []
           else
-            @body << chunk
+            #$stderr.puts "chunk: #{chunk}"
+            response.body << chunk
           end
           if @opts[:progress]
             size = chunk.length
@@ -69,10 +70,13 @@ class Shoes
           if @opts[:save]
             @outf.close
           end
-          $stderr.puts "finishing request"
+          #$stderr.puts "finishing request"
           @finished = true
           eval_block(@opts[:finish], self) if @opts[:finish] 
-          eval_block(@blk, self) if @blk
+          if @blk 
+            #$stderr.puts "Calling blk"
+            eval_block(@blk, self) if @blk
+          end
           @thread.join
         end
         @request.run
