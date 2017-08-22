@@ -82,6 +82,6 @@ LINUX_LIBS << " -L#{TGT_DIR} #{CAIRO_LDFLAGS} #{PANGO_LDFLAGS} #{GLIB_LDFLAGS}"
 
 libdll = "#{ShoesDeps}/lib"
 SOLOCS = {
-  #'curl'    => "#{libdll}/libcurl.dylib"
+  'curl'    => "#{libdll}/libcurl.dylib"
 }
 
