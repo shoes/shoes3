@@ -1,3 +1,4 @@
+# august 2017 - using typhoeus gem instead of open_uri
 #require 'shoes/open-uri-patch'
 require 'shoes/HttpResponse'
 #require 'openssl'
@@ -20,7 +21,6 @@ class Shoes
   # assumes HttpResponse from download.rb has been require'd
   # and with magic of duck typing, it looks like cResponse. 
   #
-  # 2017-08-17 now using typhoenus instead of open_uri
   def self.image_download_sync url, opts
     #$stderr.puts "image_download_sync called #{url}"
     tmpf = File.open(opts[:save],'wb')
