@@ -61,6 +61,8 @@ VALUE shoes_app_alloc(VALUE klass) {
     app->decorated = TRUE;
     app->opacity = 1.0;
     app->cursor = s_arrow;
+    app->monitor = 0;
+    app->top = app->left = 0; // monitor relative positon
     app->scratch = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
     app->self = Data_Wrap_Struct(klass, shoes_app_mark, shoes_app_free, app);
     rb_extend_object(app->self, cTypes);
@@ -135,6 +137,9 @@ VALUE shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner) {
     app_t->resizable = (ATTR(attr, resizable) != Qfalse);
     app_t->decorated = (ATTR(attr, decorated) != Qfalse);
     app_t->hidden = (ATTR(attr, hidden) == Qtrue);
+    if (RTEST(ATTR(attr, monitor)))
+      // do something
+    }
 
     if (RTEST(ATTR(attr, opacity)))
         if ((0.0 <= NUM2DBL(ATTR(attr, opacity))) && (1.0 >= NUM2DBL(ATTR(attr, opacity))))

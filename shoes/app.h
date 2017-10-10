@@ -48,6 +48,9 @@ typedef struct _shoes_app {
     VALUE title;
     VALUE location;
     VALUE owner;
+    // multiple monitors:
+    int monitor;       // which monitor this app is on
+    int top, left;     // monitor's x and y
 } shoes_app;
 
 //
