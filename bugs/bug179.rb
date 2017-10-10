@@ -7,7 +7,7 @@ Shoes.app width: 600, height: 500 do
         para "menlo bold button"
       end
       button "icon", width: 80, height: 30, icon: "#{DIR}/static/icon-info.png",
-          tooltip: "info button" do
+          tooltip: "default right" do
       end
     end
     para "What is normal?"
@@ -29,14 +29,14 @@ Shoes.app width: 600, height: 500 do
       button "only icon", width: 80, icon: "#{DIR}/static/icon-info.png",
           titlepos: "none", tooltip: "just icon" do
       end
-      button "above", width: 80, height: 120, icon: "#{DIR}/static/icon-info.png",
-          titlepos: "top" do
-          para "above button pressed"
+      button "center", width: 80, icon: "#{DIR}/static/icon-info.png",
+          titlepos: "center" do
+          para "center button pressed"
       end
     end
-    para "testing defaults and fail - open console"
+    para "testing defaults"
     flow do
-      button "Fail 1", font: "Monaco" do end
+      button "Fail 1", tooltip: "size missing", font: "Monaco" do end
       button "Fail 2", tooltip: "unknown font", font: "missing font 12" do end
     end
   end

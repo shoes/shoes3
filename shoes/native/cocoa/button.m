@@ -76,7 +76,6 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
   // get the Shoes attributes 
   if (!NIL_P(shoes_hash_get(attr, rb_intern("font")))) {
     fntstr = RSTRING_PTR(shoes_hash_get(attr, rb_intern("font")));
-    // TODO: need a helper to parse into a FontDescripter and deal with missing parts
     NSString *fstr = [NSString stringWithUTF8String: fntstr];
     fontsettings = [fstr componentsSeparatedByString:@" "]; 
     // in OSX there is font name - may include Bold etc, and size
@@ -115,8 +114,9 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
       imgpos = NSImageBelow;
     else if (strcmp(lblp, "bottom") == 0)
       imgpos = NSImageAbove;
+    else if (strcmp(lblp, "center") == 0) 
+      imgpos = NSImageOverlaps;
     else 
-       // rb_raise? 
       imgpos = NSImageLeft;
   }
   
@@ -126,7 +126,8 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
     if (fntstr) {
       NSFont *font = [NSFont fontWithName: fontname size: fsize];
       if (font == nil) 
-        rb_raise(rb_eArgError, "Font \"%s\" not found", fntstr);
+        // Don't do this : rb_raise(rb_eArgError, "Font \"%s\" not found", fntstr);
+        font = [NSFont fontWithName: @"arial" size: 12];
       [dict setObject: font forKey: NSFontAttributeName];
       // Center the text of Attributed String in NSButton is more work
       NSMutableParagraphStyle *centredStyle = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] autorelease];
@@ -157,11 +158,13 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
         withFrame: reqsize andObject: self];
     [button setAttributedTitle : attrString];
   } else {
+  
     // this is the normal Shoes button
     button = [[ShoesButton alloc] initWithType: NSMomentaryPushInButton
         andObject: self];
     [button setTitle: [NSString stringWithUTF8String: msg]];
   }
+  
   // Do we have an icon? 
   if (!NIL_P(shoes_hash_get(attr, rb_intern("icon")))) {
     char *cpath = RSTRING_PTR(shoes_hash_get(attr, rb_intern("icon")));
