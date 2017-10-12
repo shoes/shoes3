@@ -182,7 +182,7 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
 
     return ref;
 }
-
+#if 0
 GtkWidget *shoes_gtk_button_icon_box(GtkWidget *glabel, GtkWidget *gimage, char *icon_pos)
 {
   GtkWidget *box;
@@ -223,3 +223,34 @@ GtkWidget *shoes_gtk_button_icon_box(GtkWidget *glabel, GtkWidget *gimage, char 
   }
   return box;
 }
+#else
+// Grid version
+GtkWidget *shoes_gtk_button_icon_box(GtkWidget *glabel, GtkWidget *gimage, char *icon_pos)
+{
+  GtkWidget *grid = gtk_grid_new();
+  //printf("special sauce supplied\n");
+  int pos = 0;
+  if (icon_pos == NULL)
+    pos = 1;
+  else if (strcmp(icon_pos, "left") == 0) {
+    gtk_grid_attach(GTK_GRID(grid), gimage, 0,0,1,1);
+    gtk_grid_attach(GTK_GRID(grid), glabel, 1,0,1,1);
+  } else if (strcmp(icon_pos, "right") == 0) {
+    gtk_grid_attach(GTK_GRID(grid), gimage, 1,0,1,1);
+    gtk_grid_attach(GTK_GRID(grid), glabel, 0,0,1,1);
+  } else if (strcmp(icon_pos, "top") == 0) {
+    gtk_grid_attach(GTK_GRID(grid), gimage, 0,0,1,1);
+    gtk_grid_attach(GTK_GRID(grid), glabel, 0,1,1,1);
+  } else if (strcmp(icon_pos,"bottom") == 0) {
+    gtk_grid_attach(GTK_GRID(grid), gimage, 1,0,1,1);
+    gtk_grid_attach(GTK_GRID(grid), glabel, 1,1,1,1);
+  }
+  else {
+    printf("grid default\n");
+    gtk_grid_attach(GTK_GRID(grid), gimage, 0,0,1,1);
+    gtk_grid_attach(GTK_GRID(grid), glabel, 1,0,1,1);
+  }
+    
+  return grid;
+}
+#endif
