@@ -33,7 +33,7 @@ extern VALUE cTimer;
     [self setBezelStyle: NSRoundedBezelStyle];
     [self setTarget: self];
     [self setAction: @selector(handleClick:)];
-    NSLog(@"button w/o frame called");
+    //NSLog(@"button w/o frame called");
  }
   return self;
 }
@@ -46,7 +46,7 @@ extern VALUE cTimer;
     [self setBezelStyle: NSRoundedBezelStyle];
     [self setTarget: self];
     [self setAction: @selector(handleClick:)];
-    NSLog(@"button with frame w: %i h: %i\n", (int) NSWidth(rect), (int)NSHeight(rect));
+    //NSLog(@"button with frame w: %i h: %i\n", (int) NSWidth(rect), (int)NSHeight(rect));
   }
   return self;
 }
@@ -100,25 +100,25 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
     fgclr = shoes_hash_get(attr, rb_intern("stroke"));
   }
   
-  lblposv = shoes_hash_get(attr, rb_intern("titlepos"));
-  // Ponder. Title vs Image 'left' means title on left, the image
+  lblposv = shoes_hash_get(attr, rb_intern("icon_pos"));
   if (lblposv != Qnil) {
     char *lblp = RSTRING_PTR(lblposv);
     if ( !msg || (strcmp(lblp, "none") == 0)) 
       imgpos = NSImageOnly;
     else if (strcmp(lblp, "left") == 0)
-      imgpos = NSImageRight;
+      imgpos = NSImageLeft;
     else if (strcmp(lblp, "right") == 0)
-      imgpos =  NSImageLeft;
+      imgpos =  NSImageRight;
     else if (strcmp(lblp, "top") == 0)
-      imgpos = NSImageBelow;
-    else if (strcmp(lblp, "bottom") == 0)
       imgpos = NSImageAbove;
+    else if (strcmp(lblp, "bottom") == 0)
+      imgpos = NSImageBelow;
     else if (strcmp(lblp, "center") == 0) 
       imgpos = NSImageOverlaps;
     else 
       imgpos = NSImageLeft;
   }
+  if (! msg) imgpos = NSImageOnly;
   
   if (fntstr || !NIL_P(fgclr)) {
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity: 5];
@@ -172,7 +172,9 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
     NSImage *icon =  [[NSImage alloc] initWithContentsOfFile: ipath];
     [button setImage: icon];
     // do we have an explictt setting of title vs icon setting?
-    if (lblposv != Qnil) {
+    if  ((msg == NULL) || (strlen(msg)==0)) {
+      [button setImagePosition: NSImageOnly];
+    } else if (lblposv != Qnil) {
       [button setImagePosition: imgpos];
     } else {
      [button setImagePosition: NSImageLeft];

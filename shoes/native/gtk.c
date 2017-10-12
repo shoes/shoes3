@@ -992,7 +992,7 @@ void shoes_native_control_set_tooltip(SHOES_CONTROL_REF ref, VALUE tooltip) {
 VALUE shoes_native_control_get_tooltip(SHOES_CONTROL_REF ref) {
     return rb_str_new2(gtk_widget_get_tooltip_text(GTK_WIDGET(ref)));
 }
-
+#if 0 // moved to gtkbuttonalt.c
 gboolean shoes_button_gtk_clicked(GtkButton *button, gpointer data) {
     VALUE self = (VALUE)data;
     shoes_control_send(self, s_click);
@@ -1008,15 +1008,45 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
     GtkWidget *glabel = NULL; 
     GtkWidget *gimage = NULL;
     SHOES_CONTROL_REF ref = gtk_button_alt_new();
-    if (!NIL_P(shoes_hash_get(attr, rb_intern("font")))) {
-      fntstr = RSTRING_PTR(shoes_hash_get(attr, rb_intern("font")));
-      //fprintf(stderr, "%s\n", fntstr);
-    } else {
-      fntstr = "Arial";
-    } 
-    if (!NIL_P(shoes_hash_get(attr, rb_intern("stroke")))) {
-      fgclr = shoes_hash_get(attr, rb_intern("stroke"));
+    if (msg && (strlen(msg) > 0)) {
+      if (!NIL_P(shoes_hash_get(attr, rb_intern("font")))) {
+        fntstr = RSTRING_PTR(shoes_hash_get(attr, rb_intern("font")));
+        //fprintf(stderr, "%s\n", fntstr);
+      } else {
+        fntstr = "Arial";
+      } 
+      if (!NIL_P(shoes_hash_get(attr, rb_intern("stroke")))) {
+        fgclr = shoes_hash_get(attr, rb_intern("stroke"));
+      }
+  
+      glabel = gtk_label_new(NULL);
+      PangoAttribute *pattr = NULL;
+      PangoAttrList *plist = pango_attr_list_new ();
+      PangoFontDescription *fontdesc = NULL;
+      fontdesc = pango_font_description_from_string(fntstr);
+      pattr = pango_attr_font_desc_new(fontdesc);
+      pango_attr_list_insert (plist, pattr);
+      // deal with stroke attr here -- add to the plist
+      if (! NIL_P(fgclr)) {
+        PangoAttribute *pfgcolor = NULL;
+        if (TYPE(fgclr) == T_STRING) 
+          fgclr = shoes_color_parse(cColor, fgclr);  // convert string to cColor
+        if (rb_obj_is_kind_of(fgclr, cColor)) 
+        { 
+          shoes_color *color; 
+          Data_Get_Struct(fgclr, shoes_color, color); 
+          guint16 red = color->r * 65535;
+          guint16 green = color->g * 65535;
+          guint16 blue = color->b * 65535;
+          //gcolor.alpha = color->a * 255;
+          pfgcolor = pango_attr_foreground_new (red, green, blue);
+          pango_attr_list_insert (plist, pfgcolor);
+        }
+      }
+      gtk_label_set_attributes((GtkLabel *)glabel, plist);
+      gtk_label_set_text((GtkLabel *)glabel, msg);
     }
+    
     if (! NIL_P(shoes_hash_get(attr, rb_intern("icon")))) {
       VALUE image = shoes_hash_get(attr, rb_intern("icon"));
       if (rb_obj_is_kind_of(image, cImage)) {
@@ -1028,41 +1058,22 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
       } else  {
         //TODO: Raise an error
       }
+      // check for positioning 
     }
-
-    glabel = gtk_label_new(NULL);
-    PangoAttribute *pattr = NULL;
-    PangoAttrList *plist = pango_attr_list_new ();
-    PangoFontDescription *fontdesc = NULL;
-    fontdesc = pango_font_description_from_string(fntstr);
-    pattr = pango_attr_font_desc_new(fontdesc);
-    pango_attr_list_insert (plist, pattr);
-    // deal with stroke attr here -- add to the plist
-    if (! NIL_P(fgclr)) {
-      PangoAttribute *pfgcolor = NULL;
-      if (TYPE(fgclr) == T_STRING) 
-        fgclr = shoes_color_parse(cColor, fgclr);  // convert string to cColor
-      if (rb_obj_is_kind_of(fgclr, cColor)) 
-      { 
-        shoes_color *color; 
-        Data_Get_Struct(fgclr, shoes_color, color); 
-        guint16 red = color->r * 65535;
-        guint16 green = color->g * 65535;
-        guint16 blue = color->b * 65535;
-        //gcolor.alpha = color->a * 255;
-        pfgcolor = pango_attr_foreground_new (red, green, blue);
-        pango_attr_list_insert (plist, pfgcolor);
-      }
-    }
-    gtk_label_set_attributes((GtkLabel *)glabel, plist);
-    gtk_label_set_text((GtkLabel *)glabel, msg);
-    
-    // Finally, we add the GtkLabel to the Gtk_Button 
-    gtk_container_add ((GtkContainer *)ref, (GtkWidget *)glabel);
-    if (gimage) {
+    // now we need to get around a bug/oversight/untested feature
+    // in gtk3 if we have both a title and a image
+    if (glabel && gimage ) {
+      // call for special sauce
+      printf("special sauce needed\n");
+    } else if (glabel) {
+      // Finally, we add the GtkLabel to the Gtk_Button 
+      gtk_container_add ((GtkContainer *)ref, (GtkWidget *)glabel);
+    } else if (gimage) {
       gtk_button_set_image(ref, gimage);
       gtk_button_set_image_position(ref, GTK_POS_RIGHT);
       gtk_button_set_always_show_image(ref, TRUE);
+    } else {
+      // button without label or image
     }
 
     if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
@@ -1075,6 +1086,7 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
 
     return ref;
 }
+#endif 
 
 void shoes_native_secrecy(SHOES_CONTROL_REF ref) {
     gtk_entry_set_visibility(GTK_ENTRY(ref), FALSE);

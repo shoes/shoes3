@@ -24,14 +24,24 @@ Shoes.app width: 600, height: 500 do
     para "testing icon/title interactions"
     flow do
       button "left", width: 80, icon: "#{DIR}/static/icon-info.png",
-          titlepos: "left", tooltip: "title left" do
+          icon_pos: "left", tooltip: "title left" do
+        para "left image"
       end
-      button "only icon", width: 80, icon: "#{DIR}/static/icon-info.png",
-          titlepos: "none", tooltip: "just icon" do
+      button  width: 80, icon: "#{DIR}/static/icon-info.png",
+          tooltip: "just icon" do
+        para "icon only"
       end
-      button "center", width: 80, icon: "#{DIR}/static/icon-info.png",
-          titlepos: "center" do
-          para "center button pressed"
+      button "right", width: 80, icon: "#{DIR}/static/icon-info.png",
+          icon_pos: "right" do
+          para "right image"
+      end
+      button "top", width: 80, icon: "#{DIR}/static/icon-info.png",
+          icon_pos: "top" do
+        para "top image"
+      end
+      button "bottom", width: 80, icon: "#{DIR}/static/icon-info.png",
+          icon_pos: "bottom" do
+        para "bottom image"
       end
     end
     para "testing defaults"
