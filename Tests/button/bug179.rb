@@ -7,7 +7,7 @@ Shoes.app width: 600, height: 500 do
         para "menlo bold button"
       end
       button "icon", width: 80, height: 30, icon: "#{DIR}/static/icon-info.png",
-          tooltip: "default right" do
+          tooltip: "default right", stroke: blue do
       end
     end
     para "What is normal?"
@@ -35,11 +35,11 @@ Shoes.app width: 600, height: 500 do
           icon_pos: "right" do
           para "right image"
       end
-      button "top", width: 80, icon: "#{DIR}/static/icon-info.png",
+      button "top", width: 80, height: 45, icon: "#{DIR}/static/icon-info.png",
           icon_pos: "top" do
         para "top image"
       end
-      button "bottom", width: 80, icon: "#{DIR}/static/icon-info.png",
+      button "bottom", width: 80, height: 45, icon: "#{DIR}/static/icon-info.png",
           icon_pos: "bottom" do
         para "bottom image"
       end

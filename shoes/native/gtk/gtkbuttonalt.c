@@ -82,6 +82,9 @@ static void gtk_button_alt_get_preferred_height(GtkWidget *widget, int *minimal,
 
 extern VALUE cImage;
 extern VALUE cColor;
+extern void shoes_control_send(VALUE self, ID event);
+
+// Forward declare for this file
 GtkWidget *shoes_gtk_button_icon_box(GtkWidget *glable, GtkWidget *gimage, char *icon_pos);
 
 gboolean shoes_button_gtk_clicked(GtkButton *button, gpointer data) {
@@ -92,8 +95,8 @@ gboolean shoes_button_gtk_clicked(GtkButton *button, gpointer data) {
 
 SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
     char *fntstr = NULL;
-    VALUE fgclr = NULL; // Could be hex color or name
-    VALUE icon = NULL;
+    VALUE fgclr = Qnil; // Could be hex color or name
+    VALUE icon = Qnil;
     //SHOES_CONTROL_REF ref = gtk_button_alt_new_with_label(_(msg));
     GtkWidget *glabel = NULL; 
     GtkWidget *gimage = NULL;
@@ -109,8 +112,9 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
       if (!NIL_P(shoes_hash_get(attr, rb_intern("stroke")))) {
         fgclr = shoes_hash_get(attr, rb_intern("stroke"));
       }
-  
+      gint foo;
       glabel = gtk_label_new(NULL);
+      // glabel = gtk_label_alt_new(NULL); // crashes 
       PangoAttribute *pattr = NULL;
       PangoAttrList *plist = pango_attr_list_new ();
       PangoFontDescription *fontdesc = NULL;
@@ -228,11 +232,9 @@ GtkWidget *shoes_gtk_button_icon_box(GtkWidget *glabel, GtkWidget *gimage, char 
 GtkWidget *shoes_gtk_button_icon_box(GtkWidget *glabel, GtkWidget *gimage, char *icon_pos)
 {
   GtkWidget *grid = gtk_grid_new();
-  //printf("special sauce supplied\n");
+  gtk_grid_set_column_spacing((GtkGrid *)grid, 6);
   int pos = 0;
-  if (icon_pos == NULL)
-    pos = 1;
-  else if (strcmp(icon_pos, "left") == 0) {
+  if ((icon_pos == NULL) || (strlen(icon_pos)== 0) || (strcmp(icon_pos, "left") == 0)) {
     gtk_grid_attach(GTK_GRID(grid), gimage, 0,0,1,1);
     gtk_grid_attach(GTK_GRID(grid), glabel, 1,0,1,1);
   } else if (strcmp(icon_pos, "right") == 0) {
@@ -242,8 +244,8 @@ GtkWidget *shoes_gtk_button_icon_box(GtkWidget *glabel, GtkWidget *gimage, char 
     gtk_grid_attach(GTK_GRID(grid), gimage, 0,0,1,1);
     gtk_grid_attach(GTK_GRID(grid), glabel, 0,1,1,1);
   } else if (strcmp(icon_pos,"bottom") == 0) {
-    gtk_grid_attach(GTK_GRID(grid), gimage, 1,0,1,1);
-    gtk_grid_attach(GTK_GRID(grid), glabel, 1,1,1,1);
+    gtk_grid_attach(GTK_GRID(grid), gimage, 0,1,1,1);
+    gtk_grid_attach(GTK_GRID(grid), glabel, 0,0,1,1);
   }
   else {
     printf("grid default\n");
