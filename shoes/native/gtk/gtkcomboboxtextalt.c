@@ -225,3 +225,45 @@ static void gtk_combo_box_text_alt_get_preferred_height_for_width(GtkWidget *wid
 
 }
 
+// end subclass fun
+
+extern void shoes_widget_changed(GtkWidget *ref, gpointer data);
+
+SHOES_CONTROL_REF shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
+    /*get bottom margin : following macro gives us bmargin (also lmargin,tmargin,rmargin)*/
+    ATTR_MARGINS(attr, 0, canvas);
+
+    SHOES_CONTROL_REF ref = gtk_combo_box_text_alt_new(attr, bmargin);
+
+    if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
+        gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
+    }
+
+    g_signal_connect(G_OBJECT(ref), "changed",
+                     G_CALLBACK(shoes_widget_changed),
+                     (gpointer)self);
+    return ref;
+}
+
+void shoes_native_list_box_update(SHOES_CONTROL_REF combo, VALUE ary) {
+    long i;
+    gtk_list_store_clear(GTK_LIST_STORE(gtk_combo_box_get_model(GTK_COMBO_BOX(combo))));
+    for (i = 0; i < RARRAY_LEN(ary); i++) {
+        VALUE msg = shoes_native_to_s(rb_ary_entry(ary, i));
+        gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(combo), NULL, _(RSTRING_PTR(msg)));
+    }
+}
+
+VALUE shoes_native_list_box_get_active(SHOES_CONTROL_REF ref, VALUE items) {
+    int sel = gtk_combo_box_get_active(GTK_COMBO_BOX(ref));
+    if (sel >= 0)
+        return rb_ary_entry(items, sel);
+    return Qnil;
+}
+
+void shoes_native_list_box_set_active(SHOES_CONTROL_REF combo, VALUE ary, VALUE item) {
+    int idx = rb_ary_index_of(ary, item);
+    if (idx < 0) return;
+    gtk_combo_box_set_active(GTK_COMBO_BOX(combo), idx);
+}
+
