@@ -2,6 +2,7 @@
 #include "shoes/ruby.h"
 #include "shoes/config.h"
 #include "shoes/world.h"
+#include "shoes/types/color.h"
 #include "shoes/native/native.h"
 #include "shoes/internal.h"
 
@@ -129,6 +130,7 @@ static void gtk_combo_box_text_alt_init(GtkComboBoxText_Alt *comboboxtextAlt) {
     //GtkComboBoxText_AltPrivate *priv = GTK_COMBOBOXTEXT_ALT_PRIVATE(comboboxtextAlt);
 }
 
+extern VALUE cColor;
 /* Return a new GtkComboBoxText_Alt cast to a GtkWidget */
 GtkWidget *gtk_combo_box_text_alt_new(VALUE attribs, int bottom_margin) {
     GtkWidget *ref;
@@ -139,6 +141,7 @@ GtkWidget *gtk_combo_box_text_alt_new(VALUE attribs, int bottom_margin) {
     if (RTEST(ATTR(attribs, width))) w = NUM2INT(ATTR(attribs, width));
     if (RTEST(ATTR(attribs, height))) h = NUM2INT(ATTR(attribs, height));
 
+
     //GtkCellArea *area = gtk_cell_layout_get_area((GtkCellLayout *)ref);
     GList *renderers = gtk_cell_layout_get_cells((GtkCellLayout *)ref);
     GtkCellRendererText *cell = g_list_first(renderers)->data;    //only one renderer
@@ -147,6 +150,21 @@ GtkWidget *gtk_combo_box_text_alt_new(VALUE attribs, int bottom_margin) {
     if (RTEST(ATTR(attribs, font))) {
         char *fontnm = RSTRING_PTR(ATTR(attribs, font));
         g_object_set((GtkCellRenderer *)cell, "font", fontnm, NULL);
+    }
+    if (RTEST(ATTR(attribs, stroke))) {
+      VALUE fgclr = ATTR(attribs, stroke);
+      if (TYPE(fgclr) == T_STRING) 
+          fgclr = shoes_color_parse(cColor, fgclr);  // convert string to cColor
+      if (rb_obj_is_kind_of(fgclr, cColor)) { 
+          shoes_color *color; 
+          Data_Get_Struct(fgclr, shoes_color, color); 
+          GdkRGBA gclr; 
+          gclr.red = color->r / 255.0;
+          gclr.green = color->g / 255.0; 
+          gclr.blue = color->b / 255.0;
+          gclr.alpha = color->a / 255.0;
+          g_object_set((GtkCellRenderer *)cell, "foreground-rgba", &gclr, NULL);
+      }
     }
     if (RTEST(ATTR(attribs, wrap))) {
         g_object_set((GtkCellRenderer *)cell, "wrap-width", w, NULL);

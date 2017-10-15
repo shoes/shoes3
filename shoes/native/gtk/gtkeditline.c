@@ -4,15 +4,39 @@
 #include "shoes/world.h"
 #include "shoes/native/native.h"
 #include "shoes/types/native.h"
+#include "shoes/types/color.h"
 #include "shoes/internal.h"
 
 #include "shoes/native/gtk/gtkentryalt.h"
 #include "shoes/native/gtk/gtkeditline.h"
-
+extern VALUE cColor;
 SHOES_CONTROL_REF shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
     SHOES_CONTROL_REF ref = gtk_entry_alt_new();
 
     if (RTEST(ATTR(attr, secret))) shoes_native_secrecy(ref);
+    
+    if (RTEST(ATTR(attr, font))) {
+      char *fontstr = RSTRING_PTR(ATTR(attr, font));
+      PangoFontDescription *fontdesc = NULL;
+      fontdesc = pango_font_description_from_string(fontstr);
+      // deprecated in gtk 3.16 - use private css - ugh. 
+      gtk_widget_override_font(ref, fontdesc);
+    }
+    if (RTEST(ATTR(attr, stroke))) {
+      VALUE fgclr = ATTR(attr, stroke);
+      if (TYPE(fgclr) == T_STRING) 
+          fgclr = shoes_color_parse(cColor, fgclr);  // convert string to cColor
+      if (rb_obj_is_kind_of(fgclr, cColor)) { 
+          shoes_color *color; 
+          Data_Get_Struct(fgclr, shoes_color, color); 
+          GdkRGBA gclr; 
+          gclr.red = color->r / 255.0;
+          gclr.green = color->g / 255.0; 
+          gclr.blue = color->b / 255.0;
+          gclr.alpha = color->a / 255.0;
+          gtk_widget_override_color(ref, GTK_STATE_FLAG_NORMAL, &gclr);
+      }
+    }
 
     if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
         gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));

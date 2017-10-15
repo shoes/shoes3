@@ -8,6 +8,7 @@
 
 #include "gtkbuttonalt.h"
 
+
 /* Private class member */
 #define GTK_BUTTON_ALT_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), \
   GTK_TYPE_BUTTON_ALT, GtkButton_AltPrivate))
@@ -83,7 +84,7 @@ static void gtk_button_alt_get_preferred_height(GtkWidget *widget, int *minimal,
 extern VALUE cImage;
 extern VALUE cColor;
 extern void shoes_control_send(VALUE self, ID event);
-
+extern GtkWidget *gtklabel_alt_new();
 // Forward declare for this file
 GtkWidget *shoes_gtk_button_icon_box(GtkWidget *glable, GtkWidget *gimage, char *icon_pos);
 
@@ -112,9 +113,8 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
       if (!NIL_P(shoes_hash_get(attr, rb_intern("stroke")))) {
         fgclr = shoes_hash_get(attr, rb_intern("stroke"));
       }
-      gint foo;
       glabel = gtk_label_new(NULL);
-      // glabel = gtk_label_alt_new(NULL); // crashes 
+      // glabel = gtklabel_alt_new(); // sort of works 
       PangoAttribute *pattr = NULL;
       PangoAttrList *plist = pango_attr_list_new ();
       PangoFontDescription *fontdesc = NULL;
