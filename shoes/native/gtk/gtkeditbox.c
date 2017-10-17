@@ -16,9 +16,8 @@ SHOES_CONTROL_REF shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_
     GtkTextBuffer *buffer;
     GtkWidget* textview = gtk_text_view_new();
     SHOES_CONTROL_REF ref = gtk_scrolled_window_alt_new(NULL, NULL);
-    
 
-#if 1
+#if 0
     // default css values
     char *font = "Arial 12";
     char *color = "black";
