@@ -1,3 +1,7 @@
+/*
+ * Thanks to Philip Chimento
+ * http://ptomato.name/advanced-gtk-techniques/html/custom-container.html
+*/
 #include "shoes/app.h"
 #include "shoes/ruby.h"
 #include "shoes/config.h"
@@ -9,6 +13,10 @@
 
 #include "gtkbuttonalt.h"
 #include "gtklabelalt.h"
+
+/* NOTE: button is a container with  just a GtkLabel inside 
+ * but it could also be a GtkGrid - another container
+*/
 
 /* Private class member */
 #define GTK_BUTTON_ALT_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), \
@@ -26,6 +34,8 @@ static void gtk_button_alt_get_preferred_width(GtkWidget *widget,
         int *minimal, int *natural);
 static void gtk_button_alt_get_preferred_height(GtkWidget *widget,
         int *minimal, int *natural);
+static void gtk_button_size_allocate(GtkWidget *widget,
+        GtkAllocation *allocation);
 
 /* Define the GtkButton_Alt type and inherit from GtkButton */
 G_DEFINE_TYPE(GtkButton_Alt, gtk_button_alt, GTK_TYPE_BUTTON);
@@ -36,7 +46,15 @@ static void gtk_button_alt_class_init(GtkButton_AltClass *klass) {
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
     widget_class->get_preferred_width = gtk_button_alt_get_preferred_width;
     widget_class->get_preferred_height = gtk_button_alt_get_preferred_height;
+    widget_class->size_allocate = gtk_button_size_allocate;
+    /* Override GtkContainer methods */
+    GtkContainerClass *container_class = GTK_CONTAINER_CLASS(klass);
+    container_class->child_type = p_square_child_type;
+    container_class->add = p_square_add;
+    container_class->remove = p_square_remove;
+    container_class->forall = p_square_forall;
 
+    
     /* Override GtkButton methods */
     // TODO: determine whether gobject_class has any use.
     //GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
@@ -69,17 +87,28 @@ GtkWidget *gtk_button_alt_new_with_label(const gchar *label) {
 
 static void gtk_button_alt_get_preferred_width(GtkWidget *widget, int *minimal, int *natural) {
     g_return_if_fail(widget != NULL);
-
+    fprintf(stderr, "btn pref width\n");
     *minimal = 1;
     *natural = 1;
 }
 
 static void gtk_button_alt_get_preferred_height(GtkWidget *widget, int *minimal, int *natural) {
     g_return_if_fail(widget != NULL);
-
+    fprintf(stderr, "btn pref height\n");
     *minimal = 1;
     *natural = 1;
 }
+
+static void gtk_button_size_allocate(GtkWidget *widget, GtkAllocation *allocation) {
+	gtk_widget_set_allocation(widget, allocation); 
+	fprintf(stderr, "btn alloc x: %i y: %i w: %i h: %i\n", allocation->x, allocation->y,
+	    allocation->width, allocation->height);
+	GList *children =  gtk_container_get_children (GtkContainer *widget);
+	//gtk_widget_size_allocate(widget, allocation);
+}
+
+
+/* ---- Ruby and Shoes interface below   */
 
 extern VALUE cImage;
 extern VALUE cColor;
@@ -120,8 +149,8 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
       }
     }
 
-    //glabel = gtk_label_new(NULL);
-    glabel = gtklabel_alt_new();
+    glabel = gtk_label_new(NULL);
+    //glabel = gtklabel_alt_new();
     PangoAttribute *pattr = NULL;
     PangoAttrList *plist = pango_attr_list_new ();
     PangoFontDescription *fontdesc = NULL;
@@ -145,10 +174,12 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
         pango_attr_list_insert (plist, pfgcolor);
       }
     }
+    fprintf(stderr,"about to set attr\n");
     gtk_label_set_attributes((GtkLabel *)glabel, plist);
     gtk_label_set_text((GtkLabel *)glabel, msg);
     
     // Finally, we add the GtkLabel to the Gtk_Button 
+    fprintf(stderr, "about to add to container\n");
     gtk_container_add ((GtkContainer *)ref, (GtkWidget *)glabel);
     if (gimage) {
       gtk_button_set_image((GtkButton *)ref, gimage);
