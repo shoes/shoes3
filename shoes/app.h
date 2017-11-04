@@ -48,6 +48,7 @@ typedef struct _shoes_app {
     VALUE title;
     VALUE location;
     VALUE owner;
+    VALUE wheeler;
 } shoes_app;
 
 //
@@ -101,6 +102,7 @@ VALUE shoes_app_set_resizable(VALUE, VALUE);
 VALUE shoes_app_set_cache(VALUE app, VALUE setting);
 VALUE shoes_app_get_cache(VALUE app);
 VALUE shoes_app_clear_cache(VALUE app, VALUE opts);
+VALUE shoes_app_set_wheeler(VALUE app, VALUE blk);
 // global var for image cache - declared in types/image.c
 extern int shoes_cache_setting;
 // global var for console up and running

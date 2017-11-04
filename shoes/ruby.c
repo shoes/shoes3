@@ -805,6 +805,7 @@ void shoes_ruby_init() {
     rb_define_method(cApp, "cache", CASTHOOK(shoes_app_get_cache), 0);
     rb_define_method(cApp, "cache=", CASTHOOK(shoes_app_set_cache), 1);
     rb_define_method(cApp, "cache_clear", CASTHOOK(shoes_app_clear_cache), 1);
+    rb_define_method(cApp, "mouse_wheel", CASTHOOK(shoes_app_set_wheeler), 1);
 
     cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 
