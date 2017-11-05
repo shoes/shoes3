@@ -196,6 +196,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
   for (; dy > 0.; dy--)
     shoes_app_wheel(a, wheel, ROUND(p.x), ROUND(p.y));
 }
+
 - (void)keyDown: (NSEvent *)e
 {
   shoes_app *a;
