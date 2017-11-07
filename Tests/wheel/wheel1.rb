@@ -6,8 +6,8 @@ Shoes.app do
     @p = para "None"
     flow width: 200 do 
       para "Flow 1"
-      click do |b,l,t| 
-       @p.replace  "Flow 1 clicked"
+      wheel do |d,l,t| 
+       @p.replace  "Flow 1 wheel #{d}"
       end
     end
     flow width: 200 do
