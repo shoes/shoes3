@@ -949,6 +949,8 @@ EVENT_HANDLER(motion);
 EVENT_HANDLER(keydown);
 EVENT_HANDLER(keypress);
 EVENT_HANDLER(keyup);
+EVENT_HANDLER(wheel);
+
 //EVENT_HANDLER(start);
 EVENT_HANDLER(finish);
 
@@ -1215,7 +1217,12 @@ void shoes_canvas_wheel_way(shoes_canvas *self_t, ID dir) {
     else if (dir == s_down)
         shoes_slot_scroll_to(self_t, 32, 1);
 }
-
+#if 0
+void shoes_canvas_wheel_send(shoes_canvas *self_t, ID dir, int x, int y) {
+  fprintf(stderr, "calling wheel proc\n");
+  shoes_safe_block(self, url, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
+}
+#endif
 void shoes_canvas_send_wheel(VALUE self, ID dir, int x, int y) {
     long i;
     shoes_canvas *self_t;
@@ -1224,8 +1231,16 @@ void shoes_canvas_send_wheel(VALUE self, ID dir, int x, int y) {
     if (ATTR(self_t->attr, hidden) != Qtrue) {
         VALUE wheel = ATTR(self_t->attr, wheel);
         if (!NIL_P(wheel)) {
-            if (IS_INSIDE(self_t, x, y))
-                shoes_canvas_wheel_way(self_t, dir);
+            if (IS_INSIDE(self_t, x, y)) {
+                VALUE proc = ATTR(self_t->attr, wheel);
+                if (! NIL_P(proc)) {
+                    fprintf(stderr, "calling wheel proc\n");
+                    shoes_safe_block(self, proc, rb_ary_new3(3, INT2NUM(dir == s_up) , INT2NUM(x), INT2NUM(y)));
+                    //shoes_canvas_wheel_send(self_t, dir, x, y);
+                } else {
+                    shoes_canvas_wheel_way(self_t, dir);
+                }
+            }
         }
 
         for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--) {

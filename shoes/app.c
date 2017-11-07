@@ -25,7 +25,7 @@ static void shoes_app_mark(shoes_app *app) {
     rb_gc_mark_maybe(app->styles);
     rb_gc_mark_maybe(app->groups);
     rb_gc_mark_maybe(app->owner);
-    rb_gc_mark_maybe(app->wheeler);}
+}
 
 static void shoes_app_free(shoes_app *app) {
     SHOE_FREE(app->slot);
@@ -50,7 +50,6 @@ VALUE shoes_app_alloc(VALUE klass) {
     app->groups = Qnil;
     app->styles = Qnil;
     app->title = Qnil;
-    app->wheeler = Qnil;
     app->x = 0;
     app->y = 0;
     app->width = SHOES_APP_WIDTH;
@@ -100,7 +99,6 @@ int shoes_app_remove(shoes_app *app) {
     rb_ary_delete(shoes_world->apps, app->self);
     return (RARRAY_LEN(shoes_world->apps) == 0);
 }
-
 
 shoes_code shoes_app_resize(shoes_app *app, int width, int height) {
     app->width = width;
@@ -340,14 +338,6 @@ VALUE shoes_app_clear_cache(VALUE app, VALUE opts) {
   }
   return Qtrue;
 }
-
-VALUE shoes_app_set_wheeler(VALUE app, VALUE blk) {
-  // TODO: verify blk is a proc
-  shoes_app *app_t;
-  Data_Get_Struct(app, shoes_app, app_t);
-  app_t->wheeler = blk;
-}
-
 
 shoes_code shoes_app_start(VALUE allapps, char *uri) {
     int i;

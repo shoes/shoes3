@@ -343,6 +343,7 @@ VALUE shoes_canvas_motion(int, VALUE *, VALUE);
 VALUE shoes_canvas_keydown(int, VALUE *, VALUE);
 VALUE shoes_canvas_keypress(int, VALUE *, VALUE);
 VALUE shoes_canvas_keyup(int, VALUE *, VALUE);
+VALUE shoes_canvas_wheel(int, VALUE *, VALUE);
 int shoes_canvas_independent(shoes_canvas *);
 VALUE shoes_find_canvas(VALUE);
 VALUE shoes_canvas_get_app(VALUE);
