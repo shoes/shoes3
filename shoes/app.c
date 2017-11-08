@@ -25,6 +25,7 @@ static void shoes_app_mark(shoes_app *app) {
     rb_gc_mark_maybe(app->styles);
     rb_gc_mark_maybe(app->groups);
     rb_gc_mark_maybe(app->owner);
+    rb_gc_mark_maybe(app->event_handler);
 }
 
 static void shoes_app_free(shoes_app *app) {
@@ -61,6 +62,7 @@ VALUE shoes_app_alloc(VALUE klass) {
     app->decorated = TRUE;
     app->opacity = 1.0;
     app->cursor = s_arrow;
+    app->event_handler = Qnil;
     app->scratch = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
     app->self = Data_Wrap_Struct(klass, shoes_app_mark, shoes_app_free, app);
     rb_extend_object(app->self, cTypes);
@@ -730,7 +732,7 @@ VALUE shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
     return shoes_global_terminal ? Qtrue : Qfalse;
 }
 
-VALUE shoes_app_set_event_handler(VALUE self,VALUE blk) {
+VALUE shoes_app_set_event_handler(VALUE self, VALUE blk) {
     shoes_app *app;
     Data_Get_Struct(self, shoes_app, app);
     if (rb_obj_is_kind_of(blk, rb_cProc)) {
@@ -741,4 +743,10 @@ VALUE shoes_app_set_event_handler(VALUE self,VALUE blk) {
       rb_raise(rb_eArgError, "events must be be a proc");
     }
     return Qnil;
+}
+VALUE shoes_app_playback(VALUE self, VALUE evt) {
+    // much TODO:
+    shoes_app *app;
+    Data_Get_Struct(self, shoes_app, app);
+    return Qtrue;
 }

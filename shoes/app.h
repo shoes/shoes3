@@ -103,6 +103,7 @@ VALUE shoes_app_set_cache(VALUE app, VALUE setting);
 VALUE shoes_app_get_cache(VALUE app);
 VALUE shoes_app_clear_cache(VALUE app, VALUE opts);
 VALUE shoes_app_set_event_handler(VALUE app, VALUE blk);
+VALUE shoes_app_playback(VALUE app, VALUE evt);
 // global var for image cache - declared in types/image.c
 extern int shoes_cache_setting;
 // global var for console up and running
