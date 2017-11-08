@@ -502,6 +502,9 @@ shoes_code shoes_app_motion(shoes_app *app, int x, int y) {
 
 shoes_code shoes_app_click(shoes_app *app, int button, int x, int y) {
     app->mouseb = button;
+    if (! NIL_P(app->event_handler)) {
+      fprintf(stderr, "have event_handler, invoking...\n");
+    }
     shoes_canvas_send_click(app->canvas, button, x, y);
     return SHOES_OK;
 }
@@ -725,4 +728,17 @@ VALUE shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
         shoes_global_terminal = 1;
     }
     return shoes_global_terminal ? Qtrue : Qfalse;
+}
+
+VALUE shoes_app_set_event_handler(VALUE self,VALUE blk) {
+    shoes_app *app;
+    Data_Get_Struct(self, shoes_app, app);
+    if (rb_obj_is_kind_of(blk, rb_cProc)) {
+      fprintf(stderr, "setting app event handler\n");
+      app->event_handler = blk;
+      return Qtrue;
+    } else {
+      rb_raise(rb_eArgError, "events must be be a proc");
+    }
+    return Qnil;
 }
