@@ -25,7 +25,6 @@ static void shoes_app_mark(shoes_app *app) {
     rb_gc_mark_maybe(app->styles);
     rb_gc_mark_maybe(app->groups);
     rb_gc_mark_maybe(app->owner);
-    rb_gc_mark_maybe(app->event_handler);
 }
 
 static void shoes_app_free(shoes_app *app) {
@@ -62,7 +61,7 @@ VALUE shoes_app_alloc(VALUE klass) {
     app->decorated = TRUE;
     app->opacity = 1.0;
     app->cursor = s_arrow;
-    app->event_handler = Qnil;
+    app->use_event_handler = 0;
     app->scratch = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
     app->self = Data_Wrap_Struct(klass, shoes_app_mark, shoes_app_free, app);
     rb_extend_object(app->self, cTypes);
@@ -495,6 +494,21 @@ shoes_code shoes_app_paint(shoes_app *app) {
     return SHOES_OK;
 }
 
+/* ------ GUI events ------ */
+VALUE shoes_app_set_event_handler(VALUE self, VALUE opt) {
+    shoes_app *app;
+    Data_Get_Struct(self, shoes_app, app);
+    if (TYPE(opt) == T_TRUE) {
+      fprintf(stderr, "set app event handler\n");
+      app->use_event_handler = 1;
+      return Qtrue;
+    } else {
+      app->use_event_handler = 0;
+    }
+    return Qnil;
+}
+
+
 shoes_code shoes_app_motion(shoes_app *app, int x, int y) {
     app->mousex = x;
     app->mousey = y;
@@ -504,10 +518,15 @@ shoes_code shoes_app_motion(shoes_app *app, int x, int y) {
 
 shoes_code shoes_app_click(shoes_app *app, int button, int x, int y) {
     app->mouseb = button;
-    if (! NIL_P(app->event_handler)) {
+    VALUE sendevt = Qtrue;
+    if (app->use_event_handler) {
       fprintf(stderr, "have event_handler, invoking...\n");
+      VALUE ary = rb_ary_new_from_args(4, ID2SYM(s_click), INT2NUM(button),
+          INT2NUM(x), INT2NUM(y));
+      sendevt = rb_funcall(app->canvas, rb_intern("event"), 1, ary);
     }
-    shoes_canvas_send_click(app->canvas, button, x, y);
+    if (! NIL_P(sendevt))
+      shoes_canvas_send_click(app->canvas, button, x, y);
     return SHOES_OK;
 }
 
@@ -732,21 +751,3 @@ VALUE shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
     return shoes_global_terminal ? Qtrue : Qfalse;
 }
 
-VALUE shoes_app_set_event_handler(VALUE self, VALUE blk) {
-    shoes_app *app;
-    Data_Get_Struct(self, shoes_app, app);
-    if (rb_obj_is_kind_of(blk, rb_cProc)) {
-      fprintf(stderr, "setting app event handler\n");
-      app->event_handler = blk;
-      return Qtrue;
-    } else {
-      rb_raise(rb_eArgError, "events must be be a proc");
-    }
-    return Qnil;
-}
-VALUE shoes_app_playback(VALUE self, VALUE evt) {
-    // much TODO:
-    shoes_app *app;
-    Data_Get_Struct(self, shoes_app, app);
-    return Qtrue;
-}

@@ -1,3 +1,7 @@
 Shoes.app do
-  app.events = proc { puts "hello event handler"} 
+  event do |evt|
+    stderr.puts "event handler called"
+    true
+  end
+  app.events = true
 end
