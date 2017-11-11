@@ -1,7 +1,14 @@
 Shoes.app do
-  event do |evt|
-    stderr.puts "event handler called"
-    true
+  event do |evt,args|
+    $stderr.puts "event handler called #{evt} #{args}"
+    false
   end
-  app.events = true
+  stack do
+    flow do 
+      button "click here" do
+        $stderr.puts "button clicked"
+      end
+    end
+  end
+  #app.events = true
 end

@@ -952,12 +952,14 @@ EVENT_HANDLER(keyup);
 //EVENT_HANDLER(start);
 EVENT_HANDLER(finish);
 //EVENT_HANDLER(event);
-// dont't use  macro  for event 
+
+// don't use  macro  for event 
 VALUE shoes_canvas_event(int argc, VALUE *argv, VALUE self) {
     VALUE val, block; 
     SETUP_CANVAS(); 
     rb_scan_args(argc, argv, "01&", &val, &block); 
     ATTRSET(canvas->attr, event, NIL_P(block) ? val : block); 
+    canvas->app->use_event_handler = 1;
     return self; 
 }
 

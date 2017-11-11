@@ -495,11 +495,14 @@ shoes_code shoes_app_paint(shoes_app *app) {
 }
 
 /* ------ GUI events ------ */
-VALUE shoes_app_set_event_handler(VALUE self, VALUE opt) {
+VALUE shoes_app_set_event_handler(VALUE self, VALUE blk) {
     shoes_app *app;
     Data_Get_Struct(self, shoes_app, app);
-    if (TYPE(opt) == T_TRUE) {
+    if (rb_obj_is_kind_of(blk, rb_cProc)) {
       fprintf(stderr, "set app event handler\n");
+      shoes_canvas *canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+      ATTRSET(canvas->attr, event, blk); 
       app->use_event_handler = 1;
       return Qtrue;
     } else {
@@ -521,9 +524,15 @@ shoes_code shoes_app_click(shoes_app *app, int button, int x, int y) {
     VALUE sendevt = Qtrue;
     if (app->use_event_handler) {
       fprintf(stderr, "have event_handler, invoking...\n");
-      VALUE ary = rb_ary_new_from_args(4, ID2SYM(s_click), INT2NUM(button),
-          INT2NUM(x), INT2NUM(y));
-      sendevt = rb_funcall(app->canvas, rb_intern("event"), 1, ary);
+      VALUE sary = rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y));
+      VALUE ary = rb_ary_new3(2, ID2SYM(s_click), sary);
+      shoes_canvas *canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+      VALUE event = ATTR(canvas->attr, event);
+      if (! NIL_P(event)) 
+        sendevt = shoes_safe_block(app->canvas, event, ary);
+      else
+        fprintf(stderr, "don't have event - but should\n");
     }
     if (! NIL_P(sendevt))
       shoes_canvas_send_click(app->canvas, button, x, y);

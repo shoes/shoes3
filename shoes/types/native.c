@@ -156,8 +156,21 @@ void shoes_control_check_styles(shoes_control *self_t) {
 void shoes_control_send(VALUE self, ID event) {
     VALUE click;
     GET_STRUCT(control, self_t);
-
-    if (!NIL_P(self_t->attr)) {
+    shoes_canvas *canvas;
+    Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+    VALUE passevt = Qtrue;
+    // do we have an event overide
+    if (canvas->app->use_event_handler) {
+      fprintf(stderr, "button click seeks permission\n");
+      VALUE sary = rb_ary_new3(1, self);
+      VALUE ary = rb_ary_new3(2, ID2SYM(event), sary);
+      VALUE event = ATTR(canvas->attr, event);
+      if (! NIL_P(event)) 
+        passevt = shoes_safe_block(self_t->parent, event, ary);
+      else
+        fprintf(stderr, "button: don't have event - but should\n");
+    }
+    if (!NIL_P(passevt) && !NIL_P(self_t->attr)) {
         click = rb_hash_aref(self_t->attr, ID2SYM(event));
         if (!NIL_P(click))
             shoes_safe_block(self_t->parent, click, rb_ary_new3(1, self));
