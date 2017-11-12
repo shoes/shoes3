@@ -532,7 +532,7 @@ shoes_code shoes_app_click(shoes_app *app, int button, int x, int y) {
       if (! NIL_P(event)) 
         sendevt = shoes_safe_block(app->canvas, event, ary);
       else
-        fprintf(stderr, "don't have event - but should\n");
+        fprintf(stderr, "click: dont have event - but should\n");
     }
     if (! NIL_P(sendevt))
       shoes_canvas_send_click(app->canvas, button, x, y);

@@ -156,19 +156,22 @@ void shoes_control_check_styles(shoes_control *self_t) {
 void shoes_control_send(VALUE self, ID event) {
     VALUE click;
     GET_STRUCT(control, self_t);
-    shoes_canvas *canvas;
-    Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
     VALUE passevt = Qtrue;
-    // do we have an event overide
-    if (canvas->app->use_event_handler) {
+    shoes_canvas *parent_canvas;
+    Data_Get_Struct(self_t->parent, shoes_canvas, parent_canvas);
+   // do we have an event overide? 
+    if (parent_canvas->app->use_event_handler) {
       fprintf(stderr, "button click seeks permission\n");
-      VALUE sary = rb_ary_new3(1, self);
-      VALUE ary = rb_ary_new3(2, ID2SYM(event), sary);
-      VALUE event = ATTR(canvas->attr, event);
-      if (! NIL_P(event)) 
-        passevt = shoes_safe_block(self_t->parent, event, ary);
-      else
-        fprintf(stderr, "button: don't have event - but should\n");
+      shoes_app *app = parent_canvas->app;
+      shoes_canvas *app_canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, app_canvas);
+      VALUE event = ATTR(app_canvas->attr, event);
+      if (! NIL_P(event)) {
+        VALUE sary = rb_ary_new3(1, self);
+        VALUE ary = rb_ary_new3(2, ID2SYM(s_click), sary);
+        passevt = shoes_safe_block(app->canvas, event, ary);
+      } else
+        fprintf(stderr, "button: doesn't have event - but should\n");
     }
     if (!NIL_P(passevt) && !NIL_P(self_t->attr)) {
         click = rb_hash_aref(self_t->attr, ID2SYM(event));

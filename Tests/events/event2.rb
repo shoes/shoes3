@@ -6,8 +6,12 @@ Shoes.app do
       end
     end
   end
-  app.event = proc do |evt, args|
+  # 2nd window 
+  eval IO.read("#{DIR}/samples/simple/chipmunk.rb").force_encoding("UTF-8"), TOPLEVEL_BINDING
+  #puts "APPS #{Shoes.APPS}"
+  @w2 = Shoes.APPS[1]
+  @w2.event = proc do |evt, args|
     $stderr.puts "event handler2 called #{evt} #{args}"
-    true
+    return true
   end
 end
