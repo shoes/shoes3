@@ -12,6 +12,7 @@
 #include "shoes/types/text.h"
 #include "shoes/types/text_link.h"
 #include "shoes/types/textblock.h"
+#include "shoes/types/event.h"
 
 static void shoes_app_mark(shoes_app *app) {
     shoes_native_slot_mark(app->slot);
@@ -523,18 +524,21 @@ shoes_code shoes_app_click(shoes_app *app, int button, int x, int y) {
     app->mouseb = button;
     VALUE sendevt = Qtrue;
     if (app->use_event_handler) {
-      fprintf(stderr, "have event_handler, invoking...\n");
-      VALUE sary = rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y));
-      VALUE ary = rb_ary_new3(2, ID2SYM(s_click), sary);
+      fprintf(stderr, "have event_handler, creating event...\n");
+      VALUE evt = shoes_event_new(cShoesEvent, s_click, Qnil, x, y, button);
       shoes_canvas *canvas;
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       VALUE event = ATTR(canvas->attr, event);
-      if (! NIL_P(event)) 
-        sendevt = shoes_safe_block(app->canvas, event, ary);
-      else
+      if (! NIL_P(event)) {
+        shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
+        shoes_event *tevent;
+        Data_Get_Struct(evt, shoes_event, tevent);
+        sendevt = (tevent->accept == 1) ? Qtrue : Qfalse;
+      } else {
         fprintf(stderr, "click: dont have event - but should\n");
+      }
     }
-    if (! NIL_P(sendevt))
+    if (sendevt == Qtrue)
       shoes_canvas_send_click(app->canvas, button, x, y);
     return SHOES_OK;
 }

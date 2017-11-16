@@ -37,6 +37,7 @@ VALUE shoes_button_draw(VALUE self, VALUE c, VALUE actual) {
     return self;
 }
 
+// TODO: OSX calls this from button.m,radio.m,check.m
 void shoes_button_send_click(VALUE control) {
     if (rb_obj_is_kind_of(control, cRadio))
         shoes_check_set_checked_m(control, Qtrue);

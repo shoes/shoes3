@@ -1,4 +1,5 @@
 #include "shoes/types/native.h"
+#include "shoes/types/event.h"
 
 // ruby
 VALUE cNative;
@@ -156,7 +157,7 @@ void shoes_control_check_styles(shoes_control *self_t) {
 void shoes_control_send(VALUE self, ID event) {
     VALUE click;
     GET_STRUCT(control, self_t);
-    VALUE passevt = Qtrue;
+    VALUE sendevt = Qtrue;
     shoes_canvas *parent_canvas;
     Data_Get_Struct(self_t->parent, shoes_canvas, parent_canvas);
    // do we have an event overide? 
@@ -167,13 +168,19 @@ void shoes_control_send(VALUE self, ID event) {
       Data_Get_Struct(app->canvas, shoes_canvas, app_canvas);
       VALUE event = ATTR(app_canvas->attr, event);
       if (! NIL_P(event)) {
-        VALUE sary = rb_ary_new3(1, self);
-        VALUE ary = rb_ary_new3(2, ID2SYM(s_click), sary);
-        passevt = shoes_safe_block(app->canvas, event, ary);
+        // TODO:  wrong
+        int x, y = 0;
+        x = parent_canvas->cx;
+        y = parent_canvas->cy;
+        VALUE evt = shoes_event_new(cShoesEvent, s_click, self, x, y, 1);
+        shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
+        shoes_event *tevent;
+        Data_Get_Struct(evt, shoes_event, tevent);
+        sendevt = (tevent->accept == 1) ? Qtrue : Qfalse;
       } else
         fprintf(stderr, "button: doesn't have event - but should\n");
     }
-    if (!NIL_P(passevt) && !NIL_P(self_t->attr)) {
+    if ((sendevt == Qtrue) && !NIL_P(self_t->attr)) {
         click = rb_hash_aref(self_t->attr, ID2SYM(event));
         if (!NIL_P(click))
             shoes_safe_block(self_t->parent, click, rb_ary_new3(1, self));

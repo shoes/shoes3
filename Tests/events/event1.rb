@@ -1,16 +1,24 @@
 Shoes.app do
-  event do |evt,args|
-    case evt
+  event do |evt|
+    case evt.type
     when :click 
-      $stderr.puts "event handler called: #{evt} #{args}"
-      return false
+      $stderr.puts "event handler called: #{evt.type} #{evt.button}, #{evt.x} #{evt.y}"
+      evt.accept = @ck1.checked?
+      if evt.object == @btn
+        $stderr.puts "have widget #{evt.object}"
+      end
     else
-      return true
+      evt.accept = true
     end
-  end
+  end  
+  
   stack do
+    para "Click test 1"
     flow do 
-      button "click here" do
+      @ck1 = check checked: true; para "pass clicks to Shoes"
+    end
+    flow do 
+      @btn = button "click here" do
         $stderr.puts "button clicked"
       end
       click do
