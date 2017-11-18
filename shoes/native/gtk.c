@@ -831,7 +831,7 @@ void shoes_native_loop() {
     //gtkrb_source = gtkrb_init_source();
     //g_source_attach(gtkrb_source, (gpointer) NULL);
     //g_idle_add(gtkrb_idle, NULL);
-    g_timeout_add(2, gtkrb_idle, NULL);
+    g_timeout_add(10, gtkrb_idle, NULL);
 #endif
     GLOBAL_APP(app);
     if (APP_WINDOW(app)) gtk_main();
