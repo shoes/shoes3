@@ -524,7 +524,7 @@ shoes_code shoes_app_click(shoes_app *app, int button, int x, int y) {
     app->mouseb = button;
     VALUE sendevt = Qtrue;
     if (app->use_event_handler) {
-      fprintf(stderr, "have event_handler, creating event...\n");
+      //fprintf(stderr, "have event_handler, creating event...\n");
       VALUE evt = shoes_event_new(cShoesEvent, s_click, Qnil, x, y, button);
       shoes_canvas *canvas;
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);

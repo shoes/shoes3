@@ -16,6 +16,10 @@ void shoes_shoesevent_init() {
     rb_define_method(cShoesEvent, "button", CASTHOOK(shoes_event_button), 0);
     rb_define_method(cShoesEvent, "x", CASTHOOK(shoes_event_x), 0);
     rb_define_method(cShoesEvent, "y", CASTHOOK(shoes_event_y), 0);
+    rb_define_method(cShoesEvent, "width", CASTHOOK(shoes_event_width), 0);
+    rb_define_method(cShoesEvent, "height", CASTHOOK(shoes_event_height), 0);
+    rb_define_method(cShoesEvent, "key", CASTHOOK(shoes_event_key), 0);
+    rb_define_method(cShoesEvent, "key=", CASTHOOK(shoes_event_set_key), 1);
     RUBY_M("+shoesevent", shoesevent, -1);
 }
  
@@ -30,6 +34,7 @@ void shoes_event_free(shoes_event *event) {
     RUBY_CRITICAL(free(event));
 }
 
+// users should not create events but something has to be visible
 VALUE shoes_event_new(VALUE klass, ID type, VALUE widget, int x, int y, int btn) {
     shoes_event *event;
     VALUE obj = shoes_event_alloc(klass);
@@ -40,6 +45,22 @@ VALUE shoes_event_new(VALUE klass, ID type, VALUE widget, int x, int y, int btn)
     event->x = x;
     event->y = y;
     event->btn = btn;
+    return obj;
+}
+
+VALUE shoes_event_new_widget(VALUE klass, ID type, VALUE widget, int btn, int x,
+        int y, int w, int h) {
+    shoes_event *event;
+    VALUE obj = shoes_event_alloc(klass);
+    Data_Get_Struct(obj, shoes_event, event);
+    event->accept = 1;
+    event->type = type;
+    event->object = widget;
+    event->btn = btn;
+    event->x = x;
+    event->y = y;
+    event->width = w;
+    event->height = h;
     return obj;
 }
 
@@ -118,3 +139,28 @@ VALUE shoes_event_y(VALUE self) {
     Data_Get_Struct(self, shoes_event, event);
     return INT2NUM(event->y);
 }
+
+VALUE shoes_event_height(VALUE self) {
+    shoes_event *event;
+    Data_Get_Struct(self, shoes_event, event);
+    return INT2NUM(event->height);
+}
+VALUE shoes_event_width(VALUE self) {
+    shoes_event *event;
+    Data_Get_Struct(self, shoes_event, event);
+    return INT2NUM(event->width);
+}
+
+// TODO keys: strings, not ints. Beware UTF8
+VALUE shoes_event_key(VALUE self) {
+    shoes_event *event;
+    Data_Get_Struct(self, shoes_event, event);
+    return INT2NUM(event->key);
+}
+VALUE shoes_event_set_key(VALUE self, VALUE key) {
+    shoes_event *event;
+    Data_Get_Struct(self, shoes_event, event);
+  
+    return INT2NUM(event->key);
+}
+

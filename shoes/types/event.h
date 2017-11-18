@@ -21,6 +21,9 @@ typedef struct {
     int btn;
     int x;  
     int y;
+    int width;
+    int height;
+    int key;   // TODO UTF-8, modifiers if we can get them (cough osx)
  
 } shoes_event;
 
@@ -33,6 +36,10 @@ VALUE shoes_event_set_accept(VALUE self, VALUE tf);
 VALUE shoes_event_button(VALUE self);
 VALUE shoes_event_x(VALUE self);
 VALUE shoes_event_y(VALUE self);
+VALUE shoes_event_width(VALUE self);
+VALUE shoes_event_height(VALUE self);
+VALUE shoes_event_key(VALUE self);
+VALUE shoes_event_set_key(VALUE self, VALUE key);
 
 // init 
 void shoes_event_mark(shoes_event *event);

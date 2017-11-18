@@ -161,24 +161,26 @@ void shoes_control_send(VALUE self, ID event) {
     shoes_canvas *parent_canvas;
     Data_Get_Struct(self_t->parent, shoes_canvas, parent_canvas);
    // do we have an event overide? 
-    if (parent_canvas->app->use_event_handler) {
-      fprintf(stderr, "button click seeks permission\n");
+    if (parent_canvas->app->use_event_handler && event == s_click) {
+      //fprintf(stderr, "C: button click seeks permission\n");
       shoes_app *app = parent_canvas->app;
       shoes_canvas *app_canvas;
       Data_Get_Struct(app->canvas, shoes_canvas, app_canvas);
       VALUE event = ATTR(app_canvas->attr, event);
       if (! NIL_P(event)) {
-        // TODO:  wrong
-        int x, y = 0;
-        x = parent_canvas->cx;
-        y = parent_canvas->cy;
-        VALUE evt = shoes_event_new(cShoesEvent, s_click, self, x, y, 1);
+        // TODO:  verify selt_t->place.name is accurate, somehow
+        int x,y,w,h  = 0;
+        x = self_t->place.x;
+        y = self_t->place.y;
+        h = self_t->place.h;
+        w = self_t->place.w;
+        VALUE evt = shoes_event_new_widget(cShoesEvent, s_click, self, 1, x, y, w, h);
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
         shoes_event *tevent;
         Data_Get_Struct(evt, shoes_event, tevent);
         sendevt = (tevent->accept == 1) ? Qtrue : Qfalse;
       } else
-        fprintf(stderr, "button: doesn't have event - but should\n");
+        fprintf(stderr, "control_send: doesn't have event - but it should\n");
     }
     if ((sendevt == Qtrue) && !NIL_P(self_t->attr)) {
         click = rb_hash_aref(self_t->attr, ID2SYM(event));
