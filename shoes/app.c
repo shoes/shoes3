@@ -519,13 +519,25 @@ shoes_code shoes_app_motion(shoes_app *app, int x, int y) {
     shoes_canvas_send_motion(app->canvas, x, y, Qnil);
     return SHOES_OK;
 }
+EXTERN ID s_shift_key, s_control_key;
 
-shoes_code shoes_app_click(shoes_app *app, int button, int x, int y) {
+shoes_code shoes_app_click(shoes_app *app, int button, int x, int y, int mods) {
     app->mouseb = button;
     VALUE sendevt = Qtrue;
+    VALUE modifiers = rb_ary_new2(4);
+    if (mods & SHOES_MODIFY_SHIFT) 
+      rb_ary_push(modifiers, ID2SYM(s_shift_key));
+    if (mods & SHOES_MODIFY_CTRL) 
+      rb_ary_push(modifiers, ID2SYM(s_control_key));
+    /*
+    if (mods & SHOES_MODIFY_ALT) 
+      rb_ary_push(modifiers, rb_str_new_cstr("alt"));
+    if (mods & SHOES_MODIFY_META) 
+      rb_ary_push(modifiers, rb_str_new_cstr("meta"));
+     */ 
     if (app->use_event_handler) {
       //fprintf(stderr, "have event_handler, creating event...\n");
-      VALUE evt = shoes_event_new(cShoesEvent, s_click, Qnil, x, y, button);
+      VALUE evt = shoes_event_new(cShoesEvent, s_click, Qnil, x, y, button, modifiers);
       shoes_canvas *canvas;
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       VALUE event = ATTR(canvas->attr, event);
@@ -539,7 +551,7 @@ shoes_code shoes_app_click(shoes_app *app, int button, int x, int y) {
       }
     }
     if (sendevt == Qtrue)
-      shoes_canvas_send_click(app->canvas, button, x, y);
+      shoes_canvas_send_click(app->canvas, button, x, y, modifiers);
     return SHOES_OK;
 }
 

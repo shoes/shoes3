@@ -3,7 +3,7 @@ Shoes.app do
     # do not trigger new events here unless you can handle them
     case evt.type
     when :click 
-      $stderr.puts "event handler called: #{evt.type} #{evt.button}, #{evt.x} #{evt.y}"
+      $stderr.puts "click handler called: #{evt.type} #{evt.button}, #{evt.x} #{evt.y} #{evt.modifiers}"
       evt.accept = @ck1.checked?
       if evt.object
         $stderr.puts "widget #{evt.object} at #{evt.type} #{evt.button} #{evt.x} #{evt.y} #{evt.width} #{evt.height}"
@@ -31,7 +31,7 @@ Shoes.app do
     end
     @eb = edit_box width: 500, height: 350
   end
-  click do
-    @eb.append "app click\n" 
+  click do |btn, x, y, mods|
+    @eb.append "app btn: #{btn} x: #{x} y: #{y} mods: #{mods}\n" 
   end
 end

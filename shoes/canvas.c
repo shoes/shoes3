@@ -1027,7 +1027,7 @@ void shoes_canvas_send_finish(VALUE self) {
         shoes_safe_block(self, finish, rb_ary_new3(1, self));
 }
 
-VALUE shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked) {
+VALUE shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE mods, VALUE *clicked) {
     long i;
     int ox = x, oy = y;
     VALUE v = Qnil;
@@ -1050,14 +1050,14 @@ VALUE shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clic
             if (!NIL_P(click)) {
                 if (ORIGIN(self_t->place))
                     y += self_t->slot->scrolly;
-                shoes_safe_block(self, click, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
+                shoes_safe_block(self, click, rb_ary_new3(4, INT2NUM(button), INT2NUM(x), INT2NUM(y), mods));
             }
         }
 
         for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--) {
             VALUE ele = rb_ary_entry(self_t->contents, i);
             if (rb_obj_is_kind_of(ele, cCanvas)) {
-                v = shoes_canvas_send_click(ele, button, ox, oy);
+                v = shoes_canvas_send_click(ele, button, ox, oy, mods);
                 *clicked = ele;
             } else if (rb_obj_is_kind_of(ele, cTextBlock)) {
                 v = shoes_textblock_send_click(ele, button, ox, oy, clicked);
@@ -1097,14 +1097,14 @@ VALUE shoes_canvas_goto(VALUE self, VALUE url) {
     return self;
 }
 
-VALUE shoes_canvas_send_click(VALUE self, int button, int x, int y) {
+VALUE shoes_canvas_send_click(VALUE self, int button, int x, int y, VALUE mods) {
     // INFO("click(%d, %d, %d)\n", button, x, y);
     VALUE clicked = Qnil;
-    VALUE url = shoes_canvas_send_click2(self, button, x, y, &clicked);
+    VALUE url = shoes_canvas_send_click2(self, button, x, y, mods, &clicked);
     if (!NIL_P(url)) {
         if (rb_obj_is_kind_of(url, rb_cProc))
             //shoes_safe_block(self, url, rb_ary_new3(1, clicked));
-            shoes_safe_block(self, url, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
+            shoes_safe_block(self, url, rb_ary_new3(4, INT2NUM(button), INT2NUM(x), INT2NUM(y), mods));
         else {
             shoes_canvas *self_t;
             Data_Get_Struct(self, shoes_canvas, self_t);

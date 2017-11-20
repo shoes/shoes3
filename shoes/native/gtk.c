@@ -17,6 +17,7 @@
 #include "shoes/types/text.h"
 #include "shoes/types/text_link.h"
 #include "shoes/types/download.h"
+#include "shoes/types/event.h"
 #include "shoes/internal.h"
 
 #include <fontconfig/fontconfig.h>
@@ -304,8 +305,24 @@ static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, g
     shoes_app *app = (shoes_app *)data;
     shoes_canvas *canvas;
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+    // process modifiers
+    int mods = 0;
+    if (event->state & GDK_SHIFT_MASK)
+      mods = mods | SHOES_MODIFY_SHIFT;
+    if (event->state & GDK_CONTROL_MASK)
+      mods = mods | SHOES_MODIFY_CTRL; 
+/*  never get these on Linux or its themeable 
+    if (event->state & GDK_MOD1_MASK)  
+      mods = mods | SHOES_MODIFY_ALT;
+    if (event->state & GDK_SUPER_MASK)
+      fprintf(stderr, "super\n");
+    if (event->state & GDK_HYPER_MASK)
+      fprintf(stderr, "hyper\n");   
+    if (event->state & GDK_META_MASK)
+      fprintf(stderr, "meta\n");   
+*/
     if (event->type == GDK_BUTTON_PRESS) {
-        shoes_app_click(app, event->button, event->x, event->y + canvas->slot->scrolly);
+        shoes_app_click(app, event->button, event->x, event->y + canvas->slot->scrolly, mods);
     } else if (event->type == GDK_BUTTON_RELEASE) {
         shoes_app_release(app, event->button, event->x, event->y + canvas->slot->scrolly);
     }

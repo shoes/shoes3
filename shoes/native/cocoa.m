@@ -10,6 +10,7 @@
 #include "shoes/types/types.h"
 #include "shoes/native/cocoa/button.h" // needed? 
 #include "shoes/native/cocoa/textview.h"
+#include "shoes/types/events.h"
 extern VALUE cTimer;
 
 #import <Carbon/Carbon.h>
@@ -125,13 +126,24 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 {
   shoes_app *a;
   shoes_canvas *canvas;
+  int modify = 0;
+  if ([e.modifierFlags] & NSShiftKeyMask)
+    modify = modify | SHOES_MODIFY_SHIFT
+  if ([e.modifierFlags] & NSControlKeyMask)
+    modify = modify | SHOES_MODIFY_CTRL
+  /* platform and theme specific 
+  if ([e.modifierFlags] & NSAlternateKeyMask)
+    altkey = 1;
+  if ([e.modifierFlags] & NSCommandKeyMask)
+    key = 1;   
+  */ 
   NSPoint p = [e locationInWindow];
   Data_Get_Struct(app, shoes_app, a);
   Data_Get_Struct(a->canvas, shoes_canvas, canvas);
   if (type == s_motion)
     shoes_app_motion(a, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly);
   else if (type == s_click)
-    shoes_app_click(a, b, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly);
+    shoes_app_click(a, b, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly, modify);
   else if (type == s_release)
     shoes_app_release(a, b, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly);
 }

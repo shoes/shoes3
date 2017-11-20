@@ -77,7 +77,7 @@ shoes_code shoes_app_loop(void);
 shoes_code shoes_app_visit(shoes_app *, char *);
 shoes_code shoes_app_paint(shoes_app *);
 shoes_code shoes_app_motion(shoes_app *, int, int);
-shoes_code shoes_app_click(shoes_app *, int, int, int);
+shoes_code shoes_app_click(shoes_app *, int, int, int, int);
 shoes_code shoes_app_release(shoes_app *, int, int, int);
 shoes_code shoes_app_wheel(shoes_app *, ID, int, int);
 shoes_code shoes_app_keydown(shoes_app *, VALUE);

@@ -20,6 +20,7 @@ void shoes_shoesevent_init() {
     rb_define_method(cShoesEvent, "height", CASTHOOK(shoes_event_height), 0);
     rb_define_method(cShoesEvent, "key", CASTHOOK(shoes_event_key), 0);
     rb_define_method(cShoesEvent, "key=", CASTHOOK(shoes_event_set_key), 1);
+    rb_define_method(cShoesEvent, "modifiers", CASTHOOK(shoes_event_modifiers), 0);
     RUBY_M("+shoesevent", shoesevent, -1);
 }
  
@@ -27,7 +28,8 @@ void shoes_shoesevent_init() {
 void shoes_event_mark(shoes_event *event) {
     rb_gc_mark_maybe(event->type);
     rb_gc_mark_maybe(event->object);
-    
+    rb_gc_mark_maybe(event->key);
+    rb_gc_mark_maybe(event->modifiers);
 }
 
 void shoes_event_free(shoes_event *event) {
@@ -35,7 +37,8 @@ void shoes_event_free(shoes_event *event) {
 }
 
 // users should not create events but something has to be visible
-VALUE shoes_event_new(VALUE klass, ID type, VALUE widget, int x, int y, int btn) {
+// click calls here.
+VALUE shoes_event_new(VALUE klass, ID type, VALUE widget, int x, int y, int btn, VALUE mods) {
     shoes_event *event;
     VALUE obj = shoes_event_alloc(klass);
     Data_Get_Struct(obj, shoes_event, event);
@@ -45,6 +48,8 @@ VALUE shoes_event_new(VALUE klass, ID type, VALUE widget, int x, int y, int btn)
     event->x = x;
     event->y = y;
     event->btn = btn;
+    event->key = Qnil;
+    event->modifiers = mods;
     return obj;
 }
 
@@ -61,6 +66,8 @@ VALUE shoes_event_new_widget(VALUE klass, ID type, VALUE widget, int btn, int x,
     event->y = y;
     event->width = w;
     event->height = h;
+    event->key = Qnil;
+    event->modifiers = Qnil;
     return obj;
 }
 
@@ -96,7 +103,7 @@ VALUE shoes_canvas_shoesevent(int argc, VALUE *argv, VALUE self) {
     int x = NUM2INT(shoes_hash_get(hsh, rb_intern("x")));
     int y = NUM2INT(shoes_hash_get(hsh, rb_intern("y")));
     int btn = NUM2INT(shoes_hash_get(hsh, rb_intern("button")));
-    ev = shoes_event_new(cShoesEvent,type,obj,x,y,btn);
+    ev = shoes_event_new(cShoesEvent,type,obj,x,y,btn,Qnil);
     return ev;
 }
 
@@ -159,8 +166,11 @@ VALUE shoes_event_key(VALUE self) {
 }
 VALUE shoes_event_set_key(VALUE self, VALUE key) {
     shoes_event *event;
-    Data_Get_Struct(self, shoes_event, event);
-  
+    Data_Get_Struct(self, shoes_event, event);  
     return INT2NUM(event->key);
 }
-
+VALUE shoes_event_modifiers(VALUE self) {
+    shoes_event *event;
+    Data_Get_Struct(self, shoes_event, event);  
+    return event->modifiers;
+}
