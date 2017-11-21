@@ -32,6 +32,16 @@ Shoes.app do
     @eb = edit_box width: 500, height: 350
   end
   click do |btn, x, y, mods|
-    @eb.append "app btn: #{btn} x: #{x} y: #{y} mods: #{mods}\n" 
+    @eb.append "app click: #{btn} x: #{x} y: #{y} mods: #{mods}\n" 
+  end
+  release do |btn, x, y, mods| 
+    @eb.append "app unlclck: #{btn} x: #{x} y: #{y} mods: #{mods}\n"
+  end
+  keypress do |key|
+    $stderr.puts key
+    @eb.append "#{key} "
+  end
+  motion do |x, y, mods| 
+    @eb.append "modtion #{x},#{y} #{mods} "
   end
 end

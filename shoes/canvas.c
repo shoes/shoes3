@@ -1114,7 +1114,7 @@ VALUE shoes_canvas_send_click(VALUE self, int button, int x, int y, VALUE mods) 
     return Qnil;
 }
 
-void shoes_canvas_send_release(VALUE self, int button, int x, int y) {
+void shoes_canvas_send_release(VALUE self, int button, int x, int y, VALUE mods) {
     long i;
     int ox = x, oy = y;
     shoes_canvas *self_t;
@@ -1136,14 +1136,14 @@ void shoes_canvas_send_release(VALUE self, int button, int x, int y) {
             if (!NIL_P(release)) {
                 if (ORIGIN(self_t->place))
                     y += self_t->slot->scrolly;
-                shoes_safe_block(self, release, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
+                shoes_safe_block(self, release, rb_ary_new3(4, INT2NUM(button), INT2NUM(x), INT2NUM(y), mods));
             }
         }
 
         for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--) {
             VALUE ele = rb_ary_entry(self_t->contents, i);
             if (rb_obj_is_kind_of(ele, cCanvas)) {
-                shoes_canvas_send_release(ele, button, ox, oy);
+                shoes_canvas_send_release(ele, button, ox, oy, mods);
             } else if (rb_obj_is_kind_of(ele, cTextBlock)) {
                 shoes_textblock_send_release(ele, button, ox, oy);
             } else if (rb_obj_is_kind_of(ele, cImage)) {
@@ -1159,7 +1159,7 @@ void shoes_canvas_send_release(VALUE self, int button, int x, int y) {
     }
 }
 
-VALUE shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url) {
+VALUE shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url, VALUE mods) {
     char oh, ch = 0, h = 0, *n = 0;
     long i;
     int ox = x, oy = y;
@@ -1182,14 +1182,14 @@ VALUE shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url) {
     if (ATTR(self_t->attr, hidden) != Qtrue) {
         VALUE motion = ATTR(self_t->attr, motion);
         if (!NIL_P(motion)) {
-            shoes_safe_block(self, motion, rb_ary_new3(2, INT2NUM(x), INT2NUM(y)));
+            shoes_safe_block(self, motion, rb_ary_new3(3, INT2NUM(x), INT2NUM(y), mods));
         }
 
         for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--) {
             VALUE urll = Qnil;
             VALUE ele = rb_ary_entry(self_t->contents, i);
             if (rb_obj_is_kind_of(ele, cCanvas)) {
-                urll = shoes_canvas_send_motion(ele, ox, oy, url);
+                urll = shoes_canvas_send_motion(ele, ox, oy, url, mods);
             } else if (rb_obj_is_kind_of(ele, cTextBlock)) {
                 urll = shoes_textblock_motion(ele, ox, oy, &h);
             } else if (rb_obj_is_kind_of(ele, cImage)) {
@@ -1227,7 +1227,7 @@ void shoes_canvas_wheel_way(shoes_canvas *self_t, ID dir) {
         shoes_slot_scroll_to(self_t, 32, 1);
 }
 
-void shoes_canvas_send_wheel(VALUE self, ID dir, int x, int y) {
+void shoes_canvas_send_wheel(VALUE self, ID dir, int x, int y, VALUE mods) {
     long i;
     shoes_canvas *self_t;
     Data_Get_Struct(self, shoes_canvas, self_t);

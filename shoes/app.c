@@ -513,10 +513,19 @@ VALUE shoes_app_set_event_handler(VALUE self, VALUE blk) {
 }
 
 
-shoes_code shoes_app_motion(shoes_app *app, int x, int y) {
+shoes_code shoes_app_motion(shoes_app *app, int x, int y, int mods) {
     app->mousex = x;
     app->mousey = y;
-    shoes_canvas_send_motion(app->canvas, x, y, Qnil);
+    VALUE modifiers = Qnil;
+    if (mods & SHOES_MODIFY_CTRL) {
+      if (mods & SHOES_MODIFY_SHIFT) 
+        modifiers = rb_utf8_str_new_cstr("control_shift");
+      else
+        modifiers = rb_utf8_str_new_cstr("control");
+    } 
+    else if (mods & SHOES_MODIFY_SHIFT) 
+      modifiers = rb_utf8_str_new_cstr("shift");
+    shoes_canvas_send_motion(app->canvas, x, y, Qnil, modifiers);
     return SHOES_OK;
 }
 EXTERN ID s_shift_key, s_control_key;
@@ -524,11 +533,15 @@ EXTERN ID s_shift_key, s_control_key;
 shoes_code shoes_app_click(shoes_app *app, int button, int x, int y, int mods) {
     app->mouseb = button;
     VALUE sendevt = Qtrue;
-    VALUE modifiers = rb_ary_new2(4);
-    if (mods & SHOES_MODIFY_SHIFT) 
-      rb_ary_push(modifiers, ID2SYM(s_shift_key));
-    if (mods & SHOES_MODIFY_CTRL) 
-      rb_ary_push(modifiers, ID2SYM(s_control_key));
+    VALUE modifiers = Qnil;
+    if (mods & SHOES_MODIFY_CTRL) {
+      if (mods & SHOES_MODIFY_SHIFT) 
+        modifiers = rb_utf8_str_new_cstr("control_shift");
+      else
+        modifiers = rb_utf8_str_new_cstr("control");
+    } 
+    else if (mods & SHOES_MODIFY_SHIFT) 
+      modifiers = rb_utf8_str_new_cstr("shift");
     /*
     if (mods & SHOES_MODIFY_ALT) 
       rb_ary_push(modifiers, rb_str_new_cstr("alt"));
@@ -555,18 +568,35 @@ shoes_code shoes_app_click(shoes_app *app, int button, int x, int y, int mods) {
     return SHOES_OK;
 }
 
-shoes_code shoes_app_release(shoes_app *app, int button, int x, int y) {
+shoes_code shoes_app_release(shoes_app *app, int button, int x, int y, int mods) {
     app->mouseb = 0;
-    shoes_canvas_send_release(app->canvas, button, x, y);
+    VALUE modifiers = Qnil;
+    if (mods & SHOES_MODIFY_CTRL) {
+      if (mods & SHOES_MODIFY_SHIFT) 
+        modifiers = rb_utf8_str_new_cstr("control_shift");
+      else
+        modifiers = rb_utf8_str_new_cstr("control");
+    } 
+    else if (mods & SHOES_MODIFY_SHIFT) 
+      modifiers = rb_utf8_str_new_cstr("shift");
+    shoes_canvas_send_release(app->canvas, button, x, y, modifiers);
     return SHOES_OK;
 }
 
-shoes_code shoes_app_wheel(shoes_app *app, ID dir, int x, int y) {
+shoes_code shoes_app_wheel(shoes_app *app, ID dir, int x, int y, int mods) {
     shoes_canvas *canvas;
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
     if (canvas->slot->vscroll) shoes_canvas_wheel_way(canvas, dir);
-
-    shoes_canvas_send_wheel(app->canvas, dir, x, y);
+    VALUE modifiers = Qnil;
+    if (mods & SHOES_MODIFY_CTRL) {
+      if (mods & SHOES_MODIFY_SHIFT) 
+        modifiers = rb_utf8_str_new_cstr("control_shift");
+      else
+        modifiers = rb_utf8_str_new_cstr("control");
+    } 
+    else if (mods & SHOES_MODIFY_SHIFT) 
+      modifiers = rb_utf8_str_new_cstr("shift");
+    shoes_canvas_send_wheel(app->canvas, dir, x, y, modifiers) ;
     return SHOES_OK;
 }
 
@@ -615,7 +645,7 @@ shoes_code shoes_app_goto(shoes_app *app, char *path) {
     } else {
         code = shoes_app_visit(app, path);
         if (code == SHOES_OK) {
-            shoes_app_motion(app, app->mousex, app->mousey);
+            shoes_app_motion(app, app->mousex, app->mousey, Qnil);
             shoes_slot_repaint(app->slot);
         }
     }

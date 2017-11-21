@@ -277,7 +277,12 @@ static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, g
         shoes_canvas *canvas;
         Data_Get_Struct(app->canvas, shoes_canvas, canvas);
         state = (GdkModifierType)event->state;
-        shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly);
+        int mods = 0;
+        if (event->state & GDK_SHIFT_MASK)
+          mods = mods | SHOES_MODIFY_SHIFT;
+        if (event->state & GDK_CONTROL_MASK)
+        mods = mods | SHOES_MODIFY_CTRL;
+        shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly, mods);
     }
     return TRUE;
 }
@@ -311,7 +316,7 @@ static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, g
       mods = mods | SHOES_MODIFY_SHIFT;
     if (event->state & GDK_CONTROL_MASK)
       mods = mods | SHOES_MODIFY_CTRL; 
-/*  never get these on Linux or its themeable 
+/*  never get these on Linux or its a themeable thing
     if (event->state & GDK_MOD1_MASK)  
       mods = mods | SHOES_MODIFY_ALT;
     if (event->state & GDK_SUPER_MASK)
@@ -324,7 +329,7 @@ static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, g
     if (event->type == GDK_BUTTON_PRESS) {
         shoes_app_click(app, event->button, event->x, event->y + canvas->slot->scrolly, mods);
     } else if (event->type == GDK_BUTTON_RELEASE) {
-        shoes_app_release(app, event->button, event->x, event->y + canvas->slot->scrolly);
+        shoes_app_release(app, event->button, event->x, event->y + canvas->slot->scrolly, mods);
     }
     return TRUE;
 }
@@ -350,8 +355,13 @@ static gboolean shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gp
         default:
             return TRUE;
     }
-
-    shoes_app_wheel(app, wheel, event->x, event->y);
+    // process modifiers
+    int mods = 0;
+    if (event->state & GDK_SHIFT_MASK)
+      mods = mods | SHOES_MODIFY_SHIFT;
+    if (event->state & GDK_CONTROL_MASK)
+      mods = mods | SHOES_MODIFY_CTRL; 
+    shoes_app_wheel(app, wheel, event->x, event->y, mods);
     return TRUE;
 }
 
