@@ -10,7 +10,7 @@
 #include "shoes/types/types.h"
 #include "shoes/native/cocoa/button.h" // needed? 
 #include "shoes/native/cocoa/textview.h"
-#include "shoes/types/events.h"
+#include "shoes/types/event.h"
 extern VALUE cTimer;
 
 #import <Carbon/Carbon.h>
@@ -128,9 +128,9 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
   shoes_canvas *canvas;
   int modify = 0;
   if ([e modifierFlags] & NSShiftKeyMask)
-    modify = modify | SHOES_MODIFY_SHIFT
+    modify = modify | SHOES_MODIFY_SHIFT;
   if ([e modifierFlags] & NSControlKeyMask)
-    modify = modify | SHOES_MODIFY_CTRL
+    modify = modify | SHOES_MODIFY_CTRL;
   /* platform and theme specific 
   if ([e.modifierFlags] & NSAlternateKeyMask)
     altkey = 1;
@@ -205,13 +205,14 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
   }
   int modify = 0;
   if ([e modifierFlags] & NSShiftKeyMask)
-    modify = modify | SHOES_MODIFY_SHIFT
+    modify = modify | SHOES_MODIFY_SHIFT;
   if ([e modifierFlags] & NSControlKeyMask)
-    modify = modify | SHOES_MODIFY_CTRL
+    modify = modify | SHOES_MODIFY_CTRL;
   Data_Get_Struct(app, shoes_app, a);
   for (; dy > 0.; dy--)
     shoes_app_wheel(a, wheel, ROUND(p.x), ROUND(p.y), modify);
 }
+
 - (void)keyDown: (NSEvent *)e
 {
   shoes_app *a;

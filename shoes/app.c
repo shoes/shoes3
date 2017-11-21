@@ -102,7 +102,6 @@ int shoes_app_remove(shoes_app *app) {
     return (RARRAY_LEN(shoes_world->apps) == 0);
 }
 
-
 shoes_code shoes_app_resize(shoes_app *app, int width, int height) {
     app->width = width;
     app->height = height;
@@ -341,7 +340,6 @@ VALUE shoes_app_clear_cache(VALUE app, VALUE opts) {
   }
   return Qtrue;
 }
-
 
 shoes_code shoes_app_start(VALUE allapps, char *uri) {
     int i;

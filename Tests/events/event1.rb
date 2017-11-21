@@ -35,13 +35,16 @@ Shoes.app do
     @eb.append "app click: #{btn} x: #{x} y: #{y} mods: #{mods}\n" 
   end
   release do |btn, x, y, mods| 
-    @eb.append "app unlclck: #{btn} x: #{x} y: #{y} mods: #{mods}\n"
+    @eb.append "app unclick: #{btn} x: #{x} y: #{y} mods: #{mods}\n"
   end
   keypress do |key|
     $stderr.puts key
     @eb.append "#{key} "
   end
-  motion do |x, y, mods| 
-    @eb.append "modtion #{x},#{y} #{mods} "
+  #motion do |x, y, mods| 
+  #  @eb.append "modtion #{x},#{y} #{mods} "
+  #end
+  wheel do |d,x,y,mods|
+     @eb.append "wheel #{d} #{mods} at #{x},#{y}\n"
   end
 end

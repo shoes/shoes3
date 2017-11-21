@@ -590,6 +590,7 @@ SYMBOL_EXTERN(link);
   f(".keypress", keypress, -1); \
   f(".keyup", keyup, -1); \
   f(".event", event, -1); \
+  f(".wheel", wheel, -1); \
   f("+clear", clear_contents, -1); \
   f(".visit", goto, 1); \
   f(".mouse", mouse, 0); \

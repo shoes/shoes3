@@ -949,6 +949,8 @@ EVENT_HANDLER(motion);
 EVENT_HANDLER(keydown);
 EVENT_HANDLER(keypress);
 EVENT_HANDLER(keyup);
+EVENT_HANDLER(wheel);
+
 //EVENT_HANDLER(start);
 EVENT_HANDLER(finish);
 //EVENT_HANDLER(event);
@@ -1235,14 +1237,22 @@ void shoes_canvas_send_wheel(VALUE self, ID dir, int x, int y, VALUE mods) {
     if (ATTR(self_t->attr, hidden) != Qtrue) {
         VALUE wheel = ATTR(self_t->attr, wheel);
         if (!NIL_P(wheel)) {
-            if (IS_INSIDE(self_t, x, y))
-                shoes_canvas_wheel_way(self_t, dir);
+            if (IS_INSIDE(self_t, x, y)) {
+                VALUE proc = ATTR(self_t->attr, wheel);
+                if (! NIL_P(proc)) {
+                    //fprintf(stderr, "calling wheel proc\n");
+                    shoes_safe_block(self, proc, rb_ary_new3(4, INT2NUM(dir == s_up) , 
+                        INT2NUM(x), INT2NUM(y), mods ));
+                } else {
+                    shoes_canvas_wheel_way(self_t, dir);
+                }
+            }
         }
-
+        // TODO:  handle image, svg, plot
         for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--) {
             VALUE ele = rb_ary_entry(self_t->contents, i);
             if (rb_obj_is_kind_of(ele, cCanvas)) {
-                shoes_canvas_send_wheel(ele, dir, x, y);
+                shoes_canvas_send_wheel(ele, dir, x, y, mods);
             }
         }
     }
