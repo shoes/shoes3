@@ -1,4 +1,5 @@
 Shoes.app do
+
   event do |evt|
     # do not trigger new events here unless you can handle them
     case evt.type
@@ -12,7 +13,7 @@ Shoes.app do
       evt.accept = true
     end
   end  
-  
+
   stack do
     para "Click test 1"
     flow do 

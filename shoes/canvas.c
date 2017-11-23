@@ -957,11 +957,16 @@ EVENT_HANDLER(finish);
 
 // don't use  macro  for event 
 VALUE shoes_canvas_event(int argc, VALUE *argv, VALUE self) {
-    VALUE val, block; 
+    VALUE val, block = Qnil; 
     SETUP_CANVAS(); 
     rb_scan_args(argc, argv, "01&", &val, &block); 
-    ATTRSET(canvas->attr, event, NIL_P(block) ? val : block); 
-    canvas->app->use_event_handler = 1;
+    if (rb_obj_is_kind_of(block, rb_cProc)) {
+      ATTRSET(canvas->attr, event, block); 
+      canvas->app->use_event_handler = 1;
+    } else {
+		fprintf(stderr, "shoes_canvas_event has no block\n");
+		canvas->app->use_event_handler = 0;
+    }
     return self; 
 }
 

@@ -42,7 +42,8 @@ extern VALUE cTimer;
 -(IBAction)handleClick: (id)sender
 {
   //NSLog(@"radio button handler called on %lx", object);
-  shoes_button_send_click(object);
+  //shoes_button_send_click(object);
+  shoes_check_set_checked_m(object, Qtrue);
 }
 @end
 
