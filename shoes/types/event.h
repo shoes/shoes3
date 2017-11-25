@@ -54,5 +54,6 @@ VALUE shoes_event_new(VALUE klass, ID type, VALUE widget, int x, int y,
     int btn, VALUE modifiers);
 VALUE shoes_event_alloc(VALUE klass);
 VALUE shoes_canvas_shoesevent(int argc, VALUE *argv, VALUE self);
-
+VALUE shoes_event_new_widget(VALUE klass, ID type, VALUE widget, int btn, int x,
+        int y, int w, int h);
 #endif

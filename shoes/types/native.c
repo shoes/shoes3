@@ -166,8 +166,8 @@ void shoes_control_send(VALUE self, ID event) {
       shoes_app *app = parent_canvas->app;
       shoes_canvas *app_canvas;
       Data_Get_Struct(app->canvas, shoes_canvas, app_canvas);
-      VALUE event = ATTR(app_canvas->attr, event);
-      if (! NIL_P(event)) {
+      VALUE evtproc = ATTR(app_canvas->attr, event);
+      if (! NIL_P(evtproc)) {
         // TODO:  verify selt_t->place.name is accurate, somehow
         int x,y,w,h  = 0;
         x = self_t->place.x;
@@ -175,12 +175,12 @@ void shoes_control_send(VALUE self, ID event) {
         h = self_t->place.h;
         w = self_t->place.w;
         VALUE evt = shoes_event_new_widget(cShoesEvent, s_click, self, 1, x, y, w, h);
-        shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
+        shoes_safe_block(app->canvas, evtproc, rb_ary_new3(1, evt));
         shoes_event *tevent;
         Data_Get_Struct(evt, shoes_event, tevent);
         sendevt = (tevent->accept == 1) ? Qtrue : Qfalse;
       } else
-        fprintf(stderr, "control_send: doesn't have event - but it should\n");
+        fprintf(stderr, "shoes_control_send: doesn't have event - but it should\n");
     }
     if ((sendevt == Qtrue) && !NIL_P(self_t->attr)) {
         click = rb_hash_aref(self_t->attr, ID2SYM(event));
