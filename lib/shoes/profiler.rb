@@ -226,6 +226,9 @@ class DiyProf < Shoes
       flow do
         flow {@gui_display = check checked: true; para "GUI display [default] or Terminal"}
       end
+      flow do
+         flow { @@use_launch = check checked: true; para "Use launch terminal" }
+      end
       flow(margin_top: 5) do 
         @cc = check checked: true;
         para "include C methods call" 
@@ -259,6 +262,7 @@ class DiyProf < Shoes
         if @gui_display.checked? 
           visit "/graphical"
         else
+          $stderr.puts "lauching text report"
           visit "/terminal"
         end
       end
@@ -335,7 +339,9 @@ def textscreen # get here from a visit(url)
     #rescue Exception
     #  cpuclock = false
     #end
-    Shoes.terminal title: "Profile #{app_name}"
+    if ! @@use_launch
+      Shoes.terminal title: "Profile #{app_name}"
+    end
     puts "Profile for #{File.expand_path($shoes_profiler.file)}\n"
     load_time = $shoes_profiler.load_wall_end - $shoes_profiler.load_wall_st
     puts "Script Load (wall time, ms) #{load_time / 1000.0}\n"

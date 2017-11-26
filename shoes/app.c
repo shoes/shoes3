@@ -721,8 +721,10 @@ VALUE shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
             }
 #endif
         }
+        fprintf(stderr, "DIR: %s\n", dir_path);
         shoes_native_terminal(dir_path, mode, columns, rows, fontsize, fg, bg, title);
         shoes_global_terminal = 1;
+        fprintf(stderr, "Terminal set: %s\m", title);
     }
     return shoes_global_terminal ? Qtrue : Qfalse;
 }
