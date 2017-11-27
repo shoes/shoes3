@@ -167,7 +167,7 @@ class ProfilerDB
   include TimeHelpers
   attr_accessor :nodes, :links, :add_c_calls, :file
   attr_accessor :load_wall_st, :load_wall_end, :prof_wall_st, :prof_wall_end
-  attr_accessor :cpu_st, :cpu_end
+  attr_accessor :cpu_st, :cpu_end, :outdev, :outfl
   def initialize
     nodes = {}
     links = {}
@@ -176,8 +176,10 @@ class ProfilerDB
     load_wall_end = 0
     prof_wall_st = 0
     prof_wall_end = 0
-    cpu_st = 0;
-    cpu_end = 0;
+    cpu_st = 0
+    cpu_end = 0
+    outdev = $stderr
+    outfl = 0
   end
   
   def start
@@ -223,11 +225,40 @@ class DiyProf < Shoes
       if !$cpu_clock 
         para "You don't have a cpu_clock, using wall time instead"
       end
+=begin
       flow do
         flow {@gui_display = check checked: true; para "GUI display [default] or Terminal"}
       end
       flow do
          flow { @@use_launch = check checked: true; para "Use launch terminal" }
+      end
+=end
+      para "Pick the output device"
+      flow do
+        flow do
+          @r1 = radio :output_opt; para "Shoes Graphical"
+        end
+        flow do
+          @r2 = radio :output_opt; para "Shoes Terminal"
+        end
+        flow do
+          @r3 = radio :output_opt; para "Launch terminal"
+        end
+        flow do
+          @r4 = radio :output_opt; para "File" 
+          @outfl = edit_line width: 450
+          realp = File.expand_path($shoes_profiler.file)
+          dirp = Dir.getwd
+          bn = File.basename(realp)
+          ext = File.extname(realp)
+          @outfl.text = File.join(dirp, bn.gsub(ext, '.prf'))
+          button "select" do
+            svfl = ask_save_file
+            if svfl 
+              @outfl.text = svfl
+            end
+          end
+        end
       end
       flow(margin_top: 5) do 
         @cc = check checked: true;
@@ -259,10 +290,31 @@ class DiyProf < Shoes
         nodes, links = $shoes_profiler.stop(load_st, load_end, Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond))
         $shoes_profiler.nodes = nodes
         $shoes_profiler.links = links
+=begin
         if @gui_display.checked? 
           visit "/graphical"
         else
-          $stderr.puts "lauching text report"
+          visit "/terminal"
+        end
+=end
+        if @r1.checked? 
+          visit "/graphical"
+        else 
+          if @r2.checked?
+            # use Shoes.terminal
+            app_name = File.basename($shoes_profiler.file)
+            Shoes.terminal title: "Profile #{app_name}"
+            $shoes_profiler.outdev = $stdout
+          end
+          if @r3.checked? 
+            # launch terminal out
+            $shoes_profiler.outdev = $stderr # best for osx
+          end
+          if @r4.checked?
+            # file out
+            $shoes_profiler.outdev = File.open(@outfl.text, "w")
+            $shoes_profiler.outfl = 1
+          end
           visit "/terminal"
         end
       end
@@ -331,7 +383,7 @@ def textscreen # get here from a visit(url)
     button "GUI Display" do
       visit "/graphical"
     end
-    app_name = File.basename($shoes_profiler.file);
+    app_name = File.basename($shoes_profiler.file)
     #cpuclock = nil
     #begin
     #  cpuclock = Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID, :microsecond)
@@ -339,24 +391,31 @@ def textscreen # get here from a visit(url)
     #rescue Exception
     #  cpuclock = false
     #end
-    if ! @@use_launch
-      Shoes.terminal title: "Profile #{app_name}"
-    end
-    puts "Profile for #{File.expand_path($shoes_profiler.file)}\n"
+    
+    # lexical short cut
+    outf = $shoes_profiler.outdev
+    outf.puts "Profile for #{File.expand_path($shoes_profiler.file)}\n"
     load_time = $shoes_profiler.load_wall_end - $shoes_profiler.load_wall_st
-    puts "Script Load (wall time, ms) #{load_time / 1000.0}\n"
-    puts "Script Run (Wall_time, sec) #{($shoes_profiler.prof_wall_end - $shoes_profiler.prof_wall_st) / 1000000.0}"
+    outf.puts "Script Load (wall time, ms) #{load_time / 1000.0}\n"
+    outf. puts "Script Run (Wall_time, sec) #{($shoes_profiler.prof_wall_end - $shoes_profiler.prof_wall_st) / 1000000.0}"
     total_cpu = ($shoes_profiler.cpu_end - $shoes_profiler.cpu_st) / 1000.0
     if $cpu_clock 
-      puts "Script Run (cpu, ms) #{total_cpu}" 
+      outf.puts "Script Run (cpu, ms) #{total_cpu}" 
     else
-      puts "Cpu clock is not available - using wall time"
+      outf.puts "Cpu clock is not available - using wall time"
     end
-    puts "mTime is time in method. tTime: is time in method plus other calls.\n\n"
-    puts "\033[37;42mBy call count\033[00m"
+    outf.puts "mTime is time in method. tTime: is time in method plus other calls.\n\n"
+    if $shoes_profiler.outfl == 1
+      outf.puts "By call count"
+    else
+      outf.puts "\033[37;42mBy call count\033[00m"
+    end
     fmtstr ="%-20.20<method>s   % 8<count>d  %9.4<sstime>f %10.4<ttime>f %8.4<mscall>f %7.4<pmtot>f %7.4<pttot>f\n"
     hdrstr = "\033[01m   Method Called          Count   mTime-ms   tTime-ms  ms-call  %m-cpu  %t-cpu\033[0m"
-    puts hdrstr
+    if $shoes_profiler.outfl == 1
+      hdrstr = "   Method Called          Count   mTime-ms   tTime-ms  ms-call  %m-cpu  %t-cpu"
+    end
+    outf.puts hdrstr
     tfilter_by(:count).each do |k,v| 
       @count = v[:info]
       node = v[:node]
@@ -367,11 +426,15 @@ def textscreen # get here from a visit(url)
       ms_call = t_time / count.to_i
       pmtot = (s_time / total_cpu) * 100.0
       pttot = (t_time / total_cpu) * 100.0
-      printf(fmtstr, method:k, count: count, sstime: s_time, ttime: t_time, mscall: ms_call, pmtot: pmtot, pttot: pttot)
+      outf.printf(fmtstr, method:k, count: count, sstime: s_time, ttime: t_time, mscall: ms_call, pmtot: pmtot, pttot: pttot)
     end
-    puts 
-    puts "\033[37;42mBy method time\033[00m"
-    puts hdrstr
+    outf.puts 
+    if $shoes_profiler.outfl == 1
+       outf.puts "By method time"
+    else
+       outf.puts "\033[37;42mBy method time\033[00m"
+    end
+    outf.puts hdrstr
     tfilter_by(:self_time).each do |k,v| 
       node = v[:node]
       method_info = node[1]
@@ -381,7 +444,10 @@ def textscreen # get here from a visit(url)
       ms_call = t_time / count.to_i
       pmtot = (s_time / total_cpu) * 100.0
       pttot = (t_time / total_cpu) * 100.0
-      printf(fmtstr, method:k, count: count, sstime: s_time, ttime: t_time, mscall: ms_call, pmtot: pmtot, pttot: pttot)
+      outf.printf(fmtstr, method:k, count: count, sstime: s_time, ttime: t_time, mscall: ms_call, pmtot: pmtot, pttot: pttot)
+    end
+    if $shoes_profiler.outfl == 1
+      outf.close
     end
   end
 end
