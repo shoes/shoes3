@@ -70,6 +70,7 @@ LINUX_LIBS = LINUX_LIB_NAMES.map { |x| "-l#{x}" }.join(' ')
 
 LINUX_LIBS << " #{CURL_LDFLAGS if !RUBY_HTTP} #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
 
+# SOLOCS are copied (setup.rb)
 SOLOCS = {}
 SOLOCS['ungif'] = "#{uldir}/libungif.so.4.1.6"
 SOLOCS['gif'] = "#{uldir}/libgif.so.4.1.6" # because Suse wants it
@@ -83,7 +84,16 @@ SOLOCS['ffi'] = "#{ularch}/libffi.so.5.0.10"
 SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so.2.36.1"
 SOLOCS['curl'] = "#{lcllib}/libcurl.so.4.4.0"
 
-# sigh, curl and tyhpoeus - processed in setup.rb
+# sigh, we need symlinks on some linux distros and curl is just difficult
+# every where. See setup.rb
 SYMLNK = {}
 SYMLNK['libcurl.so.4.4.0'] = ['libcurl.so', 'libcurl.so.4']
+SYMLNK['libgif.so.4.1.6'] = ['libgif.so', 'libgif.so.4']
+SYMLNK['libjpeg.so.8.4.0'] = ['libjpeg.so', 'libjpeg.so.8']
+SYMLNK['libyaml-0.so.2.0.2'] = ['libyaml.so', 'libyaml-0.so.2']
+SYMLNK['libcrypto.so.1.0.0'] = ['libcrypto.so', 'libcrypto.so.1']
+SYMLNK['libssl.so.1.0.0'] = ['libssl.so']
+SYMLNK['libsqlite3.so.0.8.6'] = ['libsqlite3.so', 'libsqlite3.so.0']
+SYMLNK['libffi.so.5.0.10'] = ['libffi.so', 'libffi.so.5']
+SYMLNK['librsvg-2.so.2.36.1'] = ['librsvg-2.so', 'librsvg-2.so.2']
 
