@@ -520,7 +520,7 @@ static void terminal_raw (struct tesiObject *tobj, char *raw, int len) {
     }
 }
 #endif
-
+ 
 void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
                            int fontsize, char* fg, char *bg, char* title) {
     GtkWidget *window;
