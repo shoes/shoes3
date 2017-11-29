@@ -950,7 +950,6 @@ EVENT_HANDLER(keydown);
 EVENT_HANDLER(keypress);
 EVENT_HANDLER(keyup);
 EVENT_HANDLER(wheel);
-
 //EVENT_HANDLER(start);
 EVENT_HANDLER(finish);
 //EVENT_HANDLER(event);
@@ -963,13 +962,14 @@ VALUE shoes_canvas_event(int argc, VALUE *argv, VALUE self) {
     if (rb_obj_is_kind_of(block, rb_cProc)) {
       ATTRSET(canvas->attr, event, block); 
       canvas->app->use_event_handler = 1;
+      //printf("FW Self: %i\n", canvas->app);
     } else {
-		fprintf(stderr, "shoes_canvas_event has no block\n");
-		canvas->app->use_event_handler = 0;
+		  fprintf(stderr, "shoes_canvas_event is not block/proc\n");
+		  canvas->app->use_event_handler = 0;
     }
     return self; 
 }
-
+// don't use macro for start
 VALUE shoes_canvas_start(int argc, VALUE *argv, VALUE self) {
     VALUE val, block;
     SETUP_CANVAS();

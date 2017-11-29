@@ -494,18 +494,47 @@ shoes_code shoes_app_paint(shoes_app *app) {
 }
 
 /* ------ GUI events ------ */
-VALUE shoes_app_set_event_handler(VALUE self, VALUE blk) {
+
+/* TODO:  move this debugging code to ruby.c ? */
+int shoes_hash_debug_cb (VALUE key, VALUE val, VALUE extra) {
+  char *keystr, *valstr = NULL;
+  // TODO: should be a long switch/case for all TYPE(key)
+  if (TYPE(key) == T_SYMBOL) {
+    keystr = RSTRING_PTR(rb_sym_to_s(key));
+  } else {
+    keystr = StringValueCStr(key);
+  }
+  // TODO: should be a long switch/case  for all TYPE(val)
+  if (TYPE(val) == T_STRING)
+    valstr = RSTRING_PTR(val);
+  else
+    valstr = "unknown";
+  fprintf(stderr, "Key %s=>Value %s\n", keystr, valstr);
+  return ST_CONTINUE;
+ }
+
+void shoes_hash_debug(VALUE attr) {
+  fprintf(stderr, "Display hash at %i\n", (int)attr);
+  if (TYPE(attr) != T_HASH) {
+    fprintf(stderr, "Attr NOT A HAS!\n"); 
+    return;
+  }
+  rb_hash_foreach(attr, shoes_hash_debug_cb, Qnil);
+}
+
+VALUE shoes_app_set_event_handler(VALUE self, VALUE block) {
     shoes_app *app;
     Data_Get_Struct(self, shoes_app, app);
-    if (rb_obj_is_kind_of(blk, rb_cProc)) {
+    shoes_canvas *canvas; 
+    Data_Get_Struct(app->canvas, shoes_canvas, canvas); 
+    if (rb_obj_is_kind_of(block, rb_cProc)) {
       fprintf(stderr, "set app event handler\n");
-      shoes_canvas *canvas;
-      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-      ATTRSET(canvas->attr, event, blk); 
-      app->use_event_handler = 1;
+      ATTRSET(canvas->attr, event, block);  
+      canvas->app->use_event_handler = 1;
+      //shoes_hash_debug(canvas->attr);
       return Qtrue;
     } else {
-      app->use_event_handler = 0;
+      canvas->app->use_event_handler = 0;
     }
     return Qnil;
 }
@@ -551,14 +580,15 @@ shoes_code shoes_app_click(shoes_app *app, int button, int x, int y, int mods) {
       VALUE evt = shoes_event_new(cShoesEvent, s_click, Qnil, x, y, button, modifiers);
       shoes_canvas *canvas;
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-      VALUE event = ATTR(canvas->attr, event);
+      VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
         shoes_event *tevent;
         Data_Get_Struct(evt, shoes_event, tevent);
         sendevt = (tevent->accept == 1) ? Qtrue : Qfalse;
       } else {
-        fprintf(stderr, "click: dont have event - but should\n");
+        fprintf(stderr, "click: don't have event - but should - dump hash\n");
+        shoes_hash_debug(canvas->attr);
       }
     }
     if (sendevt == Qtrue)
@@ -801,7 +831,7 @@ VALUE shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
         fprintf(stderr, "DIR: %s\n", dir_path);
         shoes_native_terminal(dir_path, mode, columns, rows, fontsize, fg, bg, title);
         shoes_global_terminal = 1;
-        fprintf(stderr, "Terminal set: %s\m", title);
+        fprintf(stderr, "Terminal set: %s\n", title);
     }
     return shoes_global_terminal ? Qtrue : Qfalse;
 }
