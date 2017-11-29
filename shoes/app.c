@@ -516,7 +516,7 @@ int shoes_hash_debug_cb (VALUE key, VALUE val, VALUE extra) {
 void shoes_hash_debug(VALUE attr) {
   fprintf(stderr, "Display hash at %i\n", (int)attr);
   if (TYPE(attr) != T_HASH) {
-    fprintf(stderr, "Attr NOT A HAS!\n"); 
+    fprintf(stderr, "hash_debug: Arg is NOT A HASH\n"); 
     return;
   }
   rb_hash_foreach(attr, shoes_hash_debug_cb, Qnil);
