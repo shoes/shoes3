@@ -1,23 +1,28 @@
 Shoes.app do  
   stack do
+    tagline "Manage clicks for second Window"
+    para "Demonstrates communication with second app"
+    flow do
+      $ck = check checked: true; para "Pass clicks?"
+    end
     flow do 
-      button "click here" do
-        $stderr.puts "button clicked"
-      end
-      button "set handler fore 2nd window" do
-        @w2 = Shoes.APPS[1]
+      button "Set handler for 2nd window" do
+        @w2 = Shoes.APPS[-1]
         @w2.event = proc do |evt|
           $stderr.puts "event handler2 with #{evt.type}"
-          evt.accept = false
+          evt.accept = $ck.checked?
         end
       end
     end
   end
-  # event handler for APPS[0] - starting window
-  event do |one|
-    puts "First handler clicked"
-    one.accept = true
-  end
-  # 2nd window 
+
+  # 2nd App
   eval IO.read("#{DIR}/samples/simple/chipmunk.rb").force_encoding("UTF-8"), TOPLEVEL_BINDING
+  start do
+    # move the frontmost app (#2) left and up - it flickers. 
+    w = Shoes.APPS[-1]
+    x = app.left
+    y = app.top
+    w.move x+80, y-40
+  end
 end

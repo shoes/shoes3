@@ -498,18 +498,32 @@ shoes_code shoes_app_paint(shoes_app *app) {
 /* TODO:  move this debugging code to ruby.c ? */
 int shoes_hash_debug_cb (VALUE key, VALUE val, VALUE extra) {
   char *keystr, *valstr = NULL;
+  char kbuff[40], vbuff[40];
   // TODO: should be a long switch/case for all TYPE(key)
-  if (TYPE(key) == T_SYMBOL) {
-    keystr = RSTRING_PTR(rb_sym_to_s(key));
-  } else {
-    keystr = StringValueCStr(key);
+  switch (TYPE(key)) {
+    case T_SYMBOL:
+      sprintf(kbuff, ":%s", RSTRING_PTR(rb_sym_to_s(key)));
+      keystr = kbuff;
+      break;
+    case T_STRING:
+      keystr = StringValueCStr(key);
+      break;
+    default:
+      keystr = "Unknown";
   }
   // TODO: should be a long switch/case  for all TYPE(val)
-  if (TYPE(val) == T_STRING)
-    valstr = RSTRING_PTR(val);
-  else
-    valstr = "unknown";
-  fprintf(stderr, "Key %s=>Value %s\n", keystr, valstr);
+  switch (TYPE(val)) {
+    case T_FIXNUM:
+      sprintf(vbuff,"%i", NUM2INT(val));
+      valstr = vbuff;
+      break;
+    case T_STRING:
+      valstr = RSTRING_PTR(val);
+      break;
+    default:
+      valstr = "Unknown";
+  }
+  fprintf(stderr, "  %s => %s\n", keystr, valstr);
   return ST_CONTINUE;
  }
 
@@ -531,7 +545,7 @@ VALUE shoes_app_set_event_handler(VALUE self, VALUE block) {
       fprintf(stderr, "set app event handler\n");
       ATTRSET(canvas->attr, event, block);  
       canvas->app->use_event_handler = 1;
-      //shoes_hash_debug(canvas->attr);
+      shoes_hash_debug(canvas->attr);
       return Qtrue;
     } else {
       canvas->app->use_event_handler = 0;
