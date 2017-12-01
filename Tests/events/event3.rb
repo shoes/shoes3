@@ -13,11 +13,7 @@ Shoes.app do
   
   handler = proc do |evt|
     $stderr.puts "event handler2 with #{evt.type}"
-    if evt.modifiers 
       evt.accept = $ck.checked?
-    else
-      evt.accept = false
-    end
   end
   
   stack do
