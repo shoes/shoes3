@@ -20,6 +20,8 @@ Shoes.app do
       @img.click {|btn,x,y,mods|  @eb.append "Image clicked btn: #{btn} at #{x},#{y} with #{mods}\n"}
       @svg = svg "#{DIR}/samples/good/paris.svg", width: 200, height: 200, group: "#diamond_4"
       @svg.click {|btn,x,y,mods|  @eb.append "Svg clicked btn: #{btn} at #{x},#{y} with #{mods}\n"}
+      @plt = plot 200, 200, title: "Test plot"
+      @plt.click {|btn,x,y,mods|  @eb.append "Plot clicked btn: #{btn} at #{x},#{y} with #{mods}\n"}
       @tw = test_widget
     end
     @eb = edit_box width: 500, height: 200
