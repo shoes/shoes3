@@ -1,6 +1,6 @@
 
 #include "shoes/types/event.h"
-
+#include "shoes/types/svg.h"
 
 VALUE cShoesEvent; 
 
@@ -36,7 +36,7 @@ void shoes_event_free(shoes_event *event) {
     RUBY_CRITICAL(free(event));
 }
 
-// users should not create events but something has to be visible
+// users should not create events but something has to be visible. 
 // click calls here.
 VALUE shoes_event_new(VALUE klass, ID type, VALUE widget, int x, int y, int btn, VALUE mods) {
     shoes_event *event;
@@ -52,9 +52,9 @@ VALUE shoes_event_new(VALUE klass, ID type, VALUE widget, int x, int y, int btn,
     event->modifiers = mods;
     return obj;
 }
-
+// Or here 
 VALUE shoes_event_new_widget(VALUE klass, ID type, VALUE widget, int btn, int x,
-        int y, int w, int h) {
+        int y, int w, int h, VALUE modifiers) {
     shoes_event *event;
     VALUE obj = shoes_event_alloc(klass);
     Data_Get_Struct(obj, shoes_event, event);
@@ -67,7 +67,7 @@ VALUE shoes_event_new_widget(VALUE klass, ID type, VALUE widget, int btn, int x,
     event->width = w;
     event->height = h;
     event->key = Qnil;
-    event->modifiers = Qnil;
+    event->modifiers = modifiers;
     return obj;
 }
 
@@ -106,6 +106,94 @@ VALUE shoes_canvas_shoesevent(int argc, VALUE *argv, VALUE self) {
     ev = shoes_event_new(cShoesEvent,type,obj,x,y,btn,Qnil);
     return ev;
 }
+
+/* Need to detect if this is a click on pseudo widget (img,svg,plot.user-widget)
+ * or a slot click handler before we pass it to shoes_canvas_send_click/click2
+ * We create different event objects for the user specified handler to deal with
+*/
+extern ID cTextBlock, cImage, cShape, cCanvas;
+ 
+VALUE shoes_event_create_event(shoes_app *app, ID etype, int button, int x, int y, VALUE modifiers) {
+  VALUE ps;
+  VALUE ps_widget = shoes_event_find_psuedo (app->canvas, x, y);
+  VALUE evt;
+  if (NIL_P(ps_widget)) {
+    evt = shoes_event_new(cShoesEvent, s_click, Qnil, x, y, button, modifiers);
+  } else {
+    int w, h; // get from ? 
+    evt = shoes_event_new_widget(cShoesEvent, s_click, ps_widget, button, x, y, w, h, modifiers);
+  }
+  return evt;
+}
+
+/*
+ * Yes it does seem to be expensive but events happen at user speed (slow)
+ * Recursive when it finds a new slot (canvas) 
+ * Beware all these non-widgets are canvas based! Return Qnil if no non-natives
+ * match the x,y. Return the matching non-native (not it's containing canvas/slot)
+*/
+VALUE shoes_event_find_psuedo (VALUE self, int x, int y) {
+  long i;
+  int ox = x, oy = y;
+  shoes_canvas *self_t;
+  Data_Get_Struct(self, shoes_canvas, self_t);
+  VALUE v = Qnil;  // Returned object (svg,image, ...) a non native widget
+  if (ATTR(self_t->attr, hidden) != Qtrue) {
+    if (self_t->app->canvas == self) // when we are the app's slot
+        y -= self_t->slot->scrolly;
+    
+    if (IS_INSIDE(self_t, x, y)) {
+      if (ORIGIN(self_t->place)) 
+        y += self_t->slot->scrolly;
+      for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--) {
+        VALUE ele = rb_ary_entry(self_t->contents, i);
+        if (rb_obj_is_kind_of(ele, cTextBlock)) {
+          fprintf(stderr, "found cTextblock\n");
+          //v = ele;
+        } else if (rb_obj_is_kind_of(ele, cImage)) {
+          // TODO: assumes image, has .place in the same spot as canvas (it does)
+          shoes_image *img;
+          Data_Get_Struct(ele, shoes_image, img);
+          if (IS_INSIDE(img, x, y)) {
+            fprintf(stderr, "found cImage at click\n"); 
+             return ele; 
+          }
+        } else if (rb_obj_is_kind_of(ele, cSvg)) {
+          // TODO: assumes svg, has .place in the same spot as canvas (it does)
+          shoes_svg *svg;
+          Data_Get_Struct(ele, shoes_svg, svg);
+          if (IS_INSIDE(svg, x, y)) {
+            fprintf(stderr, "found cSvg at click\n"); 
+             return ele;
+          }
+        } else if (rb_obj_is_kind_of(ele, cPlot)) {
+          // TODO: assumes plot, has .place in the same spot as canvas (it does)
+          Data_Get_Struct(ele, shoes_canvas, self_t);
+          if (IS_INSIDE(self_t, x, y)) {
+            fprintf(stderr, "found cPlot at click\n"); 
+             return ele; 
+          }
+        } else if (rb_obj_is_kind_of(ele, cShape)) {
+          fprintf(stderr, "found cShape\n"); 
+          //v = ele;
+        } else if (rb_obj_is_kind_of(ele, cCanvas)) {
+          shoes_canvas *cvs;
+          Data_Get_Struct(ele, shoes_canvas, cvs);
+          if (IS_INSIDE(cvs, x, y)) {
+            fprintf(stderr, "recurse canvas\n");
+            v =  shoes_event_find_psuedo(ele, ox, oy);
+          }
+        } else {
+          v =  Qnil;
+        }
+      if (! NIL_P(v))
+        return v;
+      }
+    }
+  }
+  return Qnil;
+}
+
 
 
 VALUE shoes_event_type(VALUE self) {

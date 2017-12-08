@@ -1,15 +1,23 @@
 class TestWidget < Shoes::Widget
-    def initialize()
+
+    attr_accessor :click_blk
+    
+    def initialize(&blk)
+        @click_blk = blk 
         self.width = 200; self.height = 200 ## note that you do need this
         flow width: 190, height: 200 do   ###### explicit slot
             background coral
             para "user defined widget"
-            click {|btn,x,y,mods| puts "widget clicked btn: #{btn} at #{x},#{y} with #{mods}"}
         end 
+    end
+    
+    def click(btn,x,y,mods)
+      puts "TW click called, sending.."
+      @click_blk.call(btn,x,y,mods)
     end
 end
 
-Shoes.app do  
+Shoes.app height: 700 do 
   stack do
     tagline "Clicks for non-native widgets"
     flow do
@@ -20,14 +28,21 @@ Shoes.app do
       @img.click {|btn,x,y,mods|  @eb.append "Image clicked btn: #{btn} at #{x},#{y} with #{mods}\n"}
       @svg = svg "#{DIR}/samples/good/paris.svg", width: 200, height: 200, group: "#diamond_4"
       @svg.click {|btn,x,y,mods|  @eb.append "Svg clicked btn: #{btn} at #{x},#{y} with #{mods}\n"}
-      @plt = plot 200, 200, title: "Test plot"
+      # click only works on TimeSeries plots
+      @plt = plot 200, 200, title: "Test plot", chart: "timeseries"
       @plt.click {|btn,x,y,mods|  @eb.append "Plot clicked btn: #{btn} at #{x},#{y} with #{mods}\n"}
-      @tw = test_widget
+     
+      #@tw = test_widget {|btn,x,y,mods| @eb.append "User Widget: #{btn} at #{x},#{y} with #{mods}\n"}
     end
     @eb = edit_box width: 500, height: 200
   end
+
   event do |evt| 
-    puts "event called #{evt.type} at #{evt.x},#{evt.y} mods: #{evt.modifiers}"
-    evt.accept = $ck.checked? 
+    $stderr.puts "event called: #{evt.type} at #{evt.x},#{evt.y} mods: #{evt.modifiers}"
+    if evt.object 
+      $stderr.puts "  for non-native: #{evt.object}"
+    end
+    evt.accept = true #$ck.checked? 
   end
+
 end

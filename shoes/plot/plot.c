@@ -745,7 +745,6 @@ VALUE shoes_plot_motion(VALUE self, int x, int y, char *touch) {
 // called by shoes_canvas_send_click --> shoes_canvas_send_click2
 VALUE shoes_plot_send_click(VALUE self, int button, int x, int y) {
     VALUE v = Qnil;
-
     if (button >  0) {
         GET_STRUCT(plot, self_t);
         v = shoes_plot_motion(self, x, y, NULL);
