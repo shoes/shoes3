@@ -37,12 +37,17 @@ Shoes.app height: 650 do
       #@tw = test_widget {|btn,x,y,mods| @eb.append "User Widget: #{btn} at #{x},#{y} with #{mods}\n"}
     end
     @eb = edit_box width: 500, height: 200
+   stroke blue
+   strokewidth 4
+   fill black
+   oval 540, 590, 50
   end
 
   event do |evt| 
     $stderr.puts "event called: #{evt.type} at #{evt.x},#{evt.y} mods: #{evt.modifiers}"
     if evt.object 
-      $stderr.puts "  for widget: #{evt.object} width #{evt.width} height #{evt.height}"
+      # Note: for Textblocks the evt.obj is the String of the text block
+      $stderr.puts "  for widget: #{evt.object.class} width #{evt.width} height #{evt.height}"
     end
     evt.accept = true #$ck.checked? 
   end

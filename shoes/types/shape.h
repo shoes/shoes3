@@ -43,7 +43,7 @@ VALUE shoes_shape_alloc(VALUE klass);
 VALUE shoes_shape_motion(VALUE self, int x, int y, char *touch);
 VALUE shoes_shape_send_click(VALUE self, int button, int x, int y);
 void shoes_shape_send_release(VALUE self, int button, int x, int y);
-
+VALUE shoes_shape_event_is_here(VALUE self, int x, int y); 
 // canvas
 VALUE shoes_canvas_shape(int argc, VALUE *argv, VALUE self);
 VALUE shoes_add_shape(VALUE self, ID name, VALUE attr, cairo_path_t *line);

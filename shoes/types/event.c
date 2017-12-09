@@ -169,10 +169,9 @@ VALUE shoes_event_find_psuedo (VALUE self, int x, int y, VALUE *hitobj) {
             VALUE ele = rb_ary_entry(self_t->contents, i);
             if (rb_obj_is_kind_of(ele, cCanvas)) {
                 v = shoes_event_find_psuedo(ele, ox, oy, hitobj);
-            /*
             } else if (rb_obj_is_kind_of(ele, cTextBlock)) {
-                v = shoes_textblock_send_click(ele, button, ox, oy, clicked);
-            */
+                v = shoes_textblock_event_is_here(ele, ox, oy);
+                *hitobj = ele;
             } else if (rb_obj_is_kind_of(ele, cImage)) {
                 v = shoes_image_event_is_here(ele, ox, oy);
                 *hitobj = ele;
@@ -183,11 +182,10 @@ VALUE shoes_event_find_psuedo (VALUE self, int x, int y, VALUE *hitobj) {
             } else if (rb_obj_is_kind_of(ele, cPlot)) {
                 v = shoes_plot_event_is_here(ele, ox, oy);
                 *hitobj = ele;
-            /*
+            
             } else if (rb_obj_is_kind_of(ele, cShape)) {
-                v = shoes_shape_send_click(ele, button, ox, oy);
-                *clicked = ele;
-            */
+                v = shoes_shape_event_is_here(ele, ox, oy);
+                *hitobj = ele;
             }
 
             if (!NIL_P(v))
