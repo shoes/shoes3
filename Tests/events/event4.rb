@@ -34,7 +34,7 @@ Shoes.app height: 650 do
       @btn = button "button" do 
         @eb.append "Button clicked\n"
       end
-      #@tw = test_widget {|btn,x,y,mods| @eb.append "User Widget: #{btn} at #{x},#{y} with #{mods}\n"}
+      @tw = test_widget {|btn,x,y,mods| @eb.append "User Widget: #{btn} at #{x},#{y} with #{mods}\n"}
     end
     @eb = edit_box width: 500, height: 200
    stroke blue
