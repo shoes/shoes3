@@ -616,6 +616,14 @@ void shoes_svg_send_release(VALUE self, int button, int x, int y) {
             shoes_safe_block(self, proc, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
     }
 }
+VALUE shoes_svg_event_is_here(VALUE self, int x, int y) {
+  shoes_svg *svg;
+  Data_Get_Struct(self, shoes_svg, svg);
+  if (IS_INSIDE(svg, x, y)) 
+    return Qtrue;
+  else 
+    return Qnil;
+}
 
 // svghandle
 void shoes_svghandle_mark(shoes_svghandle *handle) {

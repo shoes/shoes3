@@ -17,7 +17,7 @@ class TestWidget < Shoes::Widget
     end
 end
 
-Shoes.app height: 700 do 
+Shoes.app height: 650 do 
   stack do
     tagline "Clicks for non-native widgets"
     flow do
@@ -31,7 +31,9 @@ Shoes.app height: 700 do
       # click only works on TimeSeries plots
       @plt = plot 200, 200, title: "Test plot", chart: "timeseries"
       @plt.click {|btn,x,y,mods|  @eb.append "Plot clicked btn: #{btn} at #{x},#{y} with #{mods}\n"}
-     
+      @btn = button "button" do 
+        @eb.append "Button clicked\n"
+      end
       #@tw = test_widget {|btn,x,y,mods| @eb.append "User Widget: #{btn} at #{x},#{y} with #{mods}\n"}
     end
     @eb = edit_box width: 500, height: 200
@@ -40,7 +42,7 @@ Shoes.app height: 700 do
   event do |evt| 
     $stderr.puts "event called: #{evt.type} at #{evt.x},#{evt.y} mods: #{evt.modifiers}"
     if evt.object 
-      $stderr.puts "  for non-native: #{evt.object}"
+      $stderr.puts "  for widget: #{evt.object} width #{evt.width} height #{evt.height}"
     end
     evt.accept = true #$ck.checked? 
   end

@@ -757,6 +757,15 @@ VALUE shoes_plot_send_click(VALUE self, int button, int x, int y) {
     return v;
 }
 
+VALUE shoes_plot_event_is_here(VALUE self, int x, int y) {
+  shoes_plot *plot;
+  Data_Get_Struct(self, shoes_plot, plot);
+  if (IS_INSIDE(plot, x, y)) 
+    return Qtrue;
+  else 
+    return Qnil;
+}
+
 // called by shoes_canvas_send_release
 void shoes_plot_send_release(VALUE self, int button, int x, int y) {
     GET_STRUCT(plot, self_t);

@@ -114,14 +114,19 @@ VALUE shoes_canvas_shoesevent(int argc, VALUE *argv, VALUE self) {
 extern ID cTextBlock, cImage, cShape, cCanvas;
  
 VALUE shoes_event_create_event(shoes_app *app, ID etype, int button, int x, int y, VALUE modifiers) {
-  VALUE ps;
-  VALUE ps_widget = shoes_event_find_psuedo (app->canvas, x, y);
+  VALUE nobj;
+  VALUE ps_widget = shoes_event_find_psuedo (app->canvas, x, y, &nobj);
   VALUE evt;
   if (NIL_P(ps_widget)) {
     evt = shoes_event_new(cShoesEvent, s_click, Qnil, x, y, button, modifiers);
   } else {
-    int w, h; // get from ? 
-    evt = shoes_event_new_widget(cShoesEvent, s_click, ps_widget, button, x, y, w, h, modifiers);
+    // TODO: ASSUME all the ps_widget have the canvas place
+    int w,h; 
+    shoes_canvas *cvs;
+    Data_Get_Struct(nobj, shoes_canvas, cvs);
+    w = cvs->place.w;
+    h = cvs->place.h;
+    evt = shoes_event_new_widget(cShoesEvent, s_click, nobj, button, x, y, w, h, modifiers);
   }
   return evt;
 }
@@ -132,66 +137,65 @@ VALUE shoes_event_create_event(shoes_app *app, ID etype, int button, int x, int 
  * Beware all these non-widgets are canvas based! Return Qnil if no non-natives
  * match the x,y. Return the matching non-native (not it's containing canvas/slot)
 */
-VALUE shoes_event_find_psuedo (VALUE self, int x, int y) {
-  long i;
-  int ox = x, oy = y;
-  shoes_canvas *self_t;
-  Data_Get_Struct(self, shoes_canvas, self_t);
-  VALUE v = Qnil;  // Returned object (svg,image, ...) a non native widget
-  if (ATTR(self_t->attr, hidden) != Qtrue) {
-    if (self_t->app->canvas == self) // when we are the app's slot
-        y -= self_t->slot->scrolly;
-    
-    if (IS_INSIDE(self_t, x, y)) {
-      if (ORIGIN(self_t->place)) 
-        y += self_t->slot->scrolly;
-      for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--) {
-        VALUE ele = rb_ary_entry(self_t->contents, i);
-        if (rb_obj_is_kind_of(ele, cTextBlock)) {
-          fprintf(stderr, "found cTextblock\n");
-          //v = ele;
-        } else if (rb_obj_is_kind_of(ele, cImage)) {
-          // TODO: assumes image, has .place in the same spot as canvas (it does)
-          shoes_image *img;
-          Data_Get_Struct(ele, shoes_image, img);
-          if (IS_INSIDE(img, x, y)) {
-            fprintf(stderr, "found cImage at click\n"); 
-             return ele; 
-          }
-        } else if (rb_obj_is_kind_of(ele, cSvg)) {
-          // TODO: assumes svg, has .place in the same spot as canvas (it does)
-          shoes_svg *svg;
-          Data_Get_Struct(ele, shoes_svg, svg);
-          if (IS_INSIDE(svg, x, y)) {
-            fprintf(stderr, "found cSvg at click\n"); 
-             return ele;
-          }
-        } else if (rb_obj_is_kind_of(ele, cPlot)) {
-          // TODO: assumes plot, has .place in the same spot as canvas (it does)
-          Data_Get_Struct(ele, shoes_canvas, self_t);
-          if (IS_INSIDE(self_t, x, y)) {
-            fprintf(stderr, "found cPlot at click\n"); 
-             return ele; 
-          }
-        } else if (rb_obj_is_kind_of(ele, cShape)) {
-          fprintf(stderr, "found cShape\n"); 
-          //v = ele;
-        } else if (rb_obj_is_kind_of(ele, cCanvas)) {
-          shoes_canvas *cvs;
-          Data_Get_Struct(ele, shoes_canvas, cvs);
-          if (IS_INSIDE(cvs, x, y)) {
-            fprintf(stderr, "recurse canvas\n");
-            v =  shoes_event_find_psuedo(ele, ox, oy);
-          }
-        } else {
-          v =  Qnil;
-        }
-      if (! NIL_P(v))
-        return v;
-      }
+VALUE shoes_event_find_psuedo (VALUE self, int x, int y, VALUE *hitobj) {
+    long i;
+    int ox = x, oy = y;
+    VALUE v = Qnil;  //  v is t/f, Qtrue/Qnil
+    shoes_canvas *self_t;
+    Data_Get_Struct(self, shoes_canvas, self_t);
+
+    if (ORIGIN(self_t->place)) {
+        oy = y + self_t->slot->scrolly;
+        ox = x - self_t->place.ix + self_t->place.dx;
+        oy = oy - (self_t->place.iy + self_t->place.dy);
+        if (oy < self_t->slot->scrolly || ox < 0 || oy > self_t->slot->scrolly + self_t->place.ih || ox > self_t->place.iw)
+            return Qnil;
     }
-  }
-  return Qnil;
+    if (ATTR(self_t->attr, hidden) != Qtrue) {
+        if (self_t->app->canvas == self) // when we are the app's slot
+            y -= self_t->slot->scrolly;
+
+        if (IS_INSIDE(self_t, x, y)) {
+            // TODO:  something
+            VALUE click = ATTR(self_t->attr, click);
+            if (!NIL_P(click)) {
+                if (ORIGIN(self_t->place))
+                    y += self_t->slot->scrolly;
+                //hoes_safe_block(self, click, rb_ary_new3(4, INT2NUM(button), INT2NUM(x), INT2NUM(y), mods));
+            }
+        }
+
+        for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--) {
+            VALUE ele = rb_ary_entry(self_t->contents, i);
+            if (rb_obj_is_kind_of(ele, cCanvas)) {
+                v = shoes_event_find_psuedo(ele, ox, oy, hitobj);
+            /*
+            } else if (rb_obj_is_kind_of(ele, cTextBlock)) {
+                v = shoes_textblock_send_click(ele, button, ox, oy, clicked);
+            */
+            } else if (rb_obj_is_kind_of(ele, cImage)) {
+                v = shoes_image_event_is_here(ele, ox, oy);
+                *hitobj = ele;
+            } else if (rb_obj_is_kind_of(ele, cSvg)) {
+                v = shoes_svg_event_is_here(ele, ox, oy);
+                *hitobj  = ele;
+            
+            } else if (rb_obj_is_kind_of(ele, cPlot)) {
+                v = shoes_plot_event_is_here(ele, ox, oy);
+                *hitobj = ele;
+            /*
+            } else if (rb_obj_is_kind_of(ele, cShape)) {
+                v = shoes_shape_send_click(ele, button, ox, oy);
+                *clicked = ele;
+            */
+            }
+
+            if (!NIL_P(v))
+                return v;
+        }
+    }
+
+    return Qnil;
 }
 
 

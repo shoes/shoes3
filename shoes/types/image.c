@@ -357,6 +357,16 @@ VALUE shoes_image_send_click(VALUE self, int button, int x, int y) {
     return v;
 }
 
+// Return t/f if x,y points to the image
+VALUE shoes_image_event_is_here(VALUE self, int x, int y) {
+  shoes_image *img;
+  Data_Get_Struct(self, shoes_image, img);
+  if (IS_INSIDE(img, x, y)) 
+    return Qtrue;
+  else 
+    return Qnil;
+}
+
 void shoes_image_send_release(VALUE self, int button, int x, int y) {
     GET_STRUCT(image, self_t);
     if (button > 0 && (self_t->hover & HOVER_CLICK)) {
