@@ -395,7 +395,8 @@ static gboolean shoes_app_gtk_keypress(GtkWidget *widget, GdkEventKey *event, gp
             chbuf[len] = '\0';
 
             v = ID2SYM(rb_intern(chbuf));
-            if (modifiers & GDK_SHIFT_MASK) modifiers ^= GDK_SHIFT_MASK;
+            if (modifiers & GDK_SHIFT_MASK)
+              modifiers ^= GDK_SHIFT_MASK;
         } else {
             if (event->string[0] == '\r' && event->length == 1)
                 v = rb_str_new2("\n");

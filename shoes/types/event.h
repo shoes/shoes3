@@ -56,6 +56,7 @@ VALUE shoes_event_alloc(VALUE klass);
 VALUE shoes_event_create_event(shoes_app *app, ID action, int button, int x, int y, VALUE modifiers);
 VALUE shoes_canvas_shoesevent(int argc, VALUE *argv, VALUE self);
 VALUE shoes_event_new_widget(VALUE klass, ID type, VALUE widget, int btn, int x, \
-        int y, int w, int h, VALUE modifiers);
+        int y, int w, int h, VALUE modifiers, VALUE key);
 VALUE shoes_event_find_psuedo (VALUE self, int x, int y, VALUE *pswidget);
+VALUE shoes_event_new_key(VALUE klass, ID type, VALUE key);
 #endif

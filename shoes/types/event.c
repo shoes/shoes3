@@ -71,6 +71,23 @@ VALUE shoes_event_new_widget(VALUE klass, ID type, VALUE widget, int btn, int x,
     return obj;
 }
 
+VALUE shoes_event_new_key(VALUE klass, ID type, VALUE key) {
+    shoes_event *event;
+    VALUE obj = shoes_event_alloc(klass);
+    Data_Get_Struct(obj, shoes_event, event);
+    event->accept = 1;
+    event->type = type;
+    event->object = Qnil;
+    event->btn = 0;
+    event->x = 0;
+    event->y = 0;
+    event->width = 0;
+    event->height = 0;
+    event->key = key;
+    event->modifiers = Qnil;
+    return obj;
+}
+
 VALUE shoes_event_alloc(VALUE klass) {
     VALUE obj;
     shoes_event *event = SHOE_ALLOC(shoes_event);
@@ -118,7 +135,7 @@ VALUE shoes_event_create_event(shoes_app *app, ID etype, int button, int x, int 
   VALUE ps_widget = shoes_event_find_psuedo (app->canvas, x, y, &nobj);
   VALUE evt;
   if (NIL_P(ps_widget)) {
-    evt = shoes_event_new(cShoesEvent, s_click, Qnil, x, y, button, modifiers);
+    evt = shoes_event_new(cShoesEvent, etype, Qnil, x, y, button, modifiers);
   } else {
     // TODO: ASSUME all the ps_widget have the canvas place
     int w,h; 
@@ -126,7 +143,7 @@ VALUE shoes_event_create_event(shoes_app *app, ID etype, int button, int x, int 
     Data_Get_Struct(nobj, shoes_canvas, cvs);
     w = cvs->place.w;
     h = cvs->place.h;
-    evt = shoes_event_new_widget(cShoesEvent, s_click, nobj, button, x, y, w, h, modifiers);
+    evt = shoes_event_new_widget(cShoesEvent, etype, nobj, button, x, y, w, h, modifiers, );
   }
   return evt;
 }
@@ -196,6 +213,8 @@ VALUE shoes_event_find_psuedo (VALUE self, int x, int y, VALUE *hitobj) {
     return Qnil;
 }
 
+// helper for creating key events
+
 
 
 VALUE shoes_event_type(VALUE self) {
@@ -252,7 +271,7 @@ VALUE shoes_event_width(VALUE self) {
 VALUE shoes_event_key(VALUE self) {
     shoes_event *event;
     Data_Get_Struct(self, shoes_event, event);
-    return INT2NUM(event->key);
+    return event->key;
 }
 VALUE shoes_event_set_key(VALUE self, VALUE key) {
     shoes_event *event;
