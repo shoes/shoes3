@@ -29,7 +29,8 @@ void shoes_event_mark(shoes_event *event) {
     rb_gc_mark_maybe(event->type);
     rb_gc_mark_maybe(event->object);
     rb_gc_mark_maybe(event->key);
-    rb_gc_mark_maybe(event->modifiers);
+    rb_gc_mark_maybe(event->accept);
+   rb_gc_mark_maybe(event->modifiers);
 }
 
 void shoes_event_free(shoes_event *event) {
@@ -38,11 +39,11 @@ void shoes_event_free(shoes_event *event) {
 
 // users should not create events but something has to be visible. 
 // click calls here.
-VALUE shoes_event_new(VALUE klass, ID type, VALUE widget, int x, int y, int btn, VALUE mods) {
+VALUE shoes_event_new(VALUE klass, ID type, VALUE widget, int x, int y, int btn, VALUE mods, VALUE key) {
     shoes_event *event;
     VALUE obj = shoes_event_alloc(klass);
     Data_Get_Struct(obj, shoes_event, event);
-    event->accept = 1;
+    event->accept = Qtrue;
     event->type = type;
     event->object = widget;
     event->x = x;
@@ -50,15 +51,16 @@ VALUE shoes_event_new(VALUE klass, ID type, VALUE widget, int x, int y, int btn,
     event->btn = btn;
     event->key = Qnil;
     event->modifiers = mods;
+    event->key = key;
     return obj;
 }
 // Or here 
 VALUE shoes_event_new_widget(VALUE klass, ID type, VALUE widget, int btn, int x,
-        int y, int w, int h, VALUE modifiers) {
+        int y, int w, int h, VALUE modifiers, VALUE key) {
     shoes_event *event;
     VALUE obj = shoes_event_alloc(klass);
     Data_Get_Struct(obj, shoes_event, event);
-    event->accept = 1;
+    event->accept = Qtrue;
     event->type = type;
     event->object = widget;
     event->btn = btn;
@@ -75,7 +77,7 @@ VALUE shoes_event_new_key(VALUE klass, ID type, VALUE key) {
     shoes_event *event;
     VALUE obj = shoes_event_alloc(klass);
     Data_Get_Struct(obj, shoes_event, event);
-    event->accept = 1;
+    event->accept = Qtrue;
     event->type = type;
     event->object = Qnil;
     event->btn = 0;
@@ -120,7 +122,7 @@ VALUE shoes_canvas_shoesevent(int argc, VALUE *argv, VALUE self) {
     int x = NUM2INT(shoes_hash_get(hsh, rb_intern("x")));
     int y = NUM2INT(shoes_hash_get(hsh, rb_intern("y")));
     int btn = NUM2INT(shoes_hash_get(hsh, rb_intern("button")));
-    ev = shoes_event_new(cShoesEvent,type,obj,x,y,btn,Qnil);
+    ev = shoes_event_new(cShoesEvent,type,obj,x,y,btn,Qnil,Qnil);
     return ev;
 }
 
@@ -130,12 +132,12 @@ VALUE shoes_canvas_shoesevent(int argc, VALUE *argv, VALUE self) {
 */
 extern ID cTextBlock, cImage, cShape, cCanvas;
  
-VALUE shoes_event_create_event(shoes_app *app, ID etype, int button, int x, int y, VALUE modifiers) {
+VALUE shoes_event_create_event(shoes_app *app, ID etype, int button, int x, int y, VALUE modifiers,VALUE key) {
   VALUE nobj;
   VALUE ps_widget = shoes_event_find_psuedo (app->canvas, x, y, &nobj);
   VALUE evt;
   if (NIL_P(ps_widget)) {
-    evt = shoes_event_new(cShoesEvent, etype, Qnil, x, y, button, modifiers);
+    evt = shoes_event_new(cShoesEvent, etype, Qnil, x, y, button, modifiers,key);
   } else {
     // TODO: ASSUME all the ps_widget have the canvas place
     int w,h; 
@@ -143,7 +145,7 @@ VALUE shoes_event_create_event(shoes_app *app, ID etype, int button, int x, int 
     Data_Get_Struct(nobj, shoes_canvas, cvs);
     w = cvs->place.w;
     h = cvs->place.h;
-    evt = shoes_event_new_widget(cShoesEvent, etype, nobj, button, x, y, w, h, modifiers, );
+    evt = shoes_event_new_widget(cShoesEvent, etype, nobj, button, x, y, w, h, modifiers, key);
   }
   return evt;
 }
@@ -232,12 +234,13 @@ VALUE shoes_event_object(VALUE self) {
 VALUE shoes_event_get_accept(VALUE self) {
     shoes_event *event;
     Data_Get_Struct(self, shoes_event, event);
-    return (event->accept) ? Qtrue : Qfalse;
+    return event->accept;
 }
+
 VALUE shoes_event_set_accept(VALUE self, VALUE tf) {
     shoes_event *event;
     Data_Get_Struct(self, shoes_event, event);
-    event->accept = (NIL_P(tf) || tf == Qfalse ) ? 0 : 1;
+    event->accept = tf;
     return tf;
 }
 VALUE shoes_event_button(VALUE self) {
@@ -267,7 +270,6 @@ VALUE shoes_event_width(VALUE self) {
     return INT2NUM(event->width);
 }
 
-// TODO keys: strings, not ints. Beware UTF8
 VALUE shoes_event_key(VALUE self) {
     shoes_event *event;
     Data_Get_Struct(self, shoes_event, event);
@@ -282,4 +284,11 @@ VALUE shoes_event_modifiers(VALUE self) {
     shoes_event *event;
     Data_Get_Struct(self, shoes_event, event);  
     return event->modifiers;
+}
+ 
+// returns Qtrue or Qfalse 
+VALUE shoes_event_contrain_TF(VALUE val) {
+  if (NIL_P(val) || val == Qfalse)
+    return Qfalse;
+  return Qtrue;
 }

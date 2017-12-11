@@ -16,6 +16,13 @@ Shoes.app do
     when :keyup
       $stderr.puts "keyup for #{evt.key}"
       evt.accept = $ck.checked? 
+    when :motion
+      evt.accept = false
+    when :release
+      evt.accept = false
+    when :wheel 
+      $stderr.puts "wheel handler called: #{evt.type} #{evt.button}, #{evt.x} #{evt.y} #{evt.modifiers}"
+      evt.accept = true
     else
       puts "Other: #{evt.type.inspect}"
       evt.accept = true
@@ -37,5 +44,8 @@ Shoes.app do
   end
   keydown do |key| 
     @eb.append "down: #{key}\n"
+  end
+  wheel do |d, x, y, mods|
+    @eb.append "wheel dir: #{d} at #{x},#{y}, with #{mods}\n"
   end
 end

@@ -554,9 +554,11 @@ VALUE shoes_app_set_event_handler(VALUE self, VALUE block) {
 }
 
 
+
 shoes_code shoes_app_motion(shoes_app *app, int x, int y, int mods) {
     app->mousex = x;
     app->mousey = y;
+    VALUE sendevt = Qtrue;
     VALUE modifiers = Qnil;
     if (mods & SHOES_MODIFY_CTRL) {
       if (mods & SHOES_MODIFY_SHIFT) 
@@ -566,7 +568,24 @@ shoes_code shoes_app_motion(shoes_app *app, int x, int y, int mods) {
     } 
     else if (mods & SHOES_MODIFY_SHIFT) 
       modifiers = rb_utf8_str_new_cstr("shift");
-    shoes_canvas_send_motion(app->canvas, x, y, Qnil, modifiers);
+      
+    if (app->use_event_handler) {
+      VALUE evt = shoes_event_create_event(app, s_motion, 0, x, y, modifiers, Qnil);
+      shoes_canvas *canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+      VALUE event = ATTR(canvas->attr, event);  
+      if (! NIL_P(event)) {
+        shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
+        shoes_event *tevent;
+        Data_Get_Struct(evt, shoes_event, tevent);
+        sendevt = shoes_event_contrain_TF(tevent->accept);
+      } else {
+        fprintf(stderr, "click: don't have event - but should - dump hash\n");
+        shoes_hash_debug(canvas->attr);
+      }
+    }
+    if (sendevt == Qtrue)
+      shoes_canvas_send_motion(app->canvas, x, y, Qnil, modifiers);
     return SHOES_OK;
 }
 EXTERN ID s_shift_key, s_control_key;
@@ -583,12 +602,7 @@ shoes_code shoes_app_click(shoes_app *app, int button, int x, int y, int mods) {
     } 
     else if (mods & SHOES_MODIFY_SHIFT) 
       modifiers = rb_utf8_str_new_cstr("shift");
-    /*
-    if (mods & SHOES_MODIFY_ALT) 
-      rb_ary_push(modifiers, rb_str_new_cstr("alt"));
-    if (mods & SHOES_MODIFY_META) 
-      rb_ary_push(modifiers, rb_str_new_cstr("meta"));
-     */ 
+      
     if (app->use_event_handler) {
       VALUE evt = shoes_event_create_event(app, s_click, button, x, y, modifiers, Qnil);
       shoes_canvas *canvas;
@@ -598,7 +612,7 @@ shoes_code shoes_app_click(shoes_app *app, int button, int x, int y, int mods) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
         shoes_event *tevent;
         Data_Get_Struct(evt, shoes_event, tevent);
-        sendevt = (tevent->accept == 1) ? Qtrue : Qfalse;
+        sendevt = shoes_event_contrain_TF(tevent->accept);
       } else {
         fprintf(stderr, "click: don't have event - but should - dump hash\n");
         shoes_hash_debug(canvas->attr);
@@ -612,6 +626,7 @@ shoes_code shoes_app_click(shoes_app *app, int button, int x, int y, int mods) {
 shoes_code shoes_app_release(shoes_app *app, int button, int x, int y, int mods) {
     app->mouseb = 0;
     VALUE modifiers = Qnil;
+    VALUE sendevt = Qtrue;
     if (mods & SHOES_MODIFY_CTRL) {
       if (mods & SHOES_MODIFY_SHIFT) 
         modifiers = rb_utf8_str_new_cstr("control_shift");
@@ -620,15 +635,33 @@ shoes_code shoes_app_release(shoes_app *app, int button, int x, int y, int mods)
     } 
     else if (mods & SHOES_MODIFY_SHIFT) 
       modifiers = rb_utf8_str_new_cstr("shift");
-    shoes_canvas_send_release(app->canvas, button, x, y, modifiers);
+      
+    if (app->use_event_handler) {
+      VALUE evt = shoes_event_create_event(app, s_release, button, x, y, modifiers, Qnil);
+      shoes_canvas *canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+      VALUE event = ATTR(canvas->attr, event);  
+      if (! NIL_P(event)) {
+        shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
+        shoes_event *tevent;
+        Data_Get_Struct(evt, shoes_event, tevent);
+        sendevt = shoes_event_contrain_TF(tevent->accept);
+      } else {
+        fprintf(stderr, "release: doen't have event - but should - dump hash\n");
+        shoes_hash_debug(canvas->attr);
+      }
+    }
+    if (sendevt == Qtrue)
+      shoes_canvas_send_release(app->canvas, button, x, y, modifiers);
     return SHOES_OK;
 }
 
 shoes_code shoes_app_wheel(shoes_app *app, ID dir, int x, int y, int mods) {
+    VALUE sendevt = Qtrue;
+    VALUE modifiers = Qnil;
     shoes_canvas *canvas;
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
     if (canvas->slot->vscroll) shoes_canvas_wheel_way(canvas, dir);
-    VALUE modifiers = Qnil;
     if (mods & SHOES_MODIFY_CTRL) {
       if (mods & SHOES_MODIFY_SHIFT) 
         modifiers = rb_utf8_str_new_cstr("control_shift");
@@ -637,7 +670,24 @@ shoes_code shoes_app_wheel(shoes_app *app, ID dir, int x, int y, int mods) {
     } 
     else if (mods & SHOES_MODIFY_SHIFT) 
       modifiers = rb_utf8_str_new_cstr("shift");
-    shoes_canvas_send_wheel(app->canvas, dir, x, y, modifiers) ;
+      
+    if (app->use_event_handler) {
+      VALUE evt = shoes_event_create_event(app, s_wheel, (dir == s_up), x, y, modifiers, Qnil);
+      shoes_canvas *canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+      VALUE event = ATTR(canvas->attr, event);  
+      if (! NIL_P(event)) {
+        shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
+        shoes_event *tevent;
+        Data_Get_Struct(evt, shoes_event, tevent);
+        sendevt = shoes_event_contrain_TF(tevent->accept);
+      } else {
+        fprintf(stderr, "wheel: doen't have event - but should - dump hash\n");
+        shoes_hash_debug(canvas->attr);
+      }
+    }
+    if (sendevt == Qtrue)
+        shoes_canvas_send_wheel(app->canvas, dir, x, y, modifiers) ;
     return SHOES_OK;
 }
 
@@ -655,7 +705,6 @@ shoes_code shoes_app_keypress(shoes_app *app, VALUE key) {
         rb_eval_string("Shoes.remote_debug");
     else {
       if (app->use_event_handler) {
-        VALUE evt = shoes_event_create_event(app, s_click, button, x, y, modifiers, key);
         VALUE evt = shoes_event_new_key(cShoesEvent, s_keypress, key);
         shoes_canvas *canvas;
         Data_Get_Struct(app->canvas, shoes_canvas, canvas);
@@ -664,7 +713,7 @@ shoes_code shoes_app_keypress(shoes_app *app, VALUE key) {
           shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
           shoes_event *tevent;
           Data_Get_Struct(evt, shoes_event, tevent);
-          sendevt = (tevent->accept == 1) ? Qtrue : Qfalse;
+          sendevt = shoes_event_contrain_TF(tevent->accept);
         } else {
           fprintf(stderr, "keypress: doen't have event - but should - dump hash\n");
           shoes_hash_debug(canvas->attr);
@@ -689,7 +738,7 @@ shoes_code shoes_app_keydown(shoes_app *app, VALUE key) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
         shoes_event *tevent;
         Data_Get_Struct(evt, shoes_event, tevent);
-        sendevt = (tevent->accept == 1) ? Qtrue : Qfalse;
+        sendevt = shoes_event_contrain_TF(tevent->accept);
       } else {
         fprintf(stderr, "keydown: doen't have event - but should - dump hash\n");
         shoes_hash_debug(canvas->attr);
@@ -715,7 +764,7 @@ shoes_code shoes_app_keyup(shoes_app *app, VALUE key) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
         shoes_event *tevent;
         Data_Get_Struct(evt, shoes_event, tevent);
-        sendevt = (tevent->accept == 1) ? Qtrue : Qfalse;
+        sendevt = shoes_event_contrain_TF(tevent->accept);
       } else {
         fprintf(stderr, "keyup: doen't have event - but should - dump hash\n");
         shoes_hash_debug(canvas->attr);
