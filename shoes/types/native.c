@@ -174,7 +174,7 @@ void shoes_control_send(VALUE self, ID event) {
         y = self_t->place.y;
         h = self_t->place.h;
         w = self_t->place.w;
-        VALUE evt = shoes_event_new_widget(cShoesEvent, event, self, 1, x, y, w, h, Qnil);
+        VALUE evt = shoes_event_new_widget(cShoesEvent, event, self, 1, x, y, w, h, Qnil, Qnil);
         shoes_safe_block(app->canvas, evtproc, rb_ary_new3(1, evt));
         shoes_event *tevent;
         Data_Get_Struct(evt, shoes_event, tevent);

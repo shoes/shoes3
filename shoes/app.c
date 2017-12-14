@@ -545,7 +545,7 @@ VALUE shoes_app_set_event_handler(VALUE self, VALUE block) {
       fprintf(stderr, "set app event handler\n");
       ATTRSET(canvas->attr, event, block);  
       canvas->app->use_event_handler = 1;
-      shoes_hash_debug(canvas->attr);
+      //shoes_hash_debug(canvas->attr);
       return Qtrue;
     } else {
       canvas->app->use_event_handler = 0;

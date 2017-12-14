@@ -5500,7 +5500,11 @@ If you have 7 entries (0..6), append at 7 (array.size) or face the nil's that pl
 It will be serious mistake to set [nil, newvalue] or ["newlabel", nil] and expect that Shoes will fix your nil. 
 It will segfault, if you are lucky. 
 
+== Event Streams ==
 
+This a very arcane and specialized capabilty. It's documented at the
+[[https://github.com/shoes/shoes3/wiki/event-streams ShoesS Wiki]] You will want to study
+and play with the Test/events/* scripts
 
 == Terminal ==
 
