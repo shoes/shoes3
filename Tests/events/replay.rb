@@ -24,24 +24,23 @@ Shoes.app do
         y = w2.top
         w2.move x+80, y-40
         @events = evtflhash[:events]
-        puts @events
+        #puts @events
       end
     end
     button "Replay Events" do
       w2 = Shoes.APPS[-1]
-      delay = 0
+      base = 0
       @events.each_index do |r|
         ev = @events[r]
         t = ev[:time]
-        delay = t if r == 0
-        wait = t - delay
+        base = t if r == 0
+        wait = t - base
         timer(wait) do
-          puts "waited for #{wait}"
+          puts "wait for #{wait}"
           puts "  move to #{ev[:x]}, #{ev[:y]} and click "
-          # want to call: w2.replay_event(:click, ev)
-          # need native move_cursor ability
+          w2.replay_event(ev)
         end
-        delay = t
+        base = t
       end
     end
   end

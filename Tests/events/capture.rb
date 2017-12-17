@@ -37,7 +37,7 @@ Shoes.app do
           when :click
             #$stderr.puts "click handler2 with #{evt.type}"
             events << { time: (Time.now - base_t), button: evt.button, x: evt.x, y: evt.y, 
-                modifiers: evt.modifiers, object: evt.object}
+                modifiers: evt.modifiers, object: evt.object, type: evt.type}
             evt.accept = true
           else
             evt.accept = true
