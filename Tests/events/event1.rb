@@ -6,9 +6,9 @@ Shoes.app do
     when :click 
       $stderr.puts "click handler called: #{evt.type} #{evt.button}, #{evt.x} #{evt.y} #{evt.modifiers}"
       evt.accept = @ck1.checked?
-      if evt.object
-        $stderr.puts "widget #{evt.object} at #{evt.type} #{evt.button} #{evt.x} #{evt.y} #{evt.width} #{evt.height}"
-      end
+    when :btn_activate
+      $stderr.puts "button #{evt.object} at #{evt.type} #{evt.button} #{evt.x} #{evt.y} #{evt.width} #{evt.height}"
+      evt.accept = @ck1.checked?
     else
       evt.accept = true
     end

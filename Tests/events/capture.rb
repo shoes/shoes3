@@ -7,16 +7,16 @@ Shoes.app do
       @el = edit_line width: 450
       @el.text = "#{DIR}/samples/simple/chipmunk.rb"
       button "select app" do
-        path = ask_file_open
+        path = ask_open_file
         @el.text = path if path
       end
     end
     para "Save events to"
     flow do 
       @sv = edit_line width: 450
-      @sv.text = "#{DIR}/events.yaml"
+      @sv.text = "#{Dir.getwd}/event.yaml"
       button "Change" do
-        path = ask_file_save 
+        path = ask_save_file
         @sv.text = path if path
       end
     end

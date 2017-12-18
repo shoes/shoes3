@@ -780,13 +780,14 @@ shoes_code shoes_app_keyup(shoes_app *app, VALUE key) {
 VALUE shoes_app_replay_event(VALUE self, VALUE evh) {
   shoes_app *self_t;
   Data_Get_Struct(self, shoes_app, self_t);
-  VALUE btn, vx, vy, mods, type;
+  VALUE btn, vx, vy, mods, type, vobj;
   btn = shoes_hash_get(evh, rb_intern("button"));
   vx = shoes_hash_get(evh, rb_intern("x"));
   vy = shoes_hash_get(evh, rb_intern("y"));
   mods = shoes_hash_get(evh, rb_intern("modifiers"));
   type = shoes_hash_get(evh, rb_intern("type"));
-  if (1) {// TODO: figure symbol/id for type == click
+  vobj = shoes_hash_get(evh, rb_intern("object"));
+  if (SYM2ID(type) == s_click) {// TODO: figure symbol/id for type == click
     // using app->canvas
     shoes_canvas_send_click(self_t->canvas, NUM2INT(btn), NUM2INT(vx), NUM2INT(vy), mods);
     return Qtrue;

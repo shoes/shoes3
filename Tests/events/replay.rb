@@ -5,9 +5,9 @@ Shoes.app do
     para "Load events from"
     flow do 
       @sv = edit_line width: 450
-      @sv.text = "#{DIR}/events.yaml"
+      @sv.text = "#{Dir.getwd}/chipmunk.yaml"
       button "Change" do
-        path = ask_file_open
+        path = ask_open_file
         @sv.text = path if path
       end
     end
@@ -28,19 +28,17 @@ Shoes.app do
       end
     end
     button "Replay Events" do
+     # note this creates as many simulaneous timers as events
+     # not pretty
       w2 = Shoes.APPS[-1]
-      base = 0
       @events.each_index do |r|
         ev = @events[r]
         t = ev[:time]
-        base = t if r == 0
-        wait = t - base
-        timer(wait) do
-          puts "wait for #{wait}"
+        timer(t) do
+          puts "wait for #{t}"
           puts "  move to #{ev[:x]}, #{ev[:y]} and click "
           w2.replay_event(ev)
         end
-        base = t
       end
     end
   end

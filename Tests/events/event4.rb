@@ -21,7 +21,7 @@ Shoes.app height: 650 do
   stack do
     tagline "Clicks for non-native widgets"
     flow do
-      $ck = check checked: true; para "Pass clicks?"
+      @ck1 = check checked: true; para "Pass clicks?"
     end
     flow do
       @img = image "#{DIR}/static/shoes-icon-walkabout.png", width: 200, height: 200
@@ -45,12 +45,21 @@ Shoes.app height: 650 do
   end
 
   event do |evt| 
-    $stderr.puts "event called: #{evt.type} at #{evt.x},#{evt.y} mods: #{evt.modifiers}"
-    if evt.object 
-      # Note: for Textblocks the evt.obj is the String of the text block
-      $stderr.puts "  for widget: #{evt.object.class} width #{evt.width} height #{evt.height}"
+    # do not trigger new events here unless you can handle them
+    case evt.type
+    when :click 
+      $stderr.puts "click handler called: #{evt.type} #{evt.button}, #{evt.x} #{evt.y} #{evt.modifiers}"
+      if evt.object 
+        # Note: for Textblocks the evt.obj is the String of the text block
+        $stderr.puts "  non-native widget: #{evt.object.class} width #{evt.width} height #{evt.height}"
+      end
+      evt.accept = @ck1.checked?
+    when :btn_activate
+      $stderr.puts "button #{evt.object} at #{evt.type} #{evt.button} #{evt.x} #{evt.y} #{evt.width} #{evt.height}"
+      evt.accept = @ck1.checked?
+    else
+      evt.accept = false
     end
-    evt.accept = true #$ck.checked? 
   end
 
 end
