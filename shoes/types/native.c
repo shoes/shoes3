@@ -179,12 +179,12 @@ void shoes_control_send(VALUE self, ID event) {
         shoes_safe_block(app->canvas, evtproc, rb_ary_new3(1, evt));
         shoes_event *tevent;
         Data_Get_Struct(evt, shoes_event, tevent);
-        sendevt = tevent->accept;
+        sendevt = shoes_event_contrain_TF(tevent->accept);
       } else
         fprintf(stderr, "shoes_control_send: doesn't have event - but it should\n");
     }
     if ((sendevt == Qtrue) && !NIL_P(self_t->attr)) {
-        // TODO: bug here
+        // TODO: bug here for replay
         click = rb_hash_aref(self_t->attr, ID2SYM(event));
         if (!NIL_P(click))
             shoes_safe_block(self_t->parent, click, rb_ary_new3(1, self));
@@ -213,6 +213,17 @@ void shoes_control_hide_ref(SHOES_CONTROL_REF ref) {
 void shoes_control_show_ref(SHOES_CONTROL_REF ref) {
     if (ref != NULL) shoes_native_control_show(ref);
 }
+
+// called by low level when feeding events
+VALUE shoes_control_is_here(VALUE self, int x, int y) {
+  shoes_control *ctl;
+  Data_Get_Struct(self, shoes_control, ctl);
+  if (IS_INSIDE(ctl, x, y)) 
+    return Qtrue;
+  else 
+    return Qnil;
+}
+
 
 // canvas
 VALUE shoes_canvas_hide(VALUE self) {

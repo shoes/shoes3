@@ -39,6 +39,9 @@ Shoes.app do
             events << { time: (Time.now - base_t), button: evt.button, x: evt.x, y: evt.y, 
                 modifiers: evt.modifiers, object: evt.object, type: evt.type}
             evt.accept = true
+          when :btn_activate
+            events << { time: (Time.now - base_t), button: evt.button, x: evt.x, y: evt.y, 
+                modifiers: evt.modifiers, object: evt.object, type: evt.type}
           else
             evt.accept = true
           end

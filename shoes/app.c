@@ -12,6 +12,7 @@
 #include "shoes/types/text.h"
 #include "shoes/types/text_link.h"
 #include "shoes/types/textblock.h"
+#include "shoes/types/native.h"
 #include "shoes/types/event.h"
 
 static void shoes_app_mark(shoes_app *app) {
@@ -776,7 +777,64 @@ shoes_code shoes_app_keyup(shoes_app *app, VALUE key) {
     return SHOES_OK;
 }
 
+#if 0
 // replay -- testing - just clicks
+debug_value(VALUE obj) {
+  switch (TYPE(obj)) {
+    case T_NIL: 
+      break;
+    case T_OBJECT:
+      break;
+    case T_CLASS: 
+      break;
+    case T_MODULE:
+      break;
+    case T_FLOAT:
+      break;
+    case T_STRING:
+      break;
+    case T_REGEXP:
+      break;
+    case T_ARRAY:
+      break;
+    case T_HASH:
+      break;
+    case T_STRUCT:    // (Ruby) structure
+      break;
+    case T_BIGNUM:    // multi precision integer
+      break;
+    case T_FIXNUM:    // Fixnum(31bit or 63bit integer)
+      break;
+    case T_COMPLEX:   // complex number
+      break;
+    case T_RATIONAL:  // rational number
+      break;
+    case T_FILE:      // IO
+      break;
+    case T_TRUE:      // true
+      break;
+    case T_FALSE:     // false
+      break;
+    case T_DATA:      // data
+      break;
+    case T_SYMBOL:    // symbol
+      break;
+    case T_ICLASS:    // included module
+      break;
+    case T_MATCH:     // MatchData object
+      break;
+    case T_UNDEF:     // undefined
+      break;
+    case T_NODE:      // syntax tree node
+      break;
+    case T_ZOMBIE:    // object awaiting finalization
+      break;
+    default: 
+      break;
+  }
+}
+#endif
+
 VALUE shoes_app_replay_event(VALUE self, VALUE evh) {
   shoes_app *self_t;
   Data_Get_Struct(self, shoes_app, self_t);
@@ -787,9 +845,22 @@ VALUE shoes_app_replay_event(VALUE self, VALUE evh) {
   mods = shoes_hash_get(evh, rb_intern("modifiers"));
   type = shoes_hash_get(evh, rb_intern("type"));
   vobj = shoes_hash_get(evh, rb_intern("object"));
-  if (SYM2ID(type) == s_click) {// TODO: figure symbol/id for type == click
-    // using app->canvas
+  ID typeid = SYM2ID(type);
+  // using app->canvas
+  if (typeid == s_click) {
     shoes_canvas_send_click(self_t->canvas, NUM2INT(btn), NUM2INT(vx), NUM2INT(vy), mods);
+    return Qtrue;
+  } else if (typeid == s_btn_activate) {
+    // TODO figure out whether it's a button/checkbox/radio and how
+    // to call the shoes code
+    VALUE button = Qnil;
+    int x = NUM2INT(vx);
+    int y = NUM2INT(vy);
+    //debug_value(vobj);   // it's not one of the documented types.
+    shoes_event_find_native(self_t->canvas,  x+4, y+4, &button);
+    if (! NIL_P(button)) {
+      shoes_control_send(button, s_click);
+    }
     return Qtrue;
   } else 
     return Qnil;

@@ -74,3 +74,4 @@ VALUE shoes_canvas_button(int argc, VALUE *argv, VALUE self) {
     
     return button;
 }
+

@@ -214,9 +214,54 @@ VALUE shoes_event_find_psuedo (VALUE self, int x, int y, VALUE *hitobj) {
 
     return Qnil;
 }
+extern VALUE cButton, cCheck, cRadio;
+/* 
+ * This is called by event replay to find if there is a native widget at x,y
+ */
+VALUE shoes_event_find_native (VALUE self, int x, int y, VALUE *hitobj) {
+    long i;
+    int ox = x, oy = y;
+    VALUE v = Qnil;  //  v is t/f, Qtrue/Qnil
+    shoes_canvas *self_t;
+    Data_Get_Struct(self, shoes_canvas, self_t);
 
-// helper for creating key events
+    if (ORIGIN(self_t->place)) {
+        oy = y + self_t->slot->scrolly;
+        ox = x - self_t->place.ix + self_t->place.dx;
+        oy = oy - (self_t->place.iy + self_t->place.dy);
+        if (oy < self_t->slot->scrolly || ox < 0 || oy > self_t->slot->scrolly + self_t->place.ih || ox > self_t->place.iw)
+            return Qnil;
+    }
+    if (ATTR(self_t->attr, hidden) != Qtrue) {
+        if (self_t->app->canvas == self) // when we are the app's slot
+            y -= self_t->slot->scrolly;
 
+        if (IS_INSIDE(self_t, x, y)) {
+            // TODO:  something
+            VALUE click = ATTR(self_t->attr, click);
+            if (!NIL_P(click)) {
+                if (ORIGIN(self_t->place))
+                    y += self_t->slot->scrolly;
+                //shoes_safe_block(self, click, rb_ary_new3(4, INT2NUM(button), INT2NUM(x), INT2NUM(y), mods));
+            }
+        }
+
+        for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--) {
+            VALUE ele = rb_ary_entry(self_t->contents, i);
+            if (rb_obj_is_kind_of(ele, cCanvas)) {
+                v = shoes_event_find_native(ele, ox, oy, hitobj);
+            } else if (rb_obj_is_kind_of(ele, cNative)) {
+              v = shoes_control_is_here(ele, ox,oy);
+              *hitobj = ele;
+            }
+
+            if (!NIL_P(v))
+                return v;
+        }
+    }
+
+    return Qnil;
+}
 
 
 VALUE shoes_event_type(VALUE self) {
