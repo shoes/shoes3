@@ -2546,7 +2546,7 @@ to a slot whenever a mouse moves inside the slot.  Or whenever a key is
 pressed.  Even when the slot is created or destroyed.  You can attach a block
 to each of these events.
 
-Mouse events include `motion`, `click`, `hover` and `leave`.  Keyboard typing
+Mouse events include `motion`, `click`, `wheel`, `hover` and `leave`.  Keyboard typing
 is represented by the `keypress` event.  And the `start` and `finish` events
 indicate when a canvas comes into play or is discarded.
 
@@ -2554,6 +2554,12 @@ So, let's say you want to change the background of a slot whenever the mouse
 floats over it.  We can use the `hover` event to change the background when the
 mouse comes inside the slot.  And `leave` to change back when the mouse floats
 away.
+
+The mouse related events also provide a mods value that reports whether the
+control, shift or both keys were held down during the event. The mods will be empty (nil),
+or a string of 'control', 'shift' or 'control_shift'. This was introduced in
+Shoes 3.3.5. Older scripts still work.
+
 
 {{{
  #!ruby
@@ -2570,7 +2576,7 @@ away.
  end
 }}}
 
-=== click { |button, left, top| ... } » self ===
+=== click { |button, left, top, mods| ... } » self ===
 
 The click block is called when a mouse button is clicked.  The `button` is the
 number of the mouse button which has been pressed.  The `left` and `top` are
@@ -2578,13 +2584,51 @@ the mouse coordinates at which the click happened.
 
 To catch the moment when the mouse is unclicked, see the [[Events.release]] event.
 
+NOTE: only button numbers of 1,2,3 (left, wheel-press, right) are available
+for all platforms and mice. If you have an exotic mouse you can get higher
+button numbers but you should not expect other users have such a device.
+
 {{{
 Shoes.app do
    click do |btn, left, top|
-      para "#{btn}, #{left}, #{top}\n"
+      para "#{btn}, #{left}, #{top}, \n"
    end
 end
 }}}
+
+=== wheel { |dir, left, top, mods| ...} » self ===
+
+The wheel block is called when the mouse wheel is scrolled up or down. dir
+is 0 or 1. Beware! No one knows if 1 is up or down since it can be changed
+by the users operating system.  Like click, wheel is attatched to a slot so
+you can have many of them.
+
+{{{
+Shoes.app do
+  stack height: 200 do
+    click do |b,l,t|
+     @p.replace "Stack clicked"
+    end
+    @p = para "None"
+    flow width: 200 do 
+      para "Flow 1"
+      wheel do |d,l,t| 
+       @p.replace  "Flow 1 wheel #{d}"
+      end
+    end
+    flow width: 200 do
+      para "Flow 2"
+      click do |b,l,t|
+       @p.replace "Flow 2 clicked"
+      end
+    end
+  end
+  wheel {|d,l,t,mods| @p.replace "default slot wheel #{d} #{mods}"}
+end
+}}}
+
+Notice that the `mods` is only supplied in the outer most `wheel`. Its ignored
+if you don't ask for mods.
 
 === finish { |self| ... } » self ===
 
@@ -2678,10 +2722,10 @@ called with `self`, the slot object which is being left.
 
 Also see [[Events.hover]] if you'd like to detect the mouse entering a slot.
 
-=== motion { |left, top| ... } » self ===
+=== motion { |left, top, mods| ... } » self ===
 
 The motion block gets called every time the mouse moves around inside the slot.
-The block is handed the cursor's `left` and `top` coordinates.
+The block is handed the cursor's `left` and `top` coordinates and the optional mods.
 
 {{{
  #!ruby
