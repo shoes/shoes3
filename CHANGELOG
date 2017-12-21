@@ -6,6 +6,27 @@
   Walkabout (3.3+) will be less compatible with the unmaintained 3.1 and with 4.0 (jRuby)
   We have interesting ideas of we what we do with Shoes that may be difficult
   to immplememt in Shoes 4. 
+  
+  
+-------------- Shoes 3.3.5 --------------------------------
+
+=== New with 3.3.5
+  * Add 'wheel' event 
+    https://github.com/shoes/shoes3/issues/287
+  * preprocess events
+    https://github.com/shoes/shoes3/issues/383
+    https://github.com/shoes/shoes3/wiki/event-streams
+    Experts Only 
+    
+=== Fixed with 3.3.5
+  * Arch linux (probably others) are missing symlinks to libraries
+    https://github.com/shoes/shoes3/issues/392
+  * FreeBSD, Profiler & Shoes.terminal -  a workaround
+    https://github.com/shoes/shoes3/issues/390
+  * Windows cpu utilization
+    https://github.com/shoes/shoes3/issues/387
+    
+=== Developer Issues with 3.3.5
  
 -------------- Shoes 3.3.4 ---------------------------------  
 
