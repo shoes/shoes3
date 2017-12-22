@@ -409,25 +409,16 @@ task :installer => ["#{NAMESPACE}:installer"]
 
 namespace :osx do
   namespace :setup do
-    #desc "Setup to build Shoes for 10.10+"
-    #task :yosemite do
-    #  sh "echo 'TGT_ARCH=yosemite' >build_target"
-    #end
 
     desc "Setup to build Shoes for 10.9+ from 10.10+"
     task :xmavericks do
       sh "echo 'TGT_ARCH=xmavericks' >build_target"
     end
-
-    #desc "Setup to build Shoes for 10.9+ from 10.9"
-    #task :mavericks do
-    #  sh "echo 'TGT_ARCH=mavericks' >build_target"
-    #end
-
-    #desc "Setup to build for 10.6+ from 10.6"
-    #task :snow do
-    #  sh "echo 'TGT_ARCH=snow' >build_target"
-    #end
+    
+    desc "Setup to build Shoes for 10.10+ from 10.10"
+    task :yosemite do
+      sh "echo 'TGT_ARCH=yosemite' >build_target"
+    end
 
     #desc "Downshift Build 10.6 from 10.9"
     #task "xsnow" do
