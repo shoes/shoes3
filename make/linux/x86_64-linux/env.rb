@@ -56,7 +56,8 @@ LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include/ "
 LINUX_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
 MISC_LIB = ' /usr/lib/x86_64-linux-gnu/librsvg-2.so'
 
-LINUX_LIB_NAMES = %W[ungif jpeg]
+#LINUX_LIB_NAMES = %W[ungif jpeg]
+LINUX_LIB_NAMES = %W[gif jpeg]
 
 DLEXT = "so"
 LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "
@@ -72,28 +73,28 @@ LINUX_LIBS << " #{CURL_LDFLAGS if !RUBY_HTTP} #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PAN
 
 # SOLOCS are copied (setup.rb)
 SOLOCS = {}
-SOLOCS['ungif'] = "#{uldir}/libungif.so.4.1.6"
-SOLOCS['gif'] = "#{uldir}/libgif.so.4.1.6" # because Suse wants it
-SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8.4.0"
-SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2.0.2"
-SOLOCS['pcre'] = "#{larch}/libpcre.so.3"
-SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
-SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
+#SOLOCS['ungif'] = "#{uldir}/libungif.so.4.1.6"
+SOLOCS['gif'] = "#{ularch}/libgif.so.7.0.0" 
+SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8.0.2"
+SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2.0.4"
+SOLOCS['pcre'] = "#{larch}/libpcre.so.3"  # TODO: is this needed? 
+SOLOCS['crypto'] = "#{larch}/libcrypto.so.1.0.0"
+SOLOCS['ssl'] = "#{larch}/libssl.so.1.0.0"
 SOLOCS['sqlite'] = "#{ularch}/libsqlite3.so.0.8.6"
-SOLOCS['ffi'] = "#{ularch}/libffi.so.5.0.10"
-SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so.2.36.1"
-SOLOCS['curl'] = "#{lcllib}/libcurl.so.4.4.0"
+SOLOCS['ffi'] = "#{ularch}/libffi.so.6.0.4"
+SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so.2.40.13"
+SOLOCS['curl'] = "#{ularch}/libcurl.so.4.4.0"
 
 # sigh, we need symlinks on some linux distros and curl is just difficult
 # every where. See setup.rb
 SYMLNK = {}
 SYMLNK['libcurl.so.4.4.0'] = ['libcurl.so', 'libcurl.so.4']
-SYMLNK['libgif.so.4.1.6'] = ['libgif.so', 'libgif.so.4']
-SYMLNK['libjpeg.so.8.4.0'] = ['libjpeg.so', 'libjpeg.so.8']
-SYMLNK['libyaml-0.so.2.0.2'] = ['libyaml.so', 'libyaml-0.so.2']
+SYMLNK['libgif.so.7.0.0'] = ['libgif.so', 'libgif.so.7']
+SYMLNK['libjpeg.so.8.0.2'] = ['libjpeg.so', 'libjpeg.so.8']
+SYMLNK['libyaml-0.so.2.0.4'] = ['libyaml.so', 'libyaml-0.so.2']
 SYMLNK['libcrypto.so.1.0.0'] = ['libcrypto.so', 'libcrypto.so.1']
 SYMLNK['libssl.so.1.0.0'] = ['libssl.so']
 SYMLNK['libsqlite3.so.0.8.6'] = ['libsqlite3.so', 'libsqlite3.so.0']
-SYMLNK['libffi.so.5.0.10'] = ['libffi.so', 'libffi.so.5']
-SYMLNK['librsvg-2.so.2.36.1'] = ['librsvg-2.so', 'librsvg-2.so.2']
+SYMLNK['libffi.so.6.0.4'] = ['libffi.so', 'libffi.so.6']
+SYMLNK['librsvg-2.so.2.40.13'] = ['librsvg-2.so', 'librsvg-2.so.2']
 
