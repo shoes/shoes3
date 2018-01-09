@@ -105,6 +105,7 @@ LINUX_LDFLAGS << `pkg-config --libs "#{pkggtk}"`.strip+" "
 RUBY_LDFLAGS = "-Wl,-export-all-symbols "
 RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby230 "
 
+LINUX_LDFLAGS << "-lwinpthread-1 "
 LINUX_LDFLAGS << "-lwinhttp -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 "
 
 LINUX_LIBS = " -L#{bindll} "
@@ -159,7 +160,7 @@ SOLOCS.merge!(
     'curl'        => "#{bindll}/libcurl-4.dll",
     'thread'      => "#{bindll}/libgthread-2.0-0.dll",
     'zlib1'       => "#{bindll}/zlib1.dll",
-    'siji'        => "/usr/lib/gcc/i686-w64-mingw32/4.8/libgcc_s_sjlj-1.dll",
+    'siji'        => "/usr/lib/gcc/i686-w64-mingw32/5.3-posix/libgcc_s_sjlj-1.dll",
     'pthread'     => "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll" 
     }
 )
