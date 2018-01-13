@@ -41,8 +41,8 @@ CAIRO_CFLAGS  = "-I#{ShoesDeps}/include/cairo"
 CAIRO_LDFLAGS = "-L#{ShoesDeps}/lib -lcairo"
 PANGO_CFLAGS  = "-I#{ShoesDeps}/include/pango-1.0"
 PANGO_LDFLAGS = "-L#{ShoesDeps}/lib -lpango-1.0"
-#RUBY_CFLAGS   = "-I#{ShoesDeps}/include/ruby-2.1.0/x86_64-darwin13.0 -I#{ShoesDeps}/include/ruby-2.1.0 "
-RUBY_CFLAGS   = "-I#{ShoesDeps}/include/ruby-2.3.0/x86_64-darwin13 -I#{ShoesDeps}/include/ruby-2.3.0 "
+#RUBY_CFLAGS   = "-I#{ShoesDeps}/include/ruby-2.3.0/x86_64-darwin13 -I#{ShoesDeps}/include/ruby-2.3.0 "
+RUBY_CFLAGS   = "-I#{ShoesDeps}/include/ruby-2.3.0/x86_64-darwin14 -I#{ShoesDeps}/include/ruby-2.3.0 "
 RUBY_LDFLAGS  = "-L#{ShoesDeps}lib/ -Wl,-undefined,dynamic_lookup -Wl,-multiply_defined,suppress -lruby.2.3.0 -lpthread -ldl -lobjc "
 
 LINUX_CFLAGS << " -I#{ShoesDeps}/include #{GLIB_CFLAGS} #{RUBY_CFLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS}"
@@ -58,8 +58,11 @@ LINUX_LDFLAGS = "-framework Cocoa -framework QuartzCore -framework Carbon -dynam
 LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 
 
-OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk'
-ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
+#OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk'
+#ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
+OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk'
+# YES 10.11 is correct for Yosemite - talk to xcode developers.
+ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.10'
 #LINUX_CFLAGS << ' -mmacosx-version-min=10.9'
 #LINUX_LDFLAGS << ' -mmacosx-version-min=10.9'
 LINUX_CFLAGS << ' -Wno-incompatible-pointer-types-discards-qualifiers'
@@ -67,7 +70,8 @@ LINUX_CFLAGS << ' -Wno-incompatible-pointer-types-discards-qualifiers'
 OSX_ARCH = '-arch x86_64'
 # These env vars are used in chipmunk, sqlite3 extconf.rb - not needed in 3.3.3+? 
 #SHOES_TGT_ARCH = SHOES_GEM_ARCH ='x86_64-darwin13.0'
-SHOES_TGT_ARCH = SHOES_GEM_ARCH ='x86_64-darwin13'
+#SHOES_TGT_ARCH = SHOES_GEM_ARCH ='x86_64-darwin13'
+SHOES_TGT_ARCH = SHOES_GEM_ARCH ='x86_64-darwin14'
 ENV['CC'] = CC
 ENV['TGT_RUBY_PATH'] = EXT_RUBY
 ENV['TGT_ARCH'] = SHOES_TGT_ARCH
