@@ -13,7 +13,7 @@
 === New with 3.3.5
   * Add 'wheel' event 
     https://github.com/shoes/shoes3/issues/287
-  * preprocess events
+  * can preprocess events with new event {block}
     https://github.com/shoes/shoes3/issues/383
     https://github.com/shoes/shoes3/wiki/event-streams
     Experts Only 
@@ -25,8 +25,16 @@
     https://github.com/shoes/shoes3/issues/390
   * Windows cpu utilization
     https://github.com/shoes/shoes3/issues/387
+  * OSX High Sierra (10.13) couldn't start Shoes
+    https://github.com/shoes/shoes3/issues/398
+  * Profiling has new output options for workaround
+    https://github.com/shoes/shoes3/issues/390
     
 === Developer Issues with 3.3.5
+  https://github.com/shoes/shoes3/issues/399
+  * no Linux 32 bit provided.
+  * last release for osx 10.9 (mavericks)
+  * freebsd status is 'experts with free time'
  
 -------------- Shoes 3.3.4 ---------------------------------  
 
