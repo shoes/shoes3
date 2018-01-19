@@ -5546,9 +5546,17 @@ It will segfault, if you are lucky.
 
 == Event Streams ==
 
-This a very arcane and specialized capabilty. It's documented at the
-[[https://github.com/shoes/shoes3/wiki/event-streams ShoesS Wiki]] You will want to study
-and play with the Test/events/* scripts
+This a very arcane and specialized capabilty. Basically you can get low level
+events like click or key press and chose to send the event to normal Shoes GUI
+handlers. For example you could disable all button clicks in another window
+
+It's documented at https://github.com/shoes/shoes3/wiki/event-streams 
+[[https://github.com/shoes/shoes3/wiki/event-streams Shoes Wiki]] You will want to study
+and play with the Test/events/* scripts so you'll need a git clone of Shoes.
+
+Caution: it's incomplete - if you need something more then create an issue
+at the Shoes3 github.
+
 
 == Terminal ==
 

@@ -1,5 +1,5 @@
-# Build a 64 bit Linux Tight Shoes (from a 64 bit host)
-# In this case Unbuntu 14.04 to debian 7.2 in a chroot.
+# Build a 64 bit freeBSD Tight Shoes (from a 64 bit host)
+# 
 # You should modify your custom.yaml
 cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
 if File.exists? cf
@@ -84,9 +84,9 @@ SOLOCS['ssl'] = "/usr/lib/libssl.so.8"
 SOLOCS['sqlite'] = "/usr/local/lib/libsqlite3.so.0.8.6"
 SOLOCS['ffi'] = "/usr/local/lib/libffi.so.6.0.4"
 SOLOCS['rsvg2'] = "/usr/local/lib/librsvg-2.so.2.40.17"
-SOLOCS['curl'] = "/usr/local/lib/libcurl.so.4.4.0"
+SOLOCS['curl'] = "/usr/local/lib/libcurl.so.4.5.0"
 
 # sigh, curl and tyhpoeus - processed in setup.rb
 SYMLNK = {}
-SYMLNK['libcurl.so.4.4.0'] = ['libcurl.so', 'libcurl.so.4']
+SYMLNK['libcurl.so.4.5.0'] = ['libcurl.so', 'libcurl.so.4']
 

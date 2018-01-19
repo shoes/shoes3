@@ -26,16 +26,17 @@ CC = "cc"
 
 # Query pkg-config for cflags and link settings
 EXT_RUBY = RbConfig::CONFIG['prefix']
-RUBY_CFLAGS = " #{`pkgconf --cflags /usr/local/libdata/pkgconfig/ruby-#{rv}.pc`.strip}"
+RUBY_CFLAGS = " #{`pkgconf --cflags /opt/lib/pkgconfig/ruby-#{rv}.pc`.strip}"
 # Ruby 2.1.2 with RVM has a bug. Workaround or wait for perfection?
-rlib = `pkgconf --libs /usr/local/libdata/pkgconfig/ruby-#{rv}.pc`.strip
+rlib = `pkgconf --libs /opt/lib/pkgconfig/ruby-#{rv}.pc`.strip
 # 2.2.3 is missing  -L'$${ORIGIN}/../lib' in LIBRUBYARG_SHARED in .pc
+$stderr.puts "rlib: #{rlib}"
 if !rlib[/\-L/]
-  #puts "missing -L in #{rlib}" 
   rlib = "-L#{EXT_RUBY}/lib "+rlib
+  puts "fixed missing -L in #{rlib}" 
 end
 if rlib[/{ORIGIN/]
-  #abort "Bug found #{rlib}"
+  puts "Bug found #{rlib}"
   RUBY_LIB = rlib.gsub(/\$\\{ORIGIN\\}/, "#{EXT_RUBY}/lib")
   #RUBY_LIB = rlib
 else
@@ -63,21 +64,9 @@ LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{
 LINUX_LIBS = "#{RUBY_LIB} #{GTK_LIB}  #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
 LINUX_LIBS << " -lfontconfig" # if APP['GTK'] == "gtk+-3.0"
 # the following is only used to link the shoes code with main.o
-LINUX_LDFLAGS = "-L. -rdynamic -Wl,-export-dynamic"
+LINUX_LDFLAGS = "-L. -rdynamic -Wl,-export-dynamic -lm"
 
 # Main Rakefile and tasks.rb needs the below Constants
 ADD_DLL = []
 DLEXT = "so"
 SOLOCS = {} # needed to match Rakefile expectations.
-=begin
-# to save settings 
-bld_args = {}
-bld_args['CC'] = CC
-bld_args['ADD_DLL'] = []
-bld_args['DLEXT'] = "so"
-bld_args['SOLOCS'] = {}
-bld_args['LINUX_CFLAGS'] = LINUX_CFLAGS
-bld_args['LINUX_LDFLAGS'] = LINUX_LDFLAGS
-bld_args['LINUX_LIBS'] = LINUX_LIBS
-File.open("#{TGT_DIR}/build.yaml", 'w') {|f| YAML.dump(bld_args, f)}
-=end

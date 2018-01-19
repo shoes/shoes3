@@ -32,7 +32,7 @@ end
 
 ADD_DLL = []
 
-# nothing is going to change for 10.9 deps - don't bother with pkg-config
+# nothing is going to change for 10.10 deps - don't bother with pkg-config
 # because it does go wrong in this situation.
 GLIB_CFLAGS   = "-I#{ShoesDeps}/include/glib-2.0 -I#{ShoesDeps}/lib/glib-2.0/include"
 GLIB_CFLAGS << " -I#{ShoesDeps}/include/librsvg-2.0/librsvg -I#{ShoesDeps}/include/gdk-pixbuf-2.0/"

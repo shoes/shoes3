@@ -117,7 +117,8 @@ module Make
     end
     gdir = ""
     if RUBY_PLATFORM =~ /bsd/
-      gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}.0"
+      #gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}.0"
+      gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
     else
       gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
     end

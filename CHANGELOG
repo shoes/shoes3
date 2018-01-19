@@ -21,8 +21,6 @@
 === Fixed with 3.3.5
   * Arch linux (probably others) are missing symlinks to libraries
     https://github.com/shoes/shoes3/issues/392
-  * FreeBSD, Profiler & Shoes.terminal -  a workaround
-    https://github.com/shoes/shoes3/issues/390
   * Windows cpu utilization
     https://github.com/shoes/shoes3/issues/387
   * OSX High Sierra (10.13) couldn't start Shoes
