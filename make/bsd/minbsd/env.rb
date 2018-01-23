@@ -1,7 +1,8 @@
-# This is for a freebds only build (loose shoes)
-# It is safe and desireable to use RbConfig::CONFIG settings
-#   Will not build gems or copy gems - uses the host ruby.
-#   Cannot be distributed. 
+# This is for a freebsd only build (loose shoes)
+# it uses symlinks so it Cannot be distributed.
+# This MAY depend on rvm
+#   Will not build gems or copy gems - uses the host ruby and gems.
+#   Set your $PATH to the ruby you want to use (Install RVM? or similar)
 require 'rbconfig'
 
 APP['GDB'] = "true" # true => compile -g,  don't strip symbols
@@ -24,24 +25,18 @@ LINUX_CFLAGS << " #{`pkgconf --cflags gtk+-3.0`.strip}"
 
 CC = "cc"
 
-# Query pkg-config for cflags and link settings
+# Query pkgconf for cflags and link settings
 EXT_RUBY = RbConfig::CONFIG['prefix']
-RUBY_CFLAGS = " #{`pkgconf --cflags /opt/lib/pkgconfig/ruby-#{rv}.pc`.strip}"
-# Ruby 2.1.2 with RVM has a bug. Workaround or wait for perfection?
-rlib = `pkgconf --libs /opt/lib/pkgconfig/ruby-#{rv}.pc`.strip
-# 2.2.3 is missing  -L'$${ORIGIN}/../lib' in LIBRUBYARG_SHARED in .pc
-$stderr.puts "rlib: #{rlib}"
-if !rlib[/\-L/]
-  rlib = "-L#{EXT_RUBY}/lib "+rlib
-  puts "fixed missing -L in #{rlib}" 
-end
-if rlib[/{ORIGIN/]
-  puts "Bug found #{rlib}"
-  RUBY_LIB = rlib.gsub(/\$\\{ORIGIN\\}/, "#{EXT_RUBY}/lib")
-  #RUBY_LIB = rlib
+RUBY_CFLAGS = " #{`pkgconf --cflags #{EXT_RUBY}/lib/pkgconfig/ruby-#{rv}.pc`.strip}"
+rlib = `pkgconf --libs #{EXT_RUBY}/lib/pkgconfig/ruby-#{rv}.pc`.strip
+# need to rewrite rlib for an RVM installed Ruby - rvm or Ruby bug?
+$stderr.puts "EXT_RUBY: #{EXT_RUBY}"
+if EXT_RUBY =~ /\.rvm/
+  RUBY_LIB = "-L#{EXT_RUBY}/lib -Wl,-rpath,#{EXT_RUBY}/lib -lruby -lunwind -lexecinfo -lprocstat -lthr -lgmp -lcrypt -lm"
 else
   RUBY_LIB = rlib
 end
+
 CAIRO_CFLAGS = `pkgconf --cflags cairo`.strip
 CAIRO_LIB = `pkgconf --libs cairo`.strip
 PANGO_CFLAGS = `pkgconf --cflags pango`.strip
@@ -60,11 +55,11 @@ MISC_LIB << " /usr/local/lib/librsvg-2.so"
 # collect flags together
 LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{MISC_CFLAGS}"
 
-# collect link settings together. Does order matter?
+# collect link settings together
 LINUX_LIBS = "#{RUBY_LIB} #{GTK_LIB}  #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
-LINUX_LIBS << " -lfontconfig" # if APP['GTK'] == "gtk+-3.0"
-# the following is only used to link the shoes code with main.o
-LINUX_LDFLAGS = "-L. -rdynamic -Wl,-export-dynamic -lm"
+LINUX_LIBS << " -lfontconfig"
+# the following is only used to link the shoes code with main.o - not needed?
+#LINUX_LDFLAGS = "-L. -rdynamic -Wl,-export-dynamic"
 
 # Main Rakefile and tasks.rb needs the below Constants
 ADD_DLL = []
