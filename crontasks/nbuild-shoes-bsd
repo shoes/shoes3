@@ -1,0 +1,33 @@
+#!/bin/bash
+
+define(){ IFS='\n' read -r -d '' ${1} || true; }
+
+define Bldscript <<'ENDSSH'
+echo "Build Shoes FreeBSD"
+export PATH=/opt/bin:$PATH
+export NFS_ALTP=/usr/home/ccoupe/build/
+cd Projects/shoes3
+pwd
+echo $PATH
+rm -rf build_target
+rm -rf ~/build/freebsd
+rake bsd:setup:freebsd
+rake
+rake package
+cp /usr/home/ccoupe/build/pkg/*freebsd*.install pkg
+rm -rf /usr/home/ccoupe/build/freebsd
+rake clobber
+ENDSSH
+
+if vboxmanage list runningvms | grep "freebsd11" 
+then 
+  ssh -p 3022 ccoupe@127.0.0.1 "$Bldscript"
+else
+  VBoxHeadless --startvm "freebsd11" &
+  echo "waiting"
+  sleep 40
+  echo "logging in"
+  ssh -p 3022 ccoupe@127.0.0.1 "$Bldscript"
+  VBoxManage controlvm "freebsd11" poweroff
+fi
+ls -ld /home/ccoupe/Projects/shoes3/pkg/*freebsd*.install

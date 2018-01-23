@@ -1,0 +1,13 @@
+#!/bin/bash
+ssh ccoupe@mini <<'ENDSSH'
+echo "Build Shoes OSX 10.10 Yosemite"
+source .bashrc
+rvm use 2.3.4
+cd /Users/ccoupe/Projects/shoes3
+rm -f build_target
+rake osx:setup:yosemite
+rake
+rake package
+rake clobber
+ENDSSH
+ls -ld /home/ccoupe/Projects/shoes3/pkg/*osx-10.10.tgz

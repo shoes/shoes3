@@ -1,0 +1,12 @@
+#!/bin/bash
+ssh ccoupe@pi3 <<'ENDSSH'
+echo "Build Shoes rpi3"
+export NFS_ALTP=/home/ccoupe/build/
+cd ~/Projects/shoes3
+rm -f build_target
+rake linux:setup:pi2
+rake
+rake package
+rake clobber
+ENDSSH
+ls -ld /home/ccoupe/Projects/shoes3/pkg/*armhf.install
