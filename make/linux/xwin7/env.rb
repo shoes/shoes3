@@ -3,6 +3,7 @@
 # It's not really a chroot - it only looks like one
 # Remember, on Windows the dlls are in bin/ 
 cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
+ignore_deprecations = true
 if File.exists? cf
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']
@@ -14,6 +15,7 @@ if File.exists? cf
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
+  ignore_deprecations = (!custmz['Deprecations']) if custmz['Deprecations']
 else
   abort "You must have an 'xwin7-custom.yaml' file!"
 end
@@ -94,7 +96,9 @@ LINUX_CFLAGS << "-I#{ShoesDeps}/include/librsvg-2.0/librsvg "
 LINUX_CFLAGS << " -I#{ShoesDeps}/usr/local/include "
 LINUX_CFLAGS << " -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function"
 LINUX_CFLAGS << " -mms-bitfields -D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS "
-
+if ignore_deprecations
+  LINUX_CFLAGS << " -Wno-deprecated-declarations"
+end
 LINUX_LIB_NAMES = %W[gif-7 jpeg librsvg-2 libffi]
 
 DLEXT = "dll"

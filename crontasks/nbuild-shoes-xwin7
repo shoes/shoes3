@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "Build Shoes GTK Widgets for MinGW32 Windows"
-source ~/bin/bash-chroot
+#source ~/bin/bash-chroot
 source ~/.rvm/scripts/rvm
 cd /home/ccoupe/Projects/shoes3
 rm -f build_target

@@ -4,6 +4,7 @@
 #   Will not build gems or copy gems - uses the host ruby and gems.
 #   Set your $PATH to the ruby you want to use (Install RVM? or similar)
 require 'rbconfig'
+ignore_deprecations = true # user choice
 
 APP['GDB'] = "true" # true => compile -g,  don't strip symbols
 if APP['GDB']
@@ -54,7 +55,9 @@ MISC_LIB << " /usr/local/lib/librsvg-2.so"
 
 # collect flags together
 LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{MISC_CFLAGS}"
-
+if ignore_deprecations
+  LINUX_CFLAGS << " -Wno-deprecated-declarations"
+end
 # collect link settings together
 LINUX_LIBS = "#{RUBY_LIB} #{GTK_LIB}  #{CAIRO_LIB} #{PANGO_LIB} #{MISC_LIB}"
 LINUX_LIBS << " -lfontconfig"

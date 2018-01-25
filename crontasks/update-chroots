@@ -1,7 +1,3 @@
 #!/bin/bash
 schroot -c debx86 -u root -- apt-get -y update
 schroot -c debx86 -u root -- apt-get -y upgrade
-schroot -c deb386 -u root -- apt-get -y update
-schroot -c deb386 -u root -- apt-get -y upgrade
-#schroot -c debrpi -u root -- apt-get -y update
-#schroot -c debrpi -u root -- apt-get -y upgrade

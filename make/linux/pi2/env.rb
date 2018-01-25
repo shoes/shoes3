@@ -1,5 +1,6 @@
 # Build a 32 bit Linux Tight Shoes on a pi2
 cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
+ignore_deprecations = true
 if File.exists? cf
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']
@@ -10,6 +11,7 @@ if File.exists? cf
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
+  ignore_deprecations = (!custmz['Deprecations']) if custmz['Deprecations']
 else
   abort "missing custom.yaml"
 end
@@ -51,6 +53,9 @@ LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkggtk}"`.strip+" "
 LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include/ " 
 LINUX_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
+if ignore_deprecations
+  LINUX_CFLAGS << " -Wno-deprecated-declarations"
+end
 MISC_LIB = " #{ularch}/librsvg-2.so"
 
 justgif = File.exist? "#{ularch}/libgif.so.4"

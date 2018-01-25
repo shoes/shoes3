@@ -1,6 +1,7 @@
 # Build a 64 bit freeBSD Tight Shoes (from a 64 bit host)
-# 
-# You should modify your custom.yaml
+#    BSD uses Gtk 3.22 which has lots kinds of warnings for Shoes
+# You should modify your custom.yaml instead of modifying this. Unless...
+ignore_deprecations = true
 cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
 if File.exists? cf
   custmz = YAML.load_file(cf)
@@ -12,6 +13,7 @@ if File.exists? cf
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
+  ignore_deprecations = (!custmz['Deprecations']) if custmz['Deprecations']
 else
   abort "missing custom.yaml"
 end
@@ -53,18 +55,18 @@ LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include "
 LINUX_CFLAGS << `pkgconf --cflags "#{pkgruby}"`.strip+" "
 LINUX_CFLAGS << `pkgconf --cflags "#{pkggtk}"`.strip+" "
 LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include/ " 
-#LINUX_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
-#MISC_LIB = ' /usr/lib/x86_64-linux-gnu/librsvg-2.so'
 
 LINUX_CFLAGS <<  " -I/usr/local/include/librsvg-2.0/librsvg "
+if ignore_deprecations
+  LINUX_CFLAGS << " -Wno-deprecated-declarations"
+end
 MISC_LIB =  " /usr/local/lib/librsvg-2.so"
-#LINUX_LIB_NAMES = %W[ungif jpeg]
 LINUX_LIB_NAMES = %W[gif jpeg]
 
 DLEXT = "so"
 LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "
 LINUX_LDFLAGS << `pkgconf --libs "#{pkggtk}"`.strip+" "
-# use the ruby link info
+# don't use the ruby link info
 RUBY_LDFLAGS = "-rdynamic -Wl,-export-dynamic "
 RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lruby "
 RUBY_LDFLAGS << "-lelf -lexecinfo -lprocstat -lthr -lcrypt -lm  "

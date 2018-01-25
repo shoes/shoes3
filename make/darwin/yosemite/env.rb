@@ -3,6 +3,7 @@
 # (2) Ruby was built -C --enable-shared --enable-load-relative & installed in ShoesDeps
 # (3) 10.9 SDK is installed (ln -s if need) in Xcode.app/....
 include FileUtils
+ignore_deprecations = true
 cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
 if File.exists? cf
   custmz = YAML.load_file(cf)
@@ -18,6 +19,7 @@ if File.exists? cf
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
   ENV['CDEFS'] = custmz['CFLAGS'] if custmz['CFLAGS']
   ENV['SQLLOC'] = ShoesDeps
+  ignore_deprecations = (!custmz['Deprecations']) if custmz['Deprecations']
 else
   abort "You must have a #{TGT_ARCH}-custom.yaml"
 end
@@ -66,6 +68,9 @@ ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.10'
 #LINUX_CFLAGS << ' -mmacosx-version-min=10.9'
 #LINUX_LDFLAGS << ' -mmacosx-version-min=10.9'
 LINUX_CFLAGS << ' -Wno-incompatible-pointer-types-discards-qualifiers'
+if ignore_deprecations
+  LINUX_CFLAGS << " -Wno-deprecated-declarations"
+end
 
 OSX_ARCH = '-arch x86_64'
 # These env vars are used in chipmunk, sqlite3 extconf.rb - not needed in 3.3.3+? 
