@@ -1199,7 +1199,11 @@ VALUE shoes_native_to_s(VALUE text) {
 VALUE shoes_native_window_color(shoes_app *app) {
     GtkStyleContext *style = gtk_widget_get_style_context(GTK_WIDGET(APP_WINDOW(app)));
     GdkRGBA bg;
+#ifdef BSD // assumes Gtk 3.22
+    gtk_style_context_lookup_color(style, (char *)NULL, &bg);
+#else
     gtk_style_context_lookup_color(style, GTK_STATE_NORMAL, &bg);
+#endif
     return shoes_color_new((int)(bg.red * 255), (int)(bg.green * 255),
                            (int)(bg.blue * 255), SHOES_COLOR_OPAQUE);
 }
@@ -1207,7 +1211,11 @@ VALUE shoes_native_window_color(shoes_app *app) {
 VALUE shoes_native_dialog_color(shoes_app *app) {
     GdkRGBA bg;
     GtkStyleContext *style = gtk_widget_get_style_context(GTK_WIDGET(APP_WINDOW(app)));
+#ifdef BSD // assumes Gtk 3.22
+    gtk_style_context_lookup_color(style, (char *)NULL, &bg);
+#else
     gtk_style_context_lookup_color(style, GTK_STATE_NORMAL, &bg);
+#endif
     return shoes_color_new((int)(bg.red * 255), (int)(bg.green * 255),
                            (int)(bg.blue * 255), SHOES_COLOR_OPAQUE);
 }

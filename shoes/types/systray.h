@@ -23,6 +23,7 @@ typedef struct _systray {
 // ruby (systray)
 VALUE shoes_systray_new(int argc, VALUE *argv, VALUE self);
 VALUE shoes_systray_alloc(VALUE);
+void shoes_systray_init();
 
 // canvas
 VALUE shoes_canvas_systray(int, VALUE *, VALUE);

@@ -84,9 +84,12 @@ int shoes_ruby_embed() {
 #ifdef SHOES_WIN32
     //ruby_sysinit(0, 0);
 #endif
-    /* in ruby 2.3+ we need to fake  */
+    /* in ruby 2.3+ we need to give ruby_sysinit something nullish  */
+    //int zedc = 0;
+    //int *zeda = &zedc;
     int zedc = 0;
-    int *zeda = &zedc;
+    char *zedb = (char *)&zedc;
+    char **zeda = &zedb;
     ruby_sysinit(&zedc, &zeda);
     ruby_init();
     v = (VALUE)ruby_options(3, argv);

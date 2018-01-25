@@ -108,7 +108,6 @@ VALUE shoes_canvas_shoesevent(int argc, VALUE *argv, VALUE self) {
     // Parse the hash args
     VALUE hsh = argv[0];
     VALUE typeq = shoes_hash_get(hsh, rb_intern("type"));
-    VALUE typesym;
     ID type;
     if (TYPE(typeq) == T_SYMBOL) {
       type = SYM2ID(typeq);

@@ -59,6 +59,15 @@ VALUE shoes_event_new_widget(VALUE klass, ID type, VALUE widget, int btn, int x,
         int y, int w, int h, VALUE modifiers, VALUE key);
 VALUE shoes_event_find_psuedo (VALUE self, int x, int y, VALUE *pswidget);
 VALUE shoes_event_new_key(VALUE klass, ID type, VALUE key);
+VALUE shoes_event_find_native (VALUE self, int x, int y, VALUE *hitobj);
+void shoes_shoesevent_init();
+VALUE shoes_textblock_event_is_here(VALUE self, int x, int y);
+VALUE shoes_image_event_is_here(VALUE self, int x, int y);
+VALUE shoes_svg_event_is_here(VALUE self, int x, int y);
+VALUE shoes_plot_event_is_here(VALUE self, int x, int y);
+VALUE shoes_shape_event_is_here(VALUE self, int x, int y);
+VALUE shoes_control_is_here(VALUE self, int x, int y);
+
 // helper
 VALUE shoes_event_contrain_TF(VALUE evt);
 #endif
