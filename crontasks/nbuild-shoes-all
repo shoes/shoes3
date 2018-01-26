@@ -1,7 +1,7 @@
 #!/bin/bash
 # Build all binary variations of shoes. This runs under
 # my crontab so user name may not be set up for chroot
-schroot -c debx86 -u ccoupe -- ~/Projects/shoes3/crontasks/nbuild-shoes-x86_64
+schroot -c debx86 -u ccoupe -- ~/Projects/shoes3/crontasks/nbuild-shoes-lin64
 ~/Projects/shoes3/crontasks/nbuild-shoes-xwin7
 # ssh to Mac mini and build.
 ~/Projects/shoes3/crontasks/nbuild-shoes-mavericks

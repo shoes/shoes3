@@ -170,28 +170,32 @@ when /bsd/
 when /linux/
   if CROSS
     case TGT_ARCH
-    when /x86_64-linux/
-      require File.expand_path('make/linux/x86_64-linux/env')
-      require File.expand_path('make/linux/x86_64-linux/tasks')
-      require File.expand_path('make/linux/x86_64-linux/setup')
+    when /lin64/
+      require File.expand_path('make/linux/lin64/env')
+      require File.expand_path('make/linux/lin64/tasks')
+      require File.expand_path('make/linux/lin64/setup')
       require File.expand_path("make/gems")
       require File.expand_path('make/subsys')
+=begin
     when /i686-linux/
       require File.expand_path('make/linux/i686-linux/env')
       require File.expand_path('make/linux/i686-linux/tasks')
       require File.expand_path('make/linux/i686-linux/setup')
       require File.expand_path("make/gems")
       require File.expand_path('make/subsys')
-    when /pi2/
-      require File.expand_path('make/linux/pi2/env')
-      require File.expand_path('make/linux/pi2/tasks')
-      require File.expand_path('make/linux/pi2/setup')
+=end
+    when /rpi/
+      require File.expand_path('make/linux/rpi/env')
+      require File.expand_path('make/linux/rpi/tasks')
+      require File.expand_path('make/linux/rpi/setup')
       require File.expand_path("make/gems")
       require File.expand_path('make/subsys')
+=begin
     when /xarmv6hf/
       require File.expand_path('make/linux/xarm6hf/env')
       require File.expand_path('make/linux/xarm6hf/tasks')
       require File.expand_path('make/gems')
+=end
     when /xwin7/
       require File.expand_path('make/linux/xwin7/env')
       require File.expand_path('make/linux/xwin7/tasks')
@@ -483,15 +487,15 @@ namespace :linux do
     task :minlin do
       sh "echo 'TGT_ARCH=minlin' >build_target"
     end
-    
+=begin    
     #desc "Cross compile to arm6hf - advanced users"
     task :xarm6hf do
      sh "echo 'TGT_ARCH=xarmv6hf' >build_target"
     end
-    
-    desc "Native arm build - pi 2+"
-    task :pi2 do
-      sh "echo 'TGT_ARCH=pi2' >build_target"
+=end    
+    desc "Native Raspberry Pi build - 2+"
+    task :rpi do
+      sh "echo 'TGT_ARCH=rpi' >build_target"
     end
     
     #desc "Cross compile for msys2 deps (mingw)"
@@ -505,17 +509,17 @@ namespace :linux do
       puts "Cross compile for Windows MingW32"
       sh "echo 'TGT_ARCH=xwin7' >build_target"
     end
-
+=begin    
     desc "chroot build for i686 (32bit linux)"
     task :i686_linux do
       puts "Cross complile for i686-linux"
       sh "echo 'TGT_ARCH=i686-linux' >build_target"
     end
-
+=end
     desc "chroot build for x86_64 (64bit linux)"
-    task :x86_64_linux do
-      puts "Cross complile for x86_64-linux"
-      sh "echo 'TGT_ARCH=x86_64-linux' >build_target"
+    task :lin64 do
+      puts "Native complile for x86_64 Linux"
+      sh "echo 'TGT_ARCH=lin64' >build_target"
     end
 
   end

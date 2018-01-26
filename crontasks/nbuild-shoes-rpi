@@ -4,7 +4,7 @@ echo "Build Shoes rpi3"
 export NFS_ALTP=/home/ccoupe/build/
 cd ~/Projects/shoes3
 rm -f build_target
-rake linux:setup:pi2
+rake linux:setup:rpi
 rake
 rake package
 rake clobber
