@@ -321,7 +321,7 @@ module Shoes::Manual
     elsif @mindex.has_key? head
       head, sub = @mindex[head]
       open_methods(head, nil, sub)
-    elsif head =~ /^http:\/\//
+    elsif head =~ /^(http|https):\/\//
       debug head
       open_url head
     end
