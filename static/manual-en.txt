@@ -1,7 +1,7 @@
 = Hello! =
 
 Shoes is a tiny graphics toolkit. It's simple and straightforward. Shoes was
-born to be easy!  Really, it was made for absolute beginners. There's really
+born to be easy! Really, it was made for absolute beginners. There's really
 nothing to it.
 
 You see, the trivial Shoes program can be just one line:
@@ -11,9 +11,9 @@ You see, the trivial Shoes program can be just one line:
  Shoes.app { button("Click me!") { alert("Good job.") } }
 }}}
 
-Shoes programs are written in a language called Ruby.  When Shoes is handed
+Shoes programs are written in a language called Ruby. When Shoes is handed
 this simple line of Ruby code, a window appears with a button inside reading
-"Click me!"  When the button is clicked, a message pops up.
+"Click me!" When the button is clicked, a message pops up.
 
 On Linux, here's how this might look: !{:margin_left => 100}man-shot1.png!
 
@@ -35,15 +35,15 @@ just check out some screenshots, to give you an idea of what you can do.
 
 ==== Mac OS X ====
 
-Shoes runs on Apple Mac OS X 10.9 Mavericks.  Shoes no longer runs on PPC Macs
+Shoes runs on Apple Mac OS X 10.9 Mavericks. Shoes no longer runs on PPC Macs
 or 32 bit Macs because Apple doesn't think they exist. Shoes may run on earlier 
 64 bit Intel versions of OSX like 10.8 but you should not depend on that. 
 
 !man-look-mavericks.png!
 
 Don't worry. You can make things as pretty as you care to. That particular app
-is not worth the effort to prettify. It's utilitarian, a single purpose and odds are only 
-the author cares about it.  It's a very small program - only 77 lines and 3
+is not worth the effort to prettify. It's utilitarian, with a single purpose, and odds are only
+the author cares about it. It's a very small program - only 77 lines, and 3
 lines are about how OSX might not work - clearly it does. 
 
 It does show one reason we love Shoes. You can do clever and pretty things and you
@@ -57,7 +57,7 @@ Shoes runs on all versions of '''Microsoft Windows XP''', '''Windows Vista''',
 !man-look-vista.png!
 
 Above is pictured the `simple-clock.rb` sample running on Windows Vista. This
-example is also draws ovals and lines to build the clock, which is animated to
+example draws ovals and lines to build the clock, which is animated to
 repaint itself several times each second.
 
 Notice the text on the top of the app, showing the current time. Shoes has the
@@ -72,7 +72,7 @@ Linux'''. !man-look-ubuntu.png!
 Notice the buttons and progress bars. These types of controls look different on
 OS X and Windows. The text and links would look the same, though.
 
-Shapes, text, images and videos all look the same on every platforms.  However,
+Shapes, text, images and videos all look the same on every platform. However,
 native controls (like edit lines and edit boxes) will match the look of the
 window theme. Shoes will try to keep native controls all within the size you
 give them, only the look will vary.
@@ -85,20 +85,20 @@ Ruby? Do I need to unzip anything? What commands do I need to type?
 Nope. You don't need Ruby. You don't need WinZip. Nothing to type.
 
 On most systems, starting Shoes is just a matter of running the installer and
-clicking the Shoes icon.  Shoes comes with everything built in. We'll talk
+clicking the Shoes icon. Shoes comes with everything built in. We'll talk
 through all the steps, though, just to be clear about it.
 
 ==== Step 1: Installing Shoes ====
 
 You'll want to visit [[http://shoesrb.com/ the site of Shoes]] to download
-the Shoes installer.  Usually, you'll just want one of the installers on the
+the Shoes installer. Usually, you'll just want one of the installers on the
 downloads page of the site. !man-builds1.png!
 
 Here's how to run the installer:
 
- * On '''Mac OS X''', you'll have a file ending with '''.tbz''' in the Downloads folder.  Double-click this file and a file should appear with a '''Shoes''' icon. You may be asked to trust the download package. Drag the Shoes icon into the '''Applications''' folder. !man-builds2.png!
- * On '''Windows''', you'll download a '''.exe''' file.  Double-click this file and follow the instructions. !man-intro-exe.png!
- * On '''Linux''', make the '''.install''' file executable with '''chmod +x Shoes-3.2-stuff.install''' and run that, '''./Shoes-3.2-stuff.install''' It will ask for a the admin password to create a menu entry.
+ * On '''Mac OS X''', you'll have a file ending with '''.tbz''' in the Downloads folder. Double-click this file and a file should appear with a '''Shoes''' icon. You may be asked to trust the download package. Drag the Shoes icon into the '''Applications''' folder. !man-builds2.png!
+ * On '''Windows''', you'll download a '''.exe''' file. Double-click this file and follow the instructions. !man-intro-exe.png!
+ * On '''Linux''', make the '''.install''' file executable with '''chmod +x Shoes-3.2-stuff.install''' and run that, '''./Shoes-3.2-stuff.install''' It will ask for the admin password to create a menu entry.
 
 ==== Step 2: Start a New Text File ====
 
@@ -106,9 +106,9 @@ Shoes programs are just plain text files ending with a '''.rb''' extension.
 
 Here are a few ways to create a blank text file:
 
- * On '''Mac OS X''', visit your '''Applications''' folder and double-click on the '''TextEdit''' app.  A blank editor window should come up.  Now, go to the '''Format''' menu and select the '''Make Plain Text''' option.  Okay, you're all set! !man-editor-osx.png!
- * On '''Windows''', go to the Start menu.  Select '''All Programs''', then '''Accessories''', then '''Notepad'''. !man-editor-notepad.png!
- * On '''Linux''', most distros come with '''gedit'''.  You might try running that.  Or, if your distro is KDE-based, run '''kate'''.
+ * On '''Mac OS X''', visit your '''Applications''' folder and double-click on the '''TextEdit''' app. A blank editor window should come up. Now, go to the '''Format''' menu and select the '''Make Plain Text''' option. Okay, you're all set! !man-editor-osx.png!
+ * On '''Windows''', go to the Start menu. Select '''All Programs''', then '''Accessories''', then '''Notepad'''. !man-editor-notepad.png!
+ * On '''Linux''', most distros come with '''gedit'''. You might try running that. Or, if your distro is KDE-based, run '''kate'''.
 
 Now, in your blank window, type in the following:
 
@@ -123,17 +123,17 @@ Save to your desktop or home directory as `welcome.rb`.
 
 ==== Step 3: Run It! Go Shoes! ====
 
-There are several ways to run a Shoes program.  The easiest is from the 'splash' screen
+There are several ways to run a Shoes program. The easiest is from the 'splash' screen.
 We're going to use the '''Open an App''' link to browse to where you stored
 `welcome.rb`.  !man-splash.png!
 
 To run your program, start Shoes:
 
- * On '''Mac OS X''', visit your '''Applications''' folder again.  This time, double-click the '''Shoes''' icon in that folder.  You should see the splash screen above. 
- * On '''Windows''', get to the Start menu.  Go into '''All Programs''', then '''Shoes''', then '''Shoes'''.  You should see the splash screen above.
- * On '''Linux''', Look for the Shoes icon in the  Programming, Education, or Others Menus. Select it.  You should see the splash screen above.
+ * On '''Mac OS X''', visit your '''Applications''' folder again. This time, double-click the '''Shoes''' icon in that folder. You should see the splash screen above. 
+ * On '''Windows''', get to the Start menu. Go into '''All Programs''', then '''Shoes''', then '''Shoes'''. You should see the splash screen above.
+ * On '''Linux''', look for the Shoes icon in the menus Programming, Education, or Others. Select it. You should see the splash screen above.
 
-So, not much of a program yet.  But it's something!  You've got the knack of it, at least!
+So, not much of a program yet. But it's something! You've got the knack of it, at least!
 
 ==== What Can You Make With Shoes? ====
 
@@ -152,18 +152,18 @@ NodeBox and Processing, two very good languages for drawing animated graphics.
 
 == The Rules of Shoes ==
 
-Time to stop guessing how Shoes works.  Some of the tricky things will come
-back to haunt you.  I've boiled down the central rules to Shoes.  These are the
+Time to stop guessing how Shoes works. Some of the tricky things will come
+back to haunt you. I've boiled down the central rules to Shoes. These are the
 things you MUST know to really make it all work.
 
-These are general rules found throughout Shoes.  While Shoes has an overall
+These are general rules found throughout Shoes. While Shoes has an overall
 philosophy of simplicity and clarity, there are a few points that need to be
 studied and remembered.
 
 ==== Shoes Tricky Blocks ====
 
-Okay, this is absolutely crucial.  Shoes does a trick with blocks.  This trick
-makes everything easier to read.  But it also can make blocks harder to use
+Okay, this is absolutely crucial. Shoes does a trick with blocks. This trick
+makes everything easier to read. But it also can make blocks harder to use
 once you're in deep.
 
 '''Let's take a normal Ruby block:'''
@@ -175,12 +175,12 @@ once you're in deep.
  end
 }}}
 
-In Shoes, these sorts of blocks work the same.  This block above loops through
-the array and stores each object in the `item` variable.  The `item` variable
+In Shoes, these sorts of blocks work the same. This block above loops through
+the array and stores each object in the `item` variable. The `item` variable
 disappears (goes out of scope) when the block ends.
 
 One other thing to keep in mind is that `self` stays the same inside normal
-Ruby blocks.  Whatever `self` was before the call to `each`, it is the same
+Ruby blocks. Whatever `self` was before the call to `each`, it is the same
 inside the `each` block.
 
 '''Both of these things are also true for most Shoes blocks.'''
@@ -2385,6 +2385,9 @@ personal Shoes directory.  Remote images are loaded in the background; as with
 browsers, the images will not appear right away, but will be shown when they
 are loaded.
 
+You can disable the remote image caching in several ways. For just this image,
+append the hash arg 'cache: false` See [[AppMethods]] for the global way.
+
 === imagesize(path) » [width, height] ===
 
 Quickly grab the width and height of an image.  The image won't be loaded into
@@ -2543,7 +2546,7 @@ to a slot whenever a mouse moves inside the slot.  Or whenever a key is
 pressed.  Even when the slot is created or destroyed.  You can attach a block
 to each of these events.
 
-Mouse events include `motion`, `click`, `hover` and `leave`.  Keyboard typing
+Mouse events include `motion`, `click`, `wheel`, `hover` and `leave`.  Keyboard typing
 is represented by the `keypress` event.  And the `start` and `finish` events
 indicate when a canvas comes into play or is discarded.
 
@@ -2551,6 +2554,12 @@ So, let's say you want to change the background of a slot whenever the mouse
 floats over it.  We can use the `hover` event to change the background when the
 mouse comes inside the slot.  And `leave` to change back when the mouse floats
 away.
+
+The mouse related events also provide a mods value that reports whether the
+control, shift or both keys were held down during the event. The mods will be empty (nil),
+or a string of 'control', 'shift' or 'control_shift'. This was introduced in
+Shoes 3.3.5. Older scripts still work.
+
 
 {{{
  #!ruby
@@ -2567,7 +2576,7 @@ away.
  end
 }}}
 
-=== click { |button, left, top| ... } » self ===
+=== click { |button, left, top, mods| ... } » self ===
 
 The click block is called when a mouse button is clicked.  The `button` is the
 number of the mouse button which has been pressed.  The `left` and `top` are
@@ -2575,13 +2584,51 @@ the mouse coordinates at which the click happened.
 
 To catch the moment when the mouse is unclicked, see the [[Events.release]] event.
 
+NOTE: only button numbers of 1,2,3 (left, wheel-press, right) are available
+for all platforms and mice. If you have an exotic mouse you can get higher
+button numbers but you should not expect other users have such a device.
+
 {{{
 Shoes.app do
    click do |btn, left, top|
-      para "#{btn}, #{left}, #{top}\n"
+      para "#{btn}, #{left}, #{top}, \n"
    end
 end
 }}}
+
+=== wheel { |dir, left, top, mods| ...} » self ===
+
+The wheel block is called when the mouse wheel is scrolled up or down. dir
+is 0 or 1. Beware! No one knows if 1 is up or down since it can be changed
+by the users operating system.  Like click, wheel is attatched to a slot so
+you can have many of them.
+
+{{{
+Shoes.app do
+  stack height: 200 do
+    click do |b,l,t|
+     @p.replace "Stack clicked"
+    end
+    @p = para "None"
+    flow width: 200 do 
+      para "Flow 1"
+      wheel do |d,l,t| 
+       @p.replace  "Flow 1 wheel #{d}"
+      end
+    end
+    flow width: 200 do
+      para "Flow 2"
+      click do |b,l,t|
+       @p.replace "Flow 2 clicked"
+      end
+    end
+  end
+  wheel {|d,l,t,mods| @p.replace "default slot wheel #{d} #{mods}"}
+end
+}}}
+
+Notice that the `mods` is only supplied in the outer most `wheel`. Its ignored
+if you don't ask for mods.
 
 === finish { |self| ... } » self ===
 
@@ -2675,10 +2722,10 @@ called with `self`, the slot object which is being left.
 
 Also see [[Events.hover]] if you'd like to detect the mouse entering a slot.
 
-=== motion { |left, top| ... } » self ===
+=== motion { |left, top, mods| ... } » self ===
 
 The motion block gets called every time the mouse moves around inside the slot.
-The block is handed the cursor's `left` and `top` coordinates.
+The block is handed the cursor's `left` and `top` coordinates and the optional mods.
 
 {{{
  #!ruby
@@ -3656,9 +3703,21 @@ in memory. This prevents a repeat download unless the image has changed. (In
 case you're wondering: Shoes keeps track of modification times and etags just
 like a browser would.)
 
-Shoes also loads remote images in the background using system threads. So,
-using remote images will not block Ruby or any intense graphical displays you
-may have going on.
+Sometimes, you don't want Shoes to cache images. For just one particular image
+just add add  'cache: false' 
+
+{{{
+ #!ruby
+ Shoes.app do
+   image "http://shoesrb.com/img/shoes-icon.png", cache: false
+ end
+}}}
+
+You can also disable all image caching - see [[AppMethods]]
+
+Shoes may load remote images in the background using system threads. So,
+using remote images may not block Ruby or any intense graphical displays you
+may have going on. May not. Assume you'll wait.
 
 === full_height() » a number ===
 
@@ -5197,6 +5256,24 @@ Another caution - these are methods of an App instance so you need that object.
 Even when they effect more than one instance of App. Shoes creates an 'app'
 method in the Shoes.app block that you must use for the following.
 
+=== app.cache » boolean ===
+
+Returns the setting of the app's image caching status.
+
+=== app.cache = boolean ===
+
+Changes the image caching behavior for the whole app. By default, images are 
+cached (aka 'true'). Sometimes, that is not desired. You can turn off the caching
+for all image calls by setting this to 'false' Note: individual calls to image can
+override the global setting - see [[Image]]
+
+=== app.cache_clear sym » boolean  ===
+
+Clears the internal image cache or the external image cache or both depending on the 
+symbol provided for the argument - one of :memory, :external, :all
+
+Always returns true. 
+
 === app.decorated » true or false ===
 
 Decorations are the title bar and window resize controls. 
@@ -5238,6 +5315,13 @@ Parenthesis are required.
 
 Returns the Shoes url. Be careful. It's a shoes-url so it might not be what
 you think.
+
+=== app.resize width, height » boolean ===
+
+Change the size of the window. You don't want to increase beyond your or
+your users screen size - That could be a problem (crash?).  Also it can misbehave if 
+you shrink it smaller than the original creation size. Always returns True 
+but there is no error checking. Use cautiously.
 
 === app.started? » boolean ===
 
@@ -5460,6 +5544,18 @@ If you have 7 entries (0..6), append at 7 (array.size) or face the nil's that pl
 It will be serious mistake to set [nil, newvalue] or ["newlabel", nil] and expect that Shoes will fix your nil. 
 It will segfault, if you are lucky. 
 
+== Event Streams ==
+
+This a very arcane and specialized capabilty. Basically you can get low level
+events like click or key press and chose to send the event to normal Shoes GUI
+handlers. For example you could disable all button clicks in another window
+
+It's documented at https://github.com/shoes/shoes3/wiki/event-streams 
+[[https://github.com/shoes/shoes3/wiki/event-streams Shoes Wiki]] You will want to study
+and play with the Test/events/* scripts so you'll need a git clone of Shoes.
+
+Caution: it's incomplete - if you need something more then create an issue
+at the Shoes3 github.
 
 
 == Terminal ==

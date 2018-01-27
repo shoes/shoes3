@@ -743,3 +743,12 @@ void shoes_textblock_send_release(VALUE self, int button, int x, int y) {
             shoes_safe_block(self, proc, rb_ary_new3(1, self));
     }
 }
+
+VALUE shoes_textblock_event_is_here(VALUE self, int x, int y) {
+  shoes_textblock *tblk;
+  Data_Get_Struct(self, shoes_textblock, tblk);
+  if (IS_INSIDE(tblk, x, y)) 
+    return Qtrue;
+  else 
+    return Qnil;
+}

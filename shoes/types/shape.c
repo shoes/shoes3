@@ -277,6 +277,15 @@ void shoes_shape_send_release(VALUE self, int button, int x, int y) {
     }
 }
 
+VALUE shoes_shape_event_is_here(VALUE self, int x, int y) {
+  shoes_shape *shp;
+  Data_Get_Struct(self, shoes_shape, shp);
+  if (IS_INSIDE(shp, x, y)) 
+    return Qtrue;
+  else 
+    return Qnil;
+}
+
 // canvas
 VALUE shoes_canvas_shape(int argc, VALUE *argv, VALUE self) {
     int x;

@@ -949,9 +949,27 @@ EVENT_HANDLER(motion);
 EVENT_HANDLER(keydown);
 EVENT_HANDLER(keypress);
 EVENT_HANDLER(keyup);
+EVENT_HANDLER(wheel);
 //EVENT_HANDLER(start);
 EVENT_HANDLER(finish);
+//EVENT_HANDLER(event);
 
+// don't use  macro  for event 
+VALUE shoes_canvas_event(int argc, VALUE *argv, VALUE self) {
+    VALUE val, block = Qnil; 
+    SETUP_CANVAS(); 
+    rb_scan_args(argc, argv, "01&", &val, &block); 
+    if (rb_obj_is_kind_of(block, rb_cProc)) {
+      ATTRSET(canvas->attr, event, block); 
+      canvas->app->use_event_handler = 1;
+      //printf("FW Self: %i\n", canvas->app);
+    } else {
+		  fprintf(stderr, "shoes_canvas_event is not block/proc\n");
+		  canvas->app->use_event_handler = 0;
+    }
+    return self; 
+}
+// don't use macro for start
 VALUE shoes_canvas_start(int argc, VALUE *argv, VALUE self) {
     VALUE val, block;
     SETUP_CANVAS();
@@ -1016,7 +1034,7 @@ void shoes_canvas_send_finish(VALUE self) {
         shoes_safe_block(self, finish, rb_ary_new3(1, self));
 }
 
-VALUE shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked) {
+VALUE shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE mods, VALUE *clicked) {
     long i;
     int ox = x, oy = y;
     VALUE v = Qnil;
@@ -1039,14 +1057,14 @@ VALUE shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clic
             if (!NIL_P(click)) {
                 if (ORIGIN(self_t->place))
                     y += self_t->slot->scrolly;
-                shoes_safe_block(self, click, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
+                shoes_safe_block(self, click, rb_ary_new3(4, INT2NUM(button), INT2NUM(x), INT2NUM(y), mods));
             }
         }
 
         for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--) {
             VALUE ele = rb_ary_entry(self_t->contents, i);
             if (rb_obj_is_kind_of(ele, cCanvas)) {
-                v = shoes_canvas_send_click(ele, button, ox, oy);
+                v = shoes_canvas_send_click(ele, button, ox, oy, mods);
                 *clicked = ele;
             } else if (rb_obj_is_kind_of(ele, cTextBlock)) {
                 v = shoes_textblock_send_click(ele, button, ox, oy, clicked);
@@ -1086,14 +1104,14 @@ VALUE shoes_canvas_goto(VALUE self, VALUE url) {
     return self;
 }
 
-VALUE shoes_canvas_send_click(VALUE self, int button, int x, int y) {
+VALUE shoes_canvas_send_click(VALUE self, int button, int x, int y, VALUE mods) {
     // INFO("click(%d, %d, %d)\n", button, x, y);
     VALUE clicked = Qnil;
-    VALUE url = shoes_canvas_send_click2(self, button, x, y, &clicked);
+    VALUE url = shoes_canvas_send_click2(self, button, x, y, mods, &clicked);
     if (!NIL_P(url)) {
         if (rb_obj_is_kind_of(url, rb_cProc))
             //shoes_safe_block(self, url, rb_ary_new3(1, clicked));
-            shoes_safe_block(self, url, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
+            shoes_safe_block(self, url, rb_ary_new3(4, INT2NUM(button), INT2NUM(x), INT2NUM(y), mods));
         else {
             shoes_canvas *self_t;
             Data_Get_Struct(self, shoes_canvas, self_t);
@@ -1103,7 +1121,7 @@ VALUE shoes_canvas_send_click(VALUE self, int button, int x, int y) {
     return Qnil;
 }
 
-void shoes_canvas_send_release(VALUE self, int button, int x, int y) {
+void shoes_canvas_send_release(VALUE self, int button, int x, int y, VALUE mods) {
     long i;
     int ox = x, oy = y;
     shoes_canvas *self_t;
@@ -1125,14 +1143,14 @@ void shoes_canvas_send_release(VALUE self, int button, int x, int y) {
             if (!NIL_P(release)) {
                 if (ORIGIN(self_t->place))
                     y += self_t->slot->scrolly;
-                shoes_safe_block(self, release, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
+                shoes_safe_block(self, release, rb_ary_new3(4, INT2NUM(button), INT2NUM(x), INT2NUM(y), mods));
             }
         }
 
         for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--) {
             VALUE ele = rb_ary_entry(self_t->contents, i);
             if (rb_obj_is_kind_of(ele, cCanvas)) {
-                shoes_canvas_send_release(ele, button, ox, oy);
+                shoes_canvas_send_release(ele, button, ox, oy, mods);
             } else if (rb_obj_is_kind_of(ele, cTextBlock)) {
                 shoes_textblock_send_release(ele, button, ox, oy);
             } else if (rb_obj_is_kind_of(ele, cImage)) {
@@ -1148,7 +1166,7 @@ void shoes_canvas_send_release(VALUE self, int button, int x, int y) {
     }
 }
 
-VALUE shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url) {
+VALUE shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url, VALUE mods) {
     char oh, ch = 0, h = 0, *n = 0;
     long i;
     int ox = x, oy = y;
@@ -1171,14 +1189,14 @@ VALUE shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url) {
     if (ATTR(self_t->attr, hidden) != Qtrue) {
         VALUE motion = ATTR(self_t->attr, motion);
         if (!NIL_P(motion)) {
-            shoes_safe_block(self, motion, rb_ary_new3(2, INT2NUM(x), INT2NUM(y)));
+            shoes_safe_block(self, motion, rb_ary_new3(3, INT2NUM(x), INT2NUM(y), mods));
         }
 
         for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--) {
             VALUE urll = Qnil;
             VALUE ele = rb_ary_entry(self_t->contents, i);
             if (rb_obj_is_kind_of(ele, cCanvas)) {
-                urll = shoes_canvas_send_motion(ele, ox, oy, url);
+                urll = shoes_canvas_send_motion(ele, ox, oy, url, mods);
             } else if (rb_obj_is_kind_of(ele, cTextBlock)) {
                 urll = shoes_textblock_motion(ele, ox, oy, &h);
             } else if (rb_obj_is_kind_of(ele, cImage)) {
@@ -1216,7 +1234,7 @@ void shoes_canvas_wheel_way(shoes_canvas *self_t, ID dir) {
         shoes_slot_scroll_to(self_t, 32, 1);
 }
 
-void shoes_canvas_send_wheel(VALUE self, ID dir, int x, int y) {
+void shoes_canvas_send_wheel(VALUE self, ID dir, int x, int y, VALUE mods) {
     long i;
     shoes_canvas *self_t;
     Data_Get_Struct(self, shoes_canvas, self_t);
@@ -1224,14 +1242,22 @@ void shoes_canvas_send_wheel(VALUE self, ID dir, int x, int y) {
     if (ATTR(self_t->attr, hidden) != Qtrue) {
         VALUE wheel = ATTR(self_t->attr, wheel);
         if (!NIL_P(wheel)) {
-            if (IS_INSIDE(self_t, x, y))
-                shoes_canvas_wheel_way(self_t, dir);
+            if (IS_INSIDE(self_t, x, y)) {
+                VALUE proc = ATTR(self_t->attr, wheel);
+                if (! NIL_P(proc)) {
+                    //fprintf(stderr, "calling wheel proc\n");
+                    shoes_safe_block(self, proc, rb_ary_new3(4, INT2NUM(dir == s_up) , 
+                        INT2NUM(x), INT2NUM(y), mods ));
+                } else {
+                    shoes_canvas_wheel_way(self_t, dir);
+                }
+            }
         }
-
+        // TODO:  handle image, svg, plot
         for (i = RARRAY_LEN(self_t->contents) - 1; i >= 0; i--) {
             VALUE ele = rb_ary_entry(self_t->contents, i);
             if (rb_obj_is_kind_of(ele, cCanvas)) {
-                shoes_canvas_send_wheel(ele, dir, x, y);
+                shoes_canvas_send_wheel(ele, dir, x, y, mods);
             }
         }
     }

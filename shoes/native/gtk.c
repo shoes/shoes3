@@ -17,6 +17,7 @@
 #include "shoes/types/text.h"
 #include "shoes/types/text_link.h"
 #include "shoes/types/download.h"
+#include "shoes/types/event.h"
 #include "shoes/internal.h"
 
 #include <fontconfig/fontconfig.h>
@@ -117,16 +118,22 @@ void shoes_native_init() {
 #if !defined(RUBY_HTTP) && !defined(SHOES_GTK_WIN32)
     curl_global_init(CURL_GLOBAL_ALL);
 #endif
-    /* using linux gtk_application_new() instead of 
-     *     // Shoes <= 3.3.3
-     *     gtk_init(NULL, NULL);
-    */
+#ifdef GAPP
     int status;
     GtkApplication *shoes_GtkApp;
-    shoes_GtkApp = gtk_application_new ("com.mvmanila.shoes", G_APPLICATION_HANDLES_COMMAND_LINE);
+    srand(time(NULL));
+    int pid = rand();
+    char app_id[100];
+    sprintf(app_id, "com.mvmanila.shoes-%i", pid);
+    fprintf(stderr,"launching %s\n", app_id);
+    //shoes_GtkApp = gtk_application_new ("com.mvmanila.shoes", G_APPLICATION_HANDLES_COMMAND_LINE);
+    shoes_GtkApp = gtk_application_new (app_id, G_APPLICATION_HANDLES_COMMAND_LINE);
 
     g_signal_connect (shoes_GtkApp, "command-line", G_CALLBACK (shoes_gtk_app_cmdline), NULL);
-    status = g_application_run (G_APPLICATION (shoes_GtkApp), NULL, NULL);
+#else
+    // Shoes 3.3.3 way to init
+    gtk_init(NULL, NULL);
+#endif
 }
 
 /* end of GApplication init  */
@@ -271,22 +278,63 @@ static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, g
         shoes_canvas *canvas;
         Data_Get_Struct(app->canvas, shoes_canvas, canvas);
         state = (GdkModifierType)event->state;
-        shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly);
+        int mods = 0;
+        if (event->state & GDK_SHIFT_MASK)
+          mods = mods | SHOES_MODIFY_SHIFT;
+        if (event->state & GDK_CONTROL_MASK)
+        mods = mods | SHOES_MODIFY_CTRL;
+        shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly, mods);
     }
     return TRUE;
 }
 
+#ifdef NEWCLICK
 static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data) {
     shoes_app *app = (shoes_app *)data;
     shoes_canvas *canvas;
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+    
+    int x, y;
+    GdkModifierType state;
+   
+    gdk_window_get_device_position(gtk_widget_get_window(widget), event->device, &x, &y, &state);
+    
     if (event->type == GDK_BUTTON_PRESS) {
-        shoes_app_click(app, event->button, event->x, event->y + canvas->slot->scrolly);
+        shoes_app_click(app, event->button, x, y);
     } else if (event->type == GDK_BUTTON_RELEASE) {
-        shoes_app_release(app, event->button, event->x, event->y + canvas->slot->scrolly);
+        shoes_app_release(app, event->button, x, y);
     }
     return TRUE;
 }
+#else
+static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data) {
+    shoes_app *app = (shoes_app *)data;
+    shoes_canvas *canvas;
+    Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+    // process modifiers
+    int mods = 0;
+    if (event->state & GDK_SHIFT_MASK)
+      mods = mods | SHOES_MODIFY_SHIFT;
+    if (event->state & GDK_CONTROL_MASK)
+      mods = mods | SHOES_MODIFY_CTRL; 
+/*  never get these on Linux or its a themeable thing
+    if (event->state & GDK_MOD1_MASK)  
+      mods = mods | SHOES_MODIFY_ALT;
+    if (event->state & GDK_SUPER_MASK)
+      fprintf(stderr, "super\n");
+    if (event->state & GDK_HYPER_MASK)
+      fprintf(stderr, "hyper\n");   
+    if (event->state & GDK_META_MASK)
+      fprintf(stderr, "meta\n");   
+*/
+    if (event->type == GDK_BUTTON_PRESS) {
+        shoes_app_click(app, event->button, event->x, event->y + canvas->slot->scrolly, mods);
+    } else if (event->type == GDK_BUTTON_RELEASE) {
+        shoes_app_release(app, event->button, event->x, event->y + canvas->slot->scrolly, mods);
+    }
+    return TRUE;
+}
+#endif
 
 static gboolean shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gpointer data) {
     ID wheel;
@@ -308,8 +356,13 @@ static gboolean shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gp
         default:
             return TRUE;
     }
-
-    shoes_app_wheel(app, wheel, event->x, event->y);
+    // process modifiers
+    int mods = 0;
+    if (event->state & GDK_SHIFT_MASK)
+      mods = mods | SHOES_MODIFY_SHIFT;
+    if (event->state & GDK_CONTROL_MASK)
+      mods = mods | SHOES_MODIFY_CTRL; 
+    shoes_app_wheel(app, wheel, event->x, event->y, mods);
     return TRUE;
 }
 
@@ -343,7 +396,8 @@ static gboolean shoes_app_gtk_keypress(GtkWidget *widget, GdkEventKey *event, gp
             chbuf[len] = '\0';
 
             v = ID2SYM(rb_intern(chbuf));
-            if (modifiers & GDK_SHIFT_MASK) modifiers ^= GDK_SHIFT_MASK;
+            if (modifiers & GDK_SHIFT_MASK)
+              modifiers ^= GDK_SHIFT_MASK;
         } else {
             if (event->string[0] == '\r' && event->length == 1)
                 v = rb_str_new2("\n");
@@ -640,15 +694,27 @@ done:
     return SHOES_OK;
 }
 
-void shoes_native_app_resized(shoes_app *app) {
-    // Not needed anymore ?
-    //  if (app->os.window != NULL)
-    //    gtk_widget_set_size_request(app->os.window, app->width, app->height);
-}
-
 void shoes_native_app_title(shoes_app *app, char *msg) {
     gtk_window_set_title(GTK_WINDOW(app->os.window), _(msg));
 }
+
+void shoes_native_app_resize_window(shoes_app *app) {
+    if ((app->os.window != NULL) && (app->width > 0 && app->height > 0)) {
+        gtk_widget_set_size_request((GtkWidget *) app->os.window, app->width, app->height);
+    }
+}
+
+VALUE shoes_native_get_resizable(shoes_app *app) {
+    return gtk_window_get_resizable(GTK_WINDOW(app->os.window));
+}
+
+void shoes_native_set_resizable(shoes_app *app, int resizable) {
+    gboolean state;
+    state = resizable ? TRUE : FALSE;
+    if (gtk_window_get_resizable(GTK_WINDOW(app->os.window)) != state)
+        gtk_window_set_resizable(GTK_WINDOW(app->os.window), state);
+}
+
 
 void shoes_native_app_fullscreen(shoes_app *app, char yn) {
     gtk_window_set_keep_above(GTK_WINDOW(app->os.window), (gboolean)yn);
@@ -695,6 +761,15 @@ int shoes_native_app_get_decoration(shoes_app *app) {
     return gtk_window_get_decorated(GTK_WINDOW(app->os.window)) == TRUE;
 }
 
+// new in 3.3.4
+void shoes_native_app_get_window_position(shoes_app *app) {
+    gtk_window_get_position(GTK_WINDOW(app->os.window), &app->x, &app->y);
+}
+
+void shoes_native_app_window_move(shoes_app *app, int x, int y) {
+    gtk_window_move(GTK_WINDOW(app->os.window), app->x = x, app->y = y);
+}
+
 shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
 #if !defined(SHOES_GTK_WIN32)
     char icon_path[SHOES_BUFSIZE];
@@ -716,10 +791,12 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
         GdkGeometry hints;
         hints.min_width = app->minwidth;
         hints.min_height = app->minheight;
-        gtk_window_set_geometry_hints(GTK_WINDOW(gk->window), gk->window,
+        gtk_window_set_geometry_hints(GTK_WINDOW(gk->window), NULL,
                                       &hints, GDK_HINT_MIN_SIZE);
-    }
+   }
     gtk_window_set_default_size(GTK_WINDOW(gk->window), app->width, app->height);
+
+    gtk_window_get_position(GTK_WINDOW(gk->window), &app->x, &app->y);
 
     if (app->fullscreen) shoes_native_app_fullscreen(app, 1);
 
@@ -783,7 +860,7 @@ void shoes_native_loop() {
     //gtkrb_source = gtkrb_init_source();
     //g_source_attach(gtkrb_source, (gpointer) NULL);
     //g_idle_add(gtkrb_idle, NULL);
-    g_timeout_add(2, gtkrb_idle, NULL);
+    g_timeout_add(10, gtkrb_idle, NULL);
 #endif
     GLOBAL_APP(app);
     if (APP_WINDOW(app)) gtk_main();
@@ -1024,7 +1101,11 @@ VALUE shoes_native_to_s(VALUE text) {
 VALUE shoes_native_window_color(shoes_app *app) {
     GtkStyleContext *style = gtk_widget_get_style_context(GTK_WIDGET(APP_WINDOW(app)));
     GdkRGBA bg;
+#ifdef BSD // assumes Gtk 3.22
+    gtk_style_context_lookup_color(style, (char *)NULL, &bg);
+#else
     gtk_style_context_lookup_color(style, GTK_STATE_NORMAL, &bg);
+#endif
     return shoes_color_new((int)(bg.red * 255), (int)(bg.green * 255),
                            (int)(bg.blue * 255), SHOES_COLOR_OPAQUE);
 }
@@ -1032,7 +1113,11 @@ VALUE shoes_native_window_color(shoes_app *app) {
 VALUE shoes_native_dialog_color(shoes_app *app) {
     GdkRGBA bg;
     GtkStyleContext *style = gtk_widget_get_style_context(GTK_WIDGET(APP_WINDOW(app)));
+#ifdef BSD // assumes Gtk 3.22
+    gtk_style_context_lookup_color(style, (char *)NULL, &bg);
+#else
     gtk_style_context_lookup_color(style, GTK_STATE_NORMAL, &bg);
+#endif
     return shoes_color_new((int)(bg.red * 255), (int)(bg.green * 255),
                            (int)(bg.blue * 255), SHOES_COLOR_OPAQUE);
 }

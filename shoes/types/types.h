@@ -24,6 +24,7 @@
 #include "shoes/types/textblock.h"
 #include "shoes/types/timerbase.h"
 #include "shoes/types/video.h"
+#include "shoes/types/event.h"
 
 #define SHOES_TYPES_INIT \
 	shoes_0_native_type_init(); \
@@ -45,10 +46,11 @@
 	shoes_spinner_init(); \
 	shoes_svg_init(); \
 	shoes_switch_init(); \
-  shoes_systray_init(); \
+    shoes_systray_init(); \
 	shoes_text_init(); \
 	shoes_text_link_init(); \
 	shoes_text_view_init(); \
 	shoes_textblock_init(); \
 	shoes_timerbase_init(); \
-	shoes_video_init();
+	shoes_video_init(); \
+    shoes_shoesevent_init();

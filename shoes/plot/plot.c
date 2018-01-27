@@ -745,7 +745,6 @@ VALUE shoes_plot_motion(VALUE self, int x, int y, char *touch) {
 // called by shoes_canvas_send_click --> shoes_canvas_send_click2
 VALUE shoes_plot_send_click(VALUE self, int button, int x, int y) {
     VALUE v = Qnil;
-
     if (button >  0) {
         GET_STRUCT(plot, self_t);
         v = shoes_plot_motion(self, x, y, NULL);
@@ -756,6 +755,15 @@ VALUE shoes_plot_send_click(VALUE self, int button, int x, int y) {
     // if we found a click callback send it back to shoes_canvas_send_click method
     // where it will be processed
     return v;
+}
+
+VALUE shoes_plot_event_is_here(VALUE self, int x, int y) {
+  shoes_plot *plot;
+  Data_Get_Struct(self, shoes_plot, plot);
+  if (IS_INSIDE(plot, x, y)) 
+    return Qtrue;
+  else 
+    return Qnil;
 }
 
 // called by shoes_canvas_send_release

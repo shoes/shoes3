@@ -65,7 +65,8 @@ class MakeBSD
       tgts = File.expand_path(name)
       tgtd = File.dirname(name)
       $stderr.puts "new_link: #{tgtd} from #{name}"
-      sh "#{CC} -o #{TGT_DIR}/shoes  #{TGT_DIR}/#{APP['Bld_Tmp']}/main.o #{TGT_DIR}/shoes.lib #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+      #sh "#{CC} -o #{TGT_DIR}/shoes  #{TGT_DIR}/#{APP['Bld_Tmp']}/main.o #{TGT_DIR}/shoes.lib #{LINUX_LDFLAGS} #{LINUX_LIBS}" 
+      sh "#{CC} -o #{TGT_DIR}/shoes  #{TGT_DIR}/#{APP['Bld_Tmp']}/main.o #{TGT_DIR}/shoes.lib  #{LINUX_LIBS}" 
     end
 
     def make_installer

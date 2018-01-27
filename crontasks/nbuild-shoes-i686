@@ -1,0 +1,9 @@
+#!/bin/bash
+echo "Build Shoes i686 for Linux"
+cd /home/ccoupe/Projects/shoes3
+rm -f crosscompile
+rake linux:setup:i686_linux
+rake
+rake package
+rake clobber
+ls -ld pkg/*-i686.install

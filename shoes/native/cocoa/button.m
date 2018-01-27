@@ -52,7 +52,8 @@ extern VALUE cTimer;
 }
 -(IBAction)handleClick: (id)sender
 {
-  shoes_button_send_click(object);
+  //shoes_button_send_click(object);
+  shoes_control_send(object, s_click);
 }
 @end
 

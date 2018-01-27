@@ -1,4 +1,5 @@
 #include "shoes/types/native.h"
+#include "shoes/types/event.h"
 
 // ruby
 VALUE cNative;
@@ -156,8 +157,34 @@ void shoes_control_check_styles(shoes_control *self_t) {
 void shoes_control_send(VALUE self, ID event) {
     VALUE click;
     GET_STRUCT(control, self_t);
-
-    if (!NIL_P(self_t->attr)) {
+    VALUE sendevt = Qtrue;
+    shoes_canvas *parent_canvas;
+    Data_Get_Struct(self_t->parent, shoes_canvas, parent_canvas);
+   // do we have an event overide? 
+    if (parent_canvas->app->use_event_handler && event == s_click) {
+      //fprintf(stderr, "C: button click seeks permission\n");
+      shoes_app *app = parent_canvas->app;
+      shoes_canvas *app_canvas;
+      Data_Get_Struct(app->canvas, shoes_canvas, app_canvas);
+      VALUE evtproc = ATTR(app_canvas->attr, event);
+      if (! NIL_P(evtproc)) {
+        // TODO:  verify selt_t->place.name is accurate, somehow
+        int x,y,w,h  = 0;
+        x = self_t->place.x;
+        y = self_t->place.y;
+        h = self_t->place.h;
+        w = self_t->place.w;
+        // use 
+        VALUE evt = shoes_event_new_widget(cShoesEvent, s_btn_activate, self, 1, x, y, w, h, Qnil, Qnil);
+        shoes_safe_block(app->canvas, evtproc, rb_ary_new3(1, evt));
+        shoes_event *tevent;
+        Data_Get_Struct(evt, shoes_event, tevent);
+        sendevt = shoes_event_contrain_TF(tevent->accept);
+      } else
+        fprintf(stderr, "shoes_control_send: doesn't have event - but it should\n");
+    }
+    if ((sendevt == Qtrue) && !NIL_P(self_t->attr)) {
+        // TODO: bug here for replay
         click = rb_hash_aref(self_t->attr, ID2SYM(event));
         if (!NIL_P(click))
             shoes_safe_block(self_t->parent, click, rb_ary_new3(1, self));
@@ -186,6 +213,17 @@ void shoes_control_hide_ref(SHOES_CONTROL_REF ref) {
 void shoes_control_show_ref(SHOES_CONTROL_REF ref) {
     if (ref != NULL) shoes_native_control_show(ref);
 }
+
+// called by low level when feeding events
+VALUE shoes_control_is_here(VALUE self, int x, int y) {
+  shoes_control *ctl;
+  Data_Get_Struct(self, shoes_control, ctl);
+  if (IS_INSIDE(ctl, x, y)) 
+    return Qtrue;
+  else 
+    return Qnil;
+}
+
 
 // canvas
 VALUE shoes_canvas_hide(VALUE self) {

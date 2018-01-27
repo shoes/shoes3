@@ -12,8 +12,7 @@
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
 
-// SvgHandle struct - not a graphical widget
-// new in 3.3.0
+// not a graphical widget
 typedef struct _systray {
     char *icon_path;
     char *title;
@@ -24,6 +23,7 @@ typedef struct _systray {
 // ruby (systray)
 VALUE shoes_systray_new(int argc, VALUE *argv, VALUE self);
 VALUE shoes_systray_alloc(VALUE);
+void shoes_systray_init();
 
 // canvas
 VALUE shoes_canvas_systray(int, VALUE *, VALUE);

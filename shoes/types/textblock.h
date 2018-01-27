@@ -59,6 +59,7 @@ VALUE shoes_textblock_motion(VALUE self, int x, int y, char *t);
 VALUE shoes_textblock_hit(VALUE self, VALUE _x, VALUE _y);
 VALUE shoes_textblock_send_click(VALUE self, int button, int x, int y, VALUE *clicked);
 void shoes_textblock_send_release(VALUE self, int button, int x, int y);
+VALUE shoes_textblock_event_is_here(VALUE self, int x, int y);
 
 // canvas
 VALUE shoes_canvas_para(int argc, VALUE *argv, VALUE self);

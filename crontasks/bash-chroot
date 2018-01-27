@@ -1,0 +1,6 @@
+#! /bin/bash
+export LANG=en_US.UTF-8
+export PATH=/usr/local/bin:/usr/bin:/bin:/home/ccoupe/x-tools/gcc-linaro-arm-linux-gnueabihf-raspbian/bin
+export GEM_PATH=/usr/local/lib/ruby/gems/2.1.0/
+unset GEM_HOME
+export DISPLAY=:0.0

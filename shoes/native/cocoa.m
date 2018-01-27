@@ -10,6 +10,7 @@
 #include "shoes/types/types.h"
 #include "shoes/native/cocoa/button.h" // needed? 
 #include "shoes/native/cocoa/textview.h"
+#include "shoes/types/event.h"
 extern VALUE cTimer;
 
 #import <Carbon/Carbon.h>
@@ -125,15 +126,26 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 {
   shoes_app *a;
   shoes_canvas *canvas;
+  int modify = 0;
+  if ([e modifierFlags] & NSShiftKeyMask)
+    modify = modify | SHOES_MODIFY_SHIFT;
+  if ([e modifierFlags] & NSControlKeyMask)
+    modify = modify | SHOES_MODIFY_CTRL;
+  /* platform and theme specific 
+  if ([e.modifierFlags] & NSAlternateKeyMask)
+    altkey = 1;
+  if ([e.modifierFlags] & NSCommandKeyMask)
+    key = 1;   
+  */ 
   NSPoint p = [e locationInWindow];
   Data_Get_Struct(app, shoes_app, a);
   Data_Get_Struct(a->canvas, shoes_canvas, canvas);
   if (type == s_motion)
-    shoes_app_motion(a, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly);
+    shoes_app_motion(a, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly, modify);
   else if (type == s_click)
-    shoes_app_click(a, b, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly);
+    shoes_app_click(a, b, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly, modify);
   else if (type == s_release)
-    shoes_app_release(a, b, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly);
+    shoes_app_release(a, b, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly,  modify);
 }
 - (void)mouseDown: (NSEvent *)e
 {
@@ -191,11 +203,16 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
     wheel = s_down;
     dy = -dy;
   }
-
+  int modify = 0;
+  if ([e modifierFlags] & NSShiftKeyMask)
+    modify = modify | SHOES_MODIFY_SHIFT;
+  if ([e modifierFlags] & NSControlKeyMask)
+    modify = modify | SHOES_MODIFY_CTRL;
   Data_Get_Struct(app, shoes_app, a);
   for (; dy > 0.; dy--)
-    shoes_app_wheel(a, wheel, ROUND(p.x), ROUND(p.y));
+    shoes_app_wheel(a, wheel, ROUND(p.x), ROUND(p.y), modify);
 }
+
 - (void)keyDown: (NSEvent *)e
 {
   shoes_app *a;
@@ -819,14 +836,35 @@ done:
   return SHOES_OK;
 }
 
+
+//  ---- window resize ----
 void
-shoes_native_app_resized(shoes_app *app)
+shoes_native_app_resize_window(shoes_app *app)
 {
   NSRect rect = [app->os.window frame];
   rect.size.width = app->width;
   rect.size.height = app->height;
   [app->os.window setFrame: rect display: YES];
 }
+
+VALUE shoes_native_get_resizable(shoes_app *app) 
+{
+  NSWindow *win = app->os.window;
+  if ([win styleMask] == NSResizableWindowMask)
+     return Qtrue;
+  else 
+    return Qfalse;
+} 
+
+void shoes_native_set_resizable(shoes_app *app, int resizable)
+{
+  NSWindow *win = app->os.window;
+  if (resizable)
+    [win setStyleMask:[win styleMask] | NSResizableWindowMask];
+  else
+    [win setStyleMask:[win styleMask] & ~NSResizableWindowMask];
+}
+
 
 void
 shoes_native_app_title(shoes_app *app, char *msg)
@@ -1071,8 +1109,10 @@ static void
 shoes_native_control_frame(SHOES_CONTROL_REF ref, shoes_place *p)
 {
   NSRect rect;
-  rect.origin.x = p->ix + p->dx; rect.origin.y = p->iy + p->dy;
-  rect.size.width = p->iw; rect.size.height = p->ih;
+  rect.origin.x = p->ix + p->dx;
+  rect.origin.y = p->iy + p->dy;
+  rect.size.width = p->iw;
+  rect.size.height = p->ih;
   [ref setFrame: rect];
 }
 
@@ -1295,12 +1335,41 @@ int shoes_native_app_get_decoration(shoes_app *app)
   return true;
 }
 
-// ---- window resizing calls from Shoes ----
+// ---- window positioning calls from Shoes ----
 
+/* 
+    OSX origin is 0,0  bottom left. Shoes is top,left
+    Cocoa wont move past  menubar or completely below the dock.
+    launcher - shoes reports otherwise. So we report where it was
+    really was moved to.
+    TODO: I suspect this could be simpilfied.
+*/
 void shoes_native_app_get_window_position(shoes_app *app) {
   NSWindow *win = (NSWindow *)app->os.window;
+  NSRect screen = [[NSScreen mainScreen] frame];
+  NSRect frame = [win frame];
+  //NSLog(@"current: x, y h: %i, %i %i", (int) frame.origin.x, (int) frame.origin.y, 
+  //   (int) frame.size.height);
+  app->x = frame.origin.x;
+  app->y = screen.size.height - frame.origin.y - frame.size.height;
 }
 
+
 void shoes_native_app_window_move(shoes_app *app, int x, int y) {
+  NSRect screen = [[NSScreen mainScreen] frame];
+  //NSLog(@"screen h,w: %i, %i",(int) screen.size.height, (int)screen.size.width);
   NSWindow *win = (NSWindow *)app->os.window;
+  NSRect frame = [win frame];
+  int cx = (x >= 0) ? x : 0;
+  cx = min(cx, screen.size.width - app->width);
+  frame.origin.x = cx;
+  frame.origin.y = screen.size.height - y - frame.size.height;
+  //NSLog(@"move: x, y: %i, %i", x, y);
+  [win setFrame: frame display: YES animate: NO];
+  // get where the frame really moved to because OSX contrains it.
+  frame = [win frame];
+  app->x = cx;
+  app->y = screen.size.height - frame.origin.y - frame.size.height;
+  //NSLog(@"real pos %i,%i return y: %i", (int)frame.origin.x, (int)frame.origin.y, app->y);
+  
 }

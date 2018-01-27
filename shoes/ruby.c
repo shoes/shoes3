@@ -786,8 +786,14 @@ void shoes_ruby_init() {
     rb_define_method(cApp, "name=", CASTHOOK(shoes_app_set_title), 1);
     rb_define_method(cApp, "location", CASTHOOK(shoes_app_location), 0);
     rb_define_method(cApp, "started?", CASTHOOK(shoes_app_is_started), 0);
+    rb_define_method(cApp, "left", CASTHOOK(shoes_app_get_window_x_position), 0);
+    rb_define_method(cApp, "top", CASTHOOK(shoes_app_get_window_y_position), 0);
+    rb_define_method(cApp, "move", CASTHOOK(shoes_app_set_window_position), 2);
     rb_define_method(cApp, "width", CASTHOOK(shoes_app_get_width), 0);
     rb_define_method(cApp, "height", CASTHOOK(shoes_app_get_height), 0);
+    rb_define_method(cApp, "resize", CASTHOOK(shoes_app_resize_window), 2);
+    rb_define_method(cApp, "resizable", CASTHOOK(shoes_app_get_resizable), 0);
+    rb_define_method(cApp, "resizable=", CASTHOOK(shoes_app_set_resizable), 1);
     rb_define_method(cApp, "slot", CASTHOOK(shoes_app_slot), 0);
     rb_define_method(cApp, "set_window_icon_path", CASTHOOK(shoes_app_set_icon), 1); // New in 3.2.19
     rb_define_method(cApp, "set_window_title", CASTHOOK(shoes_app_set_wtitle), 1); // New in 3.2.19
@@ -796,6 +802,12 @@ void shoes_ruby_init() {
     rb_define_method(cApp, "decorated", CASTHOOK(shoes_app_get_decoration), 0);
     rb_define_method(cApp, "decorated=", CASTHOOK(shoes_app_set_decoration), 1);
     rb_define_alias(cApp, "decorated?", "decorated");
+    rb_define_method(cApp, "cache", CASTHOOK(shoes_app_get_cache), 0);
+    rb_define_method(cApp, "cache=", CASTHOOK(shoes_app_set_cache), 1);
+    rb_define_method(cApp, "cache_clear", CASTHOOK(shoes_app_clear_cache), 1);
+    rb_define_method(cApp, "event=", CASTHOOK(shoes_app_set_event_handler), 1);
+    rb_define_method(cApp, "replay_event", CASTHOOK(shoes_app_replay_event), 1);
+
 
     cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 

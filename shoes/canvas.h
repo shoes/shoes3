@@ -343,17 +343,19 @@ VALUE shoes_canvas_motion(int, VALUE *, VALUE);
 VALUE shoes_canvas_keydown(int, VALUE *, VALUE);
 VALUE shoes_canvas_keypress(int, VALUE *, VALUE);
 VALUE shoes_canvas_keyup(int, VALUE *, VALUE);
+VALUE shoes_canvas_event(int, VALUE *, VALUE);
+VALUE shoes_canvas_wheel(int, VALUE *, VALUE);
 int shoes_canvas_independent(shoes_canvas *);
 VALUE shoes_find_canvas(VALUE);
 VALUE shoes_canvas_get_app(VALUE);
 void shoes_canvas_repaint_all(VALUE);
 void shoes_canvas_compute(VALUE);
 VALUE shoes_canvas_goto(VALUE, VALUE);
-VALUE shoes_canvas_send_click(VALUE, int, int, int);
-VALUE shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE *clicked);
-void shoes_canvas_send_release(VALUE, int, int, int);
-VALUE shoes_canvas_send_motion(VALUE, int, int, VALUE);
-void shoes_canvas_send_wheel(VALUE, ID, int, int);
+VALUE shoes_canvas_send_click(VALUE, int, int, int, VALUE mods);
+VALUE shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE mods, VALUE *clicked);
+void shoes_canvas_send_release(VALUE, int, int, int, VALUE mods);
+VALUE shoes_canvas_send_motion(VALUE, int, int, VALUE, VALUE);
+void shoes_canvas_send_wheel(VALUE, ID, int, int, VALUE);
 void shoes_canvas_wheel_way(shoes_canvas *, ID);
 void shoes_canvas_send_keydown(VALUE, VALUE);
 void shoes_canvas_send_keypress(VALUE, VALUE);
@@ -462,7 +464,7 @@ typedef struct {
 
 shoes_code shoes_load_imagesize(VALUE, int *, int *);
 shoes_cached_image *shoes_cached_image_new(int, int, cairo_surface_t *);
-shoes_cached_image *shoes_load_image(VALUE, VALUE);
+shoes_cached_image *shoes_load_image(VALUE, VALUE, VALUE);
 unsigned char shoes_image_downloaded(shoes_image_download_event *);
 
 // Canvas needs cSvg to create snapshots and send events

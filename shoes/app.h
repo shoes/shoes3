@@ -32,7 +32,7 @@ typedef struct _shoes_app {
     SHOES_APP_OS os;
     SHOES_SLOT_OS *slot;
     cairo_t *scratch;
-    int width, height, mouseb, mousex, mousey,
+    int x, y, width, height, mouseb, mousex, mousey,
         resizable, hidden, started, fullscreen,
         minwidth, minheight, decorated;
     double opacity;
@@ -48,6 +48,7 @@ typedef struct _shoes_app {
     VALUE title;
     VALUE location;
     VALUE owner;
+    int use_event_handler; 
 } shoes_app;
 
 //
@@ -75,10 +76,10 @@ shoes_code shoes_app_open(shoes_app *, char *);
 shoes_code shoes_app_loop(void);
 shoes_code shoes_app_visit(shoes_app *, char *);
 shoes_code shoes_app_paint(shoes_app *);
-shoes_code shoes_app_motion(shoes_app *, int, int);
-shoes_code shoes_app_click(shoes_app *, int, int, int);
-shoes_code shoes_app_release(shoes_app *, int, int, int);
-shoes_code shoes_app_wheel(shoes_app *, ID, int, int);
+shoes_code shoes_app_motion(shoes_app *, int, int, int);
+shoes_code shoes_app_click(shoes_app *, int, int, int, int);
+shoes_code shoes_app_release(shoes_app *, int, int, int, int);
+shoes_code shoes_app_wheel(shoes_app *, ID, int, int, int);
 shoes_code shoes_app_keydown(shoes_app *, VALUE);
 shoes_code shoes_app_keypress(shoes_app *, VALUE);
 shoes_code shoes_app_keyup(shoes_app *, VALUE);
@@ -91,7 +92,21 @@ void shoes_app_style(shoes_app *, VALUE, VALUE);
 VALUE shoes_app_location(VALUE);
 VALUE shoes_app_is_started(VALUE);
 VALUE shoes_app_quit(VALUE);
-
+VALUE shoes_app_resize_window(VALUE, VALUE, VALUE);
+VALUE shoes_app_get_window_x_position(VALUE);
+VALUE shoes_app_get_window_y_position(VALUE);
+VALUE shoes_app_set_window_position(VALUE, VALUE, VALUE);
+VALUE shoes_app_resize_window(VALUE, VALUE, VALUE);
+VALUE shoes_app_get_resizable(VALUE);
+VALUE shoes_app_set_resizable(VALUE, VALUE);
+VALUE shoes_app_set_cache(VALUE app, VALUE setting);
+VALUE shoes_app_get_cache(VALUE app);
+VALUE shoes_app_clear_cache(VALUE app, VALUE opts);
+VALUE shoes_app_get_handler(VALUE app);
+VALUE shoes_app_set_event_handler(VALUE app, VALUE opt);
+VALUE shoes_app_replay_event(VALUE app, VALUE evh);
+// global var for image cache - declared in types/image.c
+extern int shoes_cache_setting;
 // global var for console up and running
 extern int shoes_global_terminal;
 #ifdef SHOES_QUARTZ

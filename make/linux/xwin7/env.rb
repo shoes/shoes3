@@ -3,6 +3,7 @@
 # It's not really a chroot - it only looks like one
 # Remember, on Windows the dlls are in bin/ 
 cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
+ignore_deprecations = true
 if File.exists? cf
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']
@@ -14,6 +15,7 @@ if File.exists? cf
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
+  ignore_deprecations = (!custmz['Deprecations']) if custmz['Deprecations']
 else
   abort "You must have an 'xwin7-custom.yaml' file!"
 end
@@ -94,7 +96,9 @@ LINUX_CFLAGS << "-I#{ShoesDeps}/include/librsvg-2.0/librsvg "
 LINUX_CFLAGS << " -I#{ShoesDeps}/usr/local/include "
 LINUX_CFLAGS << " -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function"
 LINUX_CFLAGS << " -mms-bitfields -D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS "
-
+if ignore_deprecations
+  LINUX_CFLAGS << " -Wno-deprecated-declarations"
+end
 LINUX_LIB_NAMES = %W[gif-7 jpeg librsvg-2 libffi]
 
 DLEXT = "dll"
@@ -105,6 +109,7 @@ LINUX_LDFLAGS << `pkg-config --libs "#{pkggtk}"`.strip+" "
 RUBY_LDFLAGS = "-Wl,-export-all-symbols "
 RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby230 "
 
+LINUX_LDFLAGS << "-lwinpthread-1 "
 LINUX_LDFLAGS << "-lwinhttp -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 "
 
 LINUX_LIBS = " -L#{bindll} "
@@ -159,7 +164,7 @@ SOLOCS.merge!(
     'curl'        => "#{bindll}/libcurl-4.dll",
     'thread'      => "#{bindll}/libgthread-2.0-0.dll",
     'zlib1'       => "#{bindll}/zlib1.dll",
-    'siji'        => "/usr/lib/gcc/i686-w64-mingw32/4.8/libgcc_s_sjlj-1.dll",
+    'siji'        => "/usr/lib/gcc/i686-w64-mingw32/5.3-posix/libgcc_s_sjlj-1.dll",
     'pthread'     => "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll" 
     }
 )

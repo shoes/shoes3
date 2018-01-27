@@ -530,7 +530,12 @@ void shoes_ele_remove_all(VALUE);
 void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
 void shoes_cairo_arc(cairo_t *, double, double, double, double, double, double);
 
-// FIXME: Symbols in Shoes are broken in many ways. For example, the symbol progress is shared amongst types/progress and types/download, which causes Shoes to crash if defined in either ones. It should also be noted that Shoes crashes even if progress is defined here below. It apparently has to be defined on top of ruby{.c,.h}. Image and TextBlock/Text/TextLink are also heavily affected by this.
+// FIXME: Symbols in Shoes are broken in many ways. For example, the symbol 
+// progress is shared amongst types/progress and types/download, which causes
+// Shoes to crash if defined in either ones. It should also be noted that 
+// Shoes crashes even if progress is defined here below. It apparently 
+// has to be defined on top of ruby{.c,.h}. 
+// Image and TextBlock/Text/TextLink are also heavily affected by this.
 #define SYMBOL_DEFS(f) f(bind); f(gsub); f(keys); f(update); f(merge); \
   f(new); f(URI); f(now); f(debug); f(info); f(warn); f(error); f(run); \
   f(to_a); f(to_ary); f(to_f); f(to_i); f(to_int); f(to_s); f(to_str); \
@@ -552,14 +557,15 @@ void shoes_cairo_arc(cairo_t *, double, double, double, double, double, double);
   f(shadow); f(arc); f(rect); f(oval); f(line); f(star); f(project); f(round); \
   f(square); f(undercolor); f(underline); f(variant); f(weight); f(wrap); \
   f(dash); f(nodot); f(onedot); f(donekey); f(volume); f(bg_color); \
-  f(decorated); f(opacity)
+  f(decorated); f(opacity); f(cache); f(event); f(btn_activate)
 #define SYMBOL_INTERN(name) s_##name = rb_intern("" # name)
 #define SYMBOL_ID(name) ID s_##name
 #define SYMBOL_EXTERN(name) extern ID s_##name
 
 SYMBOL_DEFS(SYMBOL_EXTERN);
 
-// TODO: temporary extern until refactoring proper component, i.e. text should move with TextEditBox in native/gtk
+// TODO: temporary extern until refactoring proper component, i.e. text
+// should move with TextEditBox in native/gtk
 SYMBOL_EXTERN(text);
 SYMBOL_EXTERN(link);
 
@@ -588,6 +594,8 @@ SYMBOL_EXTERN(link);
   f(".keydown", keydown, -1); \
   f(".keypress", keypress, -1); \
   f(".keyup", keyup, -1); \
+  f(".event", event, -1); \
+  f(".wheel", wheel, -1); \
   f("+clear", clear_contents, -1); \
   f(".visit", goto, 1); \
   f(".mouse", mouse, 0); \

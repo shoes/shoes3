@@ -9,7 +9,7 @@ VALUE cSystray;
     
 FUNC_M("+systray", systray, -1);
 
-shoes_systray_init() {
+void shoes_systray_init() {
     cSystray = rb_define_class_under(cTypes, "Systray", cNative); 
     rb_define_alloc_func(cSystray, shoes_systray_alloc);
     // no methods 
@@ -62,8 +62,8 @@ VALUE shoes_systray_new(int argc, VALUE *argv, VALUE parent) {
     char *title = NULL, *message = NULL, *path = NULL;
     
     /* Alloc the object and init. We do keep a copy of the strings
-     * which will be garbage collected in at some point by Ruby
-     * Assumes the strings and pixbugs in the native are copied
+     * which will be garbage collected at some point by Ruby
+     * Assumes the strings and pixbufs in the native are copied
      * out of our process memory into the Desktop's space. 
     */
     VALUE obj = shoes_systray_alloc(cSystray);
