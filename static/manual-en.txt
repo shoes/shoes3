@@ -3411,7 +3411,7 @@ can just call `para` directly.  (This isn't the case with the `prepend`,
 `before` or `after` methods.)
 
 Beside the methods below, buttons also inherit all of the methods that are
-[[Common]].
+[[Common]] but not all of them work. See styles below.
 
 === click() { |self| ... } » self ===
 
@@ -3422,6 +3422,53 @@ When a button is clicked, its `click` block is called.  The block is handed
 
 Moves focus to the button.  The button will be highlighted and, if the user
 hits Enter, the button will be clicked.
+
+=== button styles ===
+
+Shoes 3.3.6 added support for changing the font, font stroke color, tiny icons
+
+{{{
+ #!ruby
+ Shoes.app do
+   flow do
+     button "Button", font: "Menlo Bold 14",width: 200, stroke: red,
+          tooltip: "Menlo Bold 14" do
+     end
+     button "icon", width: 80, height: 30, icon: "#{DIR}/static/icon-info.png",
+          tooltip: "default right", stroke: blue do
+     end
+   end
+ end
+}}}
+
+`Do not` set height: - It will not work and it won't look right on OSX and arguably does't
+look right when it does work for you. Note that the tiny icon is in `addition` to the string. It
+is not a button made from an image - that you do for your self with Image and a click {}. 
+
+The icon should fit inside the button - it `will not` be downsized to fit.
+You have a few options for placing the itty bitty icon releative to the title string,
+left, right. If no title is provided and no position is given, then the icon in centered.
+
+{{{
+ #!ruby
+ Shoes.app do
+   flow do
+      button "left", width: 80, icon: "#{DIR}/static/icon-info.png",
+          icon_pos: "left", tooltip: "title left" do
+      end
+      button  width: 80, icon: "#{DIR}/static/icon-info.png",
+          tooltip: "just icon" do
+      end
+      button "right", width: 80, icon: "#{DIR}/static/icon-info.png",
+          icon_pos: "right", tooltip: "title right" do
+      end
+    end
+  end
+}}}
+
+Warning! If you speculate that there is a top and a bottom icon_pos you are also
+speculating that you can change the height of the button and I've told before that
+OSX won't do that so you shouldn't either.  Unsupported to the max. 
 
 == Check ==
 
