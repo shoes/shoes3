@@ -87,18 +87,78 @@ shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VAL
 {
   INIT;
   NSTextField *field;
-  if (RTEST(ATTR(attr, secret)))
+  char *fntstr = 0;
+  VALUE fgclr = Qnil; // Could be hex color string or Shoes color object
+  NSInteger fsize = 0;
+  NSArray *fontsettings;
+  NSMutableString *fontname = [[NSMutableString alloc] initWithCapacity: 40];
+  if (RTEST(ATTR(attr, secret))) {
     field = [[ShoesSecureTextField alloc] initWithFrame:
       NSMakeRect(place->ix + place->dx, place->iy + place->dy,
       place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
       andObject: self];
-  else
+  } else {
     field = [[ShoesTextField alloc] initWithFrame:
       NSMakeRect(place->ix + place->dx, place->iy + place->dy,
       place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
       andObject: self];
+  
+  }   
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("stroke")))) {
+    fgclr = shoes_hash_get(attr, rb_intern("stroke"));
+  }
+  if (! NIL_P(fgclr)) {
+	  // convert Shoes color to NSColor
+	  if (TYPE(fgclr) == T_STRING) 
+		fgclr = shoes_color_parse(cColor, fgclr);  // convert string to cColor
+	  if (rb_obj_is_kind_of(fgclr, cColor)) 
+	  { 
+		shoes_color *color; 
+		Data_Get_Struct(fgclr, shoes_color, color); 
+		CGFloat rg = (CGFloat)color->r / 255;
+		CGFloat gb = (CGFloat)color->g / 255;
+		CGFloat bb = (CGFloat)color->b / 255;
+		NSColor *clr = [NSColor colorWithCalibratedRed: rg green: gb blue: bb alpha: 1.0];
+	    field.textColor = clr; // it's a Property
+	  }
+  }
+  // get the Shoes font attributes  if any and get the osx equivalent
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("font")))) {
+    fntstr = RSTRING_PTR(shoes_hash_get(attr, rb_intern("font")));
+    NSString *fstr = [NSString stringWithUTF8String: fntstr];
+    fontsettings = [fstr componentsSeparatedByString:@" "]; 
+    // in OSX there is font name - may include Bold etc, and size
+    int cnt = fontsettings.count;
+    fsize = [fontsettings[cnt-1] integerValue];
+    if (fsize > 0 && fsize < 24)  {
+      //we probably have a size spec - everything before that is fontname
+      int i;
+      for (i = 0; i < cnt-1; i++) {
+       [fontname appendString: fontsettings[i]];
+       if (i < cnt-2) {
+         [fontname appendString:@" "];
+       }
+      }
+    } else {
+      // have to assume they didn't give a point size so 
+      [fontname  appendString: fstr];
+      fsize = 10;
+    }
+    if (fntstr) {
+      NSFont *font = [NSFont fontWithName: fontname size: fsize];
+      field.font = font;
+    }
+  }
   [field setStringValue: [NSString stringWithUTF8String: msg]];
   [field setEditable: YES];
+  
+  // Tooltip
+  VALUE vtip = shoes_hash_get(attr, rb_intern("tooltip"));
+  if (! NIL_P(vtip)) {
+    char *cstr = RSTRING_PTR(vtip);
+    NSString *tip = [NSString stringWithUTF8String: cstr];
+    [field setToolTip:tip];
+  } 
   RELEASE;
   return (NSControl *)field;
 }
