@@ -49,6 +49,14 @@ shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
     NSMakeRect(place->ix + place->dx, place->iy + place->dy,
     place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
     andObject: self];
+  // Tooltip
+  VALUE vtip = shoes_hash_get(attr, rb_intern("tooltip"));
+  if (! NIL_P(vtip)) {
+    char *cstr = RSTRING_PTR(vtip);
+    NSString *tip = [NSString stringWithUTF8String: cstr];
+    [pop setToolTip:tip];
+  } 
+
   RELEASE;
   return (NSControl *)pop;
 }

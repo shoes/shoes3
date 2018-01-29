@@ -88,6 +88,13 @@ shoes_native_text_view(VALUE self, shoes_canvas *canvas, shoes_place *place, VAL
     andObject: self];
   //shoes_native_text_view_set_text((NSControl *)tv, msg);
   shoes_native_text_view_set_text((SHOES_CONTROL_REF)tv, msg);
+  // Tooltip
+  VALUE vtip = shoes_hash_get(attr, rb_intern("tooltip"));
+  if (! NIL_P(vtip)) {
+    char *cstr = RSTRING_PTR(vtip);
+    NSString *tip = [NSString stringWithUTF8String: cstr];
+    [tv setToolTip:tip];
+  } 
   RELEASE;
   return (NSControl *)tv;
 }

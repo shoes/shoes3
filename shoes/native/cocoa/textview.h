@@ -4,5 +4,6 @@
 @public
   VALUE object;
   NSTextView *textView;
+  NSDictionary *attrs;
 }
 @end
