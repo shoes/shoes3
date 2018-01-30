@@ -1,6 +1,6 @@
-Shoes.app do
+Shoes.app width: 300, height: 200 do
    flow do
-      switch; para
+      switch font: "monospace Italic 10", stroke: red; para
    end
    
    flow do

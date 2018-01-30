@@ -4286,7 +4286,7 @@ Spinner methods are listed below, but also see the list of [[Common]] methods,
 which all elements spinner may respond to. The default for a spinner is too
 not aninamte (spin). 
 
-Caution: In OSX, this in not a native control so it won't have a tooltip
+Caution: In OSX, this is not a native control so it won't have a tooltip
 
 === started? » true or false ===
 
@@ -4590,9 +4590,46 @@ end
 Set the tooltip text from a `switch` element with the given string.
 
 {{{
+#!ruby
 Shoes.app(:title => "Switching On and Off", :width => 450, :height => 250) do
    switch do |n|
       n.tooltip = "Switch is active? #{n.active?}"
+   end
+end
+}}}
+
+=== font styling ===
+
+With Shoes 3.3.6, switch can also change fonts and the font color (stroke)
+
+{{{
+#!ruby
+Shoes.app do
+   flow do
+      switch font: "monospace Italic 16", stroke: red; para
+   end
+   
+   flow do
+      @n = switch(active: true) do
+         @p.text = (@n.active? ? "true": "false") unless @p.nil?
+      end
+      @p = para
+   end
+   
+   flow do
+      @m = switch width: 80
+      @m.click do
+        #$stderr.puts "Click"
+        @m.active? ? @e.start : @e.stop
+      end
+      @e = every(1) { |count| @q.text = count unless @q.nil? & @m.active? }
+      @q = para ""
+   end
+   
+   start do
+      @e.stop
+      @p.text = @n.active? ? "true" : "false"
+      @m.active = false
    end
 end
 }}}

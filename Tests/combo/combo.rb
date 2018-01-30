@@ -15,5 +15,10 @@ Shoes.app height: 200, width: 300 do
       list_box items: ["Ask", "your", "mother!"], choose: "your", stroke: red,
         tooltip: "stroke red"
     end
+    flow do
+      para "Both  "
+      list_box items: ["Quoth", "the", "Raven"], font: "Helvitica Italic 16", stroke: blue,
+        tooltip: "blue Helvetica Italic 16", choose: "Quoth"
+    end
   end
 end
