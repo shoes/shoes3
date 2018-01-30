@@ -1465,3 +1465,14 @@ int shoes_native_console(char *app_path)
 }
 */
 #endif
+
+/* 
+ * TODO: Print more intelligent errors - should it ever get called.
+*/ 
+void shoes_css_parse_error (GtkCssProvider *provider,
+               GtkCssSection  *section,
+               GError         *error,
+               gpointer        user_data) 
+{
+  fprintf(stderr,"css parse error\n");
+}

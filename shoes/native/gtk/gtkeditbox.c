@@ -10,25 +10,39 @@
 #include "shoes/native/gtk/gtkscrolledwindowalt.h"
 #include "shoes/native/gtk/gtkeditbox.h"
 extern VALUE cColor;
-static char *css_template = "textview {\n font: %s;\n color: %s;\n}\n";
-                                 
+static char *css_template = "GtkTextView {\n font: %s;\n color: %s;\n}\n";
+
 SHOES_CONTROL_REF shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
     GtkTextBuffer *buffer;
     GtkWidget* textview = gtk_text_view_new();
     SHOES_CONTROL_REF ref = gtk_scrolled_window_alt_new(NULL, NULL);
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD);
+    buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
+    gtk_text_buffer_set_text(buffer, _(msg), -1);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ref),
+                                   GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+    gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(ref), GTK_SHADOW_IN);
+    gtk_container_add(GTK_CONTAINER(ref), textview);
 
-#if 0
     // default css values
     char *font = "Arial 12";
-    char *color = "black";
+    char color[40] = "black";
     int do_sub = 0;
     int have_color = 0;
-    if (RTEST(ATTR(attr, font))) {
-      font = RSTRING_PTR(ATTR(attr, font));
+    VALUE vclr = Qnil;
+    VALUE vfont = ATTR(attr, font);
+    if (! NIL_P(vfont)) {
+      font = RSTRING_PTR(vfont);
       do_sub = 1;
     }
     if (RTEST(ATTR(attr, stroke))) {
-      color = RSTRING_PTR(ATTR(attr, stroke));
+      vclr = (ATTR(attr, stroke));
+      // That's a Shoes color turn it into a css rgba
+
+      shoes_color *scolor; 
+      Data_Get_Struct(vclr, shoes_color, scolor); 
+      sprintf(color, "rgba(%d,%d,%d,%d)", scolor->r, scolor->g, scolor->b,
+          scolor->a);        
       do_sub = 1;
     }
     if (do_sub) {
@@ -37,17 +51,20 @@ SHOES_CONTROL_REF shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_
       GtkStyleContext *context;
       char new_css[100]; 
       sprintf(new_css, css_template, font, color);
-      printf("css: %s", new_css);
+      //printf("css: %s", new_css);
       provider = gtk_css_provider_new ();
+      g_signal_connect(G_OBJECT(provider), "parsing-error",
+                     G_CALLBACK(shoes_css_parse_error),
+                     (gpointer)self);
       gtk_css_provider_load_from_data(provider, new_css, -1, NULL);
       context = gtk_widget_get_style_context (textview);
       gtk_style_context_add_provider (context,
             GTK_STYLE_PROVIDER (provider),
             GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
       // check what's really in provider ?
-      printf("prov: %s\n", gtk_css_provider_to_string(provider));
+      //printf("provider has: %s\n", gtk_css_provider_to_string(provider));
     }
-#else
+#if 0 // old code
     if (RTEST(ATTR(attr, font))) {
       char *fontstr = RSTRING_PTR(ATTR(attr, font));
       PangoFontDescription *fontdesc = NULL;
@@ -68,7 +85,7 @@ SHOES_CONTROL_REF shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_
           gclr.green = color->g / 255.0; 
           gclr.blue = color->b / 255.0;
           gclr.alpha = color->a / 255.0;
-          // override color doesn't work, deprecated if it did.
+          // override color doesn't work, deprecated if it did. 
           gtk_widget_override_color(ref, GTK_STATE_FLAG_NORMAL, &gclr);
       }
     }
@@ -77,13 +94,6 @@ SHOES_CONTROL_REF shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_
         gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
     }
 
-    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD);
-    buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
-    gtk_text_buffer_set_text(buffer, _(msg), -1);
-    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ref),
-                                   GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-    gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(ref), GTK_SHADOW_IN);
-    gtk_container_add(GTK_CONTAINER(ref), textview);
 
     g_signal_connect(G_OBJECT(buffer), "changed",
                      G_CALLBACK(shoes_widget_changed),
