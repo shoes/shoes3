@@ -28,6 +28,7 @@ extern VALUE cTimer;
   if ((self = [super initWithFrame: frame pullsDown: NO]))
   {
     object = o;
+    attrs = NULL;
     [self setTarget: self];
     [self setAction: @selector(handleChange:)];
   }
@@ -49,6 +50,9 @@ shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
     NSMakeRect(place->ix + place->dx, place->iy + place->dy,
     place->ix + place->dx + place->iw, place->iy + place->dy + place->ih)
     andObject: self];
+  
+  pop->attrs = shoes_attr_dict(attr);
+  
   // Tooltip
   VALUE vtip = shoes_hash_get(attr, rb_intern("tooltip"));
   if (! NIL_P(vtip)) {
@@ -66,16 +70,38 @@ shoes_native_list_box_update(SHOES_CONTROL_REF ref, VALUE ary)
 {
   long i;
   ShoesPopUpButton *pop = (ShoesPopUpButton *)ref;
-  COCOA_DO({
+  INIT;
+  if (pop->attrs) {
+    // Need to use menu_items to set AttributedStrings
+    // TODO: probably too complicated - but it works
     [pop removeAllItems];
-    for (i = 0; i < RARRAY_LEN(ary); i++)
-    {
+    NSString *emptystr = @"";
+    int icnt = RARRAY_LEN(ary);
+    NSArray *itemAry = [pop itemArray]; 
+    for (i = 0; i < icnt; i++) {
       VALUE msg_s = shoes_native_to_s(rb_ary_entry(ary, i));
       char *msg = RSTRING_PTR(msg_s);
-      [[pop menu] insertItemWithTitle: [NSString stringWithUTF8String: msg] action: nil
-        keyEquivalent: @"" atIndex: i];
+      NSString *str = [NSString stringWithUTF8String: msg];
+      NSAttributedString *astr = [[NSAttributedString alloc] initWithString: str
+        attributes: pop->attrs];  
+      //printf(stderr,"Colorize %s\n", msg); // C string
+      [[pop menu] insertItemWithTitle: str action: nil
+            keyEquivalent: @"" atIndex: i];
+      itemAry = [pop itemArray];
+      NSMenuItem *mitem = itemAry[i];
+      [mitem setAttributedTitle: astr];
     }
-  });
+  } else {
+    [pop removeAllItems];
+    for (i = 0; i < RARRAY_LEN(ary); i++) {
+      VALUE msg_s = shoes_native_to_s(rb_ary_entry(ary, i));
+      char *msg = RSTRING_PTR(msg_s);
+      NSString *str = [NSString stringWithUTF8String: msg];
+      [[pop menu] insertItemWithTitle: str action: nil
+            keyEquivalent: @"" atIndex: i];
+    }
+  }
+  RELEASE;
 }
 
 VALUE

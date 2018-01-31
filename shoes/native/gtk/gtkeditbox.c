@@ -24,81 +24,16 @@ SHOES_CONTROL_REF shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_
     gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(ref), GTK_SHADOW_IN);
     gtk_container_add(GTK_CONTAINER(ref), textview);
 
-    // default css values
-    char *font = "Arial 12";
-    char color[40] = "black";
-    int do_sub = 0;
-    int have_color = 0;
-    VALUE vclr = Qnil;
-    VALUE vfont = ATTR(attr, font);
-    if (! NIL_P(vfont)) {
-      font = RSTRING_PTR(vfont);
-      do_sub = 1;
-    }
-    if (RTEST(ATTR(attr, stroke))) {
-      vclr = (ATTR(attr, stroke));
-      // That's a Shoes color turn it into a css rgba
+    // change font and color/stroke
+    shoes_css_apply((GtkWidget*)textview, attr, css_template);
 
-      shoes_color *scolor; 
-      Data_Get_Struct(vclr, shoes_color, scolor); 
-      sprintf(color, "rgba(%d,%d,%d,%d)", scolor->r, scolor->g, scolor->b,
-          scolor->a);        
-      do_sub = 1;
-    }
-    if (do_sub) {
-      /* Change default font and color through widget css */
-      GtkCssProvider *provider;
-      GtkStyleContext *context;
-      char new_css[100]; 
-      sprintf(new_css, css_template, font, color);
-      //printf("css: %s", new_css);
-      provider = gtk_css_provider_new ();
-      g_signal_connect(G_OBJECT(provider), "parsing-error",
-                     G_CALLBACK(shoes_css_parse_error),
-                     (gpointer)self);
-      gtk_css_provider_load_from_data(provider, new_css, -1, NULL);
-      context = gtk_widget_get_style_context (textview);
-      gtk_style_context_add_provider (context,
-            GTK_STYLE_PROVIDER (provider),
-            GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-      // check what's really in provider ?
-      //printf("provider has: %s\n", gtk_css_provider_to_string(provider));
-    }
-#if 0 // old code
-    if (RTEST(ATTR(attr, font))) {
-      char *fontstr = RSTRING_PTR(ATTR(attr, font));
-      PangoFontDescription *fontdesc = NULL;
-      fontdesc = pango_font_description_from_string(fontstr);
-      // deprecated in gtk 3.16 - use private css - ugh. 
-      gtk_widget_override_font(ref, fontdesc);
-      
-    }
-    if (RTEST(ATTR(attr, stroke))) {
-      VALUE fgclr = ATTR(attr, stroke);
-      if (TYPE(fgclr) == T_STRING) 
-          fgclr = shoes_color_parse(cColor, fgclr);  // convert string to cColor
-      if (rb_obj_is_kind_of(fgclr, cColor)) { 
-          shoes_color *color; 
-          Data_Get_Struct(fgclr, shoes_color, color); 
-          GdkRGBA gclr; 
-          gclr.red = color->r / 255.0;
-          gclr.green = color->g / 255.0; 
-          gclr.blue = color->b / 255.0;
-          gclr.alpha = color->a / 255.0;
-          // override color doesn't work, deprecated if it did. 
-          gtk_widget_override_color(ref, GTK_STATE_FLAG_NORMAL, &gclr);
-      }
-    }
-#endif
     if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
         gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
     }
 
-
     g_signal_connect(G_OBJECT(buffer), "changed",
                      G_CALLBACK(shoes_widget_changed),
                      (gpointer)self);
-
     return ref;
 }
 

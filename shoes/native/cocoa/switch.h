@@ -2,5 +2,7 @@
 @interface ShoesSwitch : NSButton
 {
   VALUE object;
+@public
+  NSMutableDictionary *attrs;
 }
 @end

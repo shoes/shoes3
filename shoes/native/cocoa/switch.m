@@ -36,6 +36,7 @@ extern VALUE cTimer;
   if ((self = [super init]))
   {
     object = o;
+    attrs = NULL;
     [self setButtonType: t];
     [self setBezelStyle: NSRoundedBezelStyle];
     [self setTarget: self];
@@ -61,14 +62,31 @@ shoes_native_switch(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE 
  INIT;
   ShoesSwitch *button = [[ShoesSwitch alloc] initWithType: NSToggleButton
     andObject: self];
-  [button setTitle: @"Off"];
-  [button setAlternateTitle: @"On"];
+  button->attrs = shoes_attr_dict(attr);
+  if (button->attrs) {
+   [button setAttributedTitle: [[NSAttributedString alloc] initWithString: @"Off"
+        attributes: button->attrs]];
+    [button setAttributedAlternateTitle: [[NSAttributedString alloc] initWithString: @"On"
+        attributes: button->attrs]]; 
+  }
+  else {
+    [button setTitle: @"Off"];
+    [button setAlternateTitle: @"On"];
+  }
   if (!NIL_P(shoes_hash_get(attr, rb_intern("active")))) {
     VALUE bstv = shoes_hash_get(attr, rb_intern("active"));
     button.state = !NIL_P(bstv) ? NSOnState : NSOffState;
     //fprintf(stderr, "have a initial active %li\n",button.state);
   }
-  //button->sw_state = button.state; //property -> instance_var
+ 
+  // Tooltip
+  VALUE vtip = shoes_hash_get(attr, rb_intern("tooltip"));
+  if (! NIL_P(vtip)) {
+    char *cstr = RSTRING_PTR(vtip);
+    NSString *tip = [NSString stringWithUTF8String: cstr];
+    [button setToolTip:tip];
+  } 
+
   RELEASE;
   return (SHOES_CONTROL_REF) button;
 }

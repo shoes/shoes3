@@ -15,14 +15,10 @@ Makefile
 VERSION.txt
 *-custom.yaml
 Shoes3.2.geany
-crosscompile
 bin/main.c
 shoes/version.h
-deps
-dist
 pkg
 notes
-/i686-linux
 /x86_64-linux
 /xarmv6hf
 /xwin7
@@ -40,3 +36,4 @@ req/json
 /qtifw
 *.orig
 cshoes
+Gemfile.lock

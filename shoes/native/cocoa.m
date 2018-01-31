@@ -1373,3 +1373,71 @@ void shoes_native_app_window_move(shoes_app *app, int x, int y) {
   //NSLog(@"real pos %i,%i return y: %i", (int)frame.origin.x, (int)frame.origin.y, app->y);
   
 }
+
+/* 
+ * Helper function to return a NSDict for use in AttributedString creation
+ * input is the Shoes attrs (font and stroke)
+*/
+NSMutableDictionary *shoes_attr_dict(VALUE attr) {
+  char *fntstr = 0;
+  VALUE fgclr = Qnil; // Could be hex color string or Shoes color object
+  NSInteger fsize = 0;
+  NSArray *fontsettings;
+  NSMutableDictionary *dict = NULL;
+  NSMutableString *fontname = [[NSMutableString alloc] initWithCapacity: 40];
+
+
+  // get the Shoes attributes 
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("font")))) {
+    fntstr = RSTRING_PTR(shoes_hash_get(attr, rb_intern("font")));
+    NSString *fstr = [NSString stringWithUTF8String: fntstr];
+    fontsettings = [fstr componentsSeparatedByString:@" "]; 
+    // in OSX there is font name - may include Bold etc, and size
+    int cnt = fontsettings.count;
+    fsize = [fontsettings[cnt-1] integerValue];
+    if (fsize > 0 && fsize < 24)  {
+      //we probably have a size spec - everything before that is fontname
+      int i;
+      for (i = 0; i < cnt-1; i++) {
+       [fontname appendString: fontsettings[i]];
+       if (i < cnt-2) {
+         [fontname appendString:@" "];
+       }
+      }
+    } else {
+      // have to assume they didn't give a point size so 
+      [fontname  appendString: fstr];
+      fsize = 10;
+    }
+  }
+  if (!NIL_P(shoes_hash_get(attr, rb_intern("stroke")))) {
+    fgclr = shoes_hash_get(attr, rb_intern("stroke"));
+  }
+  if (fntstr || !NIL_P(fgclr)) {
+    dict = [[NSMutableDictionary alloc] initWithCapacity: 5];
+    //NSString *title = [NSString stringWithUTF8String: msg];
+    if (fntstr) {
+      NSFont *font = [NSFont fontWithName: fontname size: fsize];
+      if (font == nil) 
+        // Don't do this : rb_raise(rb_eArgError, "Font \"%s\" not found", fntstr);
+        font = [NSFont fontWithName: @"arial" size: 12];
+      [dict setObject: font forKey: NSFontAttributeName];
+    }
+    if (! NIL_P(fgclr)) {
+      // convert Shoes color to NSColor
+      if (TYPE(fgclr) == T_STRING) 
+        fgclr = shoes_color_parse(cColor, fgclr);  // convert string to cColor
+      if (rb_obj_is_kind_of(fgclr, cColor)) 
+      { 
+        shoes_color *color; 
+        Data_Get_Struct(fgclr, shoes_color, color); 
+        CGFloat rg = (CGFloat)color->r / 255;
+        CGFloat gb = (CGFloat)color->g / 255;
+        CGFloat bb = (CGFloat)color->b / 255;
+        NSColor *clr = [NSColor colorWithCalibratedRed: rg green: gb blue: bb alpha: 1.0];
+        [dict setObject: clr forKey: NSForegroundColorAttributeName];
+      }
+    }
+  }
+  return dict;
+}
