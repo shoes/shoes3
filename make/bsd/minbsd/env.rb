@@ -4,7 +4,7 @@
 #   Will not build gems or copy gems - uses the host ruby and gems.
 #   Set your $PATH to the ruby you want to use (Install RVM? or similar)
 require 'rbconfig'
-ignore_deprecations = true # user choice
+ignore_deprecations = false # user choice
 
 APP['GDB'] = "true" # true => compile -g,  don't strip symbols
 if APP['GDB']

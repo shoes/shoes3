@@ -9,7 +9,7 @@
 #include "shoes/native/gtk.h"
 #include "shoes/native/gtk/gtkscrolledwindowalt.h"
 #include "shoes/native/gtk/gtkeditbox.h"
-extern VALUE cColor;
+//extern VALUE cColor;
 static char *css_template = "GtkTextView {\n font: %s;\n color: %s;\n}\n";
 
 SHOES_CONTROL_REF shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {

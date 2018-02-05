@@ -892,7 +892,8 @@ void shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, in
        problems with slot height being always tied to inside widgets cumulative heights
        creating heights overflow with no scrollbar !
     */
-    slot->oscanvas = gtkfixed_alt_new();
+    slot->oscanvas = gtkfixed_alt_new(); // can fail on bsd for odd reasons
+    GObject *gob = G_OBJECT(slot->oscanvas);
 
     g_signal_connect(G_OBJECT(slot->oscanvas), "draw",
                      G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
