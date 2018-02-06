@@ -7,8 +7,8 @@
 #include "shoes/types/color.h"
 #include "shoes/internal.h"
 #include "shoes/native/gtk/gtkswitch.h"
-#include "shoes/native/gtk.h"
-extern VALUE cColor;
+#include "shoes/native/gtk/gtkcss.h"
+
 static char *css_template = "GtkSwitch {\n font: %s;\n color: %s;\n}\n";
 
 SHOES_CONTROL_REF shoes_native_switch(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
