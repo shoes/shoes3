@@ -309,7 +309,7 @@ static void initattr(GtkTextBuffer *buffer) {
     capture.open = 0;
 }
 
-static void initgame(columns, rows) {
+static void initgame(int columns, int rows) {
     blank_line = malloc(columns+2);
     int i;
     for (i = 0; i < columns; i++) blank_line[i] = ' ';
