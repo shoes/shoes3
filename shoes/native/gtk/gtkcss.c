@@ -24,6 +24,52 @@ void shoes_css_parse_error (GtkCssProvider *provider,
   fprintf(stderr,"css parse error\n");
 }
 
+// terminal uses this:
+void shoes_css_apply_font(GtkWidget *widget, char *fontarg, char *css_template) 
+{
+  /* Change default font and color through widget css */
+  GtkCssProvider *provider;
+  GtkStyleContext *context;
+  char new_css[100]; 
+  sprintf(new_css, css_template, fontarg, "black");
+  //printf("css: %s", new_css);
+  provider = gtk_css_provider_new ();
+  g_signal_connect(G_OBJECT(provider), "parsing-error",
+                 G_CALLBACK(shoes_css_parse_error),
+                 (gpointer)NULL);
+  gtk_css_provider_load_from_data(provider, new_css, -1, NULL);
+  context = gtk_widget_get_style_context (widget);
+  gtk_style_context_add_provider (context,
+        GTK_STYLE_PROVIDER (provider),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+  // check what's really in provider ?
+  //printf("provider has: %s\n", gtk_css_provider_to_string(provider));
+}
+
+// terminal uses this:
+void shoes_css_apply_font_and_colors(GtkWidget *widget, char *fontarg, 
+    char *fgclr, char* bgclr, char *css_template) 
+{
+  /* Change default font and color through widget css */
+  GtkCssProvider *provider;
+  GtkStyleContext *context;
+  char new_css[100]; 
+  sprintf(new_css, css_template, fontarg, fgclr, bgclr);
+  //printf("css: %s", new_css);
+  provider = gtk_css_provider_new ();
+  g_signal_connect(G_OBJECT(provider), "parsing-error",
+                 G_CALLBACK(shoes_css_parse_error),
+                 (gpointer)NULL);
+  gtk_css_provider_load_from_data(provider, new_css, -1, NULL);
+  context = gtk_widget_get_style_context (widget);
+  gtk_style_context_add_provider (context,
+        GTK_STYLE_PROVIDER (provider),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+  // check what's really in provider ?
+  //printf("provider has: %s\n", gtk_css_provider_to_string(provider));
+}
+
+// The more general api using Shoes attr
 void shoes_css_apply(GtkWidget *widget, VALUE attr, char *css_template)
 {
     // default css values

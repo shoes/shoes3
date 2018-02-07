@@ -8,6 +8,21 @@
   to immplememt in Shoes 4. 
   
   
+-------------- Shoes 3.3.6 -------------------------------
+
+=== New with 3.3.6
+  * Can set font and stroke color for Button, edit_line, edit_box,
+    list_box and switch native widgets. 
+
+
+=== Fixed with 3.3.6
+
+
+=== Developer Issues with 3.3.6
+  * remove undocumented game mode for shoes.terminal
+  * fixed many gtk3 deprecations. 
+  
+  
 -------------- Shoes 3.3.5 --------------------------------
 
 === New with 3.3.5
