@@ -6,6 +6,12 @@
 
 #include "tesi.h"
 #include <gdk/gdkkeysyms.h>
+#include "shoes/app.h"
+#include "shoes/ruby.h"
+#include "shoes/config.h"
+#include "shoes/world.h"
+
+#include "shoes/native/gtk/gtkcss.h"
 extern char *colorstrings[];
 /*
  * heavily modified from https://github.com/alanszlosek/tesi/
@@ -528,7 +534,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
     GtkWidget *vbox;
     GtkScrolledWindow *sw;
     PangoFontDescription *pfd;  // for terminal
-    PangoFontDescription *bpfd; // for Label in button panel
+    //PangoFontDescription *bpfd; // for Label in button panel
 
     struct tesiObject *t;
     // create the debugging capture buffer. expands as needed.
@@ -556,8 +562,14 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
     gtk_box_pack_start (GTK_BOX(btnpnl), icon, 1, 0, 0);
 
     GtkWidget *announce = gtk_label_new(title? title : "Shoes Terminal");
+#if 1
+    // use css for Label
+    char *an_css = "GtkLabel {\n font: %s;\n color: %s;\n}\n";
+    shoes_css_apply_font(announce,"Sans-Serif Italic 14", an_css);
+#else
     bpfd = pango_font_description_from_string ("Sans-Serif Italic 14");
     gtk_widget_override_font (announce, bpfd);
+#endif
     gtk_box_pack_start(GTK_BOX(btnpnl), announce, 1, 0, 0);
 
     GtkWidget *clrbtn = gtk_button_new_with_label ("Clear");
@@ -572,7 +584,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
     gtk_box_pack_start (GTK_BOX(vbox), GTK_WIDGET(btnpnl), 0, 0, 0);
 
 
-    // then a widget/panel for the terminal
+    // Now create  a widget/panel for the terminal contents
     sw = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
     gtk_scrolled_window_set_policy( GTK_SCROLLED_WINDOW(sw),
                                     GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
@@ -586,7 +598,20 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
     gtk_text_view_set_right_margin(GTK_TEXT_VIEW(canvas), 4);
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(canvas), GTK_WRAP_CHAR);
     //gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(canvas), GTK_WRAP_NONE);
-
+#if 1
+    // set font and background color for scrollable window using css
+    char fontnm[64];
+    sprintf(fontnm,"monospace %d", fontsize);
+    pfd = pango_font_description_from_string (fontnm); // needed later
+    char *tcss = "GtkTextView {\n font: %s;\n color:%s\n;background-color:%s\n;\n}\n";
+    char *fgc = "black";
+    char *bgc = "white";
+    if (fg)
+      fgc = fg;
+    if (bg) 
+      bgc = bg;
+    shoes_css_apply_font_and_colors(canvas, fontnm, fgc, bgc, tcss);
+#else
     // Deal with the colors of the terminal widget. Note: these functions
     // are deprecated at gtk 3.16
     GdkRGBA bg_color, fg_color;
@@ -594,6 +619,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
         gdk_rgba_parse(&fg_color, fg);
     else
         gdk_rgba_parse(&fg_color, "black");
+    
     gtk_widget_override_color(canvas, GTK_STATE_FLAG_NORMAL, &fg_color);
     if (bg)
         gdk_rgba_parse(&bg_color, bg);
@@ -607,6 +633,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
     pfd = pango_font_description_from_string (fontnm);
     //pfd = pango_font_description_from_string ("monospace 12");
     gtk_widget_override_font (canvas, pfd);
+#endif
 
     // compute 'char' width, and tab settings.
     PangoLayout *playout;
@@ -684,7 +711,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
 
     // TODO: some clean up here. Complete ?
     pango_font_description_free(pfd);
-    pango_font_description_free(bpfd);
+    //pango_font_description_free(bpfd);
     pango_tab_array_free(tab_array);
     g_object_unref(playout);
     return;

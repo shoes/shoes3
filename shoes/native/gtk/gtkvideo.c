@@ -5,6 +5,7 @@
 #include "shoes/internal.h"
 #include "shoes/native/native.h"
 #include "shoes/native/gtk/gtkvideo.h"
+#include "shoes/native/gtk/gtkcss.h"
 #include "shoes/types/color.h"
 #include "shoes/types/video.h"
 
@@ -29,7 +30,29 @@ SHOES_CONTROL_REF shoes_native_surface_new(VALUE attr, VALUE video) {
     VALUE uc = Qnil;
     if (!NIL_P(attr)) uc = ATTR(attr, bg_color);
 
-    // TODO (better with GtkStyleProvider)
+    // DONE: (better with GtkStyleProvider)
+#if 1
+    if (! NIL_P(uc)) {
+        shoes_color *col;
+        Data_Get_Struct(uc, shoes_color, col);
+        GtkCssProvider *provider;
+        GtkStyleContext *context;
+        char new_css[100]; 
+        sprintf(new_css, "GtkDrawingArea {\n background-color: rgb(%d,%d,%d);\n}\n", 
+            col->r, col->g, col->b);
+        provider = gtk_css_provider_new ();
+        g_signal_connect(G_OBJECT(provider), "parsing-error",
+                       G_CALLBACK(shoes_css_parse_error),
+                       (gpointer)NULL);
+        gtk_css_provider_load_from_data(provider, new_css, -1, NULL);
+        context = gtk_widget_get_style_context (da);
+        gtk_style_context_add_provider (context,
+              GTK_STYLE_PROVIDER (provider),
+              GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+        // check what's really in provider ?
+        //printf("provider has: %s\n", gtk_css_provider_to_string(provider));
+    }
+#else
     GdkRGBA color = {.0, .0, .0, 1.0};
     if (!NIL_P(uc)) {
         shoes_color *col;
@@ -39,7 +62,7 @@ SHOES_CONTROL_REF shoes_native_surface_new(VALUE attr, VALUE video) {
         color.blue = col->b/255.0;
     }
     gtk_widget_override_background_color(GTK_WIDGET(da), 0, &color);
-
+#endif 
     g_signal_connect(G_OBJECT(da), "realize",
                      G_CALLBACK(surface_on_realize),
                      (gpointer)video);
