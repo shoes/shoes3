@@ -1310,7 +1310,13 @@ VALUE shoes_dialog_ask(int argc, VALUE *argv, VALUE self) {
     gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
     gtk_container_set_border_width(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), 6);
     GtkWidget *question = gtk_label_new(RSTRING_PTR(shoes_native_to_s(args.a[0])));
-    gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
+    // TODO: is this really needed?
+    if (gtk_get_minor_version() < 14){
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+     gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
+#pragma GCC diagnostic pop
+    }
     GtkWidget *_answer = gtk_entry_new();
     if (RTEST(ATTR(args.a[1], secret))) shoes_native_secrecy(_answer);
     gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), question, FALSE, FALSE, 3);
@@ -1362,8 +1368,13 @@ VALUE shoes_dialog_confirm(int argc, VALUE *argv, VALUE self) {
     gtk_container_set_border_width(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), 6);
 
     GtkWidget *question = gtk_label_new(RSTRING_PTR(quiz));
-    gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
-
+    // TODO is misc really needed?
+    if (gtk_get_minor_version() < 14){
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+     gtk_misc_set_alignment(GTK_MISC(question), 0, 0);
+#pragma GCC diagnostic pop
+    }
     gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), question, FALSE, FALSE, 3);
 
     gtk_widget_show_all(dialog);
