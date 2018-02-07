@@ -675,17 +675,32 @@ static gint shoes_app_g_poll(GPollFD *fds, guint nfds, gint timeout) {
 shoes_code shoes_app_cursor(shoes_app *app, ID cursor) {
     if (app->os.window == NULL || gtk_widget_get_window(app->os.window)== NULL || app->cursor == cursor)
         goto done;
-
     GdkCursor *c;
-    if (cursor == s_hand || cursor == s_link) {
-        c = gdk_cursor_new(GDK_HAND2);
-    } else if (cursor == s_arrow) {
-        c = gdk_cursor_new(GDK_ARROW);
-    } else if (cursor == s_text) {
-        c = gdk_cursor_new(GDK_XTERM);
-    } else
-        goto done;
-
+    if (gtk_get_minor_version() >= 16) {
+      // TODO: muliple-moniter support needs? 
+      GdkDisplay *dsp = gdk_display_get_default();
+      if (cursor == s_hand || cursor == s_link) {
+          c = gdk_cursor_new_for_display(dsp, GDK_HAND2);
+      } else if (cursor == s_arrow) {
+          c = gdk_cursor_new_for_display(dsp, GDK_ARROW);
+      } else if (cursor == s_text) {
+          c = gdk_cursor_new_for_display(dsp, GDK_XTERM);
+      } else
+          goto done;
+    } else {
+      // Windows gtk may be older than 3.16
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+      if (cursor == s_hand || cursor == s_link) {
+          c = gdk_cursor_new(GDK_HAND2);
+      } else if (cursor == s_arrow) {
+          c = gdk_cursor_new(GDK_ARROW);
+      } else if (cursor == s_text) {
+          c = gdk_cursor_new(GDK_XTERM);
+      } else
+          goto done;
+#pragma GCC diagnostic pop
+    }
     gdk_window_set_cursor(gtk_widget_get_window(app->os.window), c);
     app->cursor = cursor;
 
@@ -736,20 +751,25 @@ void shoes_native_app_set_wtitle(shoes_app *app, char *wtitle) {
     gtk_window_set_title(GTK_WINDOW(app->slot->oscanvas), _(wtitle));
 }
 
-// new in 3.3.3 - opacity -uses the deprecated 
+// new in 3.3.3 - opacity  can use the older api on old Gtk3 
 void shoes_native_app_set_opacity(shoes_app *app, double opacity) {
-//  if (gtk_get_minor_version() >= 8)
-//    gtk_widget_set_opacity(GTK_WIDGET(app->os.window), opacity);
-//  else 
+  if (gtk_get_minor_version() >= 8)
+    gtk_widget_set_opacity(GTK_WIDGET(app->os.window), opacity);
+  else 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     gtk_window_set_opacity(GTK_WINDOW(app->os.window), opacity);
-
+#pragma GCC diagnostic pop
 }
 
 double shoes_native_app_get_opacity(shoes_app *app) {
-//  if (gtk_get_minor_version() >= 8)
-//    return gtk_widget_get_opacity(GTK_WIDGET(app->os.window));
-//  else
+ if (gtk_get_minor_version() >= 8)
+    return gtk_widget_get_opacity(GTK_WIDGET(app->os.window));
+  else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     return gtk_window_get_opacity(GTK_WINDOW(app->os.window));
+#pragma GCC diagnostic pop
 }
 
 void shoes_native_app_set_decoration(shoes_app *app, gboolean decorated) {
