@@ -30,14 +30,13 @@
 #include <glib/gprintf.h>
 
 #include "gtk.h"
-#if 0
 #include "shoes/native/gtk/gtkfixedalt.h"
 #include "shoes/native/gtk/gtkentryalt.h"
 #include "shoes/native/gtk/gtkcomboboxtextalt.h"
 #include "shoes/native/gtk/gtkbuttonalt.h"
 #include "shoes/native/gtk/gtkscrolledwindowalt.h"
 #include "shoes/native/gtk/gtkprogressbaralt.h"
-#endif
+
 #define HEIGHT_PAD 0
 
 #define SHOES_GTK_INVISIBLE_CHAR (gunichar)0x2022
