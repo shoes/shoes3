@@ -49,6 +49,8 @@ typedef struct _shoes_app {
     VALUE location;
     VALUE owner;
     int use_event_handler; 
+    int have_menu;
+    VALUE menubar;
 } shoes_app;
 
 //
@@ -105,6 +107,7 @@ VALUE shoes_app_clear_cache(VALUE app, VALUE opts);
 VALUE shoes_app_get_handler(VALUE app);
 VALUE shoes_app_set_event_handler(VALUE app, VALUE opt);
 VALUE shoes_app_replay_event(VALUE app, VALUE evh);
+VALUE shoes_app_get_menubar(VALUE app);
 // global var for image cache - declared in types/image.c
 extern int shoes_cache_setting;
 // global var for console up and running

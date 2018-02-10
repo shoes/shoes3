@@ -807,6 +807,7 @@ void shoes_ruby_init() {
     rb_define_method(cApp, "cache_clear", CASTHOOK(shoes_app_clear_cache), 1);
     rb_define_method(cApp, "event=", CASTHOOK(shoes_app_set_event_handler), 1);
     rb_define_method(cApp, "replay_event", CASTHOOK(shoes_app_replay_event), 1);
+    rb_define_method(cApp, "menubar", CASTHOOK(shoes_app_get_menubar),0);
 
 
     cDialog = rb_define_class_under(cTypes, "Dialog", cApp);

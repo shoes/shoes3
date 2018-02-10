@@ -64,6 +64,8 @@ VALUE shoes_app_alloc(VALUE klass) {
     app->opacity = 1.0;
     app->cursor = s_arrow;
     app->use_event_handler = 0;
+    app->have_menu = 0;
+    app->menubar = rb_ary_new();
     app->scratch = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
     app->self = Data_Wrap_Struct(klass, shoes_app_mark, shoes_app_free, app);
     rb_extend_object(app->self, cTypes);
@@ -137,6 +139,10 @@ VALUE shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner) {
     app_t->resizable = (ATTR(attr, resizable) != Qfalse);
     app_t->decorated = (ATTR(attr, decorated) != Qfalse);
     app_t->hidden = (ATTR(attr, hidden) == Qtrue);
+
+    if (RTEST(ATTR(attr, menus))) {
+      app_t->have_menu = TRUE;
+    }
 
     if (RTEST(ATTR(attr, opacity)))
         if ((0.0 <= NUM2DBL(ATTR(attr, opacity))) && (1.0 >= NUM2DBL(ATTR(attr, opacity))))
@@ -1042,5 +1048,13 @@ VALUE shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
         fprintf(stderr, "Terminal set: %s\n", title);
     }
     return shoes_global_terminal ? Qtrue : Qfalse;
+}
+
+/*
+ *  returns a Ruby array of Shoes menu objects. a Menu object here has 
+*/
+
+VALUE shoes_app_get_menubar(VALUE app) {
+  // return shoes_native_get_menubar()
 }
 

@@ -21,18 +21,18 @@
  * https://stackoverflow.com/questions/3378560/how-to-disable-gcc-warnings-for-a-few-lines-of-code
 */
 
-//extern GApplication *shoes_GApp;
+extern GtkApplication *shoes_GtkApp;
+
 #if !defined(SHOES_GTK_WIN32) // i.e. not Windows
-// TODO: Doesn't work on Linux either but it did once.
+// TODO: Doesn't work on Linux anymore but it did once.
 static void shoes_native_systray_gapp(char *title, char *message, char *path) {
-  GApplication *gapp = g_application_get_default();
   GNotification *note;
   note = g_notification_new (title);
   g_notification_set_body (note, message);
   GFile *iconf = g_file_new_for_path (path);
   GIcon *icon = g_file_icon_new (iconf);
   g_notification_set_icon(note, icon);
-  g_application_send_notification (gapp, "Shoes", note);
+  g_application_send_notification (G_APPLICATION(shoes_GtkApp), "Shoes", note);
 }
 #endif
 // Always compile the old version (gtk_status_icon)
@@ -61,8 +61,10 @@ void shoes_native_systray(char *title, char *message, char *path) {
   // always call the older stuff for Windows
   shoes_native_systray_old(title, message, path);
 #else
-  // TODO: Linux: make a runtime determination of which to call
-  //shoes_native_systray_gapp(title, message, path);
+#ifdef GAPP
+  shoes_native_systray_gapp(title, message, path);
+#else
   shoes_native_systray_old(title, message, path);
+#endif
 #endif
 }

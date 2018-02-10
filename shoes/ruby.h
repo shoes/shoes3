@@ -557,7 +557,7 @@ void shoes_cairo_arc(cairo_t *, double, double, double, double, double, double);
   f(shadow); f(arc); f(rect); f(oval); f(line); f(star); f(project); f(round); \
   f(square); f(undercolor); f(underline); f(variant); f(weight); f(wrap); \
   f(dash); f(nodot); f(onedot); f(donekey); f(volume); f(bg_color); \
-  f(decorated); f(opacity); f(cache); f(event); f(btn_activate)
+  f(decorated); f(opacity); f(cache); f(event); f(btn_activate); f(menus);
 #define SYMBOL_INTERN(name) s_##name = rb_intern("" # name)
 #define SYMBOL_ID(name) ID s_##name
 #define SYMBOL_EXTERN(name) extern ID s_##name

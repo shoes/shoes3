@@ -88,7 +88,7 @@ VALUE shoes_load_font(const char *filename) {
  * Shoes 3.3.4 uses gtk_application_new (aka GApplication) instead of gtk_init
 */
 
-#if 0  // not used
+#ifdef GAPP
 void
 shoes_gtk_app_activate (GApplication *app, gpointer user_data) {
     fprintf(stderr, "shoes_gtk_app_activate called\n");
@@ -98,7 +98,11 @@ void shoes_gtk_app_open (GApplication *app, GFile **files,
       gint n_files, gchar *hint) {
     fprintf(stderr, "shoes_gtk_app_open called\n");
 }
-#endif 
+
+gboolean
+shoes_gtk_app_startup(GApplication *application, gpointer user_data) {
+    fprintf(stderr, "shoes_gtk_app_startup\n");
+}
 
 gboolean
 shoes_gtk_app_cmdline (GApplication *application, gchar ***arguments,
@@ -110,8 +114,14 @@ shoes_gtk_app_cmdline (GApplication *application, gchar ***arguments,
    * them so it doesn't have too. Need to do this for Gtk/Windows which has the
    * documented habit of reading the commandline twice
   */ 
+  printf("command-line signal processed\n");
   return TRUE;
 }
+#endif
+
+#ifdef GAPP
+GtkApplication *shoes_GtkApp; // This a C global
+#endif
 
 void shoes_native_init() {
 #if !defined(RUBY_HTTP) && !defined(SHOES_GTK_WIN32)
@@ -119,16 +129,19 @@ void shoes_native_init() {
 #endif
 #ifdef GAPP
     int status;
-    GtkApplication *shoes_GtkApp;
     srand(time(NULL));
-    int pid = rand();
+    int pid = rand();  // TODO: rand is not a pid, you know
     char app_id[100];
-    sprintf(app_id, "com.mvmanila.shoes-%i", pid);
+    sprintf(app_id, "com.mvmanila.shoes", pid);
     fprintf(stderr,"launching %s\n", app_id);
-    //shoes_GtkApp = gtk_application_new ("com.mvmanila.shoes", G_APPLICATION_HANDLES_COMMAND_LINE);
     shoes_GtkApp = gtk_application_new (app_id, G_APPLICATION_HANDLES_COMMAND_LINE);
-
-    g_signal_connect (shoes_GtkApp, "command-line", G_CALLBACK (shoes_gtk_app_cmdline), NULL);
+    //shoes_GtkApp = gtk_application_new (NULL, G_APPLICATION_HANDLES_COMMAND_LINE); // be careful with NULL
+    g_signal_connect(shoes_GtkApp, "activate", G_CALLBACK (shoes_gtk_app_activate), NULL);
+    g_signal_connect(shoes_GtkApp, "command-line", G_CALLBACK (shoes_gtk_app_cmdline), NULL);
+    g_signal_connect(G_APPLICATION(shoes_GtkApp), "startup", G_CALLBACK(shoes_gtk_app_startup), NULL);
+    gtk_init(NULL,NULL); // This starts the gui w/o triggering signals - complains but works.
+    // g_application_run(G_APPLICATION(shoes_GtkApp), 0, NULL); // doesn't work but could?
+    
 #else
     // Shoes 3.3.3 way to init
     gtk_init(NULL, NULL);
@@ -789,59 +802,91 @@ void shoes_native_app_window_move(shoes_app *app, int x, int y) {
     gtk_window_move(GTK_WINDOW(app->os.window), app->x = x, app->y = y);
 }
 
+// All apps windows will have a menubur and then the old shoes space below. 
 shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
 #if !defined(SHOES_GTK_WIN32)
     char icon_path[SHOES_BUFSIZE];
 #endif
 
-    shoes_app_gtk *gk = &app->os;
+    shoes_app_gtk *gk = &app->os; //lexical - typing shortcut
+    
+    GtkWidget *window;       // Root window contains the vox
+    GtkWidget *vbox;         //     contained by root
+    GtkWidget *menubar;     // top of vbox
+    GtkWidget *shoes_window; // Window where shoes normally does its thing.
+    GtkWidget *fileMenu;
+    GtkWidget *fileMi;
+    GtkWidget *quitMi;
+
+    menubar = gtk_menu_bar_new();
+    fileMenu = gtk_menu_new();
+
+    fileMi = gtk_menu_item_new_with_label("File");
+    quitMi = gtk_menu_item_new_with_label("Quit");
+
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(fileMi), fileMenu);
+    gtk_menu_shell_append(GTK_MENU_SHELL(fileMenu), quitMi);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menubar), fileMi);
 
 #if !defined(SHOES_GTK_WIN32)
     sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
     gtk_window_set_default_icon_from_file(icon_path, NULL);
 #endif
-    gk->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_position(GTK_WINDOW(gk->window), GTK_WIN_POS_CENTER);
-    // commit https://github.com/shoes/shoes/commit/4e7982ddcc8713298b6959804dab8d20111c0038
+#if 0
+    // don't do this if gtk_init() is used.
+    window = gtk_application_window_new(shoes_GtkApp);
+#else
+    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+#endif
+    vbox =  gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_container_add(GTK_CONTAINER(window), vbox);
+    // Gtk Container of the fixed variety. Not the alt version!!
+    shoes_window = gtk_fixed_new();
+    
+    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+   // commit https://github.com/shoes/shoes/commit/4e7982ddcc8713298b6959804dab8d20111c0038
     if (!app->resizable) {
-        gtk_widget_set_size_request(gk->window, app->width, app->height);
-        gtk_window_set_resizable(GTK_WINDOW(gk->window), FALSE);
+        gtk_widget_set_size_request(window, app->width, app->height);
+        gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
     } else if (app->minwidth < app->width || app->minheight < app->height) {
         GdkGeometry hints;
         hints.min_width = app->minwidth;
         hints.min_height = app->minheight;
-        gtk_window_set_geometry_hints(GTK_WINDOW(gk->window), NULL,
+        gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL,
                                       &hints, GDK_HINT_MIN_SIZE);
    }
-    gtk_window_set_default_size(GTK_WINDOW(gk->window), app->width, app->height);
+    gtk_window_set_default_size(GTK_WINDOW(window), app->width, app->height);
 
-    gtk_window_get_position(GTK_WINDOW(gk->window), &app->x, &app->y);
+    gtk_window_get_position(GTK_WINDOW(window), &app->x, &app->y);
 
     if (app->fullscreen) shoes_native_app_fullscreen(app, 1);
 
-    gtk_window_set_decorated(GTK_WINDOW(gk->window), app->decorated);
+    gtk_window_set_decorated(GTK_WINDOW(window), app->decorated);
 #if GTK_CHECK_VERSION(3,8,0)
-    gtk_widget_set_opacity(GTK_WIDGET(gk->window), app->opacity);
+    gtk_widget_set_opacity(GTK_WIDGET(window), app->opacity);
 #endif
-    gtk_widget_set_events(gk->window, GDK_POINTER_MOTION_MASK | GDK_SCROLL_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
-    g_signal_connect(G_OBJECT(gk->window), "size-allocate",
+    gtk_widget_set_events(window, GDK_POINTER_MOTION_MASK | GDK_SCROLL_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
+    g_signal_connect(G_OBJECT(window), "size-allocate",
                      G_CALLBACK(shoes_app_gtk_paint), app);
-    g_signal_connect(G_OBJECT(gk->window), "motion-notify-event",
+    g_signal_connect(G_OBJECT(window), "motion-notify-event",
                      G_CALLBACK(shoes_app_gtk_motion), app);
-    g_signal_connect(G_OBJECT(gk->window), "button-press-event",
+    g_signal_connect(G_OBJECT(window), "button-press-event",
                      G_CALLBACK(shoes_app_gtk_button), app);
-    g_signal_connect(G_OBJECT(gk->window), "button-release-event",
+    g_signal_connect(G_OBJECT(window), "button-release-event",
                      G_CALLBACK(shoes_app_gtk_button), app);
-    g_signal_connect(G_OBJECT(gk->window), "scroll-event",
+    g_signal_connect(G_OBJECT(window), "scroll-event",
                      G_CALLBACK(shoes_app_gtk_wheel), app);
-    g_signal_connect(G_OBJECT(gk->window), "key-press-event",
+    g_signal_connect(G_OBJECT(window), "key-press-event",
                      G_CALLBACK(shoes_app_gtk_keypress), app);
-    g_signal_connect(G_OBJECT(gk->window), "key-release-event",
+    g_signal_connect(G_OBJECT(window), "key-release-event",
                      G_CALLBACK(shoes_app_gtk_keypress), app);
-    g_signal_connect(G_OBJECT(gk->window), "delete-event",
+    g_signal_connect(G_OBJECT(window), "delete-event",
                      G_CALLBACK(shoes_app_gtk_quit), app);
+                     
+    gtk_box_pack_start(GTK_BOX(vbox), shoes_window, FALSE, FALSE, 0);    
+    gk->window = window;
+    app->slot->oscanvas = shoes_window;
 
-    app->slot->oscanvas = gk->window;
     return SHOES_OK;
 }
 
