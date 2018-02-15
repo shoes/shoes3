@@ -139,10 +139,12 @@ VALUE shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner) {
     app_t->resizable = (ATTR(attr, resizable) != Qfalse);
     app_t->decorated = (ATTR(attr, decorated) != Qfalse);
     app_t->hidden = (ATTR(attr, hidden) == Qtrue);
-
+    
+    app_t->mb_height = 0;
     if (RTEST(ATTR(attr, menus))) {
       app_t->have_menu = TRUE;
     }
+    app_t->menubar = Qnil;
 
     if (RTEST(ATTR(attr, opacity)))
         if ((0.0 <= NUM2DBL(ATTR(attr, opacity))) && (1.0 >= NUM2DBL(ATTR(attr, opacity))))
@@ -1048,13 +1050,5 @@ VALUE shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
         fprintf(stderr, "Terminal set: %s\n", title);
     }
     return shoes_global_terminal ? Qtrue : Qfalse;
-}
-
-/*
- *  returns a Ruby array of Shoes menu objects. a Menu object here has 
-*/
-
-VALUE shoes_app_get_menubar(VALUE app) {
-  // return shoes_native_get_menubar()
 }
 

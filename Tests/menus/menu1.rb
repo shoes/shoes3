@@ -1,3 +1,5 @@
+
 Shoes.app menus: true do
-  para "do we have a minimal menu?"
+  para "Does File->Quit work?"
 end
+

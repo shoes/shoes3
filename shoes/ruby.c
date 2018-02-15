@@ -12,7 +12,9 @@
 #include "shoes/types/types.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow, cStack, cMask, cWidget, cProgress, cColor, cResponse, ssNestSlot;
+VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow;
+VALUE cStack, cMask, cWidget, cProgress, cColor, cResponse, ssNestSlot;
+VALUE cMenu, cMenubar, cMenuItem;
 VALUE eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
@@ -807,8 +809,6 @@ void shoes_ruby_init() {
     rb_define_method(cApp, "cache_clear", CASTHOOK(shoes_app_clear_cache), 1);
     rb_define_method(cApp, "event=", CASTHOOK(shoes_app_set_event_handler), 1);
     rb_define_method(cApp, "replay_event", CASTHOOK(shoes_app_replay_event), 1);
-    rb_define_method(cApp, "menubar", CASTHOOK(shoes_app_get_menubar),0);
-
 
     cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 

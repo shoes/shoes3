@@ -50,6 +50,7 @@ typedef struct _shoes_app {
     VALUE owner;
     int use_event_handler; 
     int have_menu;
+    int mb_height;
     VALUE menubar;
 } shoes_app;
 

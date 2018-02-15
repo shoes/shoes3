@@ -448,6 +448,8 @@ VALUE shoes_image_motion(VALUE, int, int, char *);
 VALUE shoes_image_send_click(VALUE, int, int, int);
 void shoes_image_send_release(VALUE, int, int, int);
 
+// menuitem, menu, menubar
+
 VALUE shoes_p(VALUE, VALUE);
 
 extern const double SHOES_PIM2, SHOES_PI, SHOES_RAD2PI, SHOES_HALFPI;
@@ -477,7 +479,7 @@ extern void shoes_svg_send_release(VALUE, int, int, int);
 // TODO: to be removed during refactoring
 extern VALUE shoes_text_new(VALUE klass, VALUE texts, VALUE attr);
 
-extern VALUE cNative, cPlot, cRadio;
+extern VALUE cNative, cPlot, cRadio, cMenu, cMenuitem, cMenubar;
 
 
 // TODO: MARKUP_* macro belongs to either TextBlock or Text?
