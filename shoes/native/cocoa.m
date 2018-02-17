@@ -489,9 +489,11 @@ create_apple_menu(NSMenu *main)
     menuitem = [menuApp addItemWithTitle:@"Open..."
         action:@selector(openFile:) keyEquivalent:@"o"];
     [menuitem setTarget: shoes_world->os.events];
+#if 0    
     menuitem = [menuApp addItemWithTitle:@"Package..."
         action:@selector(package:) keyEquivalent:@"P"];
     [menuitem setTarget: shoes_world->os.events];
+#endif    
     [menuApp addItemWithTitle:@"Preferences..." action:nil keyEquivalent:@""];
     [menuApp addItem: [NSMenuItem separatorItem]];
     menuitem = [[NSMenuItem alloc] initWithTitle: @"Services"
