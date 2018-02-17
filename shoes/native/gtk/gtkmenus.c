@@ -14,7 +14,6 @@
 void shoes_native_menubar_append(shoes_menubar *mb, shoes_menu *mn) {
   GtkWidget *menubar = (GtkWidget *)mb->native;
   GtkWidget *menu = (GtkWidget *)mn->native;
-  // TODO problems here:
   gtk_menu_shell_append(GTK_MENU_SHELL(menubar), menu);
 }
 
@@ -26,6 +25,17 @@ void shoes_native_menubar_append(shoes_menubar *mb, shoes_menu *mn) {
 void shoes_native_menubar_quit(void *extra) {
   fprintf(stderr, "Dummy quit called\n");
 
+}
+
+// TODO: calling this will segfault
+VALUE shoes_native_menubar_make_block(char *code) {
+  int argc = 1;
+  VALUE argv[2];
+  argv[0] = rb_str_new2(code);
+  argv[1] = Qnil;
+  VALUE block = Qnil;
+  rb_scan_args(argc, argv, "0&", &block);
+  return block;
 }
 
 VALUE shoes_native_menubar_setup(shoes_app *app) {
@@ -72,6 +82,8 @@ VALUE shoes_native_menubar_setup(shoes_app *app) {
       mi->title = "Quit";
       mi->key = "";
       mi->block = Qnil; // TODO, for now we use the signal handler above
+      //mi->block = shoes_native_menubar_make_block("{ Shoes.quit }");
+      mi->context = app->canvas;
       // add to menu
       rb_ary_push(mn->items, miv);
     }
@@ -81,38 +93,46 @@ VALUE shoes_native_menubar_setup(shoes_app *app) {
 
 
 // ------- menu ------
-void *shoes_native_menu_new(VALUE mnv, char *name) {
+void *shoes_native_menu_new(shoes_menu *mn) {
   GtkWidget *menu;
   GtkWidget *mi;
-  shoes_menu *mn;
-  Data_Get_Struct(mnv, shoes_menu, mn);
   menu = gtk_menu_new();
-  mi = gtk_menu_item_new_with_label(name);
+  mi = gtk_menu_item_new_with_label(mn->title);
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(mi), menu);
-  mn->native = (void *)menu;
+  mn->native = (void *)mi; 
+  mn->extra = (void *)menu;
 }
 
 void *shoes_native_menu_append(shoes_menu *mn, shoes_menuitem *mi) {
-  gtk_menu_shell_append(GTK_MENU_SHELL(GTK_WIDGET(mn->native)), (GtkWidget *)mi->native);  
+  
+  gtk_menu_shell_append(GTK_MENU_SHELL(GTK_WIDGET(mn->extra)), (GtkWidget *)mi->native);  
 }
 
 // -------- menuitem ------
 
-void shoes_native_menuitem_callback(void *extra) {
+void shoes_native_menuitem_callback(GtkWidget *wid, gpointer extra) {
   shoes_menuitem *mi = (shoes_menuitem *)extra;
-  // TODO: rb_eval mi->block
-  fprintf(stderr,"menu %s triggered\n", mi->title);
+  //fprintf(stderr,"menu %s triggered\n", mi->title);
+  shoes_safe_block(mi->context, mi->block, rb_ary_new3(1, mi->context));
 }
 
 void *shoes_native_menuitem_new(shoes_menuitem *mi) {
   GtkWidget *gmi;
-  // Todo: acceleraters like 'control_q'
   gmi = gtk_menu_item_new_with_label(mi->title);
+  if (mi->key) {
+    // TODO: acceleraters like 'control_q or shift_control_i'
+    int ctlk = 0;
+    int shiftk = 0;
+    if (strncpy(mi->key,"control_",8) == 0) {
+    }
+  }
   mi->native = (void *)gmi;
-  // TODO: setup gsignal callback
   if (! NIL_P(mi->block)) {
     g_signal_connect(G_OBJECT(gmi), "activate",
-            G_CALLBACK(shoes_native_menuitem_callback), mi);   }
+            G_CALLBACK(shoes_native_menuitem_callback), (gpointer) mi);
+  }
   return (void *)mi->native;
 }
+
+
 

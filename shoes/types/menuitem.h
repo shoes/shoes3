@@ -14,9 +14,10 @@ extern shoes_app _shoes_app;
 
 typedef struct {
     void *native;  
-    char *title;  // C string
-    char *key;    // accelerator key like 'control_q', C string
-    VALUE block;  // block to call
+    char *title;   // C string
+    char *key;     // accelerator key like 'control_q', C string
+    VALUE block;   // block to call
+    VALUE context; // app->canvas (ie the app/window default canvas)
 } shoes_menuitem;
 
 

@@ -20,6 +20,7 @@ void shoes_menuitem_init() {
 
 void shoes_menuitem_mark(shoes_menuitem *mi) {
     rb_gc_mark_maybe(mi->block);
+    rb_gc_mark_maybe(mi->context);
 }
 
 static void shoes_menuitem_free(shoes_menuitem *mi) {
@@ -38,15 +39,23 @@ VALUE shoes_menuitem_alloc(VALUE klass) {
     return obj;
 }
 
-VALUE shoes_menuitem_new(VALUE text, VALUE key, VALUE blk) {
+VALUE shoes_menuitem_new(VALUE text, VALUE key, VALUE blk, VALUE canvas) {
   VALUE obj= shoes_menuitem_alloc(cMenuitem);
   shoes_menuitem *mi;
   Data_Get_Struct(obj, shoes_menuitem, mi);
   mi->title = RSTRING_PTR(text);
-  // TODO: key
-  //mi->key = RSTRING_PTR(key);
+  if (TYPE(key) == T_STRING) 
+    mi->key = RSTRING_PTR(key);
+  else
+    mi->key = NULL;
   mi->block = blk;
+  // Find the root canvas of the app (window)
   mi->native = shoes_native_menuitem_new(mi);
+  shoes_canvas *cvs;
+  Data_Get_Struct(canvas, shoes_canvas, cvs);
+  shoes_app *app = cvs->app;
+  //mi->context = app->canvas;
+  mi->context = canvas;
   return obj;
 }
 
@@ -71,7 +80,8 @@ VALUE shoes_menuitem_setblk(VALUE self, VALUE block) {
 }
 
 
-// canvas - Shoes usage:  menuitem "Quit" , key: 'control_q', click: { Shoes.quit} 
+// canvas - Shoes usage:  menuitem "Quit" , key: 'control_q'  do Shoes.quit end
+//    just like a button. 
 VALUE shoes_canvas_menuitem(int argc, VALUE *argv, VALUE self) {
     rb_arg_list args;
     VALUE text = Qnil, attr = Qnil, blk = Qnil, keystr = Qnil;
@@ -92,9 +102,9 @@ VALUE shoes_canvas_menuitem(int argc, VALUE *argv, VALUE self) {
     
     if (rb_block_given_p()) {
         //ATTRSET(attr, click, rb_block_proc());
-        blk = (VALUE)rb_block_proc;
+        blk = rb_block_proc();
     }
-    menuitem = shoes_menuitem_new(text, keystr, blk);
+    menuitem = shoes_menuitem_new(text, keystr, blk, self);
     
     return menuitem;
 }

@@ -41,7 +41,7 @@ VALUE shoes_menu_new(VALUE text) {
   shoes_menu *mn;
   Data_Get_Struct(obj, shoes_menu, mn);
   mn->title = RSTRING_PTR(text);
-  shoes_native_menu_new(obj, RSTRING_PTR(text));
+  shoes_native_menu_new(mn);
   return obj;
 }
 
@@ -82,10 +82,6 @@ VALUE shoes_canvas_menu(int argc, VALUE *argv, VALUE self) {
 
     if (!NIL_P(text))
         ATTRSET(attr, text, text);
-#if 0
-    if (rb_block_given_p()) // more menuitem than menu
-        ATTRSET(attr, click, rb_block_proc());
-#endif
     menu = shoes_menu_new(text);
     
     return menu;
