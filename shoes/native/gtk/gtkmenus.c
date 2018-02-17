@@ -23,8 +23,8 @@ void shoes_native_menubar_append(shoes_menubar *mb, shoes_menu *mn) {
  * The default set of menus is created here.
 */ 
 void shoes_native_menubar_quit(void *extra) {
-  fprintf(stderr, "Dummy quit called\n");
-
+  //fprintf(stderr, "Dummy quit called\n");
+  shoes_native_quit();
 }
 
 // TODO: calling this will segfault
