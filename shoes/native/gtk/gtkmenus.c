@@ -61,14 +61,14 @@ VALUE shoes_native_menubar_setup(shoes_app *app) {
             
       // Thats gtk's menus - now setup Shoes Objects to match
       // without calling ourself inappropriately
-      VALUE mbv = shoes_menubar_alloc(cMenubar);
+      VALUE mbv = shoes_menubar_alloc(cShoesMenubar);
       shoes_menubar *mb;
       Data_Get_Struct(mbv, shoes_menubar, mb);
       mb->native = (void *)menubar;
       // save menubar object in app object
       app->menubar = mbv;
       
-      VALUE mnv = shoes_menu_alloc(cMenu);
+      VALUE mnv = shoes_menu_alloc(cShoesMenu);
       shoes_menu *mn;
       Data_Get_Struct(mnv, shoes_menu, mn);
       mn->title = "File";
@@ -76,7 +76,7 @@ VALUE shoes_native_menubar_setup(shoes_app *app) {
       // link mn to the menubar
       rb_ary_push(mb->menus, mnv);
       
-      VALUE miv = shoes_menuitem_alloc(cMenuitem);
+      VALUE miv = shoes_menuitem_alloc(cShoesMenuitem);
       shoes_menuitem *mi;
       Data_Get_Struct(miv, shoes_menuitem, mi);
       mi->title = "Quit";

@@ -9,7 +9,7 @@
 #define SHOES_MENU_TYPE_H
 
 /* extern variables necessary to communicate with other parts of Shoes */
-extern VALUE cShoes, cApp, cTypes, cCanvas, cMenu;
+extern VALUE cShoes, cApp, cTypes, cCanvas, cShoesMenu;
 extern shoes_app _shoes_app;
 
 // Typically, a menubar object has references to this object

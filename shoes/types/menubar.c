@@ -6,16 +6,16 @@
  * The menubar 
  */ 
 // ruby
-VALUE cMenubar;
+extern VALUE cShoesMenubar;
 
 FUNC_M("+menubar", menubar, -1);
 
 void shoes_menubar_init() {
-    cMenubar  = rb_define_class_under(cTypes, "Menubar", rb_cObject);
-    rb_define_alloc_func(cMenubar, shoes_menubar_alloc);
-    rb_define_method(cMenubar, "[]", CASTHOOK(shoes_menubar_get), 1);
-    rb_define_method(cMenubar, "[]=", CASTHOOK(shoes_menubar_set), 2);
-    rb_define_method(cMenubar, "<<", CASTHOOK(shoes_menubar_append), 1);
+    cShoesMenubar  = rb_define_class_under(cTypes, "Menubar", rb_cObject);
+    rb_define_alloc_func(cShoesMenubar, shoes_menubar_alloc);
+    rb_define_method(cShoesMenubar, "[]", CASTHOOK(shoes_menubar_get), 1);
+    rb_define_method(cShoesMenubar, "[]=", CASTHOOK(shoes_menubar_set), 2);
+    rb_define_method(cShoesMenubar, "<<", CASTHOOK(shoes_menubar_append), 1);
     RUBY_M("+menubar", menubar, -1);
 }
 
@@ -49,7 +49,7 @@ VALUE shoes_menubar_new(VALUE canvas) {
     app = cvs->app;
     if (NIL_P(app->menubar)) {
       // Should not happen in real life, but
-      VALUE mbv = shoes_menubar_alloc(cMenubar);
+      VALUE mbv = shoes_menubar_alloc(cShoesMenubar);
       shoes_menubar *mb;
       Data_Get_Struct(mbv, shoes_menubar, mb);
       mb->native = shoes_native_menubar_setup(app);
@@ -71,7 +71,7 @@ VALUE shoes_menubar_set(VALUE self, VALUE idx, VALUE menu) {
 VALUE shoes_menubar_append(VALUE self, VALUE menu) {
   shoes_menubar *mb;
   shoes_menu *mn;
-  // TODO: check if menu is a cMenu object
+  // TODO: check if menu is a cShoesMenu object
   Data_Get_Struct(self, shoes_menubar, mb);
   Data_Get_Struct(menu, shoes_menu, mn);
   shoes_native_menubar_append(mb, mn);

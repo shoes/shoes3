@@ -479,7 +479,7 @@ extern void shoes_svg_send_release(VALUE, int, int, int);
 // TODO: to be removed during refactoring
 extern VALUE shoes_text_new(VALUE klass, VALUE texts, VALUE attr);
 
-extern VALUE cNative, cPlot, cRadio, cMenu, cMenuitem, cMenubar;
+extern VALUE cNative, cPlot, cRadio, cShoesMenu, cShoesMenuitem, cShoesMenubar;
 
 
 // TODO: MARKUP_* macro belongs to either TextBlock or Text?

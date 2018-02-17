@@ -10,7 +10,7 @@
 #define SHOES_MENUBAR_TYPE_H
 
 /* extern variables necessary to communicate with other parts of Shoes */
-extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget, cMenubar;
+extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget, cShoesMenubar;
 extern shoes_app _shoes_app;
 
 typedef struct {

@@ -14,7 +14,7 @@
 
 VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow;
 VALUE cStack, cMask, cWidget, cProgress, cColor, cResponse, ssNestSlot;
-VALUE cMenu, cMenubar, cMenuItem;
+VALUE cShoesMenu, cShoesMenubar, cShoesMenuItem;
 VALUE eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;

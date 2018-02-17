@@ -80,7 +80,7 @@ static inline void flip_endian(unsigned char* x, int length) {
 
 extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas;
 extern VALUE cFlow, cStack, cMask;
-extern VALUE cProgress, cMenubar, cMenu, cMenuItem;
+extern VALUE cProgress, cShoesMenubar, cShoeMenu, cShoesMenuItem;
 extern VALUE ssNestSlot;
 extern VALUE cWidget;
 extern VALUE aMsgList;

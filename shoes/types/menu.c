@@ -6,15 +6,15 @@
  * A top Level menu in menubar  -File, Edit, Help...
  */ 
 // ruby
-VALUE cMenu;
+extern VALUE cShoesMenu;
 
 FUNC_M("+menu", menu, -1);
 
 void shoes_menu_init() {
-    cMenu  = rb_define_class_under(cTypes, "Menu", cNative);
-    rb_define_method(cMenu, "[]", CASTHOOK(shoes_menu_get), 1);
-    rb_define_method(cMenu, "[]=", CASTHOOK(shoes_menu_set), 2);
-    rb_define_method(cMenu, "<<", CASTHOOK(shoes_menu_append), 1);
+    cShoesMenu  = rb_define_class_under(cTypes, "Menu", cNative);
+    rb_define_method(cShoesMenu, "[]", CASTHOOK(shoes_menu_get), 1);
+    rb_define_method(cShoesMenu, "[]=", CASTHOOK(shoes_menu_set), 2);
+    rb_define_method(cShoesMenu, "<<", CASTHOOK(shoes_menu_append), 1);
     RUBY_M("+menu", menu, -1);
 }
 
@@ -37,7 +37,7 @@ VALUE shoes_menu_alloc(VALUE klass) {
 }
 
 VALUE shoes_menu_new(VALUE text) {
-  VALUE obj= shoes_menu_alloc(cMenu);
+  VALUE obj= shoes_menu_alloc(cShoesMenu);
   shoes_menu *mn;
   Data_Get_Struct(obj, shoes_menu, mn);
   mn->title = RSTRING_PTR(text);
@@ -48,7 +48,7 @@ VALUE shoes_menu_new(VALUE text) {
 VALUE shoes_menu_append(VALUE self, VALUE miv) {
   shoes_menu *mn;
   shoes_menuitem *mi;
-  // TODO scream holy hell if miv is not a cMenuitem
+  // TODO scream holy hell if miv is not a cShoesMenuitem
   Data_Get_Struct(self, shoes_menu, mn);
   Data_Get_Struct(miv, shoes_menuitem, mi);
   shoes_native_menu_append(mn, mi);

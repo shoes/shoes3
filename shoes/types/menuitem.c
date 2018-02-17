@@ -4,17 +4,17 @@
  * A top Level menu in menubar  -File, Edit, Help...
  */ 
 // ruby
-VALUE cMenuitem;
+VALUE cShoesMenuitem;
 
 FUNC_M("+menuitem", menuitem, -1);
 
 void shoes_menuitem_init() {
-    cMenuitem  = rb_define_class_under(cTypes, "Menuitem", rb_cObject);
-    rb_define_method(cMenuitem, "title", CASTHOOK(shoes_menuitem_gettitle), 0);
-    rb_define_method(cMenuitem, "title=", CASTHOOK(shoes_menuitem_settitle), 1);
-    rb_define_method(cMenuitem, "title", CASTHOOK(shoes_menuitem_getkey), 0);
-    rb_define_method(cMenuitem, "title=", CASTHOOK(shoes_menuitem_setkey), 1);
-    rb_define_method(cMenu, "block=", CASTHOOK(shoes_menuitem_setblk), 2);
+    cShoesMenuitem  = rb_define_class_under(cTypes, "Menuitem", rb_cObject);
+    rb_define_method(cShoesMenuitem, "title", CASTHOOK(shoes_menuitem_gettitle), 0);
+    rb_define_method(cShoesMenuitem, "title=", CASTHOOK(shoes_menuitem_settitle), 1);
+    rb_define_method(cShoesMenuitem, "title", CASTHOOK(shoes_menuitem_getkey), 0);
+    rb_define_method(cShoesMenuitem, "title=", CASTHOOK(shoes_menuitem_setkey), 1);
+    rb_define_method(cShoesMenuitem, "block=", CASTHOOK(shoes_menuitem_setblk), 2);
     RUBY_M("+menuitem", menuitem, -1);
 }
 
@@ -40,7 +40,7 @@ VALUE shoes_menuitem_alloc(VALUE klass) {
 }
 
 VALUE shoes_menuitem_new(VALUE text, VALUE key, VALUE blk, VALUE canvas) {
-  VALUE obj= shoes_menuitem_alloc(cMenuitem);
+  VALUE obj= shoes_menuitem_alloc(cShoesMenuitem);
   shoes_menuitem *mi;
   Data_Get_Struct(obj, shoes_menuitem, mi);
   mi->title = RSTRING_PTR(text);
