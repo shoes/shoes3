@@ -11,6 +11,9 @@
 
 
 // -------- menubar -----
+
+VALUE shoes_gtk_menubar = Qnil; // All apps will share. OSX behavior - live with it
+
 void shoes_native_menubar_append(shoes_menubar *mb, shoes_menu *mn) {
   GtkWidget *menubar = (GtkWidget *)mb->native;
   GtkWidget *menu = (GtkWidget *)mn->native;
@@ -45,12 +48,16 @@ VALUE shoes_native_menubar_setup(shoes_app *app) {
     GtkWidget *quitMi;  
     if (app->have_menu == 0)
       return Qnil;
+    if (! NIL_P(shoes_gtk_menubar)) {
+      app->menubar = shoes_gtk_menubar;
+      return shoes_gtk_menubar;
+    }
     if (NIL_P(app->menubar)) {
     
       menubar = gtk_menu_bar_new();
       fileMenu = gtk_menu_new();
     
-      fileMi = gtk_menu_item_new_with_label("File");
+      fileMi = gtk_menu_item_new_with_label("Shoes");
       quitMi = gtk_menu_item_new_with_label("Quit");
     
       gtk_menu_item_set_submenu(GTK_MENU_ITEM(fileMi), fileMenu);
@@ -86,6 +93,7 @@ VALUE shoes_native_menubar_setup(shoes_app *app) {
       mi->context = app->canvas;
       // add to menu
       rb_ary_push(mn->items, miv);
+      shoes_gtk_menubar = mbv;
     }
     return app->menubar;
 }

@@ -1,5 +1,5 @@
 
 Shoes.app menus: true do
-  para "Does File->Quit work?"
+  para "Does Shoes->Quit work?"
 end
 

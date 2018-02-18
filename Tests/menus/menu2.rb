@@ -6,5 +6,10 @@ Shoes.app menus: true, width: 300, height: 200 do
   end
   helpmenu << aboutitem
   mb << helpmenu
+  button "new app" do
+    Shoes.app menus: true, width: 300, height: 200 do 
+      para "Shared menus"
+    end
+  end
 end
 
