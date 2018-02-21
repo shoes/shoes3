@@ -5,6 +5,8 @@ Shoes.app menus: true, width: 300, height: 200 do
     alert "This is a menu test", title: "About"
   end
   helpmenu << aboutitem
+  cobbleritem = menuitem "Cobbler" do Shoes.cobbler end
+  helpmenu << cobbleritem
   mb << helpmenu
   button "new app" do
     Shoes.app menus: true, width: 300, height: 200 do 

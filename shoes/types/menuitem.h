@@ -23,6 +23,7 @@ typedef struct {
 
 extern void shoes_menuitem_init();
 VALUE shoes_menuitem_alloc(VALUE klass);
+VALUE shoes_menuitem_new(VALUE text, VALUE key, VALUE blk, VALUE canvas);
 VALUE shoes_menuitem_gettitle(VALUE self);
 VALUE shoes_menuitem_settitle(VALUE self, VALUE tstr);
 VALUE shoes_menuitem_getkey(VALUE self);
@@ -32,5 +33,5 @@ VALUE shoes_canvas_menuitem(int argc, VALUE *argv, VALUE self);
 
 // Natives
 void *shoes_native_menuitem_new(shoes_menuitem *mi);
-
+void *shoes_native_menusep_new(shoes_menuitem *mi);
 #endif

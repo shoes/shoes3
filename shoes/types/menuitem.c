@@ -12,8 +12,8 @@ void shoes_menuitem_init() {
     cShoesMenuitem  = rb_define_class_under(cTypes, "Menuitem", rb_cObject);
     rb_define_method(cShoesMenuitem, "title", CASTHOOK(shoes_menuitem_gettitle), 0);
     rb_define_method(cShoesMenuitem, "title=", CASTHOOK(shoes_menuitem_settitle), 1);
-    rb_define_method(cShoesMenuitem, "title", CASTHOOK(shoes_menuitem_getkey), 0);
-    rb_define_method(cShoesMenuitem, "title=", CASTHOOK(shoes_menuitem_setkey), 1);
+    rb_define_method(cShoesMenuitem, "key", CASTHOOK(shoes_menuitem_getkey), 0);
+    rb_define_method(cShoesMenuitem, "key=", CASTHOOK(shoes_menuitem_setkey), 1);
     rb_define_method(cShoesMenuitem, "block=", CASTHOOK(shoes_menuitem_setblk), 2);
     RUBY_M("+menuitem", menuitem, -1);
 }
@@ -36,31 +36,47 @@ VALUE shoes_menuitem_alloc(VALUE klass) {
     mi->title = NULL;
     mi->key = NULL;
     mi->block = Qnil;
+    mi->context = Qnil;
     return obj;
 }
 
 VALUE shoes_menuitem_new(VALUE text, VALUE key, VALUE blk, VALUE canvas) {
   VALUE obj= shoes_menuitem_alloc(cShoesMenuitem);
   shoes_menuitem *mi;
+  int sep = 0;
   Data_Get_Struct(obj, shoes_menuitem, mi);
   mi->title = RSTRING_PTR(text);
-  if (TYPE(key) == T_STRING) 
-    mi->key = RSTRING_PTR(key);
-  else
+  //fprintf(stderr,"mi: %s\n",mi->title);
+  if (strncmp(mi->title, "---", 3) == 0) {
+    mi->title = NULL;
     mi->key = NULL;
-  mi->block = blk;
-  // Find the root canvas of the app (window)
-  mi->native = shoes_native_menuitem_new(mi);
-  shoes_canvas *cvs;
-  Data_Get_Struct(canvas, shoes_canvas, cvs);
-  shoes_app *app = cvs->app;
-  //mi->context = app->canvas;
-  mi->context = canvas;
+    mi->block = Qnil;
+    mi->native = shoes_native_menusep_new(mi);
+    mi->context = Qnil;  // never called
+  } else {
+    if (TYPE(key) == T_STRING) 
+      mi->key = RSTRING_PTR(key);
+    else
+      mi->key = NULL;
+    mi->block = blk;
+    mi->native = shoes_native_menuitem_new(mi);
+    shoes_canvas *cvs;
+    Data_Get_Struct(canvas, shoes_canvas, cvs);
+    shoes_app *app = cvs->app;
+    // TODO: mi->context = app->canvas; or canvas? 
+    mi->context = canvas;
+  }
   return obj;
 }
 
+
 VALUE shoes_menuitem_gettitle(VALUE self) {
-  return Qnil;
+  shoes_menuitem *mi;
+  Data_Get_Struct(self, shoes_menuitem, mi);
+  if (mi->title == 0)
+    return rb_str_new2("");
+  else
+   return rb_str_new2(mi->title);
 }
 
 VALUE shoes_menuitem_settitle(VALUE self, VALUE text) {

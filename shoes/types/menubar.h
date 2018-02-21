@@ -20,9 +20,9 @@ typedef struct {
 
 void shoes_menubar_init();
 VALUE shoes_menubar_alloc(VALUE klass);
-VALUE shoes_menubar_get(VALUE self, VALUE idx);
-VALUE shoes_menubar_set(VALUE self, VALUE idx, VALUE menu);
+VALUE shoes_menubar_list(VALUE self);
 VALUE shoes_menubar_append(VALUE self, VALUE menu);
+VALUE shoes_menubar_at(VALUE self, VALUE arg);
 // canvas
 VALUE shoes_canvas_menubar(int argc, VALUE *argv, VALUE self);
 

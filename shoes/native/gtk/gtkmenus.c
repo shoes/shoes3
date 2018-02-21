@@ -12,7 +12,7 @@
 
 // -------- menubar -----
 
-VALUE shoes_gtk_menubar = Qnil; // All apps will share. OSX behavior - live with it
+//VALUE shoes_gtk_menubar = Qnil; // All apps will share. OSX behavior - live with it
 
 void shoes_native_menubar_append(shoes_menubar *mb, shoes_menu *mn) {
   GtkWidget *menubar = (GtkWidget *)mb->native;
@@ -32,12 +32,15 @@ void shoes_native_menubar_quit(void *extra) {
 
 // TODO: calling this will segfault
 VALUE shoes_native_menubar_make_block(char *code) {
+  VALUE block;
+  block = rb_eval_string(code);
+#if 0
   int argc = 1;
   VALUE argv[2];
   argv[0] = rb_str_new2(code);
   argv[1] = Qnil;
-  VALUE block = Qnil;
   rb_scan_args(argc, argv, "0&", &block);
+#endif
   return block;
 }
 
@@ -48,12 +51,12 @@ VALUE shoes_native_menubar_setup(shoes_app *app) {
     GtkWidget *quitMi;  
     if (app->have_menu == 0)
       return Qnil;
-    if (! NIL_P(shoes_gtk_menubar)) {
-      app->menubar = shoes_gtk_menubar;
-      return shoes_gtk_menubar;
-    }
+    //if (! NIL_P(shoes_gtk_menubar)) {
+    //  app->menubar = shoes_gtk_menubar;
+    //  return shoes_gtk_menubar;
+    //}
     if (NIL_P(app->menubar)) {
-    
+#if 0 //     
       menubar = gtk_menu_bar_new();
       fileMenu = gtk_menu_new();
     
@@ -88,12 +91,69 @@ VALUE shoes_native_menubar_setup(shoes_app *app) {
       Data_Get_Struct(miv, shoes_menuitem, mi);
       mi->title = "Quit";
       mi->key = "";
-      mi->block = Qnil; // TODO, for now we use the signal handler above
-      //mi->block = shoes_native_menubar_make_block("{ Shoes.quit }");
+      //mi->block = Qnil; // TODO, for now we use the signal handler above
+      mi->native = (void *)quitMi;
+      mi->block = shoes_native_menubar_make_block("proc { Shoes.quit }");
+      g_signal_connect(G_OBJECT(mi->native), "activate",
+          G_CALLBACK(shoes_native_menuitem_callback), (gpointer) mi);
       mi->context = app->canvas;
-      // add to menu
+      // add to Shoes menu
       rb_ary_push(mn->items, miv);
-      shoes_gtk_menubar = mbv;
+#else      
+      // use the platform neutral calls to build Shoes menu
+      // we can't do that for the menubar or we'll call ourself
+      menubar = gtk_menu_bar_new();
+      VALUE mbv = shoes_menubar_alloc(cShoesMenubar);
+      shoes_menubar *mb;
+      Data_Get_Struct(mbv, shoes_menubar, mb);
+      mb->native = (void *)menubar;
+      // save menubar object in app object
+      app->menubar = mbv;
+      
+      // Shoes menu
+      VALUE shoestext = rb_str_new2("Shoes");
+      VALUE shoesmenu = shoes_menu_new(shoestext);
+      
+      // New/open Shoes.show_selector
+      VALUE otext = rb_str_new2("Open");
+      VALUE oproc = rb_eval_string("proc { Shoes.show_selector }");
+      VALUE oitem = shoes_menuitem_new(otext, Qnil, oproc, app->canvas);
+      shoes_menu_append(shoesmenu, oitem);
+      // -------- separator
+      VALUE stext = rb_str_new2("--- a seperator");
+      VALUE s1item = shoes_menuitem_new(stext, Qnil, Qnil, Qnil);
+      shoes_menu_append(shoesmenu, s1item);
+      // Manual 
+      VALUE mtext = rb_str_new2("Manual");
+      VALUE mproc = rb_eval_string("proc { Shoes.show_manual }");
+      VALUE mitem = shoes_menuitem_new(mtext, Qnil, mproc, app->canvas);
+      shoes_menu_append(shoesmenu, mitem);
+      // Cobbler
+      VALUE ctext = rb_str_new2("Cobbler");
+      VALUE cproc = rb_eval_string("proc { Shoes.cobbler }");
+      VALUE citem = shoes_menuitem_new(ctext, Qnil, cproc, app->canvas);
+      shoes_menu_append(shoesmenu, citem);
+      // Profile - bug in profiler (#400 , @dredknight)
+      VALUE ftext = rb_str_new2("Profile");
+      VALUE fproc = rb_eval_string("proc { require 'shoes/profiler'; Shoes.profile(nil) }");
+      VALUE fitem = shoes_menuitem_new(ftext, Qnil, fproc, app->canvas);
+      shoes_menu_append(shoesmenu, fitem);
+      // Package
+      VALUE ptext = rb_str_new2("Package");
+      VALUE pproc = rb_eval_string("proc { Shoes.app_package }");
+      VALUE pitem = shoes_menuitem_new(ptext, Qnil, pproc, app->canvas);
+      shoes_menu_append(shoesmenu, pitem);
+      // --------
+      VALUE s2item = shoes_menuitem_new(stext, Qnil, Qnil, Qnil);
+      shoes_menu_append(shoesmenu, s2item);
+      // Quit
+      VALUE qtext = rb_str_new2("Quit");
+      VALUE qproc = rb_eval_string("proc { Shoes.quit() }");
+      VALUE qitem = shoes_menuitem_new(qtext, Qnil, qproc, app->canvas);      
+      shoes_menu_append(shoesmenu, qitem);
+      
+      shoes_menubar_append(mbv, shoesmenu);
+#endif 
     }
     return app->menubar;
 }
@@ -109,11 +169,17 @@ void *shoes_native_menu_new(shoes_menu *mn) {
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(mi), menu);
   mn->native = (void *)mi; 
   mn->extra = (void *)menu;
+  return mn->native;
 }
 
 void *shoes_native_menu_append(shoes_menu *mn, shoes_menuitem *mi) {
   
   gtk_menu_shell_append(GTK_MENU_SHELL(GTK_WIDGET(mn->extra)), (GtkWidget *)mi->native);  
+  return NULL;
+}
+
+void shoes_native_menu_insert(shoes_menu *mn, shoes_menuitem *mi, int pos) {
+  fprintf(stderr, "insert %s into %s at pos %d\n", mi->title, mn->title, pos);
 }
 
 // -------- menuitem ------
@@ -142,5 +208,9 @@ void *shoes_native_menuitem_new(shoes_menuitem *mi) {
   return (void *)mi->native;
 }
 
-
-
+// ----- separator - like a menuitem w/o callback
+void *shoes_native_menusep_new(shoes_menuitem *mi) {
+  GtkWidget *gmi = gtk_separator_menu_item_new();
+  mi->native = (void *)gmi;
+  return mi->native;
+}

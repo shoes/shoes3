@@ -141,6 +141,7 @@ VALUE shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner) {
     app_t->hidden = (ATTR(attr, hidden) == Qtrue);
     
     app_t->mb_height = 0;
+    app_t->have_menu = NULL;
     if (RTEST(ATTR(attr, menus))) {
       app_t->have_menu = TRUE;
     }

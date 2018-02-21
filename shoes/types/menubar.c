@@ -1,6 +1,7 @@
 #include "shoes/types/native.h"
 #include "shoes/types/menubar.h"
 #include "shoes/types/menu.h"
+#include "shoes/types/menuitem.h"
 #include "shoes/app.h"
 /*
  * The menubar 
@@ -13,9 +14,10 @@ FUNC_M("+menubar", menubar, -1);
 void shoes_menubar_init() {
     cShoesMenubar  = rb_define_class_under(cTypes, "Menubar", rb_cObject);
     rb_define_alloc_func(cShoesMenubar, shoes_menubar_alloc);
-    rb_define_method(cShoesMenubar, "[]", CASTHOOK(shoes_menubar_get), 1);
-    rb_define_method(cShoesMenubar, "[]=", CASTHOOK(shoes_menubar_set), 2);
+    rb_define_method(cShoesMenubar, "menus", CASTHOOK(shoes_menubar_list),0);
+    rb_define_method(cShoesMenubar, "[]", CASTHOOK(shoes_menubar_at), 1);
     rb_define_method(cShoesMenubar, "<<", CASTHOOK(shoes_menubar_append), 1);
+    rb_define_method(cShoesMenubar, "append", CASTHOOK(shoes_menubar_append), 1);
     RUBY_M("+menubar", menubar, -1);
 }
 
@@ -39,8 +41,8 @@ VALUE shoes_menubar_alloc(VALUE klass) {
 }
 
 /*
- * Calling new will create a minimal menu setup File, File->Quit (gtk)
- * or retrieve the one all ready created for the app/window
+ * Calling new will create a minimal menu setup Shoes, Shoes->Quit (etc)
+ * OR retrieve the one all ready created for the app/window
 */
 VALUE shoes_menubar_new(VALUE canvas) {
     shoes_app *app;
@@ -49,34 +51,55 @@ VALUE shoes_menubar_new(VALUE canvas) {
     app = cvs->app;
     if (NIL_P(app->menubar)) {
       // Should not happen in real life, but
-      VALUE mbv = shoes_menubar_alloc(cShoesMenubar);
-      shoes_menubar *mb;
-      Data_Get_Struct(mbv, shoes_menubar, mb);
-      mb->native = shoes_native_menubar_setup(app);
-      app->menubar = mbv;
+      app->menubar = shoes_native_menubar_setup(app);
     }
     return app->menubar;
 }
 
-// returns menu at idx
-VALUE shoes_menubar_get(VALUE self, VALUE idx) {
-  return Qnil;
-}
-
-// replaces menu at idx
-VALUE shoes_menubar_set(VALUE self, VALUE idx, VALUE menu) {
-  return Qnil;
-}
 
 VALUE shoes_menubar_append(VALUE self, VALUE menu) {
-  shoes_menubar *mb;
-  shoes_menu *mn;
-  // TODO: check if menu is a cShoesMenu object
-  Data_Get_Struct(self, shoes_menubar, mb);
-  Data_Get_Struct(menu, shoes_menu, mn);
-  shoes_native_menubar_append(mb, mn);
+  if (rb_obj_is_kind_of(menu, cShoesMenu)) {
+    shoes_menubar *mb;
+    shoes_menu *mn;
+    Data_Get_Struct(self, shoes_menubar, mb);
+    Data_Get_Struct(menu, shoes_menu, mn);
+    shoes_native_menubar_append(mb, mn);
+    int cnt = RARRAY_LEN(mb->menus);
+    rb_ary_store(mb->menus, cnt, menu);
+  } else {
+    rb_raise(rb_eArgError, "menubar append - not a menu");
+  }
+  return Qtrue;
 }
 
+VALUE shoes_menubar_list(VALUE self) {
+  shoes_menubar *mb;
+  Data_Get_Struct(self, shoes_menubar, mb);
+  return mb->menus;
+}
+
+
+VALUE shoes_menubar_at(VALUE self, VALUE arg) {
+  shoes_menubar *mb;
+  Data_Get_Struct(self, shoes_menubar, mb);
+  if (TYPE(arg) == T_FIXNUM)
+    return rb_ary_entry(mb->menus, NUM2INT(arg));
+  else if (TYPE(arg) == T_STRING) {
+    char *txt = RSTRING_PTR(arg);
+    int cnt = RARRAY_LEN(mb->menus);
+    int i;
+    for (i = 0; i < cnt; i++) {
+      VALUE mnv = rb_ary_entry(mb->menus, i);
+      shoes_menu *mn;
+      Data_Get_Struct(mnv, shoes_menu, mn);
+      if (mn->title == 0) continue;
+      if (strcmp(txt,mn->title) == 0)
+        return mnv;    
+    }
+  } else
+    rb_raise(rb_eArgError, "index must be string or integer");
+  return Qnil;
+}
 /*
  *  canvas - The returned menu bar has contents 
  *  For gtk it's File->Quit

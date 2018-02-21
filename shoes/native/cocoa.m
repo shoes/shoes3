@@ -11,6 +11,8 @@
 #include "shoes/native/cocoa/button.h" // needed? 
 #include "shoes/native/cocoa/textview.h"
 #include "shoes/types/event.h"
+#include "shoes/native/cocoa/menus.h"
+
 extern VALUE cTimer;
 
 #import <Carbon/Carbon.h>
@@ -465,7 +467,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 }
 @end
 
-
+#if 0
 void
 add_to_menubar(NSMenu *main, NSMenu *menu)
 {
@@ -533,6 +535,7 @@ create_apple_menu(NSMenu *main)
     add_to_menubar(main, menuApp);
     [menuApp release];
 }
+#endif
 
 void
 create_edit_menu(NSMenu *main)
@@ -707,10 +710,13 @@ void shoes_native_init()
   NSMenu *main = [[NSMenu alloc] initWithTitle: @""];
   shoes_world->os.events = [[ShoesEvents alloc] init];
   [NSApp setMainMenu: main];
+  shoes_native_menu_root(main);
+#if 0
   create_apple_menu(main);
   create_edit_menu(main);
   create_window_menu(main);
   create_help_menu(main);
+#endif 
   [NSApp setDelegate: (id<NSApplicationDelegate>)shoes_world->os.events];
 
   idle = [NSTimer scheduledTimerWithTimeInterval: 0.01
