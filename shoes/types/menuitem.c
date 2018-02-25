@@ -12,9 +12,10 @@ void shoes_menuitem_init() {
     cShoesMenuitem  = rb_define_class_under(cTypes, "Menuitem", rb_cObject);
     rb_define_method(cShoesMenuitem, "title", CASTHOOK(shoes_menuitem_gettitle), 0);
     rb_define_method(cShoesMenuitem, "title=", CASTHOOK(shoes_menuitem_settitle), 1);
-    rb_define_method(cShoesMenuitem, "key", CASTHOOK(shoes_menuitem_getkey), 0);
-    rb_define_method(cShoesMenuitem, "key=", CASTHOOK(shoes_menuitem_setkey), 1);
-    rb_define_method(cShoesMenuitem, "block=", CASTHOOK(shoes_menuitem_setblk), 2);
+    //rb_define_method(cShoesMenuitem, "key", CASTHOOK(shoes_menuitem_getkey), 0);
+    //rb_define_method(cShoesMenuitem, "key=", CASTHOOK(shoes_menuitem_setkey), 1);
+    rb_define_method(cShoesMenuitem, "block=", CASTHOOK(shoes_menuitem_setblk), 1);
+    rb_define_method(cShoesMenuitem, "enable=", CASTHOOK(shoes_menuitem_setenable), 1);
     RUBY_M("+menuitem", menuitem, -1);
 }
 
@@ -34,37 +35,34 @@ VALUE shoes_menuitem_alloc(VALUE klass) {
     obj = Data_Wrap_Struct(klass, shoes_menuitem_mark, shoes_menuitem_free, mi);
     mi->native = NULL;
     mi->title = NULL;
-    mi->key = NULL;
+    mi->state = 0;
+    mi->key = 0;
     mi->block = Qnil;
     mi->context = Qnil;
     return obj;
 }
 
-VALUE shoes_menuitem_new(VALUE text, VALUE key, VALUE blk, VALUE canvas) {
+VALUE shoes_menuitem_new(VALUE text, int flags, char *key, VALUE blk, VALUE canvas) {
   VALUE obj= shoes_menuitem_alloc(cShoesMenuitem);
   shoes_menuitem *mi;
   int sep = 0;
   Data_Get_Struct(obj, shoes_menuitem, mi);
+  shoes_canvas *cvs;
+  Data_Get_Struct(canvas, shoes_canvas, cvs);
+  shoes_app *app = cvs->app;  
   mi->title = RSTRING_PTR(text);
-  //fprintf(stderr,"mi: %s\n",mi->title);
   if (strncmp(mi->title, "---", 3) == 0) {
-    mi->title = NULL;
-    mi->key = NULL;
+    mi->key = "";
     mi->block = Qnil;
+    mi->state = MENUITEM_ENABLE;
     mi->native = shoes_native_menusep_new(mi);
-    mi->context = Qnil;  // never called
+    mi->context = canvas;  // never called
   } else {
-    if (TYPE(key) == T_STRING) 
-      mi->key = RSTRING_PTR(key);
-    else
-      mi->key = NULL;
+    mi->key = key;
+    mi->state = flags;
     mi->block = blk;
+    mi->context = canvas; // TODO: mi->context = app->canvas; or canvas? 
     mi->native = shoes_native_menuitem_new(mi);
-    shoes_canvas *cvs;
-    Data_Get_Struct(canvas, shoes_canvas, cvs);
-    shoes_app *app = cvs->app;
-    // TODO: mi->context = app->canvas; or canvas? 
-    mi->context = canvas;
   }
   return obj;
 }
@@ -74,27 +72,85 @@ VALUE shoes_menuitem_gettitle(VALUE self) {
   shoes_menuitem *mi;
   Data_Get_Struct(self, shoes_menuitem, mi);
   if (mi->title == 0)
-    return rb_str_new2("");
+    return rb_str_new2("---");
   else
    return rb_str_new2(mi->title);
 }
 
 VALUE shoes_menuitem_settitle(VALUE self, VALUE text) {
+  shoes_menuitem *mi;
+  Data_Get_Struct(self,shoes_menuitem, mi);
+  mi->title = RSTRING_PTR(text);
+  shoes_native_menuitem_set_title(mi);
   return Qnil;
 }
 
+#if 0
 VALUE shoes_menuitem_getkey(VALUE self) {
-  return Qnil;
+  // TODO: why bother?
+ return Qnil;
 }
 
-VALUE shoes_menuitem_setkey(VALUE self, VALUE text) {
+VALUE shoes_menuitem_setkey(VALUE self, VALUE keystr) {
+  // TODO: may not be possible, all platforms?
+  shoes_menuitem *mi;
+  Data_Get_Struct(self, shoes_menuitem, mi);
+  int enable = mi->state & MENUITEM_ENABLE;
+  char outkey[4];
+  int flags = shoes_menuitem_parse_key(VALUE keystr, char *outkey);
+  mi->state = (enable | flags);
+  shoes_native_menuitem_set_key(mi);
   return Qnil;
 }
+#endif
 
 VALUE shoes_menuitem_setblk(VALUE self, VALUE block) {
+  // TODO: may not be possible, all platforms? 
+  if (rb_obj_is_kind_of(block, rb_cProc)) {
+    shoes_menuitem *mi;
+    Data_Get_Struct(self, shoes_menuitem, mi);
+    mi->block = block;
+  } else 
+    rb_raise(rb_eArgError, "not a proc");
   return Qnil;
 }
 
+VALUE shoes_menuitem_setenable(VALUE self, VALUE state) {
+  // TODO: may not be possible, all platforms?
+  int ns = 1;
+  if (TYPE(state) == T_TRUE)
+    ns = 1;
+  else if (TYPE(state) == T_FALSE)
+    ns = 0;
+  else if (TYPE(state) == T_NIL)
+    ns = 0;
+  else
+    rb_raise(rb_eArgError, "menuitem enable must be boolean");
+  shoes_menuitem *mi;
+  Data_Get_Struct(self, shoes_menuitem, mi);
+  shoes_native_menuitem_enable(mi, ns);
+  mi->state = ns;
+}
+
+// helpers
+
+int shoes_menuitem_parse_key(VALUE keystr, char *outkey) {
+  int flags = 0;
+  char *phrase = RSTRING_PTR(keystr);
+  if (strstr(phrase, "shift_")) 
+    flags = flags | MENUITEM_SHIFT;
+  if (strstr(phrase, "control_"))
+    flags = flags | MENUITEM_CONTROL; // Apple fan on OSX
+  if (strstr(phrase, "alt_"))
+    flags = flags | MENUITEM_ALT;
+  char *sep = strrchr(phrase, '_');
+  sep++;
+  if (*sep)
+    strcpy(outkey, sep); 
+  else
+    rb_raise(rb_eArgError,"key: string is not formatted properly");
+  return flags;
+}
 
 // canvas - Shoes usage:  menuitem "Quit" , key: 'control_q'  do Shoes.quit end
 //    just like a button. 
@@ -102,7 +158,8 @@ VALUE shoes_canvas_menuitem(int argc, VALUE *argv, VALUE self) {
     rb_arg_list args;
     VALUE text = Qnil, attr = Qnil, blk = Qnil, keystr = Qnil;
     VALUE menuitem = Qnil;
-
+    VALUE enablev = Qnil;
+    int flags = 0;
     switch (rb_parse_args(argc, argv, "s|h,|h", &args)) {
         case 1:
             text = args.a[0];
@@ -114,13 +171,25 @@ VALUE shoes_canvas_menuitem(int argc, VALUE *argv, VALUE self) {
             break;
     }
     
+    flags = flags | MENUITEM_ENABLE;  // default
+    enablev = shoes_hash_get(attr, rb_intern("enable"));
+    if (!NIL_P(enablev)) {
+      if (TYPE(enablev) == T_FALSE)
+        flags = flags ^ MENUITEM_ENABLE; 
+    }
+
     keystr = shoes_hash_get(attr, rb_intern("key"));
+    char key[] = {0,0,0,0};
+    if (! NIL_P(keystr)) {
+      int kflags = shoes_menuitem_parse_key(keystr, key);
+      flags = flags | kflags;
+    }
     
     if (rb_block_given_p()) {
         //ATTRSET(attr, click, rb_block_proc());
         blk = rb_block_proc();
     }
-    menuitem = shoes_menuitem_new(text, keystr, blk, self);
+    menuitem = shoes_menuitem_new(text, flags, key, blk, self);
     
     return menuitem;
 }

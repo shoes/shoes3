@@ -144,11 +144,10 @@ void shoes_native_init() {
     // g_application_run(G_APPLICATION(shoes_GtkApp), 0, NULL); // doesn't work but could?
     
 #else
-    // Shoes 3.3.3 way to init
+    // Shoes < 3.3.6 way to init
     gtk_init(NULL, NULL);
 #endif
 }
-
 /* end of GApplication init  */
 
 void shoes_native_cleanup(shoes_world_t *world) {
@@ -822,9 +821,6 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
       GtkWidget *vbox;         // contents of root window
       GtkWidget *menubar;      // top of vbox
       GtkWidget *shoes_window; // bottom of vbox where shoes does its thing.
-      //GtkWidget *fileMenu;
-      //GtkWidget *fileMi;
-      //GtkWidget *quitMi;
       
       VALUE mbv = shoes_native_menubar_setup(app);
       shoes_menubar *mb;
@@ -842,8 +838,18 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
       // Gtk Container of the fixed variety. Not the alt version!!
       shoes_window = gtk_fixed_new();
       gtk_box_pack_start(GTK_BOX(vbox), shoes_window, FALSE, FALSE, 0);
+      
+      GtkAccelGroup *accel_group = NULL; 
+      accel_group = gtk_accel_group_new();
+      // TODO: the following line gets a runtime gtk compaint but it works
+      gtk_window_add_accel_group(GTK_WINDOW(window), accel_group);
+      
       gk->window = window;
+      gk->vlayout = vbox;
+      gk->accel_group = accel_group;
       app->slot->oscanvas = shoes_window;
+      // now we can add the default Shoes menus
+      shoes_native_build_menus(app, mbv);
       app->mb_height = 30; // TODO adhoc (a guess)
           
       gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);

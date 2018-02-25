@@ -46,10 +46,18 @@ Shoes.app menus: true do
             @eb.text = t.title if t
           end
           button "Remove" do
-            # TODO: get item name from @el1
+            mb = menubar
+            q = get_index @el1.text
+            mb.remove q
+            showall
           end
           button "Insert" do
-            # TODO: get item name from @el1, position from @el6
+            mb = menubar
+            name =  @el1.text
+            mn = menu name
+            q = get_index @el6.text
+            mb.insert mn, q
+            showall
           end 
           para "at (-1 is append)"
           @el6 = edit_line width: 40
@@ -67,10 +75,13 @@ Shoes.app menus: true do
             @eb.text = "#{mn.title}\n  #{t.title}"
           end
           button "Remove" do
-            # TODO: get item name from @el2
+            mb = menubar
+            mni = get_index @el1.text
+            mn = mb[mni]
+            mn.remove get_index(@el2.text)
+            showall
           end
           button "Insert" do
-            # get item name from @el2, position from @el5
             mb = menubar
             mni = get_index @el1.text
             mn = mb[mni]

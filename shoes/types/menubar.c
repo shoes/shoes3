@@ -18,6 +18,9 @@ void shoes_menubar_init() {
     rb_define_method(cShoesMenubar, "[]", CASTHOOK(shoes_menubar_at), 1);
     rb_define_method(cShoesMenubar, "<<", CASTHOOK(shoes_menubar_append), 1);
     rb_define_method(cShoesMenubar, "append", CASTHOOK(shoes_menubar_append), 1);
+    rb_define_method(cShoesMenubar, "insert", CASTHOOK(shoes_menubar_insert), 2);
+    rb_define_method(cShoesMenubar, "index", CASTHOOK(shoes_menubar_index), 1);
+    rb_define_method(cShoesMenubar, "remove", CASTHOOK(shoes_menubar_remove), 1);
     RUBY_M("+menubar", menubar, -1);
 }
 
@@ -78,10 +81,39 @@ VALUE shoes_menubar_list(VALUE self) {
   return mb->menus;
 }
 
-
-VALUE shoes_menubar_at(VALUE self, VALUE arg) {
+VALUE shoes_menubar_index(VALUE self, VALUE arg) {
   shoes_menubar *mb;
   Data_Get_Struct(self, shoes_menubar, mb);
+  if (TYPE(arg) == T_FIXNUM) {
+    int pos = NUM2INT(arg);
+    int cnt = RARRAY_LEN(mb->menus);
+    if (pos < cnt && pos >= 0)
+      return arg;
+  } else if (TYPE(arg) == T_STRING) {
+    char *txt = RSTRING_PTR(arg);
+    int cnt = RARRAY_LEN(mb->menus);
+    int i;
+    for (i = 0; i < cnt; i++) {
+      VALUE mnv = rb_ary_entry(mb->menus, i);
+      shoes_menu *mn;
+      Data_Get_Struct(mnv, shoes_menu, mn);
+      if (strcmp(txt,mn->title) == 0)
+        return INT2NUM(i);
+    
+    }
+  } else
+    rb_raise(rb_eArgError, "index must be string or integer");
+  return Qnil;
+}
+VALUE shoes_menubar_at(VALUE self, VALUE arg) {
+  VALUE posv = shoes_menubar_index(self, arg);
+  if (NIL_P(posv))
+    return posv;
+  shoes_menubar *mb;
+  Data_Get_Struct(self, shoes_menubar, mb);
+  int pos = NUM2INT(posv);
+  return rb_ary_entry(mb->menus, pos);
+#if 0  
   if (TYPE(arg) == T_FIXNUM)
     return rb_ary_entry(mb->menus, NUM2INT(arg));
   else if (TYPE(arg) == T_STRING) {
@@ -99,7 +131,61 @@ VALUE shoes_menubar_at(VALUE self, VALUE arg) {
   } else
     rb_raise(rb_eArgError, "index must be string or integer");
   return Qnil;
+#endif
 }
+
+VALUE shoes_menubar_insert(VALUE self, VALUE mnv, VALUE arg) {
+  int pos = 0;
+  shoes_menubar *mb;
+  Data_Get_Struct(self, shoes_menubar, mb);
+  int cnt = RARRAY_LEN(mb->menus);  //cnt before
+  VALUE pv = shoes_menubar_index(self, arg);
+  if (NIL_P(pv))
+    pos = -1;
+  else
+    pos = NUM2INT(pv);
+  // if pos is < 0 we can call append and return 
+  if (pos < 0) {
+    shoes_menubar_append(self, mnv);
+  } else {
+    // Call the native function and then diddle with the items (rb_ary)
+    // to match
+    shoes_menu *mn;
+    Data_Get_Struct(mnv, shoes_menu, mn);
+    shoes_native_menubar_insert(mb, mn, pos);
+    VALUE nary = rb_ary_new2(cnt+1); 
+    int i;
+    // copy up to pos
+    for (i = 0; i < pos; i++) {
+      rb_ary_store(nary, i, rb_ary_entry(mb->menus, i));
+    }
+    // insert new entry at pos
+    rb_ary_store(nary, pos, mnv);
+    // copy the trailing entries
+    for (i = pos; i < cnt; i++) {
+      rb_ary_store(nary, i+1, rb_ary_entry(mb->menus, i));
+    }
+    // replace ary - pray that our gc handling is good
+    mb->menus = nary; 
+  }
+  return INT2NUM(pos);
+}
+
+VALUE shoes_menubar_remove(VALUE self, VALUE arg) {
+  shoes_menubar *mb;
+  Data_Get_Struct(self, shoes_menubar, mb);
+  VALUE posv = shoes_menubar_index(self, arg);
+  if (NIL_P(posv))
+    rb_raise(rb_eArgError, "menu not found");
+  int pos = NUM2INT(posv);
+  int cnt = RARRAY_LEN(mb->menus);  //cnt before
+  // remove the native
+  shoes_native_menubar_remove(mb, pos); 
+  // include/ruby/intern.h has
+  // VALUE rb_ary_delete_at(VALUE, long);
+  rb_ary_delete_at(mb->menus, pos);
+}
+
 /*
  *  canvas - The returned menu bar has contents 
  *  For gtk it's File->Quit
@@ -109,24 +195,6 @@ VALUE shoes_canvas_menubar(int argc, VALUE *argv, VALUE self) {
     rb_arg_list args;
     VALUE text = Qnil, attr = Qnil, menubar;
     
-#if 0
-    switch (rb_parse_args(argc, argv, "s|h,|h", &args)) {
-        case 1:
-            text = args.a[0];
-            attr = args.a[1];
-            break;
-
-        case 2:
-            attr = args.a[0];
-            break;
-    }
-
-    if (!NIL_P(text))
-        ATTRSET(attr, text, text);
-
-    if (rb_block_given_p())
-        ATTRSET(attr, click, rb_block_proc());
-#endif
     return shoes_menubar_new(self); 
   
 }

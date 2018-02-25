@@ -28,6 +28,8 @@ VALUE shoes_menu_title(VALUE self);
 VALUE shoes_menu_append(VALUE self, VALUE menuitem);
 VALUE shoes_menu_insert(VALUE self, VALUE menuitem, VALUE pos);
 VALUE shoes_menu_at(VALUE self, VALUE arg);
+VALUE shoes_menu_index(VALUE self, VALUE arg);
+VALUE shoes_menu_remove(VALUE self, VALUE arg);
 // canvas (creation of menu)
 VALUE shoes_canvas_menu(int, VALUE *, VALUE);
 
@@ -35,4 +37,5 @@ VALUE shoes_canvas_menu(int, VALUE *, VALUE);
 void *shoes_native_menu_new(shoes_menu *mn);
 void *shoes_native_menu_append(shoes_menu *mn, shoes_menuitem *mi);
 void shoes_native_menu_insert(shoes_menu *mn, shoes_menuitem *mi, int pos);
+void shoes_native_menu_remove(shoes_menu *mn, int pos);
 #endif

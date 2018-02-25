@@ -80,6 +80,8 @@ typedef struct {
 
 typedef struct {
     GtkWidget *window;
+    GtkWidget *vlayout; // vbox
+    GtkAccelGroup *accel_group;
 } shoes_app_gtk, SHOES_APP_OS;
 
 typedef struct {
