@@ -28,8 +28,8 @@ Shoes.app menus: true do
         mb = menubar
         mn = menu "Help"
         mi = menuitem "About"
-        mn.append mi
-        mb.append mn
+        mn << mi
+        mb << mn
         @el1.text = mn.title
         @el2.text = mi.title
         showall

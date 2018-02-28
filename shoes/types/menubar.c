@@ -27,6 +27,7 @@ void shoes_menubar_init() {
 
 void shoes_menubar_mark(shoes_menubar *mb) {
     rb_gc_mark_maybe(mb->menus);
+    rb_gc_mark_maybe(mb->context);
 }
 
 static void shoes_menubar_free(shoes_menubar *mb) {
@@ -40,6 +41,7 @@ VALUE shoes_menubar_alloc(VALUE klass) {
     obj = Data_Wrap_Struct(klass, shoes_menubar_mark, shoes_menubar_free, mb);
     mb->native = NULL;
     mb->menus = rb_ary_new();
+    mb->context = Qnil;
     return obj;
 }
 

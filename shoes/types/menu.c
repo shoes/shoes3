@@ -169,7 +169,7 @@ VALUE shoes_menu_remove(VALUE self, VALUE arg) {
   int pos = NUM2INT(posv);
   int cnt = RARRAY_LEN(mn->items);  //cnt before
   // remove the native
-  shoes_native_menu_remove(mn, pos); 
+  shoes_native_menu_remove(mn ,pos); 
   // TODO: not documented online
   rb_ary_delete_at(mn->items, pos);
 }

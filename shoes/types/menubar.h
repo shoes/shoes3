@@ -15,8 +15,9 @@ extern shoes_app _shoes_app;
 
 typedef struct {
     void *native;     // cast as needed
-    void *root;       // in gtk, the root window GtkWidget
-    void *accgroup;   // gtk accel_group 
+    //void *root;       // in gtk, the root window GtkWidget
+    //void *accgroup;   // gtk accel_group 
+    VALUE context;    // a canvas 
     VALUE menus;      // ruby array of shoes_menu Objects 
 } shoes_menubar;
 

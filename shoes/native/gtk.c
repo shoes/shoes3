@@ -847,6 +847,7 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
       gk->window = window;
       gk->vlayout = vbox;
       gk->accel_group = accel_group;
+      gk->menubar = menubar;
       app->slot->oscanvas = shoes_window;
       // now we can add the default Shoes menus
       shoes_native_build_menus(app, mbv);

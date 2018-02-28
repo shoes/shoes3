@@ -15,11 +15,6 @@
 
 //VALUE shoes_gtk_menubar = Qnil; // All apps will share. OSX behavior - live with it
 
-void shoes_native_menubar_append(shoes_menubar *mb, shoes_menu *mn) {
-  GtkWidget *menubar = (GtkWidget *)mb->native;
-  GtkWidget *menu = (GtkWidget *)mn->native;
-  gtk_menu_shell_append(GTK_MENU_SHELL(menubar), menu);
-}
 
 /*
  * This is clumsy. Create a Menubar, File Menu, and File->Quit in
@@ -49,14 +44,14 @@ VALUE shoes_native_menubar_setup(shoes_app *app) {
       shoes_menubar *mb;
       Data_Get_Struct(mbv, shoes_menubar, mb);
       mb->native = (void *)menubar;
-      //mb->root = (void *)root;
-      //mb->accgroup = (void *)accel_group;
+      mb->context = app->canvas;
       // save menubar object in app object
       app->menubar = mbv;
     }
     return app->menubar;
 }
 
+// There are race conditions with gtk and realized widgets
 void shoes_native_build_menus(shoes_app *app,VALUE mbv) {
       
       // Shoes menu
@@ -107,12 +102,47 @@ void shoes_native_build_menus(shoes_app *app,VALUE mbv) {
       shoes_menubar_append(mbv, shoesmenu);
 }
 
+void shoes_native_menubar_dump(GList *list) {
+  GList *l;
+  char *label;
+  for (l = list; l != NULL; l = l->next)
+  {
+    // do something with l->data
+    GtkWidget *widget = l->data;
+    GtkMenuItem *mn = l->data;
+    label = gtk_menu_item_get_label(mn);
+    fprintf(stderr,"item: %s\n", label);
+  }
+}
+
+void shoes_native_menubar_update(VALUE canvasv) {
+  shoes_canvas *canvas;
+  Data_Get_Struct(canvasv, shoes_canvas, canvas);
+  shoes_app *app = canvas->app;  // see app.h
+  shoes_app_gtk *gk = &app->os;  // see config.h
+  gtk_widget_show_all(gk->window); // TODO Kind of works; Narrow scope?
+}
+
+void shoes_native_menubar_append(shoes_menubar *mb, shoes_menu *mn) {
+  GtkWidget *menubar = (GtkWidget *)mb->native;
+  GtkWidget *menu = (GtkWidget *)mn->native; // or extra?
+  gtk_menu_shell_append(GTK_MENU_SHELL(menubar), menu);
+  shoes_native_menubar_update(mb->context);
+}
+
 void shoes_native_menubar_remove(shoes_menubar *mb, int pos) {
-  fprintf(stderr,"menubar delete at %d\n", pos);
+  shoes_menu *mn;
+  VALUE mnv = rb_ary_entry(mb->menus, pos);
+  Data_Get_Struct(mnv, shoes_menu, mn);
+  fprintf(stderr, "mbar:  delete %s\n", mn->title);
+  gtk_container_remove(GTK_CONTAINER(mb->native), GTK_WIDGET(mn->extra));
 }
 
 void shoes_native_menubar_insert(shoes_menubar *mb, shoes_menu *mn, int pos) {
-  fprintf(stderr, "add menu %s at pos %d\n", mn->title, pos);
+  fprintf(stderr, "mbar: add menu %s at pos %d\n", mn->title, pos);
+  gtk_menu_shell_insert(GTK_MENU_SHELL(GTK_WIDGET(mb->native)), 
+    (GtkWidget *)mn->extra, pos);    
+  shoes_native_menubar_update(mb->context);
 }
 
 // ------- menu ------
@@ -127,18 +157,50 @@ void *shoes_native_menu_new(shoes_menu *mn) {
   return mn->native;
 }
 
+void shoes_native_menu_dump(GList *list) {
+  GList *l;
+  char *label;
+  for (l = list; l != NULL; l = l->next)
+  {
+    // do something with l->data
+    GtkWidget *widget = l->data;
+    GtkMenuItem *mn = l->data;
+    label = gtk_menu_item_get_label(mn);
+    fprintf(stderr,"item: %s\n", label);
+  }
+}
+
+void shoes_native_menu_update(VALUE canvasv) {
+  shoes_canvas *canvas;
+  Data_Get_Struct(canvasv, shoes_canvas, canvas);
+  shoes_app *app = canvas->app;  // see app.h
+  shoes_app_gtk *gk = &app->os;  // see config.h
+  gtk_widget_show_all(gk->window); // TODO Kind of works; Narrow scope?
+}
+
 void *shoes_native_menu_append(shoes_menu *mn, shoes_menuitem *mi) {
   
-  gtk_menu_shell_append(GTK_MENU_SHELL(GTK_WIDGET(mn->extra)), (GtkWidget *)mi->native);  
-  return NULL;
+  gtk_menu_shell_append(GTK_MENU_SHELL(GTK_WIDGET(mn->extra)), (GtkWidget *)mi->native);
+  // trigger something to update? 
+  shoes_native_menu_update(mi->context);
+  //shoes_native_menu_dump(gtk_container_get_children(GTK_CONTAINER(GTK_WIDGET(mn->extra))));
 }
 
 void shoes_native_menu_insert(shoes_menu *mn, shoes_menuitem *mi, int pos) {
   fprintf(stderr, "insert %s into %s at pos %d\n", mi->title, mn->title, pos);
+  gtk_menu_shell_insert(GTK_MENU_SHELL(GTK_WIDGET(mn->extra)), 
+    (GtkWidget *)mi->native, pos);
+    
+  //shoes_native_menu_dump(gtk_container_get_children(GTK_CONTAINER(GTK_WIDGET(mn->extra))));
+  shoes_native_menu_update(mi->context);
 }
 
 void shoes_native_menu_remove(shoes_menu *mn, int pos) {
-  fprintf(stderr, "Menu %s, delete %d\n", mn->title, pos);
+  shoes_menuitem *mi;
+  VALUE miv = rb_ary_entry(mn->items, pos);
+  Data_Get_Struct(miv, shoes_menuitem, mi);
+  fprintf(stderr, "Menu %s, delete %s\n", mn->title, mi->title);
+  gtk_container_remove(GTK_CONTAINER(mn->extra), GTK_WIDGET(mi->native));
 }
 
 // -------- menuitem ------
