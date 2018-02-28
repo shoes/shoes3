@@ -33,6 +33,12 @@ void shoes_native_menubar_append(shoes_menubar *mb, shoes_menu *mn) {
   
 }
 
+void shoes_native_menubar_remove(shoes_menubar *mb, int pos) {
+}
+
+void shoes_native_menubar_insert(shoes_menubar *mb, shoes_menu *mn, int pos) {
+}
+
 /*
  * 
 */ 
@@ -81,6 +87,12 @@ void *shoes_native_menu_append(shoes_menu *mn, shoes_menuitem *mi) {
   return NULL;
 }
 
+void shoes_native_menu_insert(shoes_menu *mn, shoes_menuitem *mi, int pos) {
+}
+
+void shoes_native_menu_remove(shoes_menu *mn, int pos) {
+}
+
 // -------- menuitem ------
 
 // TODO: parse the 'control_q" string into something menuitem can use
@@ -99,6 +111,16 @@ void *shoes_native_menuitem_new(shoes_menuitem *mi) {
   [item setTarget:shoes_world->os.events];
   mi->native = (void *)item;
   return NULL;
+}
+
+// ----- separator - like a menuitem w/o callback
+void *shoes_native_menusep_new(shoes_menuitem *mi) {
+}
+
+void shoes_native_menuitem_set_title(shoes_menuitem *mi) {
+}
+
+void shoes_native_menuitem_enable(shoes_menuitem *mi, int state) {
 }
 
 // ------- default menu creaters -------
