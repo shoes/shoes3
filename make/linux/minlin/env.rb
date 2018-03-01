@@ -63,7 +63,7 @@ else
 end
 MISC_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
 MISC_LIB << " /usr/lib/#{ularch}/librsvg-2.so"
-
+MISC_LIB << " -lyaml"
 # collect flags together
 LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{MISC_CFLAGS}"
 

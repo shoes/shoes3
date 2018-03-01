@@ -47,6 +47,7 @@ module Make
     ln_s "#{srcloc}/samples", TGT_DIR
     ln_s "#{srcloc}/static",  TGT_DIR
     ln_s "#{srcloc}/fonts", TGT_DIR
+    ln_s "#{srcloc}/themes", TGT_DIR
     cp    "README.md", TGT_DIR
     cp    "CHANGELOG", TGT_DIR
     cp    "COPYING", TGT_DIR

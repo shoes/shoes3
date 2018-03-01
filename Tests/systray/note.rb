@@ -1,4 +1,5 @@
 Shoes.app do
+  app.name = "Blitz"
   stack do
     para "Press button and look in your system's notification area"
     ctr = 0;
@@ -10,7 +11,7 @@ Shoes.app do
       else
         icp = "#{DIR}/static/shoes-icon-red.png"
       end
-      systray title: "Shoes Notify Test", message: "message ##{ctr}", icon: icp
+      systray title: "#{app.name} Notify Test", message: "message ##{ctr}", icon: icp
     end
   end 
 end

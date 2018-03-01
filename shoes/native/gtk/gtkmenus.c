@@ -55,7 +55,8 @@ VALUE shoes_native_menubar_setup(shoes_app *app) {
 void shoes_native_build_menus(shoes_app *app,VALUE mbv) {
       
       // Shoes menu
-      VALUE shoestext = rb_str_new2("Shoes");
+      //VALUE shoestext = rb_str_new2("Shoes");
+      VALUE shoestext = rb_str_new2(shoes_app_name);
       VALUE shoesmenu = shoes_menu_new(shoestext);
       int flags = MENUITEM_ENABLE;
       char *key = "";

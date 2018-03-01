@@ -134,7 +134,11 @@ VALUE shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner) {
 
     if (rb_block_given_p()) rb_iv_set(app, "@main_app", rb_block_proc());
     app_t->owner = owner;
-    app_t->title = ATTR(attr, title);
+    // TODO: hack or clever modification? 
+    if (strcmp(shoes_app_name, "Shoes")) { 
+      app_t->title = rb_str_new2(shoes_app_name);
+    } else
+      app_t->title = ATTR(attr, title);
     app_t->fullscreen = RTEST(ATTR(attr, fullscreen));
     app_t->resizable = (ATTR(attr, resizable) != Qfalse);
     app_t->decorated = (ATTR(attr, decorated) != Qfalse);
@@ -265,8 +269,21 @@ VALUE shoes_app_get_title(VALUE app) {
 VALUE shoes_app_set_title(VALUE app, VALUE title) {
     shoes_app *app_t;
     Data_Get_Struct(app, shoes_app, app_t);
+    shoes_app_name = RSTRING_PTR(title);
     return app_t->title = title;
 }
+
+void shoes_app_title(shoes_app *app, VALUE title) {
+    char *msg;
+    if (!NIL_P(title))
+        app->title = title;
+    else
+        app->title = rb_str_new2(SHOES_APPNAME);
+    msg = RSTRING_PTR(app->title);
+    shoes_app_name = msg;
+    shoes_native_app_title(app, msg);
+}
+
 
 VALUE shoes_app_get_fullscreen(VALUE app) {
     shoes_app *app_t;
@@ -279,16 +296,6 @@ VALUE shoes_app_set_fullscreen(VALUE app, VALUE yn) {
     Data_Get_Struct(app, shoes_app, app_t);
     shoes_native_app_fullscreen(app_t, app_t->fullscreen = RTEST(yn));
     return yn;
-}
-
-void shoes_app_title(shoes_app *app, VALUE title) {
-    char *msg;
-    if (!NIL_P(title))
-        app->title = title;
-    else
-        app->title = rb_str_new2(SHOES_APPNAME);
-    msg = RSTRING_PTR(app->title);
-    shoes_native_app_title(app, msg);
 }
 
 VALUE shoes_app_set_opacity(VALUE app, VALUE opacity) {

@@ -32,7 +32,7 @@ static void shoes_native_systray_gapp(char *title, char *message, char *path) {
   GFile *iconf = g_file_new_for_path (path);
   GIcon *icon = g_file_icon_new (iconf);
   g_notification_set_icon(note, icon);
-  g_application_send_notification (G_APPLICATION(shoes_GtkApp), "Shoes", note);
+  g_application_send_notification (G_APPLICATION(shoes_GtkApp), shoes_app_name, note);
 }
 #endif
 // Always compile the old version (gtk_status_icon)

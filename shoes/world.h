@@ -85,6 +85,20 @@ SHOES_EXTERN int shoes_win32_cmdvector(const char *, char ***);
 SHOES_EXTERN void shoes_set_argv(int, char **);
 SHOES_EXTERN shoes_code shoes_final(void);
 
+/*
+ * Shoes.yaml
+*/ 
+typedef struct _shoes_yaml_init {
+    int   active;
+    char* app_name;
+    char* theme_name;
+} shoes_yaml_init;
+
+extern shoes_yaml_init *shoes_config_yaml;
+
+SHOES_EXTERN int shoes_init_load_yaml();
+SHOES_EXTERN char *shoes_app_name;
+
 #ifdef __cplusplus
 }
 #endif
