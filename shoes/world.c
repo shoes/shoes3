@@ -246,69 +246,68 @@ shoes_code shoes_final() {
 // More C globals
 shoes_yaml_init *shoes_config_yaml = NULL; 
 char *shoes_app_name = "Shoes";
+
 int shoes_init_load_yaml() {
     FILE* fh = fopen("shoes.yaml", "r");
     yaml_parser_t parser;
     yaml_token_t token;
-    shoes_config_yaml = malloc(sizeof(shoes_yaml_init));
-    shoes_config_yaml->app_name = NULL;
-    shoes_config_yaml->theme_name = NULL;
-    shoes_config_yaml->active = FALSE;
-    
-    if (fh == NULL) {
-        fputs("Failed to open file!\n", stderr);
-        return 0;
-    }
     if (!yaml_parser_initialize(&parser)) {
         fputs("Failed to initialize parser!\n", stderr);
         return 0;
     }
-    yaml_parser_set_input_file(&parser, fh);
-
-
-    /* As this is an example, I'll just use:
-     *  state = 0 = expect key
-     *  state = 1 = expect value
-     */
-    int state = 0;
-    char** datap;
-    char* tk;
-
-    do {
-        yaml_parser_scan(&parser, &token);
-        switch(token.type) {
-            case YAML_KEY_TOKEN:     state = 0; break;
-            case YAML_VALUE_TOKEN:   state = 1; break;
-            case YAML_SCALAR_TOKEN:
-                tk = token.data.scalar.value;
-                if (state == 0) {
-                    /* It's safe to not use strncmp as 
-                       one string is a literal */
-                    if (!strcmp(tk, "App_Name")) {
-                        datap = &shoes_config_yaml->app_name;
-                    } else if (!strcmp(tk, "Theme")) {
-                        datap = &shoes_config_yaml->theme_name;
-                    } else {
-                        printf("Unrecognised key: %s\n", tk);
-                        return 0;
-                    }
-                } else {
-                      *datap = strdup(tk);
-                }
-                break;
-           default: break;
-           }
-       if (token.type != YAML_STREAM_END_TOKEN)
-           yaml_token_delete(&token);
-   } while (token.type != YAML_STREAM_END_TOKEN);
-
-   yaml_token_delete(&token);
-   yaml_parser_delete(&parser);
-   fclose(fh);
-   shoes_config_yaml->active = TRUE;
-   if (shoes_config_yaml->app_name) 
-     shoes_app_name = shoes_config_yaml->app_name;
-   return 1;
+    shoes_config_yaml = malloc(sizeof(shoes_yaml_init));
+    shoes_config_yaml->app_name = "Shoes";
+    shoes_config_yaml->theme_name = NULL;
+    shoes_config_yaml->active = FALSE;
+    shoes_config_yaml->rdomain = "com.shoesrb.shoes";
+    shoes_config_yaml->use_menus = "false";
+    shoes_config_yaml->mdi = "false";
+    
+    if (fh != NULL) {
+      yaml_parser_set_input_file(&parser, fh);
+      /* As this is an example, I'll just use:
+       *  state = 0 = expect key
+       *  state = 1 = expect value
+       */
+      int state = 0;
+      char** datap;
+      char* tk;
+  
+      do {
+          yaml_parser_scan(&parser, &token);
+          switch(token.type) {
+              case YAML_KEY_TOKEN:     state = 0; break;
+              case YAML_VALUE_TOKEN:   state = 1; break;
+              case YAML_SCALAR_TOKEN:
+                  tk = token.data.scalar.value;
+                  if (state == 0) {
+                      /* It's safe to not use strncmp as 
+                         one string is a literal */
+                      if (!strcmp(tk, "App_Name")) {
+                          datap = &shoes_config_yaml->app_name;
+                      } else if (!strcmp(tk, "Theme")) {
+                          datap = &shoes_config_yaml->theme_name;
+                      } else {
+                          printf("Unrecognised key: %s\n", tk);
+                          return 0;
+                      }
+                  } else {
+                        *datap = strdup(tk);
+                  }
+                  break;
+             default: break;
+             }
+         if (token.type != YAML_STREAM_END_TOKEN)
+             yaml_token_delete(&token);
+      } while (token.type != YAML_STREAM_END_TOKEN);
+  
+      yaml_token_delete(&token);
+      yaml_parser_delete(&parser);
+      fclose(fh);
+    }
+    shoes_config_yaml->active = TRUE;
+    shoes_settings_new(shoes_config_yaml);
+    return 1;
 }
 
 #ifdef __cplusplus

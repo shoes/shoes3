@@ -510,6 +510,15 @@ shoes_code shoes_app_paint(shoes_app *app) {
     return SHOES_OK;
 }
 
+/* ------ Settings --------
+ * a script called Shoes.settings - not a useful thing for them to do
+ * but we need to be complete. You never know. Return the global settings object
+*/
+VALUE shoes_app_settings(VALUE app) {
+  return shoes_app_settings;
+}
+
+
 /* ------ GUI events ------ */
 
 /* TODO:  move this debugging code to ruby.c ? */

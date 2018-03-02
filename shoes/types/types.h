@@ -28,6 +28,7 @@
 #include "shoes/types/menubar.h"
 #include "shoes/types/menu.h"
 #include "shoes/types/menuitem.h"
+#include "shoes/types/settings.h"
 
 #define SHOES_TYPES_INIT \
 	shoes_0_native_type_init(); \
@@ -59,4 +60,5 @@
     shoes_shoesevent_init(); \
     shoes_menubar_init(); \
     shoes_menu_init(); \
-    shoes_menuitem_init();
+    shoes_menuitem_init(); \
+  shoes_settings_init();

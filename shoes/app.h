@@ -113,6 +113,9 @@ VALUE shoes_app_get_menubar(VALUE app);
 extern int shoes_cache_setting;
 // global var for console up and running
 extern int shoes_global_terminal;
+// global settings and shoes.yaml (3.3.7)
+extern VALUE shoes_setting_global;
+VALUE shoes_app_settings(VALUE app);
 #ifdef SHOES_QUARTZ
 extern int osx_cshoes_launch;
 #endif
