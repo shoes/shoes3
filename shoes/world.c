@@ -287,6 +287,12 @@ int shoes_init_load_yaml() {
                           datap = &shoes_config_yaml->app_name;
                       } else if (!strcmp(tk, "Theme")) {
                           datap = &shoes_config_yaml->theme_name;
+                      } else if (!strcmp(tk,"RDomain")) {
+                          datap = &shoes_config_yaml->rdomain;
+                      } else if (!strcmp(tk,"Use_Menua")) {
+                          datap = &shoes_config_yaml->use_menus;
+                      } else if (!strcmp(tk,"MDI")) {
+                          datap = &shoes_config_yaml->mdi;
                       } else {
                           printf("Unrecognised key: %s\n", tk);
                           return 0;

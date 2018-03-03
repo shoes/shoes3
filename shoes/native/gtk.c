@@ -21,6 +21,7 @@
 #include "shoes/internal.h"
 #include "shoes/types/menubar.h"
 #include "shoes/native/gtk/gtkmenus.h"
+#include "shoes/types/settings.h"
 
 #include <fontconfig/fontconfig.h>
 #ifndef RUBY_HTTP
@@ -162,13 +163,19 @@ void shoes_native_init() {
     int status;
     //srand(time(NULL));
     char app_id[100];
-    sprintf(app_id, "com.mvmanila.shoes%d", getpid()); // TODO Windows?
-    fprintf(stderr,"launching %s\n", app_id);
+    char *rdom = RSTRING_PTR(shoes_settings_global->rdomain);
+    if (shoes_settings_global->mdi == Qtrue) {
+      sprintf(app_id, "%s",rdom); 
+    } else {
+      sprintf(app_id, "%s%d", rdom,getpid()); // TODO: Windows?
+    }
+    //fprintf(stderr,"launching %s\n", app_id);
     shoes_GtkApp = gtk_application_new (app_id, G_APPLICATION_HANDLES_COMMAND_LINE);
     // register with dbus
-    if (g_application_register((GApplication *)shoes_GtkApp, NULL, NULL))
-      printf("%s is registered\n",app_id);
-
+    if (g_application_register((GApplication *)shoes_GtkApp, NULL, NULL)) {
+      fprintf(stderr,"%s is registered\n",app_id);
+      shoes_settings_global->dbus_name = rb_str_new2(app_id);
+    }
     g_signal_connect(shoes_GtkApp, "activate", G_CALLBACK (shoes_gtk_app_activate), NULL);
     g_signal_connect(shoes_GtkApp, "command-line", G_CALLBACK (shoes_gtk_app_cmdline), NULL);
     g_signal_connect(G_APPLICATION(shoes_GtkApp), "startup", G_CALLBACK(shoes_gtk_app_startup), NULL);

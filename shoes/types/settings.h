@@ -20,7 +20,12 @@ typedef struct {
   VALUE dbus_name;
 } shoes_settings;
 
+// Global vars
+extern VALUE shoes_settings_globalv;
+extern shoes_settings *shoes_settings_global;
+
 void shoes_setting_init();
 VALUE shoes_settings_alloc(VALUE klass);
 VALUE shoes_settings_new(shoes_yaml_init *);
+VALUE shoes_settings_dbus(VALUE self);
 #endif
