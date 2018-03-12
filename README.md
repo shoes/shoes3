@@ -4,7 +4,7 @@
     an artsy any-platform app kit <https://github.com/Shoes3/shoes3>
     
   The source described below is at <https://github.com/shoes3/shoes> and
-  you can follow a blog at <http://walkabout.mvmanila.com>
+  you can follow a blog at <https://walkabout.mvmanila.com>
 
 //////////////////////////////////////////////////////////////////////////
 
