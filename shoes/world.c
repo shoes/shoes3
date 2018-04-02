@@ -8,6 +8,7 @@
 #include "shoes/world.h"
 #include "shoes/native/native.h"
 #include "shoes/internal.h"
+#include "shoes/types/settings.h"
 
 #ifdef SHOES_SIGNAL
 #include <signal.h>

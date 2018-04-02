@@ -127,17 +127,12 @@ shoes_gtk_app_cmdline (GApplication *application, gchar ***arguments,
 GtkApplication *shoes_GtkApp; 
 GtkCssProvider *shoes_css_provider; // user provided theme
 
-// Process the shoes_config_yaml struct
-void shoes_native_process_init() {
-  if (shoes_config_yaml && shoes_config_yaml->active == TRUE) {
-    // there is a config 
-    if (shoes_config_yaml->app_name) {
-      // TODO change app name from Shoes app->title and so on
-    }
-    if (shoes_config_yaml->theme_name) {
+// Process the setting for Theme and css
+void shoes_native_process_init(shoes_settings *st) {
+  if (! NIL_P(st->theme)) {
       // A theme was requested 
       char theme_path[60];
-      sprintf(theme_path, "themes/%s/gtk-3.0/gtk.css", shoes_config_yaml->theme_name);
+      sprintf(theme_path, "themes/%s/gtk-3.0/gtk.css", RSTRING_PTR(st->theme));
       FILE *th = fopen(theme_path, "r");
       if (th) {
         printf("make a css provider from %s\n", theme_path);
@@ -148,7 +143,6 @@ void shoes_native_process_init() {
       } else {
         printf("theme %s not found\n",theme_path);
       }
-    }
   }
 }
 
@@ -162,9 +156,11 @@ void shoes_native_init() {
 #ifdef GAPP
     int status;
     //srand(time(NULL));
+    shoes_settings *st;
+    Data_Get_Struct(shoes_settings_globalv, shoes_settings, st);
     char app_id[100];
-    char *rdom = RSTRING_PTR(shoes_settings_global->rdomain);
-    if (shoes_settings_global->mdi == Qtrue) {
+    char *rdom = RSTRING_PTR(st->rdomain);
+    if (st->mdi == Qtrue) {
       sprintf(app_id, "%s",rdom); 
     } else {
       sprintf(app_id, "%s%d", rdom,getpid()); // TODO: Windows?
@@ -174,12 +170,12 @@ void shoes_native_init() {
     // register with dbus
     if (g_application_register((GApplication *)shoes_GtkApp, NULL, NULL)) {
       fprintf(stderr,"%s is registered\n",app_id);
-      shoes_settings_global->dbus_name = rb_str_new2(app_id);
+      st->dbus_name = rb_str_new2(app_id);
     }
     g_signal_connect(shoes_GtkApp, "activate", G_CALLBACK (shoes_gtk_app_activate), NULL);
     g_signal_connect(shoes_GtkApp, "command-line", G_CALLBACK (shoes_gtk_app_cmdline), NULL);
     g_signal_connect(G_APPLICATION(shoes_GtkApp), "startup", G_CALLBACK(shoes_gtk_app_startup), NULL);
-    shoes_native_process_init();
+    shoes_native_process_init(st);
     gtk_init(NULL,NULL); // This starts the gui w/o triggering signals - complains but works.
     // g_application_run(G_APPLICATION(shoes_GtkApp), 0, NULL); // doesn't work but could?
     

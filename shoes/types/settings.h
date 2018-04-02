@@ -22,7 +22,7 @@ typedef struct {
 
 // Global vars
 extern VALUE shoes_settings_globalv;
-extern shoes_settings *shoes_settings_global;
+//extern shoes_settings *shoes_settings_global;
 
 void shoes_setting_init();
 VALUE shoes_settings_alloc(VALUE klass);

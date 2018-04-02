@@ -80,7 +80,7 @@ static inline void flip_endian(unsigned char* x, int length) {
 
 extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas;
 extern VALUE cFlow, cStack, cMask;
-extern VALUE cProgress, cShoesMenubar, cShoeMenu, cShoesMenuItem;
+extern VALUE cProgress, cShoesMenubar, cShoeMenu, cShoesMenuItem, cSettings;
 extern VALUE ssNestSlot;
 extern VALUE cWidget;
 extern VALUE aMsgList;
@@ -558,7 +558,7 @@ void shoes_cairo_arc(cairo_t *, double, double, double, double, double, double);
   f(square); f(undercolor); f(underline); f(variant); f(weight); f(wrap); \
   f(dash); f(nodot); f(onedot); f(donekey); f(volume); f(bg_color); \
   f(decorated); f(opacity); f(cache); f(event); f(btn_activate); \
-  f(menus); f(menubar); f(menu); f(menuitem);
+  f(menus); f(menubar); f(menu); f(menuitem); f(settings);
 #define SYMBOL_INTERN(name) s_##name = rb_intern("" # name)
 #define SYMBOL_ID(name) ID s_##name
 #define SYMBOL_EXTERN(name) extern ID s_##name

@@ -107,7 +107,7 @@ class Shoes
       fail SystemExit, ''
     end
     
-   opts.on('-f', '--file', 'path to script [OSX packaging uses this]') do
+    opts.on('-f', '--file', 'path to script [OSX packaging uses this]') do
       #puts "-f ARGV: #{ARGV}"
     end
     

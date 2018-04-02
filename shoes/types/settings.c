@@ -19,6 +19,7 @@ void shoes_settings_init() {
 
 
 void shoes_settings_mark(shoes_settings *st) {
+    rb_gc_mark_maybe(shoes_settings_globalv);
     rb_gc_mark_maybe(st->app_name);
     rb_gc_mark_maybe(st->theme);
     rb_gc_mark_maybe(st->mdi);
@@ -52,7 +53,7 @@ VALUE shoes_settings_alloc(VALUE klass) {
  * There is a one time, small bit of memory that is not free-ed. 
 */
 VALUE shoes_settings_globalv = Qnil;
-shoes_settings *shoes_settings_global;
+//shoes_settings *shoes_settings_global;
 
 VALUE shoes_settings_new(shoes_yaml_init *yml) {
   if (!NIL_P(shoes_settings_globalv))
@@ -75,8 +76,7 @@ VALUE shoes_settings_new(shoes_yaml_init *yml) {
     st->use_menus = Qtrue;
   else
     st->use_menus = Qnil;
-  free(yml);
-  shoes_settings_global = st;
+  //free(yml);
   return shoes_settings_globalv; 
 }
 
