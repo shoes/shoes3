@@ -60,5 +60,5 @@
     shoes_shoesevent_init(); \
     shoes_menubar_init(); \
     shoes_menu_init(); \
-    shoes_menuitem_init(); \
-  shoes_settings_init();
+    shoes_menuitem_init(); 
+

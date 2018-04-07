@@ -810,6 +810,12 @@ void shoes_ruby_init() {
     rb_define_method(cApp, "cache_clear", CASTHOOK(shoes_app_clear_cache), 1);
     rb_define_method(cApp, "event=", CASTHOOK(shoes_app_set_event_handler), 1);
     rb_define_method(cApp, "replay_event", CASTHOOK(shoes_app_replay_event), 1);
+    
+    /* Settings holds global values, not per app values. */
+    cSettings  = rb_define_class_under(cTypes, "Settings", rb_cObject);
+    rb_define_alloc_func(cSettings, shoes_settings_alloc);
+    rb_define_method(cSettings, "dbus", CASTHOOK(shoes_settings_dbus),0);
+
 
     cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 
@@ -836,7 +842,7 @@ void shoes_ruby_init() {
     rb_define_singleton_method(cShoes, "show_console", CASTHOOK(shoes_app_console), 0); // New in 3.2.23
     rb_define_singleton_method(cShoes, "terminal", CASTHOOK(shoes_app_terminal), -1); // New in 3.3.2 replaces console
     rb_define_singleton_method(cShoes, "quit", CASTHOOK(shoes_app_quit), 0); // Shoes 3.3.2
-    //rb_define_singleton_method(cShoes, "settings", CASTHOOK(shoes_app_settings), 0); // Shoes 3.3.7 
+    rb_define_singleton_method(cShoes, "settings", CASTHOOK(shoes_app_settings), 0); // Shoes 3.3.7 
     //rb_define_singleton_method(cShoes, "exit", CASTHOOK(shoes_app_quit), 0);
 
     //

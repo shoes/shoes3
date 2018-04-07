@@ -157,13 +157,13 @@ void shoes_native_init() {
     int status;
     //srand(time(NULL));
     shoes_settings *st;
-    Data_Get_Struct(shoes_settings_globalv, shoes_settings, st);
+    Data_Get_Struct(shoes_world->settings, shoes_settings, st);
     char app_id[100];
     char *rdom = RSTRING_PTR(st->rdomain);
     if (st->mdi == Qtrue) {
       sprintf(app_id, "%s",rdom); 
     } else {
-      sprintf(app_id, "%s%d", rdom,getpid()); // TODO: Windows?
+      sprintf(app_id, "%s%d", rdom, getpid()); // TODO: Windows?
     }
     //fprintf(stderr,"launching %s\n", app_id);
     shoes_GtkApp = gtk_application_new (app_id, G_APPLICATION_HANDLES_COMMAND_LINE);

@@ -135,6 +135,9 @@ VALUE shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner) {
 
     if (rb_block_given_p()) rb_iv_set(app, "@main_app", rb_block_proc());
     app_t->owner = owner;
+#ifndef MTITLE
+    app_t->title = ATTR(attr, title);
+#else
     if (RTEST(ATTR(attr,title)))
       app_t->title = ATTR(attr, title);
     else {
@@ -142,6 +145,7 @@ VALUE shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner) {
       Data_Get_Struct(shoes_settings_globalv, shoes_settings, st);
       app_t->title = st->app_name;
     }
+#endif 
     app_t->fullscreen = RTEST(ATTR(attr, fullscreen));
     app_t->resizable = (ATTR(attr, resizable) != Qfalse);
     app_t->decorated = (ATTR(attr, decorated) != Qfalse);
@@ -277,6 +281,15 @@ VALUE shoes_app_set_title(VALUE app, VALUE title) {
 }
 
 void shoes_app_title(shoes_app *app, VALUE title) {
+#ifndef MTITLE
+    char *msg;
+    if (!NIL_P(title))
+        app->title = title;
+    else
+        app->title = rb_str_new2(SHOES_APPNAME);
+    msg = RSTRING_PTR(app->title);
+    shoes_native_app_title(app, msg);
+#else
     char *msg;
     if (!NIL_P(title))
         app->title = title;
@@ -288,6 +301,7 @@ void shoes_app_title(shoes_app *app, VALUE title) {
     msg = RSTRING_PTR(app->title);
     shoes_app_name = msg;
     shoes_native_app_title(app, msg);
+#endif
 }
 
 
@@ -386,17 +400,17 @@ shoes_code shoes_app_start(VALUE allapps, char *uri) {
 shoes_code shoes_app_open(shoes_app *app, char *path) {
     shoes_code code = SHOES_OK;
     int dialog = (rb_obj_class(app->self) == cDialog);
-#if 0
+
+    code = shoes_native_app_open(app, path, dialog);
+    if (code != SHOES_OK)
+        return code;
+#ifndef MTITTLE
     shoes_app_title(app, app->title);
 #else
     shoes_settings *st;
     Data_Get_Struct(shoes_settings_globalv, shoes_settings, st);
     shoes_app_title(app, st->app_name);
 #endif
-    code = shoes_native_app_open(app, path, dialog);
-    if (code != SHOES_OK)
-        return code;
-
     if (app->slot != NULL) shoes_native_slot_reset(app->slot);
     shoes_slot_init(app->canvas, app->slot, 0, 0, app->width, app->height, TRUE, TRUE);
     code = shoes_app_goto(app, path);
@@ -522,11 +536,11 @@ shoes_code shoes_app_paint(shoes_app *app) {
 }
 
 /* ------ Settings --------
- * a script called Shoes.settings - not a useful thing for them to do
- * but we need to be complete. You never know. Return the global settings object
+ * a script called Shoes.settings - Danger ahead for them
+ * 
 */
 VALUE shoes_app_settings(VALUE app) {
-  return shoes_settings_globalv;
+  return shoes_world->settings;
 }
 
 

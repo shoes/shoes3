@@ -264,7 +264,7 @@ class Shoes
     end
   end
 
-  # This is the real entry point for shows. It's called from the C startup code
+  # This is the real entry point for shoes. It's called from the C startup code
   def self.args!(osx_launch = nil)
     require_relative "shoes/deprecated"
     

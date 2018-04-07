@@ -2,7 +2,7 @@
 // shoes/world.h
 //
 // The shoes_world struct contains global information about the environment which is shared between
-// app windows.
+// app windows. Expanded in Shoes 3.3.7.
 //
 #ifndef SHOES_WORLD_H
 #define SHOES_WORLD_H
@@ -25,6 +25,8 @@ SHOES_EXTERN typedef struct _shoes_world_t {
     cairo_surface_t *blank_image;
     shoes_cached_image *blank_cache;
     PangoFontDescription *default_font;
+    // Shoes 3,3.7 adds a bunch of globals and defaults
+    VALUE settings;
 } shoes_world_t;
 
 extern SHOES_EXTERN shoes_world_t *shoes_world;

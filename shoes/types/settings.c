@@ -7,8 +7,7 @@
 // ruby
 VALUE cSettings;
 
-//FUNC_M("+settings", settings, -1);
-
+#if 0
 void shoes_settings_init() {
     cSettings  = rb_define_class_under(cShoes, "Settings", rb_cObject);
     rb_define_alloc_func(cSettings, shoes_settings_alloc);
@@ -16,10 +15,9 @@ void shoes_settings_init() {
     //rb_define_method(cShoesMenubar, "[]", CASTHOOK(shoes_menubar_at), 1);
     //RUBY_M("+settings", settings, -1);
 }
-
+#endif
 
 void shoes_settings_mark(shoes_settings *st) {
-    rb_gc_mark_maybe(shoes_settings_globalv);
     rb_gc_mark_maybe(st->app_name);
     rb_gc_mark_maybe(st->theme);
     rb_gc_mark_maybe(st->mdi);
@@ -27,6 +25,7 @@ void shoes_settings_mark(shoes_settings *st) {
     rb_gc_mark_maybe(st->mdi);
     rb_gc_mark_maybe(st->use_menus);
     rb_gc_mark_maybe(st->dbus_name);
+    rb_gc_mark_maybe(st->monitor_list);
 }
 
 static void shoes_settings_free(shoes_settings *st) {
@@ -44,6 +43,7 @@ VALUE shoes_settings_alloc(VALUE klass) {
     st->rdomain = Qnil;
     st->use_menus = Qnil;
     st->dbus_name = Qnil;
+    st->monitor_list = rb_ary_new();
     return obj;
 }
 
@@ -52,32 +52,31 @@ VALUE shoes_settings_alloc(VALUE klass) {
  * Save in a global ruby object - not a Shoes GUI object. 
  * There is a one time, small bit of memory that is not free-ed. 
 */
-VALUE shoes_settings_globalv = Qnil;
-//shoes_settings *shoes_settings_global;
 
 VALUE shoes_settings_new(shoes_yaml_init *yml) {
-  if (!NIL_P(shoes_settings_globalv))
-    return shoes_settings_globalv;
-
-  shoes_settings_globalv = shoes_settings_alloc(cSettings);
   shoes_settings *st;
-  Data_Get_Struct(shoes_settings_globalv, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
   st->app_name = rb_str_new2(yml->app_name);
+  
   if (yml->theme_name == NULL)
     st->theme = Qnil;
   else
     st->theme = rb_str_new2(yml->theme_name);
+    
   st->rdomain = rb_str_new2(yml->rdomain);
+  
   if (! strcmp(yml->mdi,"true")) 
     st->mdi = Qtrue;
   else
     st->mdi = Qnil;
+    
   if (! strcmp(yml->use_menus, "true"))
     st->use_menus = Qtrue;
   else
     st->use_menus = Qnil;
+    
   //free(yml);
-  return shoes_settings_globalv; 
+  return shoes_world->settings; 
 }
 
 VALUE shoes_settings_dbus(VALUE self) {

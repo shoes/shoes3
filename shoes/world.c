@@ -48,6 +48,9 @@ shoes_world_t *shoes_world_alloc() {
     pango_font_description_set_absolute_size(world->default_font, 14. * PANGO_SCALE * (96./72.));
     rb_gc_register_address(&world->apps);
     rb_gc_register_address(&world->msgs);
+    // new settings 
+    world->settings = shoes_settings_alloc(cSettings);
+    rb_gc_register_address(&world->settings);
     return world;
 }
 
@@ -116,7 +119,7 @@ shoes_code shoes_init(SHOES_INIT_ARGS) {
     shoes_world->os.instance = inst;
     shoes_world->os.style = style;
 #endif
-    // parse shoes.yaml file - new with 3.3.7
+    // parse shoes.yaml file and update settings class/object
     shoes_init_load_yaml();
     
     shoes_native_init();

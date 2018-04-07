@@ -18,13 +18,14 @@ typedef struct {
   VALUE rdomain;
   VALUE use_menus;
   VALUE dbus_name;
+  VALUE monitor_list;
 } shoes_settings;
 
 // Global vars
 extern VALUE shoes_settings_globalv;
 //extern shoes_settings *shoes_settings_global;
 
-void shoes_setting_init();
+//void shoes_settings_init();
 VALUE shoes_settings_alloc(VALUE klass);
 VALUE shoes_settings_new(shoes_yaml_init *);
 VALUE shoes_settings_dbus(VALUE self);
