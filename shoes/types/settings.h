@@ -22,11 +22,20 @@ typedef struct {
 } shoes_settings;
 
 // Global vars
-extern VALUE shoes_settings_globalv;
+//extern VALUE shoes_settings_globalv;
 //extern shoes_settings *shoes_settings_global;
 
 //void shoes_settings_init();
 VALUE shoes_settings_alloc(VALUE klass);
 VALUE shoes_settings_new(shoes_yaml_init *);
 VALUE shoes_settings_dbus(VALUE self);
+VALUE shoes_settings_app_name(VALUE self);
+VALUE shoes_settings_get_theme(VALUE self);
+VALUE shoes_settings_set_theme(VALUE self, VALUE theme);
+VALUE shoes_settings_mdi(VALUE self);
+VALUE shoes_settings_menu(VALUE self);
+VALUE shoes_settings_rdomain(VALUE self);
+VALUE shoes_settings_set_rdomain(VALUE self, VALUE name);
+VALUE shoes_settings_monitors_list(VALUE self);
+VALUE shoes_settings_monitor(VALUE self, VALUE idx);
 #endif

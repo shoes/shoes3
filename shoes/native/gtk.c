@@ -122,9 +122,9 @@ shoes_gtk_app_cmdline (GApplication *application, gchar ***arguments,
 }
 #endif
 
-#ifdef GAPP
 // Some globals for Gtk3 
 GtkApplication *shoes_GtkApp; 
+#ifdef MTHEME
 GtkCssProvider *shoes_css_provider; // user provided theme
 
 // Process the setting for Theme and css
@@ -175,7 +175,9 @@ void shoes_native_init() {
     g_signal_connect(shoes_GtkApp, "activate", G_CALLBACK (shoes_gtk_app_activate), NULL);
     g_signal_connect(shoes_GtkApp, "command-line", G_CALLBACK (shoes_gtk_app_cmdline), NULL);
     g_signal_connect(G_APPLICATION(shoes_GtkApp), "startup", G_CALLBACK(shoes_gtk_app_startup), NULL);
+#ifdef MTHEME
     shoes_native_process_init(st);
+#endif
     gtk_init(NULL,NULL); // This starts the gui w/o triggering signals - complains but works.
     // g_application_run(G_APPLICATION(shoes_GtkApp), 0, NULL); // doesn't work but could?
     
@@ -852,7 +854,7 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
     GtkWidget *window;       // Root window 
 
     shoes_app_gtk *gk = &app->os; //lexical - typing shortcut
-    if (app->have_menu) {
+    if (app->have_menu) {  // TODO: !!! shoes_world->use_menu ?
     //if (1) {                 // puts a menu on all windows -useful for debugging pixel counting problems
       GtkWidget *vbox;         // contents of root window
       GtkWidget *menubar;      // top of vbox

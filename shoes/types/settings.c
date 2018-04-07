@@ -79,11 +79,84 @@ VALUE shoes_settings_new(shoes_yaml_init *yml) {
   return shoes_world->settings; 
 }
 
+/*
+ * Returns the dbus registered name
+ * Only useful on Linux
+*/
 VALUE shoes_settings_dbus(VALUE self) {
   shoes_settings *st;
   Data_Get_Struct(self, shoes_settings, st);
   return st->dbus_name;
 }
 
-// Not canvas visible
+/* 
+ * Returns the app_name ("Shoes" default). Can be set via
+ * shoes.yaml or (app.set_window_title ?)
+*/
+VALUE shoes_settings_app_name(VALUE self) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  return st->app_name;  
+}
 
+/* 
+ * Theme name. Path is somewhere in Shoes share/ ??
+ * Not useable in OSX/cocoa.
+*/
+VALUE shoes_settings_get_theme(VALUE self) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  return st->theme;
+}
+
+VALUE shoes_settings_set_theme(VALUE self, VALUE theme) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  st->theme = theme;
+  // TODO: Trigger gtk to do something?
+  return st->theme;
+}
+
+// get mdi status - not useful, IMO
+// TODO: use integer not VALUE
+VALUE shoes_settings_mdi(VALUE self) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  return st->mdi == Qtrue ? Qtrue: Qfalse;
+}
+
+// Return menu status (it's global once set for any Shoes.app window
+// TODO: use integer instead of VALUE
+VALUE shoes_settings_menu(VALUE self) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  return st->use_menus == Qtrue ? Qtrue : Qfalse;
+}
+
+VALUE shoes_settings_rdomain(VALUE self) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  return st->rdomain;
+}
+
+VALUE shoes_settings_set_rdomain(VALUE self, VALUE name) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  st->rdomain = name;
+  return st->rdomain;
+}
+
+// TODO: There should always be one monitor
+VALUE shoes_settings_monitors_list(VALUE self) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  return st->monitor_list;
+}
+
+// TODO: much
+VALUE shoes_settings_monitor(VALUE self, VALUE idx) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  VALUE mon = rb_ary_entry(st->monitor_list, NUM2INT(idx));
+  return mon;
+}
