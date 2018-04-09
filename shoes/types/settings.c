@@ -75,6 +75,7 @@ VALUE shoes_settings_new(shoes_yaml_init *yml) {
   else
     st->use_menus = Qnil;
     
+  // TODO: shoes_native_monitor_check
   //free(yml);
   return shoes_world->settings; 
 }
@@ -146,17 +147,29 @@ VALUE shoes_settings_set_rdomain(VALUE self, VALUE name) {
   return st->rdomain;
 }
 
-// TODO: There should always be one monitor
-VALUE shoes_settings_monitors_list(VALUE self) {
+// There is always one monitor
+VALUE shoes_settings_monitor_count(VALUE self) {
   shoes_settings *st;
   Data_Get_Struct(self, shoes_settings, st);
-  return st->monitor_list;
+  int cnt = shoes_native_monitor_count(); 
+  return INT2NUM(cnt);
 }
 
-// TODO: much
-VALUE shoes_settings_monitor(VALUE self, VALUE idx) {
+
+VALUE shoes_settings_monitor_geometry(VALUE self, VALUE idx) {
   shoes_settings *st;
   Data_Get_Struct(self, shoes_settings, st);
-  VALUE mon = rb_ary_entry(st->monitor_list, NUM2INT(idx));
-  return mon;
+  shoes_monitor_t rect;
+  shoes_native_monitor_geometry(NUM2INT(idx), &rect);
+  VALUE ary = rb_ary_new3(4, INT2NUM(rect.x), INT2NUM(rect.y), 
+      INT2NUM(rect.width), INT2NUM(rect.height));
+  return ary;
+}
+
+VALUE shoes_settings_monitor_default(VALUE self) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  int mon;
+  mon = shoes_native_monitor_default();
+  return INT2NUM(mon);  
 }

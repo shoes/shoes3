@@ -13,6 +13,7 @@
 
 #include "shoes/native/gtk/gtkcss.h"
 extern char *colorstrings[];
+extern void shoes_native_monitor_set(void *win, int monitor);
 /*
  * heavily modified from https://github.com/alanszlosek/tesi/
  * for use in Shoes/Linux
@@ -527,7 +528,7 @@ static void terminal_raw (struct tesiObject *tobj, char *raw, int len) {
 }
 #endif
  
-void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
+void shoes_native_terminal(char *app_dir, int monitor, int columns, int rows,
                            int fontsize, char* fg, char *bg, char* title) {
     GtkWidget *window;
     GtkWidget *canvas;
@@ -647,6 +648,7 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
     pango_tab_array_set_tab( tab_array, 0, PANGO_TAB_LEFT, tabwidth);
     gtk_text_view_set_tabs(GTK_TEXT_VIEW(canvas), tab_array);
 
+#if 0
     // init buffers base on mode.
     if (mode == 0) {
         log_mode = 0;
@@ -657,7 +659,10 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
         log_buffer = buffer = gtk_text_view_get_buffer(view);
         initattr(log_buffer);
     }
-
+#lse
+    log_buffer = buffer = gtk_text_view_get_buffer(view);
+    initattr(log_buffer);
+#endif
     //gtk_widget_set_size_request (GTK_WIDGET (sw), 80*charwidth, 24*charheight);
     int slop = charwidth * 3; // probably the 4 pixel margins.
     gtk_widget_set_size_request (GTK_WIDGET (sw), (columns*charwidth)+slop, rows*charheight);
@@ -708,6 +713,12 @@ void shoes_native_terminal(char *app_dir, int mode, int columns, int rows,
     t->ides = ides;
 
     gtk_widget_show_all (window);
+    
+    // TODO: needs testing
+    if (monitor >= 0) {
+      // user requested a specfic monitor (0 ...)
+      shoes_native_monitor_set((void *)window, monitor);
+    }
 
     // TODO: some clean up here. Complete ?
     pango_font_description_free(pfd);

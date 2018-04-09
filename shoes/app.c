@@ -1038,7 +1038,7 @@ VALUE shoes_app_console(VALUE self) {
         dir_val = rb_const_get(self, rb_intern("DIR"));
         char *dir_path = RSTRING_PTR(dir_val);
         //shoes_global_terminal = shoes_native_console(dir_path);
-        shoes_native_terminal(dir_path, 1, 80, 24, TERM_FONT_SZ, "black", "white", "Shoes Terminal");
+        shoes_native_terminal(dir_path, -1, 80, 24, TERM_FONT_SZ, "black", "white", "Shoes Terminal");
         shoes_global_terminal = 1;
     }
     return shoes_global_terminal ? Qtrue : Qfalse;
@@ -1052,7 +1052,7 @@ VALUE shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
         VALUE dir_val;
         dir_val = rb_const_get(self, rb_intern("DIR"));
         // set sensible defaults to be replaced if specified
-        int mode = 1, columns = 80, rows = 24, fontsize = TERM_FONT_SZ;
+        int monitor = -1, columns = 80, rows = 24, fontsize = TERM_FONT_SZ;
         char *fg = "black";
         char* bg = "white";
         char* title = "Shoes Terminal";
@@ -1077,6 +1077,9 @@ VALUE shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
             VALUE argbg = shoes_hash_get(argv[0], rb_intern("bg"));
             if (!NIL_P(argbg))
                 bg = RSTRING_PTR(argbg);
+            VALUE argmon = shoes_hash_get(argv[0], rb_intern("monitor"));
+            if (!NIL_P(argmon))
+                monitor = NUM2INT(argmon);
 #if 0
             VALUE modearg = shoes_hash_get(argv[0], rb_intern("mode"));
             if (!NIL_P(modearg)) {
@@ -1087,10 +1090,19 @@ VALUE shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
 #endif
         }
         fprintf(stderr, "DIR: %s\n", dir_path);
-        shoes_native_terminal(dir_path, mode, columns, rows, fontsize, fg, bg, title);
+        shoes_native_terminal(dir_path, monitor, columns, rows, fontsize, fg, bg, title);
         shoes_global_terminal = 1;
         fprintf(stderr, "Terminal set: %s\n", title);
     }
     return shoes_global_terminal ? Qtrue : Qfalse;
+}
+
+/* -------     monitor     ------ */
+
+VALUE shoes_app_monitor_set(VALUE self, VALUE mon) {
+  // TODO get the window (app.os->window)
+  shoes_app *app;
+  Data_Get_Struct(self, shoes_app, app);
+  shoes_native_monitor_set((void *)app->os.window, NUM2INT(mon));
 }
 

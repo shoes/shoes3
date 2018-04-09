@@ -810,6 +810,7 @@ void shoes_ruby_init() {
     rb_define_method(cApp, "cache_clear", CASTHOOK(shoes_app_clear_cache), 1);
     rb_define_method(cApp, "event=", CASTHOOK(shoes_app_set_event_handler), 1);
     rb_define_method(cApp, "replay_event", CASTHOOK(shoes_app_replay_event), 1);
+    rb_define_method(cApp, "monitor=", CASTHOOK(shoes_app_monitor_set), 1);
     
     /* Settings holds global values, not per app values. Part of shoes_world_t */
     cSettings  = rb_define_class_under(cTypes, "Settings", rb_cObject);
@@ -822,8 +823,9 @@ void shoes_ruby_init() {
     rb_define_method(cSettings, "use_menus", CASTHOOK(shoes_settings_menu),0);
     rb_define_method(cSettings, "rdomain", CASTHOOK(shoes_settings_rdomain),0);
     rb_define_method(cSettings, "rdomain=", CASTHOOK(shoes_settings_set_rdomain),1);
-    rb_define_method(cSettings, "monitors", CASTHOOK(shoes_settings_monitors_list),0);
-    rb_define_method(cSettings, "monitor[]", CASTHOOK(shoes_settings_monitor),1);
+    rb_define_method(cSettings, "monitor_count", CASTHOOK(shoes_settings_monitor_count),0);
+    rb_define_method(cSettings, "monitor_geometry", CASTHOOK(shoes_settings_monitor_geometry),1);
+    rb_define_method(cSettings, "monitor_default", CASTHOOK(shoes_settings_monitor_default), 0);
 
     cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 

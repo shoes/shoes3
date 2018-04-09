@@ -1624,3 +1624,59 @@ int shoes_native_console(char *app_path)
 */
 #endif
 
+/*
+ *  ------- monitor handling --------
+ *  As usual, gtk 3.22 'fixes' things with deprecations. 
+ * 
+ *  Currrently using pre 3.22 API.
+*/
+int shoes_native_monitor_default() {
+  GdkScreen *screen;
+  screen = gdk_screen_get_default();
+  int mon;
+  mon = gdk_screen_get_number(screen);  
+  return mon;
+}
+
+void shoes_native_monitor_geometry(int idx, shoes_monitor_t *geo) {
+
+  GdkScreen *screen;
+  screen = gdk_screen_get_default();
+  GdkRectangle r;
+  // TODO: what to return? physical or useable? y only makes sense for
+  // usuable. May not be portable
+  gdk_screen_get_monitor_geometry(screen, idx,  &r);
+  //gdk_screen_get_monitor_workarea(screen, idx, &r);
+  geo->x = r.x;
+  geo->y = r.y;
+  geo->width = r.width;
+  geo->height = r.height;
+}
+
+int shoes_native_monitor_count() {
+  GdkScreen *screen;
+  screen = gdk_screen_get_default();
+  int cnt = 0;
+  cnt = gdk_screen_get_n_monitors(screen);
+  return cnt;
+}
+
+// TODO: sets/moves the window onto monitor 
+void shoes_native_monitor_set(void *win, int monitor) {
+  GtkWindow *window = (GtkWindow *)win;
+  GdkDisplay *display;
+  GdkScreen *screen;
+  screen = gdk_screen_get_default();  
+  display = gdk_screen_get_display(screen);
+  // sanity checks
+  int cnt = 0;
+  cnt = gdk_screen_get_n_monitors(screen);
+  int realmon; 
+  if (monitor < cnt || monitor >= 0)
+    realmon = monitor;
+  else
+    realmon = 0;
+  // TODO: get the matching screen. Deprecated, Non working? 
+  screen = gdk_display_get_screen(display, realmon);
+  gtk_window_set_screen(window, screen);
+}
