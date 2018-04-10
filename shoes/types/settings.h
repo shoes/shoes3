@@ -18,7 +18,6 @@ typedef struct {
   VALUE rdomain;
   VALUE use_menus;
   VALUE dbus_name;
-  VALUE monitor_list;  // TODO: used
 } shoes_settings;
 
 typedef struct {
@@ -45,7 +44,7 @@ VALUE shoes_settings_monitor_default(VALUE self);
 
 // Natives
 extern int shoes_native_monitor_count(); 
-extern int shoes_native_settings_monitor_default();
+extern int shoes_native_monitor_default();
 extern void shoes_native_monitor_geometry(int , shoes_monitor_t *r);
-extern void shoes_native_monitor_set(void *win, int monitor);
+extern void shoes_native_monitor_set(shoes_app *app);
 #endif

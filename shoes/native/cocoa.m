@@ -904,7 +904,17 @@ shoes_native_app_window(shoes_app *app, int dialog)
   NSSize size = {app->minwidth, app->minheight};
   // 3.2.24 constrain to screen size-docsize-menubar (visibleFrame)
   // Then minus the window's title bar
+#if 0  
   NSRect screen = [[NSScreen mainScreen] visibleFrame]; //should be a global var?
+#else
+  NSRect screen;
+  if (app->monitor < 0) // default
+    screen = [[NSScreen mainScreen] visibleFrame];
+  else {
+    NSArray *screens = [NSScreen screens];
+    screen = [screens[app->monitor] visibleFrame];
+  }
+#endif
   if (app->height > screen.size.height) {
     app->height = screen.size.height;
     rect.size.height = screen.size.height;
@@ -915,7 +925,16 @@ shoes_native_app_window(shoes_app *app, int dialog)
     mask |= NSResizableWindowMask;
   if (app->fullscreen) {
     mask = NSBorderlessWindowMask;
+#if 0
     rect = [[NSScreen mainScreen] frame];
+#else
+    if (app->monitor < 0)
+      rect = [[NSScreen mainScreen] frame];
+    else {
+      NSArray *screens = [NSScreen screens];
+      rect = [screens[app->monitor] frame];
+    }
+#endif
   }
   window = [[ShoesWindow alloc] initWithContentRect: rect
     styleMask: mask backing: NSBackingStoreBuffered defer: NO];
@@ -1448,4 +1467,49 @@ NSMutableDictionary *shoes_attr_dict(VALUE attr) {
     }
   }
   return dict;
+}
+
+// -------- monitor routines ------
+int shoes_native_monitor_count() {
+  NSArray *scns = [NSScreen screens];
+  return [scns count];
+}
+int shoes_native_monitor_default() {
+  NSScreen *main = [NSScreen mainScreen];
+  int i;
+  NSArray *screens = [NSScreen screens];
+  for (i = 0; i < [screens count]; i++) {
+    if (screens[i] == main)  return i;
+  }
+  // Should not happen
+  return 0;
+}
+
+void shoes_native_monitor_geometry(int mon, shoes_monitor_t *r) {
+  NSScreen *scn;
+  NSArray *screens = [NSScreen screens];
+  scn = screens[mon];
+  NSRect rect = [scn visibleFrame];
+  r->x = rect.origin.x;
+  r->y = rect.origin.y;
+  r->width = rect.size.width;
+  r->height = rect.size.height;
+}
+
+void shoes_native_monitor_set(shoes_app *app) {
+  // sanity checks
+  int cnt = 0;
+  NSArray *screens = [NSScreen screens];
+  cnt = [screens count];
+  int realmon; 
+  if (app->monitor < cnt && app->monitor >= 0)
+    realmon = app->monitor;
+  else {
+    realmon = shoes_native_monitor_default();
+  }
+  NSScreen *rs = screens[realmon];
+  NSRect nr = [rs visibleFrame];
+  NSWindow *win = (NSWindow *)app->os.window;
+  // Tweek nr to match app->
+  [win setFrame: nr display: YES];
 }

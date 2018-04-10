@@ -67,6 +67,7 @@ VALUE shoes_app_alloc(VALUE klass) {
     app->use_event_handler = 0;
     app->have_menu = 0;
     app->menubar = rb_ary_new();
+    app->monitor = -1;
     app->scratch = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
     app->self = Data_Wrap_Struct(klass, shoes_app_mark, shoes_app_free, app);
     rb_extend_object(app->self, cTypes);
@@ -157,6 +158,10 @@ VALUE shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner) {
       app_t->have_menu = TRUE;
     }
     app_t->menubar = Qnil;
+    
+    if (RTEST(ATTR(attr, monitor))) {
+      app_t->monitor = NUM2INT(ATTR(attr,monitor));
+    } 
 
     if (RTEST(ATTR(attr, opacity)))
         if ((0.0 <= NUM2DBL(ATTR(attr, opacity))) && (1.0 >= NUM2DBL(ATTR(attr, opacity))))
@@ -1099,10 +1104,18 @@ VALUE shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
 
 /* -------     monitor     ------ */
 
+VALUE shoes_app_monitor_get(VALUE self) {
+  shoes_app *app;
+  Data_Get_Struct(self, shoes_app, app);
+  return INT2NUM(app->monitor);
+}
+
 VALUE shoes_app_monitor_set(VALUE self, VALUE mon) {
   // TODO get the window (app.os->window)
   shoes_app *app;
   Data_Get_Struct(self, shoes_app, app);
-  shoes_native_monitor_set((void *)app->os.window, NUM2INT(mon));
+  app->monitor = NUM2INT(mon);
+  shoes_native_monitor_set(app);
+  return INT2NUM(app->monitor);
 }
 

@@ -52,6 +52,7 @@ typedef struct _shoes_app {
     int have_menu;
     int mb_height;
     VALUE menubar;
+    int monitor;    // -1 means default
 } shoes_app;
 
 //
@@ -116,6 +117,7 @@ extern int shoes_global_terminal;
 // global settings and shoes.yaml (3.3.7)
 extern VALUE shoes_setting_global;
 VALUE shoes_app_settings(VALUE app);
+VALUE shoes_app_monitor_get(VALUE self);
 VALUE shoes_app_monitor_set(VALUE app, VALUE mon);
 #ifdef SHOES_QUARTZ
 extern int osx_cshoes_launch;

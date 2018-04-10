@@ -25,7 +25,6 @@ void shoes_settings_mark(shoes_settings *st) {
     rb_gc_mark_maybe(st->mdi);
     rb_gc_mark_maybe(st->use_menus);
     rb_gc_mark_maybe(st->dbus_name);
-    rb_gc_mark_maybe(st->monitor_list);
 }
 
 static void shoes_settings_free(shoes_settings *st) {
@@ -43,7 +42,6 @@ VALUE shoes_settings_alloc(VALUE klass) {
     st->rdomain = Qnil;
     st->use_menus = Qnil;
     st->dbus_name = Qnil;
-    st->monitor_list = rb_ary_new();
     return obj;
 }
 

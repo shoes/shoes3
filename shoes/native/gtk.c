@@ -968,7 +968,10 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
     gtk_widget_set_opacity(GTK_WIDGET(window), app->opacity);
 #endif
     gtk_widget_set_events(window, GDK_POINTER_MOTION_MASK | GDK_SCROLL_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
-
+    // If the user asked for a specific Screen (Monitor) for the Window
+    if (app->monitor >= 0) {
+      shoes_native_monitor_set(app);
+    }
     return SHOES_OK;
 }
 
@@ -1643,10 +1646,9 @@ void shoes_native_monitor_geometry(int idx, shoes_monitor_t *geo) {
   GdkScreen *screen;
   screen = gdk_screen_get_default();
   GdkRectangle r;
-  // TODO: what to return? physical or useable? y only makes sense for
-  // usuable. May not be portable
-  gdk_screen_get_monitor_geometry(screen, idx,  &r);
-  //gdk_screen_get_monitor_workarea(screen, idx, &r);
+  // workarea approximates visibleFrame on OSX
+  //gdk_screen_get_monitor_geometry(screen, idx,  &r);
+  gdk_screen_get_monitor_workarea(screen, idx, &r);
   geo->x = r.x;
   geo->y = r.y;
   geo->width = r.width;
@@ -1662,8 +1664,8 @@ int shoes_native_monitor_count() {
 }
 
 // TODO: sets/moves the window onto monitor 
-void shoes_native_monitor_set(void *win, int monitor) {
-  GtkWindow *window = (GtkWindow *)win;
+void shoes_native_monitor_set(shoes_app *app) {
+  GtkWindow *window = (GtkWindow *)app->os.window;
   GdkDisplay *display;
   GdkScreen *screen;
   screen = gdk_screen_get_default();  
@@ -1672,10 +1674,11 @@ void shoes_native_monitor_set(void *win, int monitor) {
   int cnt = 0;
   cnt = gdk_screen_get_n_monitors(screen);
   int realmon; 
-  if (monitor < cnt || monitor >= 0)
-    realmon = monitor;
-  else
-    realmon = 0;
+  if (app->monitor < cnt && app->monitor >= 0)
+    realmon = app->monitor;
+  else {
+    realmon = 0; // TODO: could also return; 
+  }
   // TODO: get the matching screen. Deprecated, Non working? 
   screen = gdk_display_get_screen(display, realmon);
   gtk_window_set_screen(window, screen);

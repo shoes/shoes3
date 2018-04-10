@@ -39,6 +39,7 @@ ADD_DLL = []
 GLIB_CFLAGS   = "-I#{ShoesDeps}/include/glib-2.0 -I#{ShoesDeps}/lib/glib-2.0/include"
 GLIB_CFLAGS << " -I#{ShoesDeps}/include/librsvg-2.0/librsvg -I#{ShoesDeps}/include/gdk-pixbuf-2.0/"
 GLIB_LDFLAGS  = "-L#{ShoesDeps}/lib -lglib-2.0 -lgobject-2.0 -lintl #{ShoesDeps}/lib/librsvg-2.2.dylib"
+GLIB_LDFLAGS << " -lyaml-0.2"
 CAIRO_CFLAGS  = "-I#{ShoesDeps}/include/cairo"
 CAIRO_LDFLAGS = "-L#{ShoesDeps}/lib -lcairo"
 PANGO_CFLAGS  = "-I#{ShoesDeps}/include/pango-1.0"
@@ -58,7 +59,6 @@ DLEXT = "dylib"
 LINUX_CFLAGS << " -DVIDEO -DSHOES_QUARTZ -Wall -fpascal-strings -x objective-c -fobjc-exceptions"
 LINUX_LDFLAGS = "-framework Cocoa -framework QuartzCore -framework Carbon -dynamiclib -Wl,-single_module INSTALL_NAME"
 LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
-
 
 #OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk'
 #ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
