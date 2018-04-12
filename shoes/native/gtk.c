@@ -1632,6 +1632,8 @@ int shoes_native_console(char *app_path)
  *  As usual, gtk 3.22 'fixes' things with deprecations. 
  * 
  *  Currrently using pre 3.22 API.
+ *    Screen width is the sum of all monitors. Height is the max of all 
+ *    monitors. Do not address monitors just set x. 
 */
 int shoes_native_monitor_default() {
   GdkScreen *screen;
@@ -1663,7 +1665,7 @@ int shoes_native_monitor_count() {
   return cnt;
 }
 
-// TODO: sets/moves the window onto monitor 
+// Sets/moves the window onto monitor 
 void shoes_native_monitor_set(shoes_app *app) {
   GtkWindow *window = (GtkWindow *)app->os.window;
   GdkDisplay *display;
@@ -1677,9 +1679,15 @@ void shoes_native_monitor_set(shoes_app *app) {
   if (app->monitor < cnt && app->monitor >= 0)
     realmon = app->monitor;
   else {
-    realmon = 0; // TODO: could also return; 
+    realmon = 0;
   }
-  // TODO: get the matching screen. Deprecated, Non working? 
-  screen = gdk_display_get_screen(display, realmon);
-  gtk_window_set_screen(window, screen);
+  /*
+  fprintf(stderr, "Screen w: %d x h: %d\n", gdk_screen_get_width(screen),
+      gdk_screen_get_height(screen));
+  fprintf(stderr, "Switch to monitor %d of %d\n", realmon, cnt);
+  */ 
+  GdkRectangle r;
+  gdk_screen_get_monitor_geometry(screen, realmon,  &r);
+  gtk_window_move(window, app->x + r.x, app->y);
+  // TODO: do a better job of positioning. Worth the effort?
 }

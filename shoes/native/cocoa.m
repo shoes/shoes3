@@ -913,6 +913,9 @@ shoes_native_app_window(shoes_app *app, int dialog)
   else {
     NSArray *screens = [NSScreen screens];
     screen = [screens[app->monitor] visibleFrame];
+    // 2nd monitor has x (y?) that is no-zero. Modify rect.point
+    rect.origin.x = screen.origin.x;
+    rect.origin.y = screen.origin.y;
   }
 #endif
   if (app->height > screen.size.height) {
@@ -923,6 +926,7 @@ shoes_native_app_window(shoes_app *app, int dialog)
   }
   if (app->resizable)
     mask |= NSResizableWindowMask;
+    
   if (app->fullscreen) {
     mask = NSBorderlessWindowMask;
 #if 0
@@ -1511,5 +1515,8 @@ void shoes_native_monitor_set(shoes_app *app) {
   NSRect nr = [rs visibleFrame];
   NSWindow *win = (NSWindow *)app->os.window;
   // Tweek nr to match app->
+  
+  nr.size.width = app->width;
+  nr.size.height = app->height;
   [win setFrame: nr display: YES];
 }

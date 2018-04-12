@@ -3,7 +3,7 @@ Shoes.app do
     para "Muliple Monitor Test"
     st = Shoes.settings
     para "Default monitor is #{st.monitor_default}\n"
-    if st.monitor_count > 1 
+    if st.monitor_count > -1 
       flow do
         button "Second Monitor" do
           window title: "New Mon", monitor: 1 do
@@ -12,10 +12,12 @@ Shoes.app do
             end
           end
         end
-        button "Move this app" do
+        button "Move this to 1" do
           app.monitor = 1;
         end
-      end
+        button "Move this to 0" do
+          app.monitor = 0;
+        end      end
     end
   end
 end

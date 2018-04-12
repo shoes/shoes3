@@ -99,7 +99,7 @@ LINUX_CFLAGS << " -mms-bitfields -D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE
 if ignore_deprecations
   LINUX_CFLAGS << " -Wno-deprecated-declarations"
 end
-LINUX_LIB_NAMES = %W[gif-7 jpeg librsvg-2 libffi]
+LINUX_LIB_NAMES = %W[gif-7 jpeg librsvg-2 libffi libyaml]
 
 DLEXT = "dll"
 LINUX_LDFLAGS = "-shared -L#{ularch} "
