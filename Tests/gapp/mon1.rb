@@ -2,22 +2,35 @@ Shoes.app do
   stack do
     para "Muliple Monitor Test"
     st = Shoes.settings
-    para "Default monitor is #{st.monitor_default}\n"
-    if st.monitor_count > -1 
-      flow do
-        button "Second Monitor" do
-          window title: "New Mon", monitor: 1 do
-            button "help" do
-              alert "Which monitor for alert?"
+    @eb = edit_box width: 400, height: 150
+  end
+  start do
+    st = Shoes.settings
+    dflt = st.monitor_default
+    @eb.append "Default monitor is #{dflt}\n"
+    st.monitor_count.times do |mon|
+      @eb.append "Monitor #{mon} => #{st.monitor_geometry(mon)}\n"
+    end
+    (st.monitor_count- 1).times do |mon|
+       flow do 
+        newmon = (dflt ^ 1)
+        button "New Window on #{newmon}" do
+          window title: "Launched in #{newmon}", monitor: newmon do
+            stack do
+              para "My Monitor is #{app.monitor}"
+              button "Dialog" do
+                alert "Which Windows?"
+              end
             end
           end
         end
-        button "Move this to 1" do
-          app.monitor = 1;
+        button "Move This to #{newmon}" do
+          app.monitor = newmon
         end
-        button "Move this to 0" do
-          app.monitor = 0;
-        end      end
+        button "Restore this to #{dflt}" do
+         app.monitor = dflt
+        end
+      end
     end
   end
 end

@@ -45,7 +45,7 @@ PANGO_LIB = `pkgconf --libs pango`.strip
 GTK_FLAGS = "#{`pkgconf --cflags gtk+-3.0`.strip}"
 GTK_LIB = "#{`pkgconf --libs gtk+-3.0`.strip}"
 
-MISC_LIB = " -lgif -ljpeg"
+MISC_LIB = " -lgif -ljpeg -lyaml"
 
 # don't use pkg-config for librsvg-2.0 - a warning.
 MISC_CFLAGS = ' '

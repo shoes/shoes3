@@ -1637,9 +1637,11 @@ int shoes_native_console(char *app_path)
 */
 int shoes_native_monitor_default() {
   GdkScreen *screen;
-  screen = gdk_screen_get_default();
+  GdkDisplay *display;
+  display = gdk_display_get_default();
+  screen = gdk_display_get_default_screen(display);
   int mon;
-  mon = gdk_screen_get_number(screen);  
+  mon = gdk_screen_get_primary_monitor(screen);
   return mon;
 }
 

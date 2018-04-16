@@ -904,23 +904,26 @@ shoes_native_app_window(shoes_app *app, int dialog)
   NSSize size = {app->minwidth, app->minheight};
   // 3.2.24 constrain to screen size-docsize-menubar (visibleFrame)
   // Then minus the window's title bar
-#if 0  
-  NSRect screen = [[NSScreen mainScreen] visibleFrame]; //should be a global var?
+#if 0 
+  NSRect screenr = [[NSScreen mainScreen] visibleFrame]; //should be a global var?
 #else
-  NSRect screen;
-  if (app->monitor < 0) // default
-    screen = [[NSScreen mainScreen] visibleFrame];
-  else {
+  NSRect screenr;
+  NSScreen *screen;
+  if (app->monitor < 0) { // default
+    screen = [NSScreen mainScreen];
+    screenr = [screen visibleFrame];
+  } else {
     NSArray *screens = [NSScreen screens];
-    screen = [screens[app->monitor] visibleFrame];
+    screen = screens[app->monitor];
+    screenr = [screen visibleFrame];
     // 2nd monitor has x (y?) that is no-zero. Modify rect.point
-    rect.origin.x = screen.origin.x;
-    rect.origin.y = screen.origin.y;
+    //rect.origin.x = screenr.origin.x;
+    //rect.origin.y = screenr.origin.y;
   }
 #endif
-  if (app->height > screen.size.height) {
-    app->height = screen.size.height;
-    rect.size.height = screen.size.height;
+  if (app->height > screenr.size.height) {
+    app->height = screenr.size.height;
+    rect.size.height = screenr.size.height;
     app->height = app->height - 20;
     rect.size.height = rect.size.height - 20;
   }
@@ -932,16 +935,16 @@ shoes_native_app_window(shoes_app *app, int dialog)
 #if 0
     rect = [[NSScreen mainScreen] frame];
 #else
-    if (app->monitor < 0)
-      rect = [[NSScreen mainScreen] frame];
-    else {
-      NSArray *screens = [NSScreen screens];
-      rect = [screens[app->monitor] frame];
-    }
+    rect = [screen frame];
 #endif
   }
+#if 0
   window = [[ShoesWindow alloc] initWithContentRect: rect
     styleMask: mask backing: NSBackingStoreBuffered defer: NO];
+#else
+  window = [[ShoesWindow alloc] initWithContentRect: rect
+    styleMask: mask backing: NSBackingStoreBuffered defer: NO screen: screen];
+#endif
   if (app->minwidth > 0 || app->minheight > 0)
     [window setContentMinSize: size];
   [window prepareWithApp: app->self];
