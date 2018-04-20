@@ -60,9 +60,9 @@ MISC_LIB = " #{ularch}/librsvg-2.so"
 
 justgif = File.exist? "#{ularch}/libgif.so.4"
 if justgif
-  LINUX_LIB_NAMES = %W[gif jpeg]
+  LINUX_LIB_NAMES = %W[gif jpeg yaml]
 else
-  LINUX_LIB_NAMES = %W[ungif jpeg]
+  LINUX_LIB_NAMES = %W[ungif jpeg yaml]
 end
 DLEXT = "so"
 LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "

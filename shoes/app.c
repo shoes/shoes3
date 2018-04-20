@@ -67,6 +67,7 @@ VALUE shoes_app_alloc(VALUE klass) {
     app->use_event_handler = 0;
     app->have_menu = 0;
     app->menubar = rb_ary_new();
+    app->mb_height = 0;
     app->monitor = -1;
     app->scratch = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
     app->self = Data_Wrap_Struct(klass, shoes_app_mark, shoes_app_free, app);

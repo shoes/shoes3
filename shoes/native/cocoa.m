@@ -114,7 +114,7 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 - (void)prepareWithApp: (VALUE)a
 {
   app = a;
-  [self center];
+  //[self center];
   [self makeKeyAndOrderFront: self];
   [self setAcceptsMouseMovedEvents: YES];
   [self setAutorecalculatesKeyViewLoop: YES];
@@ -895,6 +895,19 @@ shoes_native_app_set_icon(shoes_app *app, char *icon_path)
   [NSApp setApplicationIconImage: icon];
 }
 
+// Helper app (->monitor to screen
+NSScreen * shoes_native_app_screen(shoes_app *app) {
+  int cnt = 0, realmon;
+  NSArray *screens = [NSScreen screens];
+  cnt = [screens count];
+  if (app->monitor < cnt && app->monitor >= 0)
+    realmon = app->monitor;
+  else {
+    return [NSScreen mainScreen];
+  }
+  return screens[realmon];
+}
+
 static ShoesWindow *
 shoes_native_app_window(shoes_app *app, int dialog)
 {
@@ -904,23 +917,11 @@ shoes_native_app_window(shoes_app *app, int dialog)
   NSSize size = {app->minwidth, app->minheight};
   // 3.2.24 constrain to screen size-docsize-menubar (visibleFrame)
   // Then minus the window's title bar
-#if 0 
-  NSRect screenr = [[NSScreen mainScreen] visibleFrame]; //should be a global var?
-#else
   NSRect screenr;
   NSScreen *screen;
-  if (app->monitor < 0) { // default
-    screen = [NSScreen mainScreen];
-    screenr = [screen visibleFrame];
-  } else {
-    NSArray *screens = [NSScreen screens];
-    screen = screens[app->monitor];
-    screenr = [screen visibleFrame];
-    // 2nd monitor has x (y?) that is no-zero. Modify rect.point
-    //rect.origin.x = screenr.origin.x;
-    //rect.origin.y = screenr.origin.y;
-  }
-#endif
+  screen = shoes_native_app_screen(app);
+  screenr = [screen visibleFrame];
+
   if (app->height > screenr.size.height) {
     app->height = screenr.size.height;
     rect.size.height = screenr.size.height;
@@ -932,22 +933,35 @@ shoes_native_app_window(shoes_app *app, int dialog)
     
   if (app->fullscreen) {
     mask = NSBorderlessWindowMask;
-#if 0
-    rect = [[NSScreen mainScreen] frame];
-#else
     rect = [screen frame];
-#endif
   }
-#if 0
-  window = [[ShoesWindow alloc] initWithContentRect: rect
-    styleMask: mask backing: NSBackingStoreBuffered defer: NO];
-#else
+
+  //window = [[ShoesWindow alloc] initWithContentRect: rect
+  //  styleMask: mask backing: NSBackingStoreBuffered defer: NO];
+
+  NSLog(@"rect: %4.0f, %4.0f, %4.0f, %4.0f\n:",rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+  NSLog(@"news: %4.0f, %4.0f, %4.0f, %4.0f\n:",screenr.origin.x, screenr.origin.y, screenr.size.width, screenr.size.height);
+  NSLog(@"npos: %4.0f, %4.0f, %4.0f, %4.0f\n:",rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+  
   window = [[ShoesWindow alloc] initWithContentRect: rect
     styleMask: mask backing: NSBackingStoreBuffered defer: NO screen: screen];
-#endif
+
   if (app->minwidth > 0 || app->minheight > 0)
     [window setContentMinSize: size];
+  // OSX BUG!! Center doesn't work on muliple monitors
+  if (app->monitor == -1) {
+    [window center];
+  } else {
+    if (! app->fullscreen) {
+      // do our own center, reuse rect the variable.
+      rect.origin.x = screenr.origin.x + ((screenr.size.width - rect.size.width) / 2.0);
+      rect.origin.y = screenr.origin.y + ((screenr.size.height - rect.size.height) / 2.0);
+    }
+    [window setFrame: rect display: YES];
+  }  
   [window prepareWithApp: app->self];
+  NSRect rp = [window frame];
+  NSLog(@"rpos: %4.0f, %4.0f, %4.0f, %4.0f\n:",rp.origin.x, rp.origin.y, rp.size.width, rp.size.height);
   return window;
 }
 
@@ -1380,7 +1394,7 @@ int shoes_native_app_get_decoration(shoes_app *app)
 */
 void shoes_native_app_get_window_position(shoes_app *app) {
   NSWindow *win = (NSWindow *)app->os.window;
-  NSRect screen = [[NSScreen mainScreen] frame];
+  NSRect screen = [[NSScreen mainScreen] frame];  //TODO
   NSRect frame = [win frame];
   //NSLog(@"current: x, y h: %i, %i %i", (int) frame.origin.x, (int) frame.origin.y, 
   //   (int) frame.size.height);
@@ -1504,21 +1518,19 @@ void shoes_native_monitor_geometry(int mon, shoes_monitor_t *r) {
 }
 
 void shoes_native_monitor_set(shoes_app *app) {
-  // sanity checks
-  int cnt = 0;
-  NSArray *screens = [NSScreen screens];
-  cnt = [screens count];
-  int realmon; 
-  if (app->monitor < cnt && app->monitor >= 0)
-    realmon = app->monitor;
-  else {
-    realmon = shoes_native_monitor_default();
-  }
-  NSScreen *rs = screens[realmon];
-  NSRect nr = [rs visibleFrame];
-  NSWindow *win = (NSWindow *)app->os.window;
-  // Tweek nr to match app->
+
+  NSScreen *ns = shoes_native_app_screen(app);
+  NSRect nr = [ns visibleFrame];
   
+  NSWindow *win = (NSWindow *)app->os.window;
+  NSRect os = [[win screen] frame];
+  NSRect or = [win frame];   // get current position
+  //NSLog(@"os: %4.0f, %4.0f, %4.0f, %4.0f\n", os.origin.x, os.origin.y, os.size.width, os.size.height);
+  //NSLog(@"or: %4.0f, %4.0f, %4.0f, %4.0f\n", or.origin.x, or.origin.y, or.size.width, or.size.height);
+  //NSLog(@"nr: %4.0f, %4.0f, %4.0f, %4.0f\n", nr.origin.x, nr.origin.y, nr.size.width, nr.size.height);
+  
+  nr.origin.x += (or.origin.x - os.origin.x);
+  nr.origin.y += (or.origin.y - os.origin.y);
   nr.size.width = app->width;
   nr.size.height = app->height;
   [win setFrame: nr display: YES];

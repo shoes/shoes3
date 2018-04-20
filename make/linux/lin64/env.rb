@@ -62,7 +62,7 @@ end
 MISC_LIB = ' /usr/lib/x86_64-linux-gnu/librsvg-2.so'
 
 #LINUX_LIB_NAMES = %W[ungif jpeg]
-LINUX_LIB_NAMES = %W[gif jpeg]
+LINUX_LIB_NAMES = %W[gif jpeg yaml]
 
 DLEXT = "so"
 LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "
