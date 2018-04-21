@@ -19,8 +19,18 @@ Shoes.app do
             stack do
               para "My Monitor is #{app.monitor}"
               button "Dialog" do
-                alert "Which Windows?"
+                alert "Which Window?"
               end
+              button "move down right" do
+                x = self.left
+                y = self.top
+                @eb.append "from: #{x}, #{y}\n"
+                self.move x+20, y+20
+                x = self.left
+                y = self.top
+                @eb.append "to:   #{x}, #{y}\n"
+              end
+              @eb = edit_box width: 300, height: 150
             end
           end
         end

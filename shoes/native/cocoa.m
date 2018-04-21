@@ -939,9 +939,9 @@ shoes_native_app_window(shoes_app *app, int dialog)
   //window = [[ShoesWindow alloc] initWithContentRect: rect
   //  styleMask: mask backing: NSBackingStoreBuffered defer: NO];
 
-  NSLog(@"rect: %4.0f, %4.0f, %4.0f, %4.0f\n:",rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
-  NSLog(@"news: %4.0f, %4.0f, %4.0f, %4.0f\n:",screenr.origin.x, screenr.origin.y, screenr.size.width, screenr.size.height);
-  NSLog(@"npos: %4.0f, %4.0f, %4.0f, %4.0f\n:",rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+  //NSLog(@"rect: %4.0f, %4.0f, %4.0f, %4.0f\n:",rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+  //NSLog(@"news: %4.0f, %4.0f, %4.0f, %4.0f\n:",screenr.origin.x, screenr.origin.y, screenr.size.width, screenr.size.height);
+  //NSLog(@"npos: %4.0f, %4.0f, %4.0f, %4.0f\n:",rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
   
   window = [[ShoesWindow alloc] initWithContentRect: rect
     styleMask: mask backing: NSBackingStoreBuffered defer: NO screen: screen];
@@ -960,8 +960,8 @@ shoes_native_app_window(shoes_app *app, int dialog)
     [window setFrame: rect display: YES];
   }  
   [window prepareWithApp: app->self];
-  NSRect rp = [window frame];
-  NSLog(@"rpos: %4.0f, %4.0f, %4.0f, %4.0f\n:",rp.origin.x, rp.origin.y, rp.size.width, rp.size.height);
+  //NSRect rp = [window frame];
+  //NSLog(@"rpos: %4.0f, %4.0f, %4.0f, %4.0f\n:",rp.origin.x, rp.origin.y, rp.size.width, rp.size.height);
   return window;
 }
 
@@ -972,9 +972,35 @@ shoes_native_view_supplant(NSView *from, NSView *to)
     [to addSubview:subview];
 }
 
+
 void
 shoes_native_app_fullscreen(shoes_app *app, char yn)
 {
+#if 0
+  /*
+   * Uses the newer (10.7+) api for full screen? 
+  */
+  NSWindow *window = app->os.window;
+  NSRect screenr; 
+ 
+  if (yn) {
+    if (!app->fullscreen) { 
+      screenr = [shoes_native_app_screen(app) frame];
+      [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+      [window setFrame: screenr display: YES];
+      [window toggleFullScreen: window];
+      app->fullscreen = 1;
+    }
+   } else {
+     if (app->fullscreen) {
+      screenr = [shoes_native_app_screen(app) visibleFrame];
+      [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+      [window setFrame: screenr display: YES];
+      [window toggleFullScreen: window];
+      app->fullscreen = 0;   
+     }
+   }
+#else
   ShoesWindow *old = app->os.window;
   if (yn)
   {
@@ -984,7 +1010,8 @@ shoes_native_app_fullscreen(shoes_app *app, char yn)
       return;
     app->os.normal = [old frame];
     level = CGShieldingWindowLevel();
-    screen = [[NSScreen mainScreen] frame];
+    //screen = [[NSScreen mainScreen] frame];
+    screen = [shoes_native_app_screen(app) frame];
     COCOA_DO({
       app->width = ROUND(screen.size.width);
       app->height = ROUND(screen.size.height);
@@ -1012,6 +1039,7 @@ shoes_native_app_fullscreen(shoes_app *app, char yn)
       [app->os.window setFrame: app->os.normal display: YES];
     });
   }
+#endif
 }
 
 shoes_code
@@ -1390,34 +1418,34 @@ int shoes_native_app_get_decoration(shoes_app *app)
     Cocoa wont move past  menubar or completely below the dock.
     launcher - shoes reports otherwise. So we report where it was
     really was moved to.
-    TODO: I suspect this could be simpilfied.
+
+    NOTE for multiple monitors we uss the large space.
 */
 void shoes_native_app_get_window_position(shoes_app *app) {
+  NSRect screenr = [shoes_native_app_screen(app) frame];
   NSWindow *win = (NSWindow *)app->os.window;
-  NSRect screen = [[NSScreen mainScreen] frame];  //TODO
   NSRect frame = [win frame];
   //NSLog(@"current: x, y h: %i, %i %i", (int) frame.origin.x, (int) frame.origin.y, 
   //   (int) frame.size.height);
   app->x = frame.origin.x;
-  app->y = screen.size.height - frame.origin.y - frame.size.height;
+  app->y = screenr.size.height - frame.origin.y;
 }
 
 
 void shoes_native_app_window_move(shoes_app *app, int x, int y) {
-  NSRect screen = [[NSScreen mainScreen] frame];
+  NSRect screenr = [shoes_native_app_screen(app) frame];
   //NSLog(@"screen h,w: %i, %i",(int) screen.size.height, (int)screen.size.width);
   NSWindow *win = (NSWindow *)app->os.window;
   NSRect frame = [win frame];
-  int cx = (x >= 0) ? x : 0;
-  cx = min(cx, screen.size.width - app->width);
-  frame.origin.x = cx;
-  frame.origin.y = screen.size.height - y - frame.size.height;
-  //NSLog(@"move: x, y: %i, %i", x, y);
+  frame.origin.x = x;
+  // convert y from Shoes(t,l) to osx(b,l)
+  frame.origin.y = screenr.size.height - y;
   [win setFrame: frame display: YES animate: NO];
-  // get where the frame really moved to because OSX contrains it.
+  
+  // get where the frame really moved to because OSX may contrain the move.
   frame = [win frame];
-  app->x = cx;
-  app->y = screen.size.height - frame.origin.y - frame.size.height;
+  app->x = frame.origin.x;
+  app->y = screenr.size.height - frame.origin.y;
   //NSLog(@"real pos %i,%i return y: %i", (int)frame.origin.x, (int)frame.origin.y, app->y);
   
 }
