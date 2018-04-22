@@ -934,6 +934,7 @@ shoes_native_app_window(shoes_app *app, int dialog)
   if (app->fullscreen) {
     mask = NSBorderlessWindowMask;
     rect = [screen frame];
+  /  / TODO:  setting rect to frame is not enough for fullscreen (y == 63 for me)
   }
 
   //window = [[ShoesWindow alloc] initWithContentRect: rect
@@ -956,12 +957,13 @@ shoes_native_app_window(shoes_app *app, int dialog)
       // do our own center, reuse rect the variable.
       rect.origin.x = screenr.origin.x + ((screenr.size.width - rect.size.width) / 2.0);
       rect.origin.y = screenr.origin.y + ((screenr.size.height - rect.size.height) / 2.0);
-    }
+    } 
     [window setFrame: rect display: YES];
   }  
   [window prepareWithApp: app->self];
-  //NSRect rp = [window frame];
-  //NSLog(@"rpos: %4.0f, %4.0f, %4.0f, %4.0f\n:",rp.origin.x, rp.origin.y, rp.size.width, rp.size.height);
+  //if (app->fullscreen) {
+    //shoes_native_app_fullscreen(app, '1'); // Not Good
+  //}
   return window;
 }
 
@@ -972,35 +974,73 @@ shoes_native_view_supplant(NSView *from, NSView *to)
     [to addSubview:subview];
 }
 
-
+#if 1 
+/*
+ * We don't really care about which CGdevice is mainScreen 
+ * We ASSUME device table to be in sync with the NSScreen array.
+ */
+ 
+CGDirectDisplayID shoes_native_app_cgid(shoes_app *app) {
+  CGDirectDisplayID devids[4];
+  int i, cnt;
+  if (app->monitor < 0)
+    return CGMainDisplayID();
+    
+  // get all the dsiplay devices (upto 4);  
+  CGGetActiveDisplayList(4, devids, &cnt);
+  return devids[app->monitor];
+}
+ 
 void
 shoes_native_app_fullscreen(shoes_app *app, char yn)
 {
-#if 0
-  /*
-   * Uses the newer (10.7+) api for full screen? 
-  */
-  NSWindow *window = app->os.window;
-  NSRect screenr; 
- 
-  if (yn) {
-    if (!app->fullscreen) { 
-      screenr = [shoes_native_app_screen(app) frame];
-      [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-      [window setFrame: screenr display: YES];
-      [window toggleFullScreen: window];
-      app->fullscreen = 1;
-    }
-   } else {
-     if (app->fullscreen) {
-      screenr = [shoes_native_app_screen(app) visibleFrame];
-      [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-      [window setFrame: screenr display: YES];
-      [window toggleFullScreen: window];
-      app->fullscreen = 0;   
-     }
-   }
+  ShoesWindow *old = app->os.window;
+
+  if (yn)
+  {
+    int level;
+    NSRect screenr;
+    NSScreen *screen = shoes_native_app_screen(app); 
+    // NSNumber *didn = old.deviceDescription[@"NSScreenNumber" ]; // sigh, doesn't work!
+    CGDirectDisplayID devid = shoes_native_app_cgid(app);
+    if (CGDisplayCapture(devid) != kCGErrorSuccess)
+      return;
+    app->os.monitor = devid;
+    app->os.normal = [old frame];
+    level = CGShieldingWindowLevel();
+    screenr = [screen frame];
+    COCOA_DO({
+      app->width = ROUND(screenr.size.width);
+      app->height = ROUND(screenr.size.height);
+      app->os.window = shoes_native_app_window(app, 0);
+      [app->os.window setLevel: level];
+      shoes_native_view_supplant([old contentView], [app->os.window contentView]);
+      app->os.view = [app->os.window contentView];
+      [old disconnectApp];
+      [old close];
+      [app->os.window setFrame: screenr display: YES];
+    });
+  }
+  else
+  {
+    COCOA_DO({
+      app->width = ROUND(app->os.normal.size.width);
+      app->height = ROUND(app->os.normal.size.height);
+      app->os.window = shoes_native_app_window(app, 0);
+      [app->os.window setLevel: NSNormalWindowLevel];
+      CGDisplayRelease(app->os.monitor);
+      shoes_native_view_supplant([old contentView], [app->os.window contentView]);
+      app->os.view = [app->os.window contentView];
+      [old disconnectApp];
+      [old close];
+      [app->os.window setFrame: app->os.normal display: YES];
+    });
+  }
+}
 #else
+void
+shoes_native_app_fullscreen(shoes_app *app, char yn)
+{
   ShoesWindow *old = app->os.window;
   if (yn)
   {
@@ -1039,8 +1079,8 @@ shoes_native_app_fullscreen(shoes_app *app, char yn)
       [app->os.window setFrame: app->os.normal display: YES];
     });
   }
-#endif
 }
+#endif
 
 shoes_code
 shoes_native_app_open(shoes_app *app, char *path, int dialog)

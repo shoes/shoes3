@@ -18,8 +18,10 @@ Shoes.app do
     (st.monitor_count - 1).times do |mon|
        flow do 
         newmon = (dflt ^ 1)
+        @ck = check
+        para "full screen?"
         button "New Window on #{newmon}" do
-          window title: "Launched in #{newmon}", monitor: newmon, fullscreen: false do
+          window title: "Launched in #{newmon}", monitor: newmon, fullscreen: @ck.checked? do
             stack do
               para "My Monitor is #{app.monitor}"
               button "Fullscreen #{app.monitor}" do

@@ -1,0 +1,3 @@
+Shoes.app fullscreen: true do
+  keypress {|k| Shoes.quit }
+end

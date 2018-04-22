@@ -167,6 +167,7 @@ typedef struct {
     ShoesWindow *window;
     NSView *view;
     NSRect normal;
+    CGDirectDisplayID monitor;  // Full screen uses this
 } shoes_app_quartz, SHOES_APP_OS;
 
 typedef struct {
