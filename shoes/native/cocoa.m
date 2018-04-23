@@ -895,7 +895,7 @@ shoes_native_app_set_icon(shoes_app *app, char *icon_path)
   [NSApp setApplicationIconImage: icon];
 }
 
-// Helper app (->monitor to screen
+// Helper app->monitor to screen
 NSScreen * shoes_native_app_screen(shoes_app *app) {
   int cnt = 0, realmon;
   NSArray *screens = [NSScreen screens];
@@ -906,6 +906,22 @@ NSScreen * shoes_native_app_screen(shoes_app *app) {
     return [NSScreen mainScreen];
   }
   return screens[realmon];
+}
+
+/*
+ * We don't really care about which CGdevice is mainScreen 
+ * We ASSUME device table to be in sync with the NSScreen array.
+ */
+ 
+CGDirectDisplayID shoes_native_app_cgid(shoes_app *app) {
+  CGDirectDisplayID devids[4];
+  int i, cnt;
+  if (app->monitor < 0)
+    return CGMainDisplayID();
+    
+  // get all the display devices (upto 4);  
+  CGGetActiveDisplayList(4, devids, &cnt);
+  return devids[app->monitor];
 }
 
 static ShoesWindow *
@@ -932,9 +948,9 @@ shoes_native_app_window(shoes_app *app, int dialog)
     mask |= NSResizableWindowMask;
     
   if (app->fullscreen) {
-    mask = NSBorderlessWindowMask;
+    mask = (NSBorderlessWindowMask | NSFullScreenWindowMask);
     rect = [screen frame];
-  /  / TODO:  setting rect to frame is not enough for fullscreen (y == 63 for me)
+    // TODO:  setting rect to frame is not enough for fullscreen (y == 63 for me)
   }
 
   //window = [[ShoesWindow alloc] initWithContentRect: rect
@@ -961,9 +977,24 @@ shoes_native_app_window(shoes_app *app, int dialog)
     [window setFrame: rect display: YES];
   }  
   [window prepareWithApp: app->self];
-  //if (app->fullscreen) {
-    //shoes_native_app_fullscreen(app, '1'); // Not Good
-  //}
+  if (app->fullscreen) {
+    /* can't use shoes_native_app_fullscreen because it would call us recursively
+     * so, we dup some code. Note: we have to be able to un-fullscreene
+     * from `app.fullscreen = false` in a script
+    */
+    int level;
+    CGDirectDisplayID devid = shoes_native_app_cgid(app);
+    if (CGDisplayCapture(devid) != kCGErrorSuccess)
+      return window; 		// TODO: Not the best notirication method
+    app->os.monitor = devid;
+    app->os.normal = [screen visibleFrame];
+    level = CGShieldingWindowLevel();
+    app->width = ROUND(screenr.size.width);
+    app->height = ROUND(screenr.size.height);
+    app->os.window = window;
+    [window setLevel: level];
+    app->os.view = [window contentView];
+  }
   return window;
 }
 
@@ -974,22 +1005,7 @@ shoes_native_view_supplant(NSView *from, NSView *to)
     [to addSubview:subview];
 }
 
-#if 1 
-/*
- * We don't really care about which CGdevice is mainScreen 
- * We ASSUME device table to be in sync with the NSScreen array.
- */
- 
-CGDirectDisplayID shoes_native_app_cgid(shoes_app *app) {
-  CGDirectDisplayID devids[4];
-  int i, cnt;
-  if (app->monitor < 0)
-    return CGMainDisplayID();
-    
-  // get all the dsiplay devices (upto 4);  
-  CGGetActiveDisplayList(4, devids, &cnt);
-  return devids[app->monitor];
-}
+
  
 void
 shoes_native_app_fullscreen(shoes_app *app, char yn)
@@ -1037,50 +1053,6 @@ shoes_native_app_fullscreen(shoes_app *app, char yn)
     });
   }
 }
-#else
-void
-shoes_native_app_fullscreen(shoes_app *app, char yn)
-{
-  ShoesWindow *old = app->os.window;
-  if (yn)
-  {
-    int level;
-    NSRect screen;
-    if (CGDisplayCapture(kCGDirectMainDisplay) != kCGErrorSuccess)
-      return;
-    app->os.normal = [old frame];
-    level = CGShieldingWindowLevel();
-    //screen = [[NSScreen mainScreen] frame];
-    screen = [shoes_native_app_screen(app) frame];
-    COCOA_DO({
-      app->width = ROUND(screen.size.width);
-      app->height = ROUND(screen.size.height);
-      app->os.window = shoes_native_app_window(app, 0);
-      [app->os.window setLevel: level];
-      shoes_native_view_supplant([old contentView], [app->os.window contentView]);
-      app->os.view = [app->os.window contentView];
-      [old disconnectApp];
-      [old close];
-      [app->os.window setFrame: screen display: YES];
-    });
-  }
-  else
-  {
-    COCOA_DO({
-      app->width = ROUND(app->os.normal.size.width);
-      app->height = ROUND(app->os.normal.size.height);
-      app->os.window = shoes_native_app_window(app, 0);
-      [app->os.window setLevel: NSNormalWindowLevel];
-      CGDisplayRelease(kCGDirectMainDisplay);
-      shoes_native_view_supplant([old contentView], [app->os.window contentView]);
-      app->os.view = [app->os.window contentView];
-      [old disconnectApp];
-      [old close];
-      [app->os.window setFrame: app->os.normal display: YES];
-    });
-  }
-}
-#endif
 
 shoes_code
 shoes_native_app_open(shoes_app *app, char *path, int dialog)
