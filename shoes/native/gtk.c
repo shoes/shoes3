@@ -1693,3 +1693,23 @@ void shoes_native_monitor_set(shoes_app *app) {
   gtk_window_move(window, app->x + r.x, app->y);
   // TODO: do a better job of positioning. Worth the effort?
 }
+
+// returns the Shoes monitor number that the window is on
+int shoes_native_monitor_get(shoes_app *app) {
+  GtkWindow *window = (GtkWindow *)app->os.window;
+  GdkDisplay *display;
+  GdkScreen *screen;
+  screen = gtk_window_get_screen(window);
+  // determine which monitor that is. Remember: Gtk screen holds Gtk monitors
+  int x, y, cnt, i;
+  gtk_window_get_position (window, &x, &y);
+  cnt = gdk_screen_get_n_monitors(screen);
+  for (i = 0; i < cnt; i++) {
+    GdkRectangle r;
+    gdk_screen_get_monitor_geometry(screen, i,  &r);
+    if ((x >= r.x) && (x <= (r.x +r.width)) && (y >= r.y) && (y <= (r.y +r.height)))
+      return i;
+  }
+  // should never get here, but if it does:
+  return gdk_screen_get_primary_monitor(screen);
+}

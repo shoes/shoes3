@@ -1108,11 +1108,10 @@ VALUE shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
 VALUE shoes_app_monitor_get(VALUE self) {
   shoes_app *app;
   Data_Get_Struct(self, shoes_app, app);
-  return INT2NUM(app->monitor);
+  return INT2NUM(shoes_native_monitor_get(app));
 }
 
 VALUE shoes_app_monitor_set(VALUE self, VALUE mon) {
-  // TODO get the window (app.os->window)
   shoes_app *app;
   Data_Get_Struct(self, shoes_app, app);
   app->monitor = NUM2INT(mon);

@@ -42,9 +42,10 @@ VALUE shoes_settings_monitor_count(VALUE self);
 VALUE shoes_settings_monitor_geometry(VALUE self, VALUE idx);
 VALUE shoes_settings_monitor_default(VALUE self);
 
-// Natives
+// Monitor Natives
 extern int shoes_native_monitor_count(); 
 extern int shoes_native_monitor_default();
 extern void shoes_native_monitor_geometry(int , shoes_monitor_t *r);
 extern void shoes_native_monitor_set(shoes_app *app);
+extern int shoes_native_monitor_get(shoes_app *app);
 #endif

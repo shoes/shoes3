@@ -5488,15 +5488,24 @@ Set window decorations. `true` will display titlebar, and resize buttons and `fa
 
 This returns true or false if your script is running in full screen mode
 
-=== app.fullscreen = (Boolean) ===
+=== app.fullscreen = Boolea) ===
 
 Set fullscreen to true or false. If you do this, you should provide a method
 for turning it off. There's nothing more annoying that than a full screen app
 that the user can't figure out how to quit and get back to normal. 
 
-Parenthesis are required.
+:fullscreen => true is also a style you can set for Shoes.app.
 
-:fullscreen => true is also a style you can set in the Shoes.app.
+=== app.monitor » integer ===
+
+Returns the small integer for the monitor (screen) the app is on. For systems with
+only one monitor this will be 0. See the Advanced section
+of this manual for Settings and Monitor.
+
+=== app.monitor = integer ===
+
+Moves the app (window) to the <integer> monitor. See the Advanced section
+of this manual for Settings and Monitor.
 
 === app.name » string ===
 Returns the title string for the App. Usually the string in the window's title bar.
@@ -5752,6 +5761,77 @@ and play with the Test/events/* scripts so you'll need a git clone of Shoes.
 Caution: it's incomplete - if you need something more then create an issue
 at the Shoes3 github.
 
+== Monitors ==
+
+Shoes does know about multiple monitors and provides some ways you can
+use them. Of course, your system has to have multiple monitors and as a good
+author you'll want to check the users system before using them. 
+
+See the Settings section of Advanced in this manual for more monitor
+information. 
+
+You can specify the monitor for a Shoes app (window) using the sytle
+ `monitor: <int>` with the Shoes.app and/or window methods. 
+ 
+ 
+You can get the monitor that a Window (app) is using with the `app.monitor`
+method and you can move a window to a different monitor with `app.monitor = `
+method
+
+{{{
+Shoes.app do
+  para "This app is on monitor #{app.monitor}"
+end
+}}}
+
+== Settings ==
+
+Shoes has a Settings class that is populated at startup with some values
+that are common to all Windows/Apps. The values in settings are created before
+Shoes starts your script - even before Shoes starts it's own scripts.
+
+
+You can supply a shoes.yaml file with your application and Shoes will use those
+instead of the defaults. `TODO: expand this section.`
+
+=== Shoes.settings » object ===
+
+Once you get the settings object then you check somethings. Some you can
+modify. 
+
+=== settings.monitor_count » integer ===
+
+Returns the number of monitors attached to the system. There will always be
+one (1) monitor.
+
+=== settings.monitor_default » integer ===
+
+Returns the default monitor number. This is the one with the dock or global
+menus. What the number is depends on how the user setup his monitors. Note:
+The user can also change his monitor setup so you need to be clever when using
+multiple monitors in Shoes. 
+
+=== settings.monitor_geometry(<index>) » integer ===
+
+Returns the geometery of the monitor given the index. By definition this
+is a user specific value and it's also platfrom dependent. It is not wise
+to use the x,y values unless you have a very specific single plaform, single
+use application. In particular, do not use the second monitor for full screen
+pixel based drawing (games).
+
+For example
+{{{
+Shoes.app do
+  stack do
+    st = Shoes.settings
+    para "You have #{st.monitor_count} monitors."
+    para "The default monitor is #{st.monitor_default}"
+    st.monitor_count.times do |mon|
+      para "Monitor #{mon} => #{st.monitor_geometry mon}"
+    end
+  end
+end
+}}}
 
 == Terminal ==
 

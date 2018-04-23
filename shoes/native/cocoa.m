@@ -1535,6 +1535,7 @@ int shoes_native_monitor_count() {
   NSArray *scns = [NSScreen screens];
   return [scns count];
 }
+
 int shoes_native_monitor_default() {
   NSScreen *main = [NSScreen mainScreen];
   int i;
@@ -1574,4 +1575,16 @@ void shoes_native_monitor_set(shoes_app *app) {
   nr.size.width = app->width;
   nr.size.height = app->height;
   [win setFrame: nr display: YES];
+}
+
+int shoes_native_monitor_get(shoes_app *app) {
+  NSScreen *screen = [app->os.window screen];
+  int i;
+  NSArray *screens = [NSScreen screens];
+  for (i = 0; i < [screens count]; i++) {
+    if (screens[i] == screen)
+      return i;
+  }
+  // Should not happen
+  return 0;
 }
