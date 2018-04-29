@@ -56,7 +56,7 @@ VALUE shoes_menubar_new(VALUE canvas) {
     app = cvs->app;
     if (NIL_P(app->menubar)) {
       // Should not happen in real life, but
-      app->menubar = shoes_native_menubar_setup(app);
+      app->menubar = shoes_native_menubar_setup(app, NULL);
     }
     return app->menubar;
 }

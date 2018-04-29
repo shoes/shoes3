@@ -28,6 +28,7 @@ static void shoes_app_mark(shoes_app *app) {
     rb_gc_mark_maybe(app->styles);
     rb_gc_mark_maybe(app->groups);
     rb_gc_mark_maybe(app->owner);
+    rb_gc_mark_maybe(app->menubar);
 }
 
 static void shoes_app_free(shoes_app *app) {
@@ -406,7 +407,6 @@ shoes_code shoes_app_start(VALUE allapps, char *uri) {
 shoes_code shoes_app_open(shoes_app *app, char *path) {
     shoes_code code = SHOES_OK;
     int dialog = (rb_obj_class(app->self) == cDialog);
-
     code = shoes_native_app_open(app, path, dialog);
     if (code != SHOES_OK)
         return code;
@@ -425,7 +425,6 @@ shoes_code shoes_app_open(shoes_app *app, char *path) {
 
     if (!app->hidden)
         shoes_native_app_show(app);
-
     return code;
 }
 
@@ -514,7 +513,7 @@ shoes_code shoes_app_visit(shoes_app *app, char *path) {
     VALUE app_block = rb_iv_get(app->self, "@main_app");
     if (!NIL_P(app_block))
         rb_ary_store(meth, 0, app_block);
-
+        
     exec.app = app;
     exec.block = rb_ary_entry(meth, 0);
     exec.args = rb_ary_entry(meth, 1);
@@ -529,7 +528,7 @@ shoes_code shoes_app_visit(shoes_app *app, char *path) {
         exec.canvas = app->nestslot = app->canvas;
         exec.ieval = 1;
     }
-
+    
     rb_rescue2(CASTHOOK(shoes_app_run), (VALUE)&exec, CASTHOOK(shoes_app_exception), (VALUE)&exec, rb_cObject, 0);
 
     rb_ary_clear(exec.app->nesting);
@@ -936,7 +935,7 @@ shoes_code shoes_app_goto(shoes_app *app, char *path) {
         shoes_browser_open(path);
     } else {
         code = shoes_app_visit(app, path);
-        if (code == SHOES_OK) {
+       if (code == SHOES_OK) {
             shoes_app_motion(app, app->mousex, app->mousey, Qnil);
             shoes_slot_repaint(app->slot);
         }

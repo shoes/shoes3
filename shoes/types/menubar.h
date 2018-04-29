@@ -33,7 +33,7 @@ VALUE shoes_menubar_remove(VALUE self, VALUE arg);
 VALUE shoes_canvas_menubar(int argc, VALUE *argv, VALUE self);
 
 // native
-VALUE shoes_native_menubar_setup(shoes_app *app);
+VALUE shoes_native_menubar_setup(shoes_app *app, void *widget);
 void shoes_native_menubar_append(shoes_menubar *mb, shoes_menu *mn);
 void shoes_native_menubar_insert(shoes_menubar *mb, shoes_menu *mn, int pos);
 void shoes_native_menubar_remove(shoes_menubar *mb, int pos); 

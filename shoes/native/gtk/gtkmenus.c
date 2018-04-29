@@ -15,43 +15,59 @@
 
 //VALUE shoes_gtk_menubar = Qnil; // All apps will share. OSX behavior - live with it
 
+#if 0
+void shoes_gtk_check_quit(shoes_app *app) {
+  //VALUE mnv = shoes_menubar_at(app->menubar, INT2NUM(0));
+  VALUE mnv = shoes_menubar_at(app->menubar, rb_str_new2("Shoes"));
+  if (NIL_P(mnv)) {
+    fprintf(stderr,"Shoes menu is nil\n");
+    return;
+  }
+  VALUE miv = shoes_menu_at(mnv, rb_str_new2("Quit"));
+  if (NIL_P(miv)) {
+    fprintf(stderr,"Quit item is nil\n");
+    return;
+  }
+  fprintf(stderr,"Quit OK\n");
+}
+#endif
 
 /*
- * This is clumsy. Create a Menubar, File Menu, and File->Quit in
- * both gtk and Shoes. This happens when menus are requested for a app/window
- * The default set of menus is created here.
+ * Builds a minimal Shoes menu, app->world.os.menubar must be
+ * set previously
 */ 
-
-VALUE shoes_native_menubar_setup(shoes_app *app) {
-    GtkWidget *menubar;      
-    GtkWidget *fileMenu;
-    GtkWidget *fileMi;
-    GtkWidget *quitMi;  
-    if (app->have_menu == 0)
-      return Qnil;
+VALUE shoes_native_menubar_setup(shoes_app *app, void *gtkmb) {
+    GtkWidget *menubar = gtkmb;
+    if (gtkmb == NULL) 
+      menubar = gtk_menu_bar_new(); // TODO: Likely to be a problem
+    else 
+      menubar = (GtkWidget *)gtkmb;
+  
+    //if (app->have_menu == 0)
+    //  return Qnil;
     if (NIL_P(app->menubar)) {
       // get the GtkWidget for the app window
       shoes_app_gtk *gk = &app->os;
       GtkWidget *root = (GtkWidget *)gk->window;
       GtkAccelGroup *accel_group = NULL; 
       accel_group = gtk_accel_group_new();
-      gtk_window_add_accel_group(GTK_WINDOW(root), accel_group); // TODO
+      gtk_window_add_accel_group(GTK_WINDOW(root), accel_group); 
+      app->os.accel_group = accel_group;
             
       // use the platform neutral calls to build Shoes menu
-      // we can't do that for the menubar or we'll build it ourself
-      menubar = gtk_menu_bar_new();
+      // we can't do that for the menubar so we'll build it ourself
       VALUE mbv = shoes_menubar_alloc(cShoesMenubar);
       shoes_menubar *mb;
       Data_Get_Struct(mbv, shoes_menubar, mb);
-      mb->native = (void *)menubar;
       mb->context = app->canvas;
+      mb->native = (void *)menubar;
+      
       // save menubar object in app object
       app->menubar = mbv;
     }
     return app->menubar;
 }
 
-// There are race conditions with gtk and realized widgets
 void shoes_native_build_menus(shoes_app *app,VALUE mbv) {
       
       // Shoes menu
@@ -96,13 +112,15 @@ void shoes_native_build_menus(shoes_app *app,VALUE mbv) {
 
       // Quit
       VALUE qtext = rb_str_new2("Quit");
-      VALUE qproc = rb_eval_string("proc { Shoes.quit() }");
-      VALUE qitem = shoes_menuitem_new(qtext, flags | MENUITEM_CONTROL, "q", qproc, app->canvas);      
+      VALUE qproc = rb_eval_string("proc { Shoes.quit }");
+      VALUE qitem = shoes_menuitem_new(qtext, flags | MENUITEM_CONTROL, "q", qproc, app->canvas); 
+
       shoes_menu_append(shoesmenu, qitem);
-      
       shoes_menubar_append(mbv, shoesmenu);
+      //shoes_gtk_check_quit(app);
 }
 
+#if 0
 void shoes_native_menubar_dump(GList *list) {
   GList *l;
   char *label;
@@ -115,13 +133,14 @@ void shoes_native_menubar_dump(GList *list) {
     fprintf(stderr,"item: %s\n", label);
   }
 }
+#endif
 
 void shoes_native_menubar_update(VALUE canvasv) {
   shoes_canvas *canvas;
   Data_Get_Struct(canvasv, shoes_canvas, canvas);
   shoes_app *app = canvas->app;  // see app.h
-  shoes_app_gtk *gk = &app->os;  // see config.h
-  gtk_widget_show_all(gk->window); // TODO Kind of works; Narrow scope?
+  //shoes_app_gtk *gk = &app->os;  // see config.h
+  gtk_widget_show_all(app->os.window); // TODO Kind of works; Narrow scope?
 }
 
 void shoes_native_menubar_append(shoes_menubar *mb, shoes_menu *mn) {
@@ -157,7 +176,7 @@ void *shoes_native_menu_new(shoes_menu *mn) {
   mn->extra = (void *)menu;
   return mn->native;
 }
-
+#if 0
 void shoes_native_menu_dump(GList *list) {
   GList *l;
   char *label;
@@ -170,6 +189,7 @@ void shoes_native_menu_dump(GList *list) {
     fprintf(stderr,"item: %s\n", label);
   }
 }
+#endif
 
 void shoes_native_menu_update(VALUE canvasv) {
   shoes_canvas *canvas;
@@ -219,7 +239,6 @@ void *shoes_native_menuitem_new(shoes_menuitem *mi) {
   shoes_canvas *canvas;
   Data_Get_Struct(mi->context, shoes_canvas, canvas);
   shoes_app *app = canvas->app;
-  shoes_app_gtk *gk = &app->os;
  
   if (mi->key && strlen(mi->key) && mi->state > MENUITEM_ENABLE) { 
     guint gkey = gdk_keyval_from_name(mi->key);
@@ -230,7 +249,7 @@ void *shoes_native_menuitem_new(shoes_menuitem *mi) {
       gflags = gflags | GDK_SHIFT_MASK;
     if (mi->state & MENUITEM_ALT)
       gflags = gflags | GDK_MOD1_MASK;
-    gtk_widget_add_accelerator(gmi, "activate", gk->accel_group, 
+    gtk_widget_add_accelerator(gmi, "activate", app->os.accel_group, 
       gkey, gflags, GTK_ACCEL_VISIBLE); 
 
   }

@@ -293,7 +293,7 @@ int shoes_init_load_yaml() {
                           datap = &shoes_config_yaml->theme_name;
                       } else if (!strcmp(tk,"RDomain")) {
                           datap = &shoes_config_yaml->rdomain;
-                      } else if (!strcmp(tk,"Use_Menua")) {
+                      } else if (!strcmp(tk,"Use_Menus")) {
                           datap = &shoes_config_yaml->use_menus;
                       } else if (!strcmp(tk,"MDI")) {
                           datap = &shoes_config_yaml->mdi;

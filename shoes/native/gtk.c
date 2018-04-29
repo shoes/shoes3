@@ -155,7 +155,6 @@ void shoes_native_init() {
 
 #ifdef GAPP
     int status;
-    //srand(time(NULL));
     shoes_settings *st;
     Data_Get_Struct(shoes_world->settings, shoes_settings, st);
     char app_id[100];
@@ -169,7 +168,7 @@ void shoes_native_init() {
     shoes_GtkApp = gtk_application_new (app_id, G_APPLICATION_HANDLES_COMMAND_LINE);
     // register with dbus
     if (g_application_register((GApplication *)shoes_GtkApp, NULL, NULL)) {
-      fprintf(stderr,"%s is registered\n",app_id);
+      //fprintf(stderr,"%s is registered\n",app_id);
       st->dbus_name = rb_str_new2(app_id);
     }
     g_signal_connect(shoes_GtkApp, "activate", G_CALLBACK (shoes_gtk_app_activate), NULL);
@@ -333,7 +332,10 @@ static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, g
           mods = mods | SHOES_MODIFY_SHIFT;
         if (event->state & GDK_CONTROL_MASK)
         mods = mods | SHOES_MODIFY_CTRL;
-        shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly, mods);
+        if (app->have_menu) 
+          shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly - app->mb_height, mods);
+        else
+          shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly, mods);
     }
     return TRUE;
 }
@@ -378,8 +380,14 @@ static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, g
       fprintf(stderr, "meta\n");   
 */
     if (event->type == GDK_BUTTON_PRESS) {
+      if (app->have_menu)
+        shoes_app_click(app, event->button, event->x, event->y + canvas->slot->scrolly - app->mb_height, mods);
+      else
         shoes_app_click(app, event->button, event->x, event->y + canvas->slot->scrolly, mods);
     } else if (event->type == GDK_BUTTON_RELEASE) {
+      if (app->have_menu)
+        shoes_app_release(app, event->button, event->x, event->y + canvas->slot->scrolly - app->mb_height, mods);
+      else
         shoes_app_release(app, event->button, event->x, event->y + canvas->slot->scrolly, mods);
     }
     return TRUE;
@@ -845,6 +853,7 @@ void shoes_native_app_window_move(shoes_app *app, int x, int y) {
  *  it's optional and the default is no menu for backwards compatibilty
  *  That causes some pixel tweaking and redundency. 
  */
+ 
 shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
 #if !defined(SHOES_GTK_WIN32)
     char icon_path[SHOES_BUFSIZE];
@@ -852,18 +861,21 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
     gtk_window_set_default_icon_from_file(icon_path, NULL);
 #endif
     GtkWidget *window;       // Root window 
-
     shoes_app_gtk *gk = &app->os; //lexical - typing shortcut
-    if (app->have_menu) {  // TODO: !!! shoes_world->use_menu ?
-    //if (1) {                 // puts a menu on all windows -useful for debugging pixel counting problems
+
+    shoes_settings *st;
+    Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+    if (st->use_menus == Qtrue) {
+      app->have_menu = 1;   
+    }
+    
+    if (app->have_menu) {  
       GtkWidget *vbox;         // contents of root window
       GtkWidget *menubar;      // top of vbox
       GtkWidget *shoes_window; // bottom of vbox where shoes does its thing.
       
-      VALUE mbv = shoes_native_menubar_setup(app);
-      shoes_menubar *mb;
-      Data_Get_Struct(mbv, shoes_menubar, mb);
-      menubar = (GtkWidget *)mb->native;
+      menubar = gtk_menu_bar_new();
+      gk->menubar = menubar;
 #if 0
       // don't do this if gtk_init() is used.
       window = gtk_application_window_new(shoes_GtkApp);
@@ -877,20 +889,21 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
       shoes_window = gtk_fixed_new();
       gtk_box_pack_start(GTK_BOX(vbox), shoes_window, FALSE, FALSE, 0);
       
-      GtkAccelGroup *accel_group = NULL; 
-      accel_group = gtk_accel_group_new();
+      //GtkAccelGroup *accel_group = NULL; 
+      //accel_group = gtk_accel_group_new();
       // TODO: the following line gets a runtime gtk compaint but it works
-      gtk_window_add_accel_group(GTK_WINDOW(window), accel_group);
+      //gtk_window_add_accel_group((GtkWindow *)window, accel_group);
       
       gk->window = window;
       gk->vlayout = vbox;
-      gk->accel_group = accel_group;
-      gk->menubar = menubar;
       app->slot->oscanvas = shoes_window;
+      app->mb_height = 30;  // TODO adhoc (a guess)
+
       // now we can add the default Shoes menus
+      VALUE mbv = shoes_native_menubar_setup(app, menubar);
       shoes_native_build_menus(app, mbv);
-      app->mb_height = 30; // TODO adhoc (a guess)
-          
+      app->menubar = mbv;
+           
       gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
      // commit https://github.com/shoes/shoes/commit/4e7982ddcc8713298b6959804dab8d20111c0038
       if (!app->resizable) {
@@ -906,6 +919,11 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
       gtk_window_set_default_size(GTK_WINDOW(window), app->width, app->height + app->mb_height);
   
       gtk_window_get_position(GTK_WINDOW(window), &app->x, &app->y);
+      // get memubar height
+      GtkRequisition reqmin, reqnat;
+      gtk_widget_get_preferred_size(menubar, &reqmin, &reqnat);
+      app->mb_height = reqmin.height;
+
       g_signal_connect(G_OBJECT(window), "size-allocate",
                        G_CALLBACK(shoes_app_gtk_paint), app);
       g_signal_connect(G_OBJECT(window), "motion-notify-event",
@@ -922,6 +940,7 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
                        G_CALLBACK(shoes_app_gtk_keypress), app);
       g_signal_connect(G_OBJECT(window), "delete-event",
                        G_CALLBACK(shoes_app_gtk_quit), app);
+      
     } else {
       // The Good old way, menu-less
       window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -967,7 +986,10 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
 #if GTK_CHECK_VERSION(3,8,0)
     gtk_widget_set_opacity(GTK_WIDGET(window), app->opacity);
 #endif
-    gtk_widget_set_events(window, GDK_POINTER_MOTION_MASK | GDK_SCROLL_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
+    // ORIG: gtk_widget_set_events(window, GDK_POINTER_MOTION_MASK | GDK_SCROLL_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
+    gtk_widget_add_events(window, GDK_POINTER_MOTION_MASK | GDK_SCROLL_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
+
+
     // If the user asked for a specific Screen (Monitor) for the Window
     if (app->monitor >= 0) {
       shoes_native_monitor_set(app);

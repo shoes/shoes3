@@ -45,12 +45,11 @@ VALUE shoes_menuitem_alloc(VALUE klass) {
 VALUE shoes_menuitem_new(VALUE text, int flags, char *key, VALUE blk, VALUE canvas) {
   VALUE obj= shoes_menuitem_alloc(cShoesMenuitem);
   shoes_menuitem *mi;
-  int sep = 0;
   Data_Get_Struct(obj, shoes_menuitem, mi);
   shoes_canvas *cvs;
   Data_Get_Struct(canvas, shoes_canvas, cvs);
   shoes_app *app = cvs->app;  
-  mi->title = RSTRING_PTR(text);
+  mi->title = strdup(RSTRING_PTR(text));
   if (strncmp(mi->title, "---", 3) == 0) {
     mi->key = "";
     mi->block = Qnil;
@@ -58,7 +57,7 @@ VALUE shoes_menuitem_new(VALUE text, int flags, char *key, VALUE blk, VALUE canv
     mi->native = shoes_native_menusep_new(mi);
     mi->context = canvas;  // never called
   } else {
-    mi->key = key;
+    mi->key = strdup(key);
     mi->state = flags;
     mi->block = blk;
     mi->context = canvas; // TODO: mi->context = app->canvas; or canvas? 
