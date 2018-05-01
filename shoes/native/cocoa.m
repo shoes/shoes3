@@ -11,6 +11,9 @@
 #include "shoes/native/cocoa/button.h" // needed? 
 #include "shoes/native/cocoa/textview.h"
 #include "shoes/types/event.h"
+#include "shoes/types/menubar.h"
+#include "shoes/types/menu.h"
+#include "shoes/types/menuitem.h"
 #include "shoes/native/cocoa/menus.h"
 
 extern VALUE cTimer;
@@ -107,6 +110,20 @@ extern void shoes_osx_stdout_sink(); // in cocoa-term.m
 - (void)selectAll: (id)sender
 {
   [self emulateKey: @"a" modifierFlags: NSCommandKeyMask withoutModifiers: @"a"];
+}
+- (void) menuTrigger: (id)sender
+{
+  ShoesMenuItem *wr = [sender representedObject];
+  shoes_menuitem *mi = wr->wrapped;
+  // We may have to find 'context' via shoes_world->apps[]
+  if (mi->context == Qnil) {
+    VALUE appv = rb_ary_entry(shoes_world->apps, 0);
+    shoes_app *app;
+    Data_Get_Struct(appv, shoes_app, app);
+    mi->context = app->canvas;
+  }
+  //fprintf(stderr, "menu %s triggered\n", mi->title);
+  shoes_safe_block(mi->context, mi->block, rb_ary_new3(1, mi->context));
 }
 @end
 

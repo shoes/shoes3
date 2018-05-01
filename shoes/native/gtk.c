@@ -420,7 +420,10 @@ static gboolean shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gp
       mods = mods | SHOES_MODIFY_SHIFT;
     if (event->state & GDK_CONTROL_MASK)
       mods = mods | SHOES_MODIFY_CTRL; 
-    shoes_app_wheel(app, wheel, event->x, event->y, mods);
+    if (app->have_menu) 
+      shoes_app_wheel(app, wheel, event->x, event->y - app->mb_height, mods);
+    else
+      shoes_app_wheel(app, wheel, event->x, event->y, mods);
     return TRUE;
 }
 

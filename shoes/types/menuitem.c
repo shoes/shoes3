@@ -46,9 +46,9 @@ VALUE shoes_menuitem_new(VALUE text, int flags, char *key, VALUE blk, VALUE canv
   VALUE obj= shoes_menuitem_alloc(cShoesMenuitem);
   shoes_menuitem *mi;
   Data_Get_Struct(obj, shoes_menuitem, mi);
-  shoes_canvas *cvs;
-  Data_Get_Struct(canvas, shoes_canvas, cvs);
-  shoes_app *app = cvs->app;  
+  //shoes_canvas *cvs;
+  //Data_Get_Struct(canvas, shoes_canvas, cvs);
+  //shoes_app *app = cvs->app;  
   mi->title = strdup(RSTRING_PTR(text));
   if (strncmp(mi->title, "---", 3) == 0) {
     mi->key = "";
@@ -60,7 +60,7 @@ VALUE shoes_menuitem_new(VALUE text, int flags, char *key, VALUE blk, VALUE canv
     mi->key = strdup(key);
     mi->state = flags;
     mi->block = blk;
-    mi->context = canvas; // TODO: mi->context = app->canvas; or canvas? 
+    mi->context = canvas; // Note: can be Qnil on osx
     mi->native = shoes_native_menuitem_new(mi);
   }
   return obj;
