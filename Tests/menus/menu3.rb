@@ -27,7 +27,9 @@ Shoes.app menus: true do
       button "Add Help menu" do
         mb = menubar
         mn = menu "Help"
-        mi = menuitem "About"
+        mi = menuitem "About" do
+          alert "Happy Shoes!"
+        end 
         mn << mi
         mb << mn
         @el1.text = mn.title

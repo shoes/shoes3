@@ -37,15 +37,33 @@ void shoes_native_menu_root(NSMenu *main) {
   shoes_osx_create_apple_menu(mbv);
 }
 
-
+// OSX has a funny setup at the top.
 void shoes_native_menubar_append(shoes_menubar *mb, shoes_menu *mn) {
+  NSMenu *main = (NSMenu *)mb->native;
+  NSMenu *menu = (NSMenu *)mn->native;
+  NSMenuItem *dummyItem = [[NSMenuItem alloc] initWithTitle:@""
+        action: nil keyEquivalent:@""];
+  [dummyItem setSubmenu: menu];
+  [main addItem:dummyItem];
+  [dummyItem release];  
   
 }
 
+// remove whole menu from menubar
 void shoes_native_menubar_remove(shoes_menubar *mb, int pos) {
+  NSMenu *main = (NSMenu *)mb->native;
+  [main removeItemAtIndex: pos];
+
 }
 
 void shoes_native_menubar_insert(shoes_menubar *mb, shoes_menu *mn, int pos) {
+  NSMenu *main = (NSMenu *)mb->native;
+  NSMenu *menu = (NSMenu *)mn->native;
+  NSMenuItem *dummyItem = [[NSMenuItem alloc] initWithTitle:@""
+        action:nil keyEquivalent:@""];
+  [dummyItem setSubmenu: menu];
+  [main insertItem: dummyItem atIndex: pos];
+  [dummyItem release];
 }
 
 
@@ -68,10 +86,13 @@ void *shoes_native_menu_new(shoes_menu *mn) {
   NSString *title = [[NSString alloc] initWithUTF8String: mn->title];
   NSMenu *menu = [[NSMenu alloc] initWithTitle: title];
   mn->native = (void *)menu;
+  [menu setAutoenablesItems: NO];
   return NULL;
 }
 
 void *shoes_native_menu_append(shoes_menu *mn, shoes_menuitem *mi) {
+  if (mi->state & NO_NATIVE)
+    return NULL;
   NSMenu *menu = (NSMenu *)mn->native;
   NSMenuItem *item = (NSMenuItem *)mi->native;
   [menu addItem: item];
@@ -79,16 +100,23 @@ void *shoes_native_menu_append(shoes_menu *mn, shoes_menuitem *mi) {
 }
 
 void shoes_native_menu_insert(shoes_menu *mn, shoes_menuitem *mi, int pos) {
+  NSMenu *menu = (void *)mn->native;
+  [menu insertItem: (NSMenuItem *)mi->native atIndex: pos];
+  return;
 }
 
 void shoes_native_menu_remove(shoes_menu *mn, int pos) {
+  NSMenu *menu = (void *)mn->native;
+  [menu removeItemAtIndex: pos];
 }
 
 // -------- menuitem ------
 
 
 void *shoes_native_menuitem_new(shoes_menuitem *mi) {
-
+  if (mi->state & NO_NATIVE)
+    return (void *)mi;
+    
   NSString *title = [[NSString alloc] initWithUTF8String: mi->title];
   NSString *keystring = [[NSString alloc] initWithUTF8String: mi->key];
   NSMenuItem *item = [[NSMenuItem alloc] initWithTitle: title 
@@ -97,7 +125,7 @@ void *shoes_native_menuitem_new(shoes_menuitem *mi) {
   [item setTarget: shoes_world->os.events];
   ShoesMenuItem *wr = [[ShoesMenuItem alloc] initWithMI: mi];
   [item setRepresentedObject: wr]; 
-    
+  [item setEnabled: (mi->state & MENUITEM_ENABLE ? YES : NO)];
   mi->native = (void *)item;
   return mi->native;;
 }
@@ -110,9 +138,16 @@ void *shoes_native_menusep_new(shoes_menuitem *mi) {
 }
 
 void shoes_native_menuitem_set_title(shoes_menuitem *mi) {
+  NSMenuItem *item = (NSMenuItem *)mi->native;
+  NSString *title = [[NSString alloc] initWithUTF8String: mi->title];
+  [item setTitle: title];
 }
 
 void shoes_native_menuitem_enable(shoes_menuitem *mi, int state) {
+  NSMenuItem *item = (NSMenuItem *)mi->native;
+  if (item) {
+    [item setEnabled: (state ? YES : NO)];
+  }
 }
 
 // ------- default menu creaters -------
@@ -134,6 +169,7 @@ void shoes_osx_create_apple_menu(VALUE mbv) {
     NSMenu *main = (NSMenu *)mb->native; 
     // Create the Native application (Apple) menu.
     NSMenu *menuApp = [[NSMenu alloc] initWithTitle: @"Apple Menu"];
+    [menuApp setAutoenablesItems: NO]; // Beware
 
     VALUE shoestext = rb_str_new2(shoes_app_name);
     VALUE shoesmenu = shoes_menu_alloc(cShoesMenu);
@@ -157,7 +193,7 @@ void shoes_osx_create_apple_menu(VALUE mbv) {
     //[menuitem setTarget: shoes_world->os.events];
     
     // We don't have Shoes app yet. 
-    int flags = 1; // 1 means enabled
+    int flags = MENUITEM_ENABLE; 
     char *key = "";
     VALUE otext = rb_str_new2("Open");
     VALUE oproc = rb_eval_string("proc { Shoes.show_selector }");
@@ -184,34 +220,71 @@ void shoes_osx_create_apple_menu(VALUE mbv) {
 	VALUE pproc = rb_eval_string("proc { Shoes.app_package }");
 	VALUE pitem = shoes_menuitem_new(ptext, flags, key, pproc, Qnil);
 	shoes_menu_append(shoesmenu, pitem);
-
-    [menuApp addItemWithTitle:@"Preferences..." action:nil keyEquivalent:@""];
-    [menuApp addItem: [NSMenuItem separatorItem]];
+    // Preferences 
+    //[menuApp addItemWithTitle:@"Preferences..." action:nil keyEquivalent:@""];
+    VALUE pftext = rb_str_new2("Preferences...");
+    VALUE pfitem = shoes_menuitem_new(pftext, 0, "", Qnil, Qnil);
+    shoes_menu_append(shoesmenu, pfitem);
+    
+    //[menuApp addItem: [NSMenuItem separatorItem]];
+    VALUE stext = rb_str_new2("--- a seperator");
+    VALUE s3item = shoes_menuitem_new(stext, flags, key, Qnil, Qnil);
+    shoes_menu_append(shoesmenu, s3item);
+    
+    VALUE srvtext = rb_str_new2("Services");
+    VALUE srvitem = shoes_menuitem_new(srvtext, flags | NO_NATIVE, "", Qnil, Qnil);
+    shoes_menuitem *srvmi;
+    Data_Get_Struct(srvitem, shoes_menuitem, srvmi);
     menuitem = [[NSMenuItem alloc] initWithTitle: @"Services"
         action:nil keyEquivalent:@""];
     [menuitem setSubmenu:menuServices];
     [menuApp addItem: menuitem];
+    srvmi->native = (void *)menuitem;
+    shoes_menu_append(shoesmenu, srvitem);
     [menuitem release];
     
-    [menuApp addItem: [NSMenuItem separatorItem]];
+    //[menuApp addItem: [NSMenuItem separatorItem]];
+    //VALUE stext = rb_str_new2("--- a seperator");
+    VALUE s2item = shoes_menuitem_new(stext, flags, key, Qnil, Qnil);
+    shoes_menu_append(shoesmenu, s2item);
+    
+    VALUE hdtext = rb_str_new2("Hide");
+    VALUE hditem = shoes_menuitem_new(hdtext, flags | NO_NATIVE, "", Qnil, Qnil);
+    shoes_menuitem *hdmi;
+    Data_Get_Struct(hditem, shoes_menuitem, hdmi);
     menuitem = [[NSMenuItem alloc] initWithTitle:@"Hide"
         action:@selector(hide:) keyEquivalent:@""];
     [menuitem setTarget: NSApp];
     [menuApp addItem: menuitem];
+    hdmi->native = (void *)menuitem;
+    shoes_menu_append(shoesmenu, hditem);
     [menuitem release];
+    
+    VALUE hotext = rb_str_new2("Hide Others");
+    VALUE hoitem = shoes_menuitem_new(hotext, flags | NO_NATIVE, "", Qnil, Qnil);
+    shoes_menuitem *homi;
+    Data_Get_Struct(hoitem, shoes_menuitem, homi);
     menuitem = [[NSMenuItem alloc] initWithTitle:@"Hide Others"
         action:@selector(hideOtherApplications:) keyEquivalent:@""];
     [menuitem setTarget: NSApp];
     [menuApp addItem: menuitem];
+    homi->native = (void *)menuitem;
+    shoes_menu_append(shoesmenu, hoitem);
     [menuitem release];
+    
+    VALUE satext = rb_str_new2("Show All");
+    VALUE saitem = shoes_menuitem_new(satext, flags | NO_NATIVE, "", Qnil, Qnil);
+    shoes_menuitem *sami;
+    Data_Get_Struct(saitem, shoes_menuitem, sami);
     menuitem = [[NSMenuItem alloc] initWithTitle:@"Show All"
         action:@selector(unhideAllApplications:) keyEquivalent:@""];
     [menuitem setTarget: NSApp];
     [menuApp addItem: menuitem];
+    sami->native = (void *)menuitem;
+    shoes_menu_append(shoesmenu, saitem); 
     [menuitem release];
     
     //[menuApp addItem: [NSMenuItem separatorItem]];
-    VALUE stext = rb_str_new2("--- a seperator");
     VALUE s1item = shoes_menuitem_new(stext, flags, key, Qnil, Qnil);
     shoes_menu_append(shoesmenu, s1item);
  

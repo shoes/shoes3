@@ -26,6 +26,7 @@ typedef struct {
 #define MENUITEM_SHIFT 2
 #define MENUITEM_CONTROL 4
 #define MENUITEM_ALT 8
+#define NO_NATIVE 16
  
 
 extern void shoes_menuitem_init();
