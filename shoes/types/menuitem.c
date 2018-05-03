@@ -25,6 +25,8 @@ void shoes_menuitem_mark(shoes_menuitem *mi) {
 }
 
 static void shoes_menuitem_free(shoes_menuitem *mi) {
+	if (mi->title) free(mi->title);
+	if (mi->key) free(mi->key);
     RUBY_CRITICAL(SHOE_FREE(mi));
 }
 
@@ -36,7 +38,7 @@ VALUE shoes_menuitem_alloc(VALUE klass) {
     mi->native = NULL;
     mi->title = NULL;
     mi->state = 0;
-    mi->key = 0;
+    mi->key = NULL;
     mi->block = Qnil;
     mi->context = Qnil;
     return obj;
@@ -79,7 +81,9 @@ VALUE shoes_menuitem_gettitle(VALUE self) {
 VALUE shoes_menuitem_settitle(VALUE self, VALUE text) {
   shoes_menuitem *mi;
   Data_Get_Struct(self,shoes_menuitem, mi);
-  mi->title = RSTRING_PTR(text);
+  if (mi->title)
+    free(mi->title);
+  mi->title = strdup(RSTRING_PTR(text));
   shoes_native_menuitem_set_title(mi);
   return Qnil;
 }
@@ -129,6 +133,7 @@ VALUE shoes_menuitem_setenable(VALUE self, VALUE state) {
   Data_Get_Struct(self, shoes_menuitem, mi);
   shoes_native_menuitem_enable(mi, ns);
   mi->state = ns;
+  return Qnil;
 }
 
 // helpers

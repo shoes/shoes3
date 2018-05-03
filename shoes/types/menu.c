@@ -28,6 +28,8 @@ void shoes_menu_mark(shoes_menu *mn) {
 }
 
 static void shoes_menu_free(shoes_menu *mn) {
+	if (mn->title)
+	  free(mn->title);
     RUBY_CRITICAL(SHOE_FREE(mn));
 }
 
@@ -45,7 +47,7 @@ VALUE shoes_menu_new(VALUE text) {
   VALUE obj= shoes_menu_alloc(cShoesMenu);
   shoes_menu *mn;
   Data_Get_Struct(obj, shoes_menu, mn);
-  mn->title = RSTRING_PTR(text);
+  mn->title = strdup(RSTRING_PTR(text));
   shoes_native_menu_new(mn);
   return obj;
 }
@@ -167,11 +169,11 @@ VALUE shoes_menu_remove(VALUE self, VALUE arg) {
   if (NIL_P(posv))
     rb_raise(rb_eArgError, "menuitem not found");
   int pos = NUM2INT(posv);
-  int cnt = RARRAY_LEN(mn->items);  //cnt before
   // remove the native
   shoes_native_menu_remove(mn ,pos); 
   // TODO: not documented online
   rb_ary_delete_at(mn->items, pos);
+  return Qnil;
 }
 
 // canvas - Shoes usage:  menu "Help"

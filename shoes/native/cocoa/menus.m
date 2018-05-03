@@ -70,7 +70,7 @@ void shoes_native_menubar_insert(shoes_menubar *mb, shoes_menu *mn, int pos) {
 // called at app.open() time, optionally
 
 VALUE shoes_native_menubar_setup(shoes_app *app, void *arg) {
-  fprintf(stderr,"menubar setup called\n");
+  //fprintf(stderr,"menubar setup called\n");
   //if (app ->have_menu == 0)
   //  return Qnil;
   if (NIL_P(app->menubar)) {
@@ -96,16 +96,19 @@ void *shoes_native_menu_append(shoes_menu *mn, shoes_menuitem *mi) {
   NSMenu *menu = (NSMenu *)mn->native;
   NSMenuItem *item = (NSMenuItem *)mi->native;
   [menu addItem: item];
+  //fprintf(stderr, "append %s to menu %s\n", mi->title, mn->title);
   return NULL;
 }
 
 void shoes_native_menu_insert(shoes_menu *mn, shoes_menuitem *mi, int pos) {
+  //fprintf(stderr, "insert %s into %s at pos %d\n", mi->title, mn->title, pos);
   NSMenu *menu = (void *)mn->native;
   [menu insertItem: (NSMenuItem *)mi->native atIndex: pos];
   return;
 }
 
 void shoes_native_menu_remove(shoes_menu *mn, int pos) {
+  //fprintf(stderr, "Menu %s, delete %d\n", mn->title, pos);
   NSMenu *menu = (void *)mn->native;
   [menu removeItemAtIndex: pos];
 }
@@ -175,7 +178,7 @@ void shoes_osx_create_apple_menu(VALUE mbv) {
     VALUE shoesmenu = shoes_menu_alloc(cShoesMenu);
     shoes_menu *mn;
     Data_Get_Struct(shoesmenu, shoes_menu, mn);
-    mn->title = RSTRING_PTR(shoestext);
+    mn->title = strdup(RSTRING_PTR(shoestext));
     // set Shoes Menu in Shoes menubar
     rb_ary_store(mb->menus, 0, shoesmenu);
     mn->native = (void *)menuApp;

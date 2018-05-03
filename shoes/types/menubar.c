@@ -149,6 +149,9 @@ VALUE shoes_menubar_insert(VALUE self, VALUE mnv, VALUE arg) {
   // if pos is < 0 we can call append and return 
   if (pos < 0) {
     shoes_menubar_append(self, mnv);
+  } else if (pos == 0) {
+	  // don't delete Shoes menu 
+	  return Qnil; // TODO: would raise be better?
   } else {
     // Call the native function and then diddle with the items (rb_ary)
     // to match
@@ -180,24 +183,21 @@ VALUE shoes_menubar_remove(VALUE self, VALUE arg) {
   if (NIL_P(posv))
     rb_raise(rb_eArgError, "menu not found");
   int pos = NUM2INT(posv);
-  int cnt = RARRAY_LEN(mb->menus);  //cnt before
+  if (pos == 0)
+    return Qnil;        // can't delete Shoes menu
   // remove the native
   shoes_native_menubar_remove(mb, pos); 
   // include/ruby/intern.h has
   // VALUE rb_ary_delete_at(VALUE, long);
   rb_ary_delete_at(mb->menus, pos);
+  return Qnil;
 }
 
 /*
- *  canvas - The returned menu bar has contents 
- *  For gtk it's File->Quit
- *  For cocoa (global menu) it's more than gtk
+ *  canvas - The returned menu bar always has contents 
+ * The Shoes menu in the menubar is special. 
 */
 VALUE shoes_canvas_menubar(int argc, VALUE *argv, VALUE self) {
-    rb_arg_list args;
-    VALUE text = Qnil, attr = Qnil, menubar;
-    
     return shoes_menubar_new(self); 
-  
 }
 

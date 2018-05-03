@@ -24,9 +24,9 @@ Shoes.app menus: true do
       button "Show all" do
         showall
       end
-      button "Add Help menu" do
+      button "Add Info menu" do
         mb = menubar
-        mn = menu "Help"
+        mn = menu "Info"
         mi = menuitem "About" do
           alert "Happy Shoes!"
         end 
