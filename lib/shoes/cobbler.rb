@@ -108,6 +108,87 @@ end
 Shoes.app :title => "Shoes Cobbler" do
   @shoes_home = File.join(LIB_DIR, Shoes::RELEASE_NAME)
   stack do
+    @mb = menubar
+    @mb["Shoes"].remove "Cobbler"
+    @mb["Shoes"].remove "Package"
+    @helpmenu = menu "Help"
+    infoitem = menuitem "Info", key: "control_i" do
+      infoscreen
+    end
+    splashitem = menuitem "Splash" do
+      Shoes.splash
+    end
+    @helpmenu << infoitem
+    @helpmenu << splashitem
+    @gemmenu = menu "Gems"
+    mgemitem = menuitem "Manage", key: "control_g" do
+      gemscreen
+    end
+    @gemmenu << mgemitem
+    if Shoes::RELEASE_TYPE =~ /TIGHT/
+      jbitem = menuitem "Jail Break" do
+          jailscreen
+      end
+      @gemmenu << jbitem
+    end
+    gpitem = menuitem "Install Gempack" do
+      gempack_screen
+    end
+    @gemmenu << gpitem
+    @pfmenu = menu "Setup"
+    cpitem = menuitem "Copy Samples" do
+      cp_samples_screen
+    end
+    @pfmenu << cpitem
+    pkitem = menuitem "Package URLs" do
+      pack_screen
+    end
+    @pfmenu << pkitem
+    vlcitem = menuitem "VLC setup" do
+      vlc_screen
+    end
+    @pfmenu << vlcitem
+    ccitem = menuitem "Clear Cache" do
+      cachescreen
+    end
+    @pfmenu << ccitem
+    if RUBY_PLATFORM =~ /darwin/
+      csitem = menuitem "Setup ./cshoes" do
+        cshoes_screen
+      end
+      pfmenu << csitem
+    end
+    @mb << @gemmenu
+    @mb << @pfmenu
+    if RUBY_PLATFORM =~ /linux|bsd|mingw/
+      @thememenu = menu "Themes"
+      switem = menuitem "Switch theme" 
+      switem.enable = false
+      @thememenu << switem
+      britem = menuitem "Browse Online"
+      britem.enable = false
+      @thememenu << britem
+      @mb << @thememenu
+    end
+    @pkgmenu = menu "Package"
+    shyitem = menuitem "Shy archive"
+    @pkgmenu << shyitem
+    xpitem = menuitem "Cross Platform" do
+      Shoes.app_package & close
+    end
+    @pkgmenu << xpitem
+    exeitem = menuitem "Advanced Windows" 
+    exeitem.enable = false unless RUBY_PLATFORM =~ /mingw/
+    @pkgmenu << exeitem
+    osxitem = menuitem "Advanced OSX"
+    osxitem.enable = false unless RUBY_PLATFORM =~ /darwin/
+    @pkgmenu << osxitem
+    debitem = menuitem "Advanced .deb"
+    debitem.enable = false unless RUBY_PLATFORM =~ /linux/
+    @pkgmenu << debitem
+    @mb << @pkgmenu
+    @mb << @helpmenu
+=begin    
     @menu = flow do
       button "Shoes Info" do
         infoscreen
@@ -156,6 +237,7 @@ Shoes.app :title => "Shoes Cobbler" do
          Shoes.quit
       end
     end
+=end
     @panel = stack do
       @status = para ""
    end

@@ -6127,9 +6127,9 @@ a matching title string.
 Menuitems have a title, an optional accelerator key like control_o and they
 have a block (or proc) of Shoes code to run when selected. 
 
-=== menuitem title, key, block » menuitem ===
+=== menuitem title, {key hash}, block » menuitem ===
 
-Creates a menuitem with the title. The key and block is optional, you can set
+Creates a menuitem with the title. The key hash and block is optional, you can set
 them later if need be. The key is used to activeate the block. The block behaves a 
 lot like a button. A lot like a button. 
 
