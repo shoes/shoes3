@@ -6030,4 +6030,132 @@ There is a limit on how far you are willing to push Shoes when you start down th
 
 Remember to have fun!
 
+= Menus =
 
+Shoes applications can have menus if you ask for them. They are not enabled
+by default because older Shoes code doesn't have them. 
+
+There are limitations to the menu scheme. We don't do sub-menus. Images/icons or font 
+setting are not supported. OSX menubar is global and Linux/Windows is one menubar
+per Window. Be thoughtful if want to support menus on all platforms - you have some work 
+to do.  
+
+You enable menus by using the `menus: true` style with `Shoes.app` or `window`
+method. You can also enable it with the settings file - See Advanced->Settings
+
+== menubar ==
+
+You need to get the menubar object before you can add menus to it. 
+
+=== menubar ===
+
+This returns a menubar. On OSX there is only one for all Windows/Apps
+On Linux and Windows you get one menubar per Window (app)
+
+=== menubar.menus » array  ===
+
+Returns an array of `menu` objects.
+
+=== menubar[index] » menu object ===
+
+Index is a integer starting with 0. Index can also be a String which matches
+a menu title. The `Shoes` menu (index 0) is special. You can't delete it from the
+menubaror move it but you can manipulate the items in it. The Shoes name can be changed via a settings
+file - see Advanced section of this manual
+
+=== menubar << menu » nothing useful ===
+
+Appends the menu to the menubar.
+
+=== menubar.append menu » nothing useful ===
+
+Appends the menu to the menubar.
+
+=== menubar.insert menu, pos » nothing useful ===
+
+Insert the `menu` in front of the menu at `pos` in the menubar. Pos may be an integer or the title of
+of an existing menu. You can't insert before 0 aka "Shoes".
+
+=== menubar.remove pos » nothing useful ===
+
+Removes the menu from the menubar. Pos is an integer of the string title of
+an existing menu. You can't remove 0 aka "Shoes"
+
+== menu ==
+
+Menus are the drop down list of menuitems. A menu has a position in the menubar and 
+a title. You add menuitems to it.
+
+=== menu title » menu ===
+
+Creates a menu with the given title string. 
+
+=== menu.title » string ===
+
+Returns the title string of the `menu`
+
+=== menu.items » array ===
+
+Returns an array of menuitems attached to the menu.
+
+=== menu[index] > menuitem ===
+
+Returns the menuitem at index. Index is an integer number starting at 0
+or it could be a String that matches a menuitem title. 
+
+=== menu << menuitem ===
+
+Append menuitem to menu
+
+=== menu.append menuitem ===
+
+Append menuitem to menu
+
+=== menu.insert menuitem, pos ===
+
+Insert menuitem before the pos item - zero would move everything down for
+example. Pos can be an integer or the matching title string. You can insert  
+or append to the Shoes menu. 
+
+=== menu.remove pos ===
+
+Remove the menuitem from the menu. Pos is an integer starting at 0 or
+a matching title string.
+
+== menuitem ==
+
+Menuitems have a title, an optional accelerator key like control_o and they
+have a block (or proc) of Shoes code to run when selected. 
+
+=== menuitem title, key, block » menuitem ===
+
+Creates a menuitem with the title. The key and block is optional, you can set
+them later if need be. The key is used to activeate the block. The block behaves a 
+lot like a button. A lot like a button. 
+
+The key is a string like "control_o" or "alt_j". The can be combined with `shift_`. 
+You COULD say "shift_ctl_alt_k" if that made sense for the platform. Shoes does not
+prevent you from creating modifiers that won't work.  On OSX, the `control_` will be mapped to
+the Apple command ⌘ key, not the control key on Mac keyboards.  
+Use control_ and shift_control_ for portability. 
+
+Note: If the title starts with three hyphens "--- this" then the menuitem becomes
+a separator which does not have a block or accept an acclerator key string
+
+=== menuitem.title » string ===
+
+Returns the title string of the menuitem.
+
+=== menuitem.title = string ===
+
+Changes the title to `string`
+
+=== menuitem.enable = boolean ===
+
+Enables or disables the menuitem.  By default menuitems are created enabled.
+You'll have to enable=false later.
+
+=== menuitem.block = proc ===
+
+You can set or change the block associated with the menuitem. You can change
+the block on a menuitem is the Shoes menu, if you wanted to say, override the Quit item.
