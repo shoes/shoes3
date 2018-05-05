@@ -105,7 +105,7 @@ class Gem::CobblerDelFace
  end
 end
 
-Shoes.app :title => "Shoes Cobbler" do
+Shoes.app :title => "Shoes Cobbler", menus: true do
   @shoes_home = File.join(LIB_DIR, Shoes::RELEASE_NAME)
   stack do
     @mb = menubar
