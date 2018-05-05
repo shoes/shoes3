@@ -68,6 +68,7 @@ VALUE shoes_menubar_append(VALUE self, VALUE menu) {
     shoes_menu *mn;
     Data_Get_Struct(self, shoes_menubar, mb);
     Data_Get_Struct(menu, shoes_menu, mn);
+    mn->context = mb->context;
     shoes_native_menubar_append(mb, mn);
     int cnt = RARRAY_LEN(mb->menus);
     rb_ary_store(mb->menus, cnt, menu);
@@ -157,6 +158,7 @@ VALUE shoes_menubar_insert(VALUE self, VALUE mnv, VALUE arg) {
     // to match
     shoes_menu *mn;
     Data_Get_Struct(mnv, shoes_menu, mn);
+    mn->context = mb->context;
     shoes_native_menubar_insert(mb, mn, pos);
     VALUE nary = rb_ary_new2(cnt+1); 
     int i;

@@ -25,6 +25,7 @@ void shoes_menu_init() {
 
 void shoes_menu_mark(shoes_menu *mn) {
     rb_gc_mark_maybe(mn->items);
+    rb_gc_mark_maybe(mn->context);
 }
 
 static void shoes_menu_free(shoes_menu *mn) {
@@ -38,7 +39,11 @@ VALUE shoes_menu_alloc(VALUE klass) {
     shoes_menu *mn = SHOE_ALLOC(shoes_menu);
     SHOE_MEMZERO(mn, shoes_menu, 1);
     obj = Data_Wrap_Struct(klass, shoes_menu_mark, shoes_menu_free, mn);
+    mn->native = NULL;
+    mn->extra = NULL;
+    mn->parent = NULL;
     mn->title = NULL;
+    mn->context = Qnil;
     mn->items = rb_ary_new();
     return obj;
 }
@@ -59,6 +64,7 @@ VALUE shoes_menu_append(VALUE self, VALUE miv) {
   Data_Get_Struct(self, shoes_menu, mn);
   if (rb_obj_is_kind_of(miv, cShoesMenuitem)) {
     Data_Get_Struct(miv, shoes_menuitem, mi);
+    mi->parent = mn;
     shoes_native_menu_append(mn, mi);
     int cnt = RARRAY_LEN(mn->items);
     rb_ary_store(mn->items, cnt, miv);
@@ -142,6 +148,7 @@ VALUE shoes_menu_insert(VALUE self, VALUE miv, VALUE reqpos) {
     // to match
     shoes_menuitem *mi;
     Data_Get_Struct(miv, shoes_menuitem, mi);
+    mi->parent = mn;
     shoes_native_menu_insert(mn, mi, pos);
     VALUE nary = rb_ary_new2(cnt+1); 
     int i;

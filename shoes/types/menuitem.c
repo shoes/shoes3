@@ -12,8 +12,8 @@ void shoes_menuitem_init() {
     cShoesMenuitem  = rb_define_class_under(cTypes, "Menuitem", rb_cObject);
     rb_define_method(cShoesMenuitem, "title", CASTHOOK(shoes_menuitem_gettitle), 0);
     rb_define_method(cShoesMenuitem, "title=", CASTHOOK(shoes_menuitem_settitle), 1);
-    //rb_define_method(cShoesMenuitem, "key", CASTHOOK(shoes_menuitem_getkey), 0);
-    //rb_define_method(cShoesMenuitem, "key=", CASTHOOK(shoes_menuitem_setkey), 1);
+    rb_define_method(cShoesMenuitem, "key", CASTHOOK(shoes_menuitem_getkey), 0);
+    rb_define_method(cShoesMenuitem, "key=", CASTHOOK(shoes_menuitem_setkey), 1);
     rb_define_method(cShoesMenuitem, "block=", CASTHOOK(shoes_menuitem_setblk), 1);
     rb_define_method(cShoesMenuitem, "enable=", CASTHOOK(shoes_menuitem_setenable), 1);
     RUBY_M("+menuitem", menuitem, -1);
@@ -27,7 +27,9 @@ void shoes_menuitem_mark(shoes_menuitem *mi) {
 static void shoes_menuitem_free(shoes_menuitem *mi) {
 	if (mi->title) free(mi->title);
 	if (mi->key) free(mi->key);
-    RUBY_CRITICAL(SHOE_FREE(mi));
+  if (mi->id) 
+    free(mi->id);
+  RUBY_CRITICAL(SHOE_FREE(mi));
 }
 
 VALUE shoes_menuitem_alloc(VALUE klass) {
@@ -41,6 +43,7 @@ VALUE shoes_menuitem_alloc(VALUE klass) {
     mi->key = NULL;
     mi->block = Qnil;
     mi->context = Qnil;
+    mi->id = NULL;
     return obj;
 }
 
@@ -88,24 +91,32 @@ VALUE shoes_menuitem_settitle(VALUE self, VALUE text) {
   return Qnil;
 }
 
-#if 0
+
 VALUE shoes_menuitem_getkey(VALUE self) {
-  // TODO: why bother?
- return Qnil;
+  shoes_menuitem *mi;
+  Data_Get_Struct(self, shoes_menuitem, mi);
+  int flags = mi->state;
+  VALUE outstr = rb_str_new2("");
+  if (flags & MENUITEM_CONTROL)
+    rb_str_cat2(outstr,"control_");
+  if (flags & MENUITEM_SHIFT) 
+    rb_str_cat2(outstr,"shift_");
+  if (flags & MENUITEM_ALT)
+    rb_str_cat2(outstr,"alt_");
+  rb_str_cat2(outstr, mi->key);
+  return outstr;
 }
 
 VALUE shoes_menuitem_setkey(VALUE self, VALUE keystr) {
-  // TODO: may not be possible, all platforms?
   shoes_menuitem *mi;
   Data_Get_Struct(self, shoes_menuitem, mi);
   int enable = mi->state & MENUITEM_ENABLE;
   char outkey[4];
-  int flags = shoes_menuitem_parse_key(VALUE keystr, char *outkey);
-  mi->state = (enable | flags);
-  shoes_native_menuitem_set_key(mi);
+  int flags = shoes_menuitem_parse_key(keystr, outkey);
+  shoes_native_menuitem_set_key(mi, (enable | flags), outkey);
   return Qnil;
 }
-#endif
+
 
 VALUE shoes_menuitem_setblk(VALUE self, VALUE block) {
   // TODO: may not be possible, all platforms? 
@@ -147,12 +158,15 @@ int shoes_menuitem_parse_key(VALUE keystr, char *outkey) {
     flags = flags | MENUITEM_CONTROL; // Apple fan on OSX
   if (strstr(phrase, "alt_"))
     flags = flags | MENUITEM_ALT;
-  char *sep = strrchr(phrase, '_');
-  sep++;
-  if (*sep)
-    strcpy(outkey, sep); 
-  else
-    rb_raise(rb_eArgError,"key: string is not formatted properly");
+  if (flags) {
+    char *sep = strrchr(phrase, '_');
+    sep++;
+    if (*sep) {
+      strcpy(outkey, sep); 
+      return flags;
+    }
+  }
+  rb_raise(rb_eArgError,"key: string is not formatted properly");
   return flags;
 }
 

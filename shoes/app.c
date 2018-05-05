@@ -16,6 +16,9 @@
 #include "shoes/types/event.h"
 #include "shoes/types/settings.h"
 
+// Global var:
+int shoes_app_serial_num = 0;
+
 static void shoes_app_mark(shoes_app *app) {
     shoes_native_slot_mark(app->slot);
     rb_gc_mark_maybe(app->title);
@@ -70,6 +73,7 @@ VALUE shoes_app_alloc(VALUE klass) {
     app->menubar = rb_ary_new();
     app->mb_height = 0;
     app->monitor = -1;
+    app->id = 0;
     app->scratch = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
     app->self = Data_Wrap_Struct(klass, shoes_app_mark, shoes_app_free, app);
     rb_extend_object(app->self, cTypes);
@@ -160,6 +164,7 @@ VALUE shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner) {
       app_t->have_menu = TRUE;
     }
     app_t->menubar = Qnil;
+    app_t->id = ++shoes_app_serial_num;
     
     if (RTEST(ATTR(attr, monitor))) {
       app_t->monitor = NUM2INT(ATTR(attr,monitor));
@@ -1118,3 +1123,11 @@ VALUE shoes_app_monitor_set(VALUE self, VALUE mon) {
   return INT2NUM(app->monitor);
 }
 
+/* ----------- app id (serial number) -------*/
+VALUE shoes_app_id(VALUE self) {
+  char buf[10];
+  shoes_app *app;
+  Data_Get_Struct(self, shoes_app, app);
+  sprintf(buf,"AppID%d", app->id);
+  return rb_str_new2(buf);
+}

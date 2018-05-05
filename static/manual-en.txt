@@ -5496,6 +5496,11 @@ that the user can't figure out how to quit and get back to normal.
 
 :fullscreen => true is also a style you can set for Shoes.app.
 
+=== app.id » string ===
+
+Returns a unique string for the app (window). This is different from name or title
+which are not unique. Used internally. 
+
 === app.monitor » integer ===
 
 Returns the small integer for the monitor (screen) the app is on. For systems with

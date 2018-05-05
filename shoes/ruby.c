@@ -812,6 +812,7 @@ void shoes_ruby_init() {
     rb_define_method(cApp, "replay_event", CASTHOOK(shoes_app_replay_event), 1);
     rb_define_method(cApp, "monitor", CASTHOOK(shoes_app_monitor_get), 0);
     rb_define_method(cApp, "monitor=", CASTHOOK(shoes_app_monitor_set), 1);
+    rb_define_method(cApp, "id", CASTHOOK(shoes_app_id), 0);
     
     /* Settings holds global values, not per app values. Part of shoes_world_t */
     cSettings  = rb_define_class_under(cTypes, "Settings", rb_cObject);

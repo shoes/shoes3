@@ -12,10 +12,12 @@
 extern VALUE cShoes, cApp, cTypes, cCanvas, cShoesMenu;
 extern shoes_app _shoes_app;
 
-// Typically, a menubar object has references to this object
+// The shoes_menubar object has references to this object
 typedef struct {
-    void *native;
-    void *extra;  // Gtk needs two GtkWidgets;
+    void *native; //Gtk uses two GtkWidgets - menuitem
+    void *extra;  //  and menu
+    void *context; // a canvas - gtk needs this
+    void *parent; // not used - for submenus? 
     char *title;  // C string utf8
     VALUE items;  // ruby array of menuitem Objects
 } shoes_menu;

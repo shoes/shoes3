@@ -53,6 +53,7 @@ typedef struct _shoes_app {
     int mb_height;
     VALUE menubar;
     int monitor;    // -1 means default
+    int id;         // from global serial number
 } shoes_app;
 
 //
@@ -119,6 +120,7 @@ extern VALUE shoes_setting_global;
 VALUE shoes_app_settings(VALUE app);
 VALUE shoes_app_monitor_get(VALUE self);
 VALUE shoes_app_monitor_set(VALUE app, VALUE mon);
+VALUE shoes_app_id(VALUE self);
 #ifdef SHOES_QUARTZ
 extern int osx_cshoes_launch;
 #endif

@@ -119,6 +119,13 @@ void shoes_native_menu_remove(shoes_menu *mn, int pos) {
 void *shoes_native_menuitem_new(shoes_menuitem *mi) {
   if (mi->state & NO_NATIVE)
     return (void *)mi;
+  NSEventModifierFlags nflags = 0;
+  if (mi->state & MENUITEM_CONTROL)
+    nflags |= NSCommandKeyMask;
+  if (mi->state & MENUITEM_SHIFT)  
+    nflags |= NSShiftKeyMask;
+  if (mi->state &  MENUITEM_ALT)
+    nflags |= NSAlternateKeyMask;
     
   NSString *title = [[NSString alloc] initWithUTF8String: mi->title];
   NSString *keystring = [[NSString alloc] initWithUTF8String: mi->key];
@@ -126,6 +133,7 @@ void *shoes_native_menuitem_new(shoes_menuitem *mi) {
 		action: @selector(menuTrigger:) 
 		keyEquivalent:(NSString *)keystring];  
   [item setTarget: shoes_world->os.events];
+  [item setKeyEquivalentModifierMask: nflags];
   ShoesMenuItem *wr = [[ShoesMenuItem alloc] initWithMI: mi];
   [item setRepresentedObject: wr]; 
   [item setEnabled: (mi->state & MENUITEM_ENABLE ? YES : NO)];
@@ -152,6 +160,29 @@ void shoes_native_menuitem_enable(shoes_menuitem *mi, int state) {
     [item setEnabled: (state ? YES : NO)];
   }
 }
+
+void 
+shoes_native_menuitem_set_key(shoes_menuitem *mi, int newflags, char *newkey)
+{
+  int enabled = newflags & MENUITEM_ENABLE;
+  NSEventModifierFlags nflags = 0;
+  if (newflags & MENUITEM_CONTROL)
+    nflags |= NSCommandKeyMask;
+  if (newflags & MENUITEM_SHIFT)  
+    nflags |= NSShiftKeyMask;
+  if (newflags &  MENUITEM_ALT)
+    nflags |= NSAlternateKeyMask;
+  NSString *key = [[NSString alloc] initWithUTF8String: newkey];
+  mi->state = (newflags | enabled);
+  if (mi->key) {
+    free(mi->key);
+    mi->key = strdup(newkey);
+  }
+  NSMenuItem *item = (NSMenuItem *)mi->native;
+  [item setKeyEquivalent: key];
+  [item setKeyEquivalentModifierMask: nflags];
+  //[[item menu] itemChanged: item];
+ }
 
 // ------- default menu creaters -------
 
@@ -200,9 +231,15 @@ void shoes_osx_create_apple_menu(VALUE mbv) {
     char *key = "";
     VALUE otext = rb_str_new2("Open");
     VALUE oproc = rb_eval_string("proc { Shoes.show_selector }");
-    VALUE oitem = shoes_menuitem_new(otext, flags, "o", oproc, Qnil); // calls native
-    shoes_menu_append(shoesmenu, oitem);							  // calls native
-   
+    VALUE oitem = shoes_menuitem_new(otext, flags | MENUITEM_CONTROL, "o", oproc, Qnil);
+    shoes_menu_append(shoesmenu, oitem);
+
+    // Console (log)
+    VALUE lgtext = rb_str_new2("Console");
+    VALUE lgproc = rb_eval_string("proc { Shoes.show_log }");
+    VALUE lgitem = shoes_menuitem_new(lgtext, flags | MENUITEM_CONTROL, "/", lgproc, Qnil);
+    shoes_menu_append(shoesmenu, lgitem);
+  
 	// Manual 
 	VALUE mtext = rb_str_new2("Manual");
 	VALUE mproc = rb_eval_string("proc { Shoes.show_manual }");
@@ -298,7 +335,7 @@ void shoes_osx_create_apple_menu(VALUE mbv) {
     //[menuitem release];
     VALUE qtext = rb_str_new2("Quit");
     VALUE qproc = rb_eval_string("proc { Shoes.quit }");
-    VALUE qitem = shoes_menuitem_new(qtext, flags, "q", qproc, Qnil); 
+    VALUE qitem = shoes_menuitem_new(qtext, MENUITEM_ENABLE | MENUITEM_CONTROL, "q", qproc, Qnil); 
     shoes_menu_append(shoesmenu, qitem);
 
     

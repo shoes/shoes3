@@ -1,4 +1,4 @@
-Gtk:
+-------------------  GTK -----------------------
 
 Tests/menu/menu2.rb
 change  menuitem title        ok
@@ -8,21 +8,19 @@ diable  menuitem              ok
 Tests/menu/menu3.rb
 
 Menuitem Tests - Info Menu   at 0       at 1+   at -1
-insert                         ok                 ok    foo About bar
-                                          ok            foo bar About
+insert                         ok         ok      ok    foo About bar
 remove                         ok         ok      ok   
   
 
 Menu       Tests - Info Menu   at 0       at 1+   at -1
-insert                                             ok    Shoes info help
-                                         gtk err         shoes info help foo
-                              gtk err, should be illegal
-remove                                             gtk errs shoes list ok
-                              gtk err                       shoes list ok
+insert                         won't        ok      ok    Shoes info help
+remove                         won't        ok      ok  
 
-OSX:
+Test/menu/menu4.rb
+create action key               ok
+change action key               ok
 
-can't always get cmd-/ (console)
+-------------------  OSX -----------------------
 
 Tests/menu/menu2.rb
 change  menuitem title        ok
@@ -37,4 +35,8 @@ remove                        ok          ok      ok
 
 Menu     Tests - Info Menu   at 0       at 1+   at -1
 insert                       won't        ok      ok
-remove                       won't        ok      ok (mi's too)
+remove                       won't        ok      ok 
+
+Test/menu/menu4.rb
+create action key              ok
+change action key              ok
