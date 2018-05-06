@@ -61,7 +61,7 @@ if ignore_deprecations
   LINUX_CFLAGS << " -Wno-deprecated-declarations"
 end
 MISC_LIB =  " /usr/local/lib/librsvg-2.so"
-LINUX_LIB_NAMES = %W[gif jpeg]
+LINUX_LIB_NAMES = %W[gif jpeg yaml]
 
 DLEXT = "so"
 LINUX_LDFLAGS = "-fPIC -shared -L#{ularch} "

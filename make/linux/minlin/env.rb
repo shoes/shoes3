@@ -51,7 +51,7 @@ GTK_LIB = "#{`pkg-config --libs gtk+-3.0`.strip}"
 MISC_LIB = " -lgif -ljpeg"
 
 # don't use pkg-config for librsvg-2.0 - a warning.
-MISC_CFLAGS = '-DGAPP '
+MISC_CFLAGS = '-DGAPP -DMTHEME '
 if File.exist? '/usr/lib/arm-linux-gnueabihf'
   ularch = 'arm-linux-gnueabihf'
 elsif File.exist? '/usr/lib/x86_64-linux-gnu'

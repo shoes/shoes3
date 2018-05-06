@@ -14,6 +14,7 @@ extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget, cShoesMenubar;
 typedef struct {
   VALUE app_name;
   VALUE theme;
+  VALUE theme_path;
   VALUE mdi; 
   VALUE rdomain;
   VALUE use_menus;

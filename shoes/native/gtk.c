@@ -125,27 +125,64 @@ shoes_gtk_app_cmdline (GApplication *application, gchar ***arguments,
 // Some globals for Gtk3 
 GtkApplication *shoes_GtkApp; 
 #ifdef MTHEME
-GtkCssProvider *shoes_css_provider; // user provided theme
+GtkCssProvider *shoes_css_provider = NULL; // user provided theme
 
-// Process the setting for Theme and css
-void shoes_native_process_init(shoes_settings *st) {
+// Process the setting for Theme and css 
+// TODO: path handling is not unicode friendly
+void shoes_gtk_load_css(shoes_settings *st) {
+  char theme_path[100];
   if (! NIL_P(st->theme)) {
-      // A theme was requested 
-      char theme_path[60];
+      // A theme was requested in shoes.yaml
       sprintf(theme_path, "themes/%s/gtk-3.0/gtk.css", RSTRING_PTR(st->theme));
-      FILE *th = fopen(theme_path, "r");
-      if (th) {
-        printf("make a css provider from %s\n", theme_path);
-        fclose(th);
-        // gtk_css_provider_load_from_path(...)
-        shoes_css_provider = gtk_css_provider_new();
-        int err = gtk_css_provider_load_from_path(shoes_css_provider, theme_path, NULL);
-      } else {
-        printf("theme %s not found\n",theme_path);
+      st->theme_path = rb_str_new2(theme_path);
+  } else { 
+    // user space theme?
+    char dflt[100];
+#ifdef GTK_WIN32
+    // TODO (home and appdata and ) Beware the file.separator in mingw C
+#else
+    char *home = getenv("HOME");
+    sprintf(dflt,"%s/.shoes/themes/default", home);
+#endif
+    FILE *df = fopen(dflt, "r");
+    if (df) {
+      char ln[60];
+      fgets(ln, 59, df);
+      // Trim \n from ln
+      char *p = strrchr(ln, '\n');
+      if (p) *p = '\0';
+      st->theme = rb_str_new2(ln);
+      fclose(df);
+      // now build the path to gtk.css
+      char *pos = strrchr(dflt, '/');
+      *pos = '\0';
+      char css[100];
+      sprintf(css,"%s/%s/gtk-3.0/gtk.css",dflt,ln);
+      st->theme_path = rb_str_new2(css);
+    } else {
+      // this is expected for most users - no themes
+      return;
+    }
+  }
+  if (!NIL_P(st->theme) && !NIL_P(st->theme_path)) {
+    strcpy(theme_path, RSTRING_PTR(st->theme_path));
+    FILE *th = fopen(theme_path, "r");
+    if (th) {
+      printf("make a css provider from %s\n", theme_path);
+      fclose(th);
+      // gtk_css_provider_load_from_path(...)
+      GError *gerr = NULL;
+      shoes_css_provider = gtk_css_provider_new();
+      int err = gtk_css_provider_load_from_path(shoes_css_provider, theme_path, &gerr);
+      if (gerr != NULL) {
+        fprintf(stderr, "Failed css load:css %s\n", gerr->message);
+        g_error_free(gerr);
       }
+    } else {
+      fprintf(stderr, "theme %s not found\n",theme_path);
+    }
   }
 }
-
 #endif
 
 void shoes_native_init() {
@@ -175,7 +212,7 @@ void shoes_native_init() {
     g_signal_connect(shoes_GtkApp, "command-line", G_CALLBACK (shoes_gtk_app_cmdline), NULL);
     g_signal_connect(G_APPLICATION(shoes_GtkApp), "startup", G_CALLBACK(shoes_gtk_app_startup), NULL);
 #ifdef MTHEME
-    shoes_native_process_init(st);
+    shoes_gtk_load_css(st);
 #endif
     gtk_init(NULL,NULL); // This starts the gui w/o triggering signals - complains but works.
     // g_application_run(G_APPLICATION(shoes_GtkApp), 0, NULL); // doesn't work but could?
@@ -885,6 +922,14 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
 #else
       window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 #endif
+#ifdef MTHEME
+       // theme the window
+       if (shoes_css_provider != NULL) {
+         gtk_style_context_add_provider(gtk_widget_get_style_context(window),
+            GTK_STYLE_PROVIDER(shoes_css_provider),
+            GTK_STYLE_PROVIDER_PRIORITY_USER);
+        }
+#endif
       vbox =  gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
       gtk_container_add(GTK_CONTAINER(window), vbox);
       gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
@@ -892,10 +937,6 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
       shoes_window = gtk_fixed_new();
       gtk_box_pack_start(GTK_BOX(vbox), shoes_window, FALSE, FALSE, 0);
       
-      //GtkAccelGroup *accel_group = NULL; 
-      //accel_group = gtk_accel_group_new();
-      // TODO: the following line gets a runtime gtk compaint but it works
-      //gtk_window_add_accel_group((GtkWindow *)window, accel_group);
       
       gk->window = window;
       gk->vlayout = vbox;

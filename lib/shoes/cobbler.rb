@@ -109,14 +109,14 @@ Shoes.app :title => "Shoes Cobbler", menus: true do
   @shoes_home = File.join(LIB_DIR, Shoes::RELEASE_NAME)
   stack do
     @mb = menubar
-    @mb["Shoes"].remove "Cobbler"
-    @mb["Shoes"].remove "Package"
+    @mb[0].remove "Cobbler"
+    @mb[0].remove "Package"
     @helpmenu = menu "Help"
     infoitem = menuitem "Info", key: "control_i" do
       infoscreen
     end
     splashitem = menuitem "Splash" do
-      Shoes.splash
+      splash_screen
     end
     @helpmenu << infoitem
     @helpmenu << splashitem
@@ -162,8 +162,9 @@ Shoes.app :title => "Shoes Cobbler", menus: true do
     @mb << @pfmenu
     if RUBY_PLATFORM =~ /linux|bsd|mingw/
       @thememenu = menu "Themes"
-      switem = menuitem "Switch theme" 
-      switem.enable = false
+      switem = menuitem "Switch theme" do
+        swtheme_screen
+      end
       @thememenu << switem
       britem = menuitem "Browse Online"
       britem.enable = false
@@ -241,6 +242,7 @@ Shoes.app :title => "Shoes Cobbler", menus: true do
     @panel = stack do
       @status = para ""
    end
+   start { splash_screen }
   end
 
   def  pack_screen
@@ -668,6 +670,18 @@ with the wrong package for your plaftorm!"
        end
      end
    end
+   
+  def splash_screen
+    @panel.clear do
+      stack width: 598, height: 520 do 
+        background "#{DIR}/static/splash.png"
+        para 'Welcome to', align: 'center', weight: 'bold', stroke: ivory, size: 18, margin: 0
+        para 'Cobbler', align: 'center', weight: 'bold', size: 24, stroke: ivory, margin: 0
+        para Shoes::VERSION_NAME, align: 'center', stroke: ivory, size: 14, margin: 0, weight: 'bold'
+        para "build #{Shoes::VERSION_NUMBER} r#{Shoes::VERSION_REVISION}", align: 'center', weight: 'bold', size: 14, stroke: ivory, margin_top: 0
+      end 
+    end
+  end
 
 
   def cshoes_screen
@@ -715,4 +729,43 @@ but it needs to know where Shoes is"
         end
       end
     end
+    
+  def swtheme_screen
+    @panel.clear
+    @panel.append do
+      stack do
+        tagline "Change the Theme Linux Only - for now"
+        path = "#{ENV['HOME']}/.shoes/themes"
+        para "Searching in #{path}"
+        items = []
+        mkdir_p path
+        Dir.chdir(path) do
+          items = Dir.glob("*")
+        end
+        sel = nil
+        if File.exist? "#{path}/default"
+          items -= ["default"]
+          f = File.new("#{path}/default", 'r') 
+          sel = f.readline.strip
+          f.close
+        end
+        flow do 
+          para "Pick From:"
+          @sw_thm = list_box items: items, choose: sel, margin_left: 5 
+        end
+        flow do
+          button "Save", margin: 5 do
+            f = File.new("#{path}/default", 'w')
+            f.write @sw_thm.text
+            f.close
+          end
+          button "Please - none of the above", margin: 5 do
+            rm "#{path}/default"
+          end
+        end
+        tagline "You'll have to quit Shoes and restart to see any changes"
+
+      end
+    end
+  end
 end # App

@@ -12,14 +12,14 @@ void shoes_settings_init() {
     cSettings  = rb_define_class_under(cShoes, "Settings", rb_cObject);
     rb_define_alloc_func(cSettings, shoes_settings_alloc);
     rb_define_method(cSettings, "dbus", CASTHOOK(shoes_settings_dbus),0);
-    //rb_define_method(cShoesMenubar, "[]", CASTHOOK(shoes_menubar_at), 1);
-    //RUBY_M("+settings", settings, -1);
+    // TODO: theme, theme= theme_path, theme_path= are user visible
 }
 #endif
 
 void shoes_settings_mark(shoes_settings *st) {
     rb_gc_mark_maybe(st->app_name);
     rb_gc_mark_maybe(st->theme);
+    rb_gc_mark_maybe(st->theme_path);
     rb_gc_mark_maybe(st->mdi);
     rb_gc_mark_maybe(st->rdomain);
     rb_gc_mark_maybe(st->mdi);
@@ -38,6 +38,7 @@ VALUE shoes_settings_alloc(VALUE klass) {
     obj = Data_Wrap_Struct(klass, shoes_settings_mark, shoes_settings_free, st);
     st->app_name = Qnil;
     st->theme = Qnil;
+    st->theme_path = Qnil;
     st->mdi = Qnil;
     st->rdomain = Qnil;
     st->use_menus = Qnil;
@@ -54,8 +55,10 @@ VALUE shoes_settings_alloc(VALUE klass) {
 VALUE shoes_settings_new(shoes_yaml_init *yml) {
   shoes_settings *st;
   Data_Get_Struct(shoes_world->settings, shoes_settings, st);
-  st->app_name = rb_str_new2(yml->app_name);
-  
+  if (yml->app_name) {
+    st->app_name = rb_str_new2(yml->app_name);
+    shoes_app_name = strdup(yml->app_name);
+  }
   if (yml->theme_name == NULL)
     st->theme = Qnil;
   else
@@ -73,7 +76,6 @@ VALUE shoes_settings_new(shoes_yaml_init *yml) {
   else
     st->use_menus = Qnil;
     
-  // TODO: shoes_native_monitor_check
   //free(yml);
   return shoes_world->settings; 
 }
