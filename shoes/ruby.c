@@ -828,6 +828,8 @@ void shoes_ruby_init() {
     rb_define_method(cSettings, "monitor_count", CASTHOOK(shoes_settings_monitor_count),0);
     rb_define_method(cSettings, "monitor_geometry", CASTHOOK(shoes_settings_monitor_geometry),1);
     rb_define_method(cSettings, "monitor_default", CASTHOOK(shoes_settings_monitor_default), 0);
+    rb_define_method(cSettings, "extra1", CASTHOOK(shoes_setting_extra1), 0);
+    rb_define_method(cSettings, "extra2", CASTHOOK(shoes_setting_extra2), 0);
 
     cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 

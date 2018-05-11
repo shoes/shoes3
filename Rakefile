@@ -365,7 +365,8 @@ end
 # These tasks copy updated Shoes lib/*/*.rb files and samples and the manual
 StaticDirs = ["#{rtp}/copyonly/zzmanual.done", "#{rtp}/copyonly/zzshoesrb.done",
     "#{rtp}/copyonly/zzshoesrblib.done", "#{rtp}/copyonly/zzsimple.done",
-     "#{rtp}/copyonly/zzgood.done", "#{rtp}/copyonly/zzexpert.done"]
+     "#{rtp}/copyonly/zzgood.done", "#{rtp}/copyonly/zzexpert.done",
+      "#{rtp}/copyonly/zzpackrblib.done"]
 
 file "#{TGT_DIR}/libshoes.#{DLEXT}" => ["#{rtp}/zzsetup.done", "shoes/types/types.h",
     "shoes/version.h"] + SubDirs + StaticDirs do

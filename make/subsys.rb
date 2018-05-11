@@ -189,6 +189,26 @@ else
   end
 end
 
+# update lib/package/*.rb if changed
+if CROSS && TGT_DIR != 'minlin' && TGT_DIR != 'minbsd'
+  packrblib = FileList["lib/package/*.rb"] 
+  taskl = []
+  packrblib.each do |fp| 
+    taskl << "#{TGT_DIR}/#{fp}"
+    file "#{TGT_DIR}/#{fp}" => [fp] do |t|
+      cp "#{fp}", "#{TGT_DIR}/#{fp}"
+    end
+  end
+  file "#{tp}/copyonly/zzpackrblib.done" => taskl do
+    touch "#{tp}/copyonly/zzpackrblib.done", verbose: false
+  end
+else
+  # nothing to do because minlin uses symlinks
+  file "#{tp}/copyonly/zzpackrblib.done" => ["#{tp}/zzsetup.done"] do
+    touch "#{tp}/copyonly/zzpackrblib.done", verbose: false
+  end
+end
+
 # samples simple/ good/ expert/
 ['simple', 'good', 'expert'].each do |sub|
   if CROSS && TGT_DIR != 'minlin' && TGT_DIR != 'minbsd'
@@ -209,19 +229,3 @@ end
     end
   end
 end
-=begin
-if CROSS && TGT_DIR != 'minlin'
-  file "#{TGT_DIR}/lib/shoes.rb" => ["#{tp}/zzsetup.done", "lib/shoes.rb"] do
-    #$stderr.puts "Updating shoes.rb"
-    cp "lib/shoes.rb", "#{TGT_DIR}/lib/shoes.rb"
-  end
-  rbdeps = FileList["#{TGT_DIR}/lib/shoes/*.rb"]
-  rbdeps.each do |f|
-    #$stderr.puts "creating file task #{f} => lib/shoes/#{File.basename(f)}"
-    file f => ["lib/shoes/#{File.basename(f)}"] do |t|
-      #$stderr.puts "updated: #{f} from lib/shoes/#{File.basename(t.name)}"
-      cp "lib/shoes/#{File.basename(t.name)}", f
-    end
-  end
-end
-=end

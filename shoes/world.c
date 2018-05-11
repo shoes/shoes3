@@ -266,6 +266,8 @@ int shoes_init_load_yaml() {
     shoes_config_yaml->rdomain = "com.shoesrb.shoes";
     shoes_config_yaml->use_menus = "false";
     shoes_config_yaml->mdi = "false";
+    shoes_config_yaml->extra1 = NULL;
+    shoes_config_yaml->extra2 = NULL;
     
     if (fh != NULL) {
       yaml_parser_set_input_file(&parser, fh);
@@ -297,7 +299,11 @@ int shoes_init_load_yaml() {
                           datap = &shoes_config_yaml->use_menus;
                       } else if (!strcmp(tk,"MDI")) {
                           datap = &shoes_config_yaml->mdi;
-                      } else {
+                      } else if (!strcmp(tk,"Extra1")) {
+                          datap = &shoes_config_yaml->extra1;
+                       } else if (!strcmp(tk,"Extra2")) {
+                          datap = &shoes_config_yaml->extra2;
+                     } else {
                           printf("Unrecognised key: %s\n", tk);
                           return 0;
                       }

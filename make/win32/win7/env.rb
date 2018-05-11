@@ -86,7 +86,7 @@ WIN32_LDFLAGS << RUBY_LDFLAGS
 WIN32_LIBS << RUBY_LDFLAGS
 WIN32_LIBS << CAIRO_LDFLAGS
 WIN32_LIBS << PANGO_LDFLAGS
-WIN32_LIBS << "-L#{ShoesDeps}/lib -lrsvg-2"
+WIN32_LIBS << "-L#{ShoesDeps}/lib -lrsvg-2 -lyaml"
 
 # Cleaning up duplicates. Clunky? Hell yes!
 wIN32_CFLAGS = WIN32_CFLAGS.join(' ').split(' ').uniq

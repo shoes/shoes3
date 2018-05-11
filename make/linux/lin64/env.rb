@@ -49,7 +49,7 @@ if APP['GDB']
 else
   LINUX_CFLAGS = " -O -Wall"
 end
-LINUX_CFLAGS << " -DRUBY_HTTP" 
+LINUX_CFLAGS << " -DRUBY_HTTP " 
 LINUX_CFLAGS << " -DSHOES_GTK -fPIC -Wno-unused-but-set-variable -Wno-unused-variable"
 LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "

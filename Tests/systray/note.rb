@@ -1,5 +1,5 @@
 Shoes.app do
-  app.set_window_title "Blitz"
+  #app.set_window_title "Blitz"
   stack do
     para "Press button and look in your system's notification area"
     ctr = 0;

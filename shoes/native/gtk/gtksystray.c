@@ -24,7 +24,6 @@
 extern GtkApplication *shoes_GtkApp;
 
 #if !defined(SHOES_GTK_WIN32) // i.e. not Windows
-// TODO: Doesn't work on Linux anymore but it did once.
 static void shoes_native_systray_gapp(char *title, char *message, char *path) {
   GNotification *note;
   note = g_notification_new (title);
@@ -61,10 +60,9 @@ void shoes_native_systray(char *title, char *message, char *path) {
   // always call the older stuff for Windows
   shoes_native_systray_old(title, message, path);
 #else
-#ifdef GAPP
   shoes_native_systray_gapp(title, message, path);
-#else
-  shoes_native_systray_old(title, message, path);
 #endif
+#if 0
+  shoes_native_systray_old(title, message, path);
 #endif
 }

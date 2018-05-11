@@ -12,7 +12,6 @@ void shoes_settings_init() {
     cSettings  = rb_define_class_under(cShoes, "Settings", rb_cObject);
     rb_define_alloc_func(cSettings, shoes_settings_alloc);
     rb_define_method(cSettings, "dbus", CASTHOOK(shoes_settings_dbus),0);
-    // TODO: theme, theme= theme_path, theme_path= are user visible
 }
 #endif
 
@@ -25,6 +24,8 @@ void shoes_settings_mark(shoes_settings *st) {
     rb_gc_mark_maybe(st->mdi);
     rb_gc_mark_maybe(st->use_menus);
     rb_gc_mark_maybe(st->dbus_name);
+    rb_gc_mark_maybe(st->extra1);
+    rb_gc_mark_maybe(st->extra2);
 }
 
 static void shoes_settings_free(shoes_settings *st) {
@@ -43,6 +44,8 @@ VALUE shoes_settings_alloc(VALUE klass) {
     st->rdomain = Qnil;
     st->use_menus = Qnil;
     st->dbus_name = Qnil;
+    st->extra1 = Qnil;
+    st->extra2 = Qnil;
     return obj;
 }
 
@@ -76,6 +79,16 @@ VALUE shoes_settings_new(shoes_yaml_init *yml) {
   else
     st->use_menus = Qnil;
     
+  if (yml->extra1)
+    st->extra1 = rb_str_new2(yml->extra1);
+  else
+    st->extra1 = Qnil;
+    
+   if (yml->extra2)
+    st->extra2 = rb_str_new2(yml->extra2);
+  else
+    st->extra2 = Qnil;
+   
   //free(yml);
   return shoes_world->settings; 
 }
@@ -172,4 +185,16 @@ VALUE shoes_settings_monitor_default(VALUE self) {
   int mon;
   mon = shoes_native_monitor_default();
   return INT2NUM(mon);  
+}
+
+VALUE shoes_setting_extra1(VALUE self) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  return st->extra1;
+}
+
+VALUE shoes_setting_extra2(VALUE self) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  return st->extra2;
 }

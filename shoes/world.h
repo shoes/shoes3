@@ -97,6 +97,8 @@ typedef struct _shoes_yaml_init {
     char* rdomain;
     char* use_menus;
     char* mdi;
+    char* extra1;
+    char* extra2;
 } shoes_yaml_init;
 
 extern shoes_yaml_init *shoes_config_yaml;

@@ -178,7 +178,9 @@ Shoes.app :title => "Shoes Cobbler", menus: true do
       Shoes.app_package & close
     end
     @pkgmenu << xpitem
-    exeitem = menuitem "Advanced Windows" 
+    exeitem = menuitem "Windows Merge" do
+      win_merge_screen
+    end
     exeitem.enable = false unless RUBY_PLATFORM =~ /mingw/
     @pkgmenu << exeitem
     osxitem = menuitem "Advanced OSX"
@@ -734,8 +736,12 @@ but it needs to know where Shoes is"
     @panel.clear
     @panel.append do
       stack do
-        tagline "Change the Theme Linux Only - for now"
-        path = "#{ENV['HOME']}/.shoes/themes"
+        tagline "Change the Theme."
+        if RUBY_PLATFORM =~ /mingw/
+          path = "#{ENV['HOME']}/AppData/Local/Shoes/themes"
+        else
+          path = "#{ENV['HOME']}/.shoes/themes"
+        end
         para "Searching in #{path}"
         items = []
         mkdir_p path
@@ -763,9 +769,102 @@ but it needs to know where Shoes is"
             rm "#{path}/default"
           end
         end
-        tagline "You'll have to quit Shoes and restart to see any changes"
-
+        tagline "You have to quit and restart Shoes to see any changes"
+        para "If the theme fails to load properly, it may faillback to" 
+        para "ugly mode. Everything will be ok. Come back here and pick"
+        para "a different theme, or none at all" 
       end
     end
+  end
+  
+  def win_merge_screen
+    @panel.clear
+    @panel.append do
+      stack do
+        tagline "The will merge your app into a copy of Shoe for Windows"
+        flow do 
+          para "This avoids the dreaded Windows 10 Install problems and much "
+          para "more. Shoes can be hidden from the user.  It won't conflict with "
+          para "any other Shoes they might have. It strips out the manual and other "
+          para "developer things.  You get your very own installer which you can customze "
+          para "your way. This is how you build a real app!"
+        end
+        flow do
+          para "That means you have to do somme more work. You'll need to download and "
+          para "install the Installer maker, NSIS-Unicode and the ResourceHacker programs"
+        end
+        utilp = "#{LIB_DIR}/package/util.yaml"
+        if ! File.exist? utilp
+          rsexe = "reshacker_setup.exe"
+          nsexe = "nsis-2.46.5-Unicode-setup.exe"
+          para "Where is ResourceHacker.exe  "
+          flow do
+            @rhel = edit_line width:300
+            button "Download" do
+              mkdir_p File.dirname(utilp)
+              downloader "https://shoes.mvmanila.com/public/util/#{rsexe}",
+                "#{LIB_DIR}/package/#{rsexe}"
+            end
+            button "Install" do
+              system "#{LIB_DIR}/package/#{rsexe}"
+            end
+            button "Select" do
+              @rhel.text = ask_open_file
+            end
+          end
+          para "Where is NSIS Unicde's makensis.exe?"
+          flow do
+            @nsel = edit_line width:300
+            button "Download" do
+              mkdir_p File.dirname(utilp)
+              downloader "https://shoes.mvmanila.com/public/util/#{nsexe}",
+                "#{LIB_DIR}/package/#{nsexe}"
+             end
+            button "install" do
+              system "#{LIB_DIR}/package/#{rsexe}"
+            end
+            button "Select" do
+               @nsel.text = ask_open_file
+            end
+         end
+          button "Save Locations" do
+            exe = {}
+            exe['rhp'] = @rhel.text
+            exe['nsp'] = @nsel.text
+            mkdir_p File.dirname(utilp)
+            File.open(utilp,"w") {|f| f.write(exe.to_yaml) }
+          end
+        end
+        st = Shoes.settings
+        button "Merge (testing)", margin: 5 do
+            # Tell build-exe that its standalone
+            require "#{st.extra1}"
+        end
+        @info_panel = stack do
+        end
+        para " "
+      end
+    end
+  end
+  
+  def downloader dnlurl, workpath
+        @info_panel.clear
+        @info_panel.append do 
+        background "#eee".."#ccd"
+        @dnlpanel = stack :margin => 10 do
+          dld = nil
+          @dnlmenu= para dnlurl, " [", link("cancel") { @dlnthr.exit }, "]", :margin => 0
+          @dnlstat = inscription "Beginning transfer.", :margin => 0
+          @dnlbar = progress :width => 1.0, :height => 14 
+	        @dlnthr = download dnlurl, :save =>  workpath,
+		       :progress => proc { |dl| 
+		          @dnlstat.text = "Transferred #{dl.transferred} of #{dl.length} bytes (#{sprintf('%2i',dl.percent * 100)}%)"
+		          @dnlbar.fraction = dl.percent 
+		         },
+		      :finish => proc { |dl| 
+		          @dnlstat.text = "Download completed"
+		        }
+	      end
+      end
   end
 end # App

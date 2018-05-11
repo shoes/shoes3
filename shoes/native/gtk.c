@@ -88,10 +88,9 @@ VALUE shoes_load_font(const char *filename) {
 #endif
 
 /*
- * Shoes 3.3.4 uses gtk_application_new (aka GApplication) instead of gtk_init
+ * Shoes 3.3.4+ may use gtk_application_new (aka GApplication) instead of gtk_init
 */
 
-#ifdef GAPP
 void
 shoes_gtk_app_activate (GApplication *app, gpointer user_data) {
     fprintf(stderr, "shoes_gtk_app_activate called\n");
@@ -120,12 +119,20 @@ shoes_gtk_app_cmdline (GApplication *application, gchar ***arguments,
   printf("command-line signal processed\n");
   return TRUE;
 }
-#endif
+
 
 // Some globals for Gtk3 
 GtkApplication *shoes_GtkApp; 
-#ifdef MTHEME
+
 GtkCssProvider *shoes_css_provider = NULL; // user provided theme
+
+void shoes_gtk_css_error(GtkCssProvider *provider,
+               GtkCssSection  *section,
+               GError         *error,
+               gpointer        user_data) 
+{
+  fprintf(stderr,"%s\n", error->message);
+}
 
 // Process the setting for Theme and css 
 // TODO: path handling is not unicode friendly
@@ -138,8 +145,10 @@ void shoes_gtk_load_css(shoes_settings *st) {
   } else { 
     // user space theme?
     char dflt[100];
-#ifdef GTK_WIN32
+#ifdef SHOES_GTK_WIN32
     // TODO (home and appdata and ) Beware the file.separator in mingw C
+    char *home = getenv("HOME");
+    sprintf(dflt,"%s/AppData/Local/Shoes/themes/default", home);
 #else
     char *home = getenv("HOME");
     sprintf(dflt,"%s/.shoes/themes/default", home);
@@ -173,6 +182,9 @@ void shoes_gtk_load_css(shoes_settings *st) {
       // gtk_css_provider_load_from_path(...)
       GError *gerr = NULL;
       shoes_css_provider = gtk_css_provider_new();
+      g_signal_connect(G_OBJECT(shoes_css_provider), "parsing-error",
+                       G_CALLBACK(shoes_gtk_css_error), NULL);
+ 
       int err = gtk_css_provider_load_from_path(shoes_css_provider, theme_path, &gerr);
       if (gerr != NULL) {
         fprintf(stderr, "Failed css load:css %s\n", gerr->message);
@@ -183,14 +195,12 @@ void shoes_gtk_load_css(shoes_settings *st) {
     }
   }
 }
-#endif
 
 void shoes_native_init() {
 #if !defined(RUBY_HTTP) && !defined(SHOES_GTK_WIN32)
     curl_global_init(CURL_GLOBAL_ALL);
 #endif
 
-#ifdef GAPP
     int status;
     shoes_settings *st;
     Data_Get_Struct(shoes_world->settings, shoes_settings, st);
@@ -211,13 +221,13 @@ void shoes_native_init() {
     g_signal_connect(shoes_GtkApp, "activate", G_CALLBACK (shoes_gtk_app_activate), NULL);
     g_signal_connect(shoes_GtkApp, "command-line", G_CALLBACK (shoes_gtk_app_cmdline), NULL);
     g_signal_connect(G_APPLICATION(shoes_GtkApp), "startup", G_CALLBACK(shoes_gtk_app_startup), NULL);
-#ifdef MTHEME
+
     shoes_gtk_load_css(st);
-#endif
+
     gtk_init(NULL,NULL); // This starts the gui w/o triggering signals - complains but works.
     // g_application_run(G_APPLICATION(shoes_GtkApp), 0, NULL); // doesn't work but could?
     
-#else
+#ifdef OLD_STARTUP_UNUSED
     // Shoes < 3.3.6 way to init
     gtk_init(NULL, NULL);
 #endif
@@ -922,14 +932,13 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
 #else
       window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 #endif
-#ifdef MTHEME
-       // theme the window
-       if (shoes_css_provider != NULL) {
-         gtk_style_context_add_provider(gtk_widget_get_style_context(window),
+      // theme the window
+      if (shoes_css_provider != NULL) {
+        gtk_style_context_add_provider(gtk_widget_get_style_context(window),
             GTK_STYLE_PROVIDER(shoes_css_provider),
             GTK_STYLE_PROVIDER_PRIORITY_USER);
-        }
-#endif
+      }
+
       vbox =  gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
       gtk_container_add(GTK_CONTAINER(window), vbox);
       gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
@@ -990,9 +999,14 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
       window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
       gk->window = window;
       app->slot->oscanvas = window;
+      // theme the window
+      if (shoes_css_provider != NULL) {
+        gtk_style_context_add_provider(gtk_widget_get_style_context(window),
+            GTK_STYLE_PROVIDER(shoes_css_provider),
+            GTK_STYLE_PROVIDER_PRIORITY_USER);
+      }
           
       gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-     // commit https://github.com/shoes/shoes/commit/4e7982ddcc8713298b6959804dab8d20111c0038
       if (!app->resizable) {
           gtk_widget_set_size_request(window, app->width, app->height);
           gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
@@ -1313,7 +1327,9 @@ VALUE shoes_native_to_s(VALUE text) {
     return text;
 }
 
-#if defined(GTK3) // && !defined(SHOES_GTK_WIN32)
+/* --------------- dialogs -----------*/
+
+#if defined(GTK3)
 VALUE shoes_native_window_color(shoes_app *app) {
     GtkStyleContext *style = gtk_widget_get_style_context(GTK_WIDGET(APP_WINDOW(app)));
     GdkRGBA bg;
@@ -1373,6 +1389,12 @@ VALUE shoes_dialog_alert(int argc, VALUE *argv, VALUE self) {
                             window_app, GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK,
                             format_string, atitle, msg );
 
+    // theme the window
+    if (shoes_css_provider != NULL) {
+      gtk_style_context_add_provider(gtk_widget_get_style_context(dialog),
+          GTK_STYLE_PROVIDER(shoes_css_provider),
+          GTK_STYLE_PROVIDER_PRIORITY_USER);
+    }
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
     return Qnil;
@@ -1400,11 +1422,15 @@ VALUE shoes_dialog_ask(int argc, VALUE *argv, VALUE self) {
             break;
     }
 
-    //GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle, APP_WINDOW(app), GTK_DIALOG_MODAL,
-    //  _("_Cancel"), GTK_RESPONSE_CANCEL, _("_OK"), GTK_RESPONSE_OK, NULL);
     GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle, window_app, GTK_DIALOG_MODAL,
                         _("_Cancel"), GTK_RESPONSE_CANCEL, _("_OK"), GTK_RESPONSE_OK, NULL);
 
+    // theme the window
+    if (shoes_css_provider != NULL) {
+      gtk_style_context_add_provider(gtk_widget_get_style_context(dialog),
+          GTK_STYLE_PROVIDER(shoes_css_provider),
+          GTK_STYLE_PROVIDER_PRIORITY_USER);
+    }
     gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
     gtk_container_set_border_width(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), 6);
     GtkWidget *question = gtk_label_new(RSTRING_PTR(shoes_native_to_s(args.a[0])));
@@ -1456,12 +1482,14 @@ VALUE shoes_dialog_confirm(int argc, VALUE *argv, VALUE self) {
 
 
 
-    //GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle, APP_WINDOW(app), GTK_DIALOG_MODAL,
-    //  _("_Cancel"), GTK_RESPONSE_CANCEL, _("_OK"), GTK_RESPONSE_OK, NULL);
     GtkWidget *dialog = gtk_dialog_new_with_buttons(atitle, window_app, GTK_DIALOG_MODAL,
                         _("_Cancel"), GTK_RESPONSE_CANCEL, _("_OK"), GTK_RESPONSE_OK, NULL);
-
-
+    // theme the window
+    if (shoes_css_provider != NULL) {
+      gtk_style_context_add_provider(gtk_widget_get_style_context(dialog),
+          GTK_STYLE_PROVIDER(shoes_css_provider),
+          GTK_STYLE_PROVIDER_PRIORITY_USER);
+    }
     gtk_container_set_border_width(GTK_CONTAINER(dialog), 6);
     gtk_container_set_border_width(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), 6);
 
@@ -1489,6 +1517,13 @@ VALUE shoes_dialog_color(VALUE self, VALUE title) {
     GTK_APP_VAR(app);
     title = shoes_native_to_s(title);
     GtkWidget *dialog = gtk_color_chooser_dialog_new(RSTRING_PTR(title), NULL);
+
+    // theme the window
+    if (shoes_css_provider != NULL) {
+      gtk_style_context_add_provider(gtk_widget_get_style_context(dialog),
+          GTK_STYLE_PROVIDER(shoes_css_provider),
+          GTK_STYLE_PROVIDER_PRIORITY_USER);
+    }
     gint result = gtk_dialog_run(GTK_DIALOG(dialog));
     if (result == GTK_RESPONSE_OK) {
         GdkRGBA _color;
@@ -1506,10 +1541,14 @@ VALUE shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, co
     GTK_APP_VAR(app);
     if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("title"))))
         title = strdup(RSTRING_PTR(shoes_hash_get(attr, rb_intern("title"))));
-    //GtkWidget *dialog = gtk_file_chooser_dialog_new(title, APP_WINDOW(app), act,
-    //  _("_Cancel"), GTK_RESPONSE_CANCEL, button, GTK_RESPONSE_ACCEPT, NULL);
     GtkWidget *dialog = gtk_file_chooser_dialog_new(title, window_app, act,
                         _("_Cancel"), GTK_RESPONSE_CANCEL, button, GTK_RESPONSE_ACCEPT, NULL);
+    // theme the window
+    if (shoes_css_provider != NULL) {
+      gtk_style_context_add_provider(gtk_widget_get_style_context(dialog),
+          GTK_STYLE_PROVIDER(shoes_css_provider),
+          GTK_STYLE_PROVIDER_PRIORITY_USER);
+    }
     if (act == GTK_FILE_CHOOSER_ACTION_SAVE)
         gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
     if(RTEST(shoes_hash_get(attr, rb_intern("save"))))
