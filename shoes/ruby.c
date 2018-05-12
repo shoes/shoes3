@@ -766,7 +766,7 @@ void shoes_ruby_init() {
     rb_define_method(cCanvas, "remove", CASTHOOK(shoes_canvas_remove), 0);
     rb_define_method(cCanvas, "refresh_slot", CASTHOOK(shoes_canvas_refresh_slot), 0);
     rb_define_method(cCanvas, "refresh", CASTHOOK(shoes_canvas_refresh_slot), 0);
-    rb_define_method(cCanvas, "cursor=", CASTHOOK(shoes_canvas_get_cursor), 0);
+    rb_define_method(cCanvas, "cursor", CASTHOOK(shoes_canvas_get_cursor), 0);
     rb_define_method(cCanvas, "cursor=", CASTHOOK(shoes_canvas_set_cursor), 1);
 
     cShoes = rb_define_class("Shoes", cCanvas);

@@ -5469,6 +5469,38 @@ symbol provided for the argument - one of :memory, :external, :all
 
 Always returns true. 
 
+=== app.cursor » symbol ===
+
+Returns the cursor symbol currently set for the Window (app). 
+
+=== app.cursor = symbol ===
+
+Sets the cursor to the symbol. The symbols is one of the following: 
+`:arrow_cursor`, `:text_cursor`, `:watch_cursor` or `:hand_cursor`.
+
+{{{
+Shoes.app do
+  stack do
+    para "Change cursor to"
+    flow do
+      button "arrow" do
+        app.cursor = :arrow_cursor
+      end
+      button "text" do
+        app.cursor = :text_cursor
+      end
+      button "watch" do
+        app.cursor = :watch_cursor
+      end
+      button "hand" do
+        app.cursor = :hand_cursor
+      end
+    end
+    para "Cursor is #{app.cursor.inspect}"
+  end
+end
+}}}
+
 === app.decorated » true or false ===
 
 Decorations are the title bar and window resize controls. 

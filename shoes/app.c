@@ -67,7 +67,7 @@ VALUE shoes_app_alloc(VALUE klass) {
     app->resizable = TRUE;
     app->decorated = TRUE;
     app->opacity = 1.0;
-    app->cursor = s_arrow;
+    app->cursor = s_arrow_cursor;
     app->use_event_handler = 0;
     app->have_menu = 0;
     app->menubar = rb_ary_new();

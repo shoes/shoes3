@@ -543,7 +543,7 @@ void shoes_cairo_arc(cairo_t *, double, double, double, double, double, double);
   f(body); f(cancel); f(call); f(center); f(change); f(choose); f(click); \
   f(corner); f(curve); f(distance); f(displace_left); f(displace_top); \
   f(downcase); f(draw); f(emphasis); f(end); f(family); f(fill); f(finish); \
-  f(font); f(fraction); f(fullscreen); f(group); f(hand); f(headers); \
+  f(font); f(fraction); f(fullscreen); f(group); f(headers); \
   f(hidden); f(host); f(hover); f(href); f(insert); f(inner); f(items); \
   f(justify); f(kerning); f(keydown); f(keypress); f(keyup); f(match); \
   f(method); f(motion); f(leading); f(leave); f(ok); f(outer); f(path); \
@@ -558,7 +558,8 @@ void shoes_cairo_arc(cairo_t *, double, double, double, double, double, double);
   f(square); f(undercolor); f(underline); f(variant); f(weight); f(wrap); \
   f(dash); f(nodot); f(onedot); f(donekey); f(volume); f(bg_color); \
   f(decorated); f(opacity); f(cache); f(event); f(btn_activate); \
-  f(menus); f(menubar); f(menu); f(menuitem); f(settings); f(monitor);
+  f(menus);  f(monitor); \
+  f(arrow_cursor); f(watch_cursor); f(text_cursor); f(hand_cursor);
 #define SYMBOL_INTERN(name) s_##name = rb_intern("" # name)
 #define SYMBOL_ID(name) ID s_##name
 #define SYMBOL_EXTERN(name) extern ID s_##name

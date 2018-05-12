@@ -846,12 +846,14 @@ shoes_app_cursor(shoes_app *app, ID cursor)
   if (app->os.window == NULL || app->cursor == cursor)
     goto done;
 
-  if (cursor == s_hand || cursor == s_link)
+  if (cursor == s_hand_cursor || cursor == s_link)
     [[NSCursor pointingHandCursor] set];
-  else if (cursor == s_arrow)
+  else if (cursor == s_arrow_cursor)
     [[NSCursor arrowCursor] set];
-  else if (cursor == s_text)
+  else if (cursor == s_text_cursor)
     [[NSCursor IBeamCursor] set];
+  else if (cursor == s_watch_cursor)
+    [[NSCursor operationNotAllowedCursor] set];
   else
     goto done;
 

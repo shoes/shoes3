@@ -788,24 +788,28 @@ shoes_code shoes_app_cursor(shoes_app *app, ID cursor) {
     if (gtk_get_minor_version() >= 16) {
       // TODO: muliple-moniter support needs? 
       GdkDisplay *dsp = gdk_display_get_default();
-      if (cursor == s_hand || cursor == s_link) {
+      if (cursor == s_hand_cursor || cursor == s_link) {
           c = gdk_cursor_new_for_display(dsp, GDK_HAND2);
-      } else if (cursor == s_arrow) {
+      } else if (cursor == s_arrow_cursor) {
           c = gdk_cursor_new_for_display(dsp, GDK_ARROW);
-      } else if (cursor == s_text) {
+      } else if (cursor == s_text_cursor) {
           c = gdk_cursor_new_for_display(dsp, GDK_XTERM);
+      } else if (cursor == s_watch_cursor) {
+          c = gdk_cursor_new_for_display(dsp, GDK_WATCH);
       } else
           goto done;
     } else {
       // Windows gtk may be older than 3.16
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-      if (cursor == s_hand || cursor == s_link) {
+      if (cursor == s_hand_cursor || cursor == s_link) {
           c = gdk_cursor_new(GDK_HAND2);
-      } else if (cursor == s_arrow) {
+      } else if (cursor == s_arrow_cursor) {
           c = gdk_cursor_new(GDK_ARROW);
-      } else if (cursor == s_text) {
+      } else if (cursor == s_text_cursor) {
           c = gdk_cursor_new(GDK_XTERM);
+      } else if (cursor == s_watch_cursor) {
+          c = gdk_cursor_new(GDK_WATCH);
       } else
           goto done;
 #pragma GCC diagnostic pop

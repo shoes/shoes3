@@ -21,8 +21,8 @@ module PackShoes
     opts['publisher'] = 'shoerb' unless opts['publisher']
     opts['website'] = 'http://shoesrb.com/' unless opts['website']
     opts['hkey_org'] = 'mvmanila.com'
-	  opts['app_ico'] = "#{Dir.getwd}/#{packdir}/nsis/shoes.ico" unless opts['app_ico']
-	  opts['app_installer_ico'] = 'nsis/shoes.ico' unless opts['app_installer_ico']
+	  opts['app_ico'] = "#{DIR}/lib/package/nsis/shoes.ico" unless opts['app_ico']
+	  opts['app_installer_ico'] = "#{DIR}/lib/package/nsis/shoes.ico" unless opts['app_installer_ico']
 	  opts['nsis_name'] = opts['installer_header'] ? opts['installer_header'] : opts['app_name']
 	  opts['app_startmenu'] = opts['app_name'] unless opts['app_startmenu']
 	  opts['app_version'] = '1'
@@ -30,9 +30,9 @@ module PackShoes
 	  ruby_ver = RUBY_VERSION[/\d.\d/].to_str
 	
     toplevel = []
-    yield "copy shoes" if blk
+    yield "Copy Shoes" if blk
     Dir.chdir(DIR) { Dir.glob('*') {|f| toplevel << f} }
-    exclude = %w(static CHANGELOG.txt cshoes.exe gmon.out README.txt samples)
+    exclude = %w(static CHANGELOG.txt cshoes.exe gmon.out README.txt samples tmp)
     rm_rf packdir
     mkdir_p(packdir) # where makensis will find it.
     (toplevel-exclude).each { |p| cp_r File.join(DIR, p), packdir }
@@ -45,11 +45,11 @@ module PackShoes
     IO.foreach("#{DIR}/COPYING.txt") {|ln| licf.puts ln}
     licf.close
 	
-    # we do need some statics for console to work. 
+    # we need some statics for console to work. 
     mkdir_p "#{packdir}/static"
     Dir.glob("#{DIR}/static/icon*.png") { |p| cp p, "#{packdir}/static" }
     opts['app_png'] ? ( cp "#{opts['app_loc']}/#{opts['app_png']}", "#{packdir}/static/app-icon.png" ) : nil
-
+=begin
     # remove chipmonk and ftsearch unless requested
     exts = opts['include_exts'] || []
     if  !exts || ! exts.include?('ftsearch')
@@ -61,23 +61,26 @@ module PackShoes
       puts "removing chipmunk"
       rm "#{packdir}/lib/shoes/chipmunk.rb"
     end
+=end
     yield "remove uneeded" if blk
     # get rid of some things in lib
     rm_rf "#{packdir}/lib/exerb"
+    rm_rf "#{packdir}/lib/package"
     rm_rf "#{packdir}/lib/gtk-2.0" if File.exist? "#{packdir}/lib/gtk-2.0"
     # remove unreachable code in packdir/lib/shoes/ like help, app-package ...
     not_needed = ['cobbler', 'debugger', 'shoes_irb', 'pack', 'app_package', 'packshoes', 'remote_debugger', 'winject', 'envgem']
 	  not_needed.each {|f| rm "#{packdir}/lib/shoes/#{f}.rb" }
+    yield "copy application"
     # copy app contents (file/dir at a time)
     app_contents = Dir.glob("#{opts['app_loc']}/*")
     app_contents.each { |p| cp_r p, packdir }
     #create new lib/shoes.rb with rewrite
     newf = File.open("#{packdir}/lib/shoes.rb", 'w')
-    rewrite newf, 'min-shoes.rb', {'APP_START' => opts['app_start'] }
+    rewrite newf, "#{DIR}/lib/package/min-shoes.rb", {'APP_START' => opts['app_start'] }
     newf.close
     # create a new lib/shoes/log.rb with rewrite
     logf = File.open("#{packdir}/lib/shoes/log.rb", 'w')
-    rewrite logf, 'min-log.rb', {'CONSOLE_HDR' => "#{opts['app_name']} Errors"}
+    rewrite logf, "#{DIR}/lib/package/min-log.rb", {'CONSOLE_HDR' => "#{opts['app_name']} Errors"}
     logf.close
     yield "process gems" if blk
     # Delete all gems besides the chosen one //dredknight
@@ -95,9 +98,9 @@ module PackShoes
 
     yield "make installer - patience please" if blk
     puts "make_installer"
-    mkdir_p "pkg"
+    #mkdir_p "pkg"
     rm_rf "#{packdir}/nsis"
-    cp_r  "nsis", "#{packdir}/nsis"
+    cp_r  "#{DIR}/lib/package/nsis", "#{packdir}"
     # Icon for installer
     cp opts['app_installer_ico'], "#{packdir}/nsis/setup.ico"
     # change nsis side bar and top images (bmp only)

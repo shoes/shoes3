@@ -781,7 +781,7 @@ but it needs to know where Shoes is"
     @panel.clear
     @panel.append do
       stack do
-        tagline "The will merge your app into a copy of Shoe for Windows"
+        tagline "The will merge your app into a copy of Shoes for Windows"
         flow do 
           para "This avoids the dreaded Windows 10 Install problems and much "
           para "more. Shoes can be hidden from the user.  It won't conflict with "
@@ -797,7 +797,7 @@ but it needs to know where Shoes is"
         if ! File.exist? utilp
           rsexe = "reshacker_setup.exe"
           nsexe = "nsis-2.46.5-Unicode-setup.exe"
-          para "Where is ResourceHacker.exe  "
+          para "Where is ResourceHacker.exe?  "
           flow do
             @rhel = edit_line width:300
             button "Download" do
@@ -836,9 +836,8 @@ but it needs to know where Shoes is"
           end
         end
         st = Shoes.settings
-        button "Merge (testing)", margin: 5 do
-            # Tell build-exe that its standalone
-            require "#{st.extra1}"
+        button "Merge", margin: 5 do
+            require "package/build-exe"
         end
         @info_panel = stack do
         end

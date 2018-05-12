@@ -1218,7 +1218,7 @@ VALUE shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url, VALUE mods) 
             shoes_canvas *self_t;
             Data_Get_Struct(self, shoes_canvas, self_t);
             if (self_t->app->cursor == s_link)
-                shoes_app_cursor(self_t->app, s_arrow);
+                shoes_app_cursor(self_t->app, s_arrow_cursor);
         }
     }
 
