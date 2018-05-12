@@ -2783,10 +2783,48 @@ The `title` and `tagline` elements will be added to the end of the `@slot`.
 Adds elements to a specific place in a slot, just after the `element` which is
 a child of the slot.
 
+The command should be executed for the slot (slot.after) where the entry will be added.
+The element should be a full path (slot.element) after which the new entry will be pushed.
+
+{{{
+ #!ruby
+Shoes.app do
+	@my_stack = stack do
+		background yellow
+		para 'number 1'
+		para 'number 2'
+		para 'number 3'
+		para 'number 4'
+	end
+       @my_stack.after(@my_stack.contents[1] ) do
+		para 'number 1.5'
+	end
+end
+}}}
+
 === before(element) { ... } » self ===
 
 Adds elements to a specific place in a slot, just before the `element` which is
 a child of the slot.
+
+The command should be executed for the slot (slot.before) where the entry will be added.
+The element should be a full path (slot.element) before which the new entry will be pushed.
+
+{{{
+ #!ruby
+Shoes.app do
+	@my_stack = stack do
+		background yellow
+		para 'number 1'
+		para 'number 2'
+		para 'number 3'
+		para 'number 4'
+	end
+       @my_stack.before(@my_stack.contents[2] ) do
+		para 'number 1.5'
+	end
+end
+}}}
 
 === clear() » self ===
 

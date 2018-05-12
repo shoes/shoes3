@@ -90,5 +90,14 @@ SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so.2.40.5"
 SOLOCS['curl'] = "#{EXT_RUBY}/lib/libcurl.so.4.4.0"
 
 # sigh, curl and tyhpoeus - processed in setup.rb
+
 SYMLNK = {}
 SYMLNK['libcurl.so.4.4.0'] = ['libcurl.so', 'libcurl.so.4']
+SYMLNK['libgif.so.4.1.6'] = ['libgif.so', 'libgif.so.4']
+SYMLNK['libjpeg.so.8.4.0'] = ['libjpeg.so', 'libjpeg.so.8']
+SYMLNK['libyaml-0.so.2.0.4'] = ['libyaml.so', 'libyaml-0.so.2']
+SYMLNK['libcrypto.so.1.0.0'] = ['libcrypto.so', 'libcrypto.so.1']
+SYMLNK['libssl.so.1.0.0'] = ['libssl.so']
+SYMLNK['libsqlite3.so.0.8.6'] = ['libsqlite3.so', 'libsqlite3.so.0']
+SYMLNK['libffi.so.5.0.10'] = ['libffi.so', 'libffi.so.6']
+SYMLNK['librsvg-2.so.2.40.5'] = ['librsvg-2.so', 'librsvg-2.so.2']

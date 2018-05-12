@@ -27,10 +27,11 @@
 === New with 3.3.6
   * Can set font and stroke color for Button, edit_line, edit_box,
     list_box and switch native widgets. 
-
+    https://github.com/shoes/shoes3/issues/179
 
 === Fixed with 3.3.6
-
+    Linux versions may not have workable symlinks to .so's
+    https://github.com/shoes/shoes3/issues/392
 
 === Developer Issues with 3.3.6
   * remove undocumented game mode for shoes.terminal
