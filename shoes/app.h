@@ -20,7 +20,7 @@
 #define SHOES_APP_WIDTH  600
 #define SHOES_APP_HEIGHT 500
 #define SHOES_SHORTNAME  "shoes"
-#define SHOES_APPNAME    "Shoes"
+//#define SHOES_APPNAME    "Shoes"
 #define SHOES_VLCLASS    "Shoes VLC"
 #define SHOES_SLOTCLASS  "Shoes Slot"
 #define SHOES_HIDDENCLS  "Shoes Hidden"

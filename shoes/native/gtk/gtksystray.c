@@ -5,6 +5,7 @@
 #include "shoes/native/native.h"
 #include "shoes/types/native.h"
 #include "shoes/internal.h"
+#include "shoes/types/settings.h"
 #include "shoes/native/gtk/gtksystray.h"
 
 /* 
@@ -30,8 +31,10 @@ static void shoes_native_systray_gapp(char *title, char *message, char *path) {
   g_notification_set_body (note, message);
   GFile *iconf = g_file_new_for_path (path);
   GIcon *icon = g_file_icon_new (iconf);
-  g_notification_set_icon(note, icon);
-  g_application_send_notification (G_APPLICATION(shoes_GtkApp), shoes_app_name, note);
+  g_notification_set_icon(note, icon);  //TODO: could get icon from settings
+  shoes_settings *st;
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+  g_application_send_notification (G_APPLICATION(shoes_GtkApp), RSTRING_PTR(st->app_name), note);
 }
 #endif
 // Always compile the old version (gtk_status_icon)

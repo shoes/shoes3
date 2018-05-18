@@ -312,7 +312,6 @@ void shoes_app_title(shoes_app *app, VALUE title) {
       app->title = st->app_name;
     }
     msg = RSTRING_PTR(app->title);
-    shoes_app_name = msg;
     shoes_native_app_title(app, msg);
 }
 

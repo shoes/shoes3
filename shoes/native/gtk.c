@@ -878,7 +878,13 @@ void shoes_native_app_set_icon(shoes_app *app, char *icon_path) {
 
 // new in 3.2.19. TODO 3.3.7 update for use_menu app->os.window
 void shoes_native_app_set_wtitle(shoes_app *app, char *wtitle) {
-    gtk_window_set_title(GTK_WINDOW(app->slot->oscanvas), _(wtitle));
+    //gtk_window_set_title(GTK_WINDOW(app->slot->oscanvas), _(wtitle));
+    GtkWindow *win;
+    if (app->have_menu)
+      win = (GtkWindow *)app->os.window;
+    else
+      win = (GtkWindow *) app->slot->oscanvas;  // TODO: needed? 
+    gtk_window_set_title(GTK_WINDOW(win), _(wtitle));
 }
 
 // new in 3.3.3 - opacity  can use the older api on old Gtk3 

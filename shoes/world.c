@@ -249,7 +249,6 @@ shoes_code shoes_final() {
 #include <yaml.h>
 // More C globals
 shoes_yaml_init *shoes_config_yaml = NULL; 
-char *shoes_app_name = "Shoes";
 
 int shoes_init_load_yaml() {
     FILE* fh = fopen("shoes.yaml", "r");

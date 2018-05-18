@@ -62,7 +62,6 @@ VALUE shoes_settings_new(shoes_yaml_init *yml) {
   Data_Get_Struct(shoes_world->settings, shoes_settings, st);
   if (yml->app_name) {
     st->app_name = rb_str_new2(yml->app_name);
-    shoes_app_name = strdup(yml->app_name);
   }
   
   if (yml->icon_path) {
