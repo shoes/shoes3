@@ -104,7 +104,7 @@ typedef struct _shoes_yaml_init {
 
 extern shoes_yaml_init *shoes_config_yaml;
 
-SHOES_EXTERN int shoes_init_load_yaml();
+SHOES_EXTERN int shoes_init_load_yaml(char *path);
 
 #ifdef __cplusplus
 }

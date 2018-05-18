@@ -55,9 +55,9 @@
 
 #define SHOES_SIGNAL
 #ifdef SHOES_GTK_WIN32
-#define SHOES_INIT_ARGS  HINSTANCE inst, int style
+#define SHOES_INIT_ARGS  HINSTANCE inst, int style, char *path
 #else
-#define SHOES_INIT_ARGS void
+#define SHOES_INIT_ARGS char *path
 #endif
 #define SHOES_EXTERN
 
@@ -146,7 +146,7 @@ typedef struct {
 #define SHOES_SIGNAL
 #define SHOES_HELP_MANUAL 3044
 #define SHOES_CONTROL1    3045
-#define SHOES_INIT_ARGS void
+#define SHOES_INIT_ARGS char *path
 #define SHOES_EXTERN
 
 typedef struct {
@@ -219,7 +219,7 @@ typedef struct {
 
 #define SHOES_CONTROL1   3045
 #define SHOES_WM_MESSAGE (WM_APP + 3045)
-#define SHOES_INIT_ARGS  HINSTANCE inst, int style
+#define SHOES_INIT_ARGS  HINSTANCE inst, int style, char *path
 #define SHOES_EXTERN __declspec(dllexport)
 
 typedef struct {

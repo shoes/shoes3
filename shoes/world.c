@@ -120,7 +120,7 @@ shoes_code shoes_init(SHOES_INIT_ARGS) {
     shoes_world->os.style = style;
 #endif
     // parse shoes.yaml file and update settings class/object
-    shoes_init_load_yaml();
+    shoes_init_load_yaml(path);
     
     shoes_native_init();
 
@@ -247,15 +247,14 @@ shoes_code shoes_final() {
 #include <stdio.h>
 #include <string.h>
 #include <yaml.h>
-// More C globals
+// Another C global
 shoes_yaml_init *shoes_config_yaml = NULL; 
 
-int shoes_init_load_yaml() {
-    FILE* fh = fopen("shoes.yaml", "r");
+int shoes_init_load_yaml(char *path) {
     yaml_parser_t parser;
     yaml_token_t token;
     if (!yaml_parser_initialize(&parser)) {
-        fputs("Failed to initialize parser!\n", stderr);
+        fputs("Failed to initialize yaml parser!\n", stderr);
         return 0;
     }
     // set defaults
@@ -270,6 +269,19 @@ int shoes_init_load_yaml() {
     shoes_config_yaml->extra1 = NULL;
     shoes_config_yaml->extra2 = NULL;
     
+    // check current dir (script location) first
+    FILE* fh = fopen("startup.yaml", "r");
+    if (fh == NULL) {
+      // check where Shoes was launched from - argv[0] sort-of). 
+      // We don't have DIR yet so do what it does
+      char buf[200];
+      sprintf(buf, "File.expand_path(File.dirname(%%q<%s>));", path);
+      VALUE dpv = rb_eval_string(buf);
+      char *dp = RSTRING_PTR(dpv);
+      strcpy(buf, dp);
+      strcat(buf,"/startup.yaml");
+      fh = fopen(buf, "r");
+    }
     if (fh != NULL) {
       yaml_parser_set_input_file(&parser, fh);
       /* As this is an example, I'll just use:

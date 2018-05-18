@@ -186,7 +186,9 @@ Shoes.app :title => "Shoes Cobbler", menus: true do
     osxitem = menuitem "Advanced OSX"
     osxitem.enable = false unless RUBY_PLATFORM =~ /darwin/
     @pkgmenu << osxitem
-    debitem = menuitem "Advanced .deb"
+    debitem = menuitem "Linux Merge .deb" do
+      lin_merge_screen
+    end
     debitem.enable = false unless RUBY_PLATFORM =~ /linux/
     @pkgmenu << debitem
     @mb << @pkgmenu
@@ -865,5 +867,19 @@ but it needs to know where Shoes is"
 		        }
 	      end
       end
+  end
+  
+  def lin_merge_screen
+    @panel.clear
+    @panel.append do
+      stack do
+        tagline "Linux - Merge you aoo into Shoes and create a .deb"
+        para "You need some things like icons and ..."
+        # should check and only perform on Loose Shoes.
+        button "Merge" do
+          require "package/build-lin"
+        end
+      end
+    end
   end
 end # App

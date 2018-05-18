@@ -128,9 +128,9 @@ main(argc, argv)
     argc--;
  }
 #ifdef SHOES_WIN32
-  code = shoes_init(inst, style);
+  code = shoes_init(inst, style, path);
 #else
-  code = shoes_init();
+  code = shoes_init(path);
 #endif
   if (code != SHOES_OK)
     goto done;
