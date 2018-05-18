@@ -17,6 +17,7 @@ void shoes_settings_init() {
 
 void shoes_settings_mark(shoes_settings *st) {
     rb_gc_mark_maybe(st->app_name);
+    rb_gc_mark_maybe(st->icon_path);
     rb_gc_mark_maybe(st->theme);
     rb_gc_mark_maybe(st->theme_path);
     rb_gc_mark_maybe(st->mdi);
@@ -38,6 +39,7 @@ VALUE shoes_settings_alloc(VALUE klass) {
     SHOE_MEMZERO(st, shoes_settings, 1);
     obj = Data_Wrap_Struct(klass, shoes_settings_mark, shoes_settings_free, st);
     st->app_name = Qnil;
+    st->icon_path = Qnil;
     st->theme = Qnil;
     st->theme_path = Qnil;
     st->mdi = Qnil;
@@ -61,6 +63,10 @@ VALUE shoes_settings_new(shoes_yaml_init *yml) {
   if (yml->app_name) {
     st->app_name = rb_str_new2(yml->app_name);
     shoes_app_name = strdup(yml->app_name);
+  }
+  
+  if (yml->icon_path) {
+    st->icon_path = rb_str_new2(yml->icon_path);
   }
   if (yml->theme_name == NULL)
     st->theme = Qnil;
@@ -112,6 +118,27 @@ VALUE shoes_settings_app_name(VALUE self) {
   Data_Get_Struct(self, shoes_settings, st);
   return st->app_name;  
 }
+
+VALUE shoes_settings_set_app_name(VALUE self, VALUE name) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  st->app_name = name;
+  return name;
+}
+
+VALUE shoes_settings_app_icon(VALUE self) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  return st->icon_path;
+}
+
+VALUE shoes_settings_set_app_icon(VALUE self, VALUE path) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  st->icon_path = path;
+  return path;  
+}
+
 
 /* 
  * Theme name. Path is somewhere in Shoes share/ ??

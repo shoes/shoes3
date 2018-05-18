@@ -5585,10 +5585,10 @@ of this manual for Settings and Monitor.
 === app.name » string ===
 Returns the title string for the App. Usually the string in the window's title bar.
 
-=== app.name(String) ===
+=== app.name = String ===
 
-Sets the title string of the current window. See set_window_title below. 
-Parenthesis are required.
+Sets the title string of the current window. See Advanced/Settings or
+app.set_window_title below to make the title string apply to new windows. 
 
 === app.location » shoes-url ===
 
@@ -5647,7 +5647,7 @@ stacks and flows and elements.
 This is the preferred method for getting an array of stacks and flows for the windows
 that Shoes.APPS[] knows about.  
 
-For example you have two windows (apps) and want append a para to all but a specific window (app)
+For example you have two windows (apps) and want to append a para to all but a specific window (app)
 
 {{{
  #!ruby
@@ -5674,6 +5674,8 @@ This sets the icon in the title bar (and the dock or taskbar of your OS)
 for this window and any others you create from this script. It replaces the little Shoes federales icon.
 If you need this, do it for every app.  Depending on your OS, theme and desktop settings,
 the icon may not be displayed at all.
+
+See Advanced->Settings for additional possibilies.
 
 {{{
  #!ruby
@@ -5867,12 +5869,59 @@ Shoes starts your script - even before Shoes starts it's own scripts.
 
 
 You can supply a shoes.yaml file with your application and Shoes will use those
-instead of the defaults. `TODO: expand this section.`
+instead of the normal defaults. This should interest those that want to create more 
+polished applications that the simple Shoes defaults. Please see the wiki
+for some additional hints. Most of these settings are to improve Merge packaging. 
+Again, see the Wiki. 
 
 === Shoes.settings » object ===
 
-Once you get the settings object then you check somethings. Some you can
+Once you get the settings object then you check some things. Some you can
 modify. 
+
+=== settings.app_name » string ===
+
+Returns the application name. By default this is "Shoes" and is used as the 
+default to Winodws titles and dialog titles and a few other user visible places.
+
+=== settings.app_name = string ===
+
+Set the default application name. The string will be used where ever "Shoes"
+would appear in the menus or titles. 
+
+=== settings.icon_path » string ===
+
+Returns the Icon_Path string from the shoes.yaml. The icon is a png that
+should be inside the Shoes (your) app. Default is "static/shoes-app-icon.png"
+
+=== settings.icon_path  = path_string ===
+
+When called this way it's behaves like `app.set_window_icon_path`
+
+=== setting.theme » string ===
+
+For Linux and Windows, you can include a Gtk3 theme name in the shoes.yaml file,
+field `Theme;` The theme must be included with Shoes (see Merge packaging) in a themes folder.
+If given, it's checked and used before any theme choices in the user's diretory -
+~/.shoes/themes/ or {APPDATA}/Local/Shoes/Themes, should the user have them.
+On linux, the theme will override/merge with the theme chosen in your desktop window
+manager. 
+
+=== settings.extra1 » string ===
+
+Returns the `Extra1` string from the shoes.yaml. Up to the developer what
+the string means or does.
+
+=== settings.extra2 » string ===
+
+Returns the `Extra2` string from the shoes.yaml. Up to the developer what
+the string means or does.
+
+=== setting.use_menus » boolean ===
+
+Returns the setting of the shoes.yaml `Use_menus` entry. This will put
+a small default menubar on every window (app)  in the application. If used, 
+it overrides the individual `menus: ` value for app/windows creation. 
 
 === settings.monitor_count » integer ===
 
@@ -5890,9 +5939,38 @@ multiple monitors in Shoes.
 
 Returns the geometery of the monitor given the index. By definition this
 is a user specific value and it's also platfrom dependent. It is not wise
-to use the x,y values unless you have a very specific single plaform, single
-use application. In particular, do not use the second monitor for full screen
+to use the x,y values unless you are targeting have a very specific single plaform, single
+use application. In particular, try not use the second monitor for full screen
 pixel based drawing (games).
+
+=== settings.mdi » boolean ===
+
+A Linux and Windows Future. Not implemented yet. OSX already does this and
+needs no setting. MDI is Multi-Mocument-Interface. When `MDI: true` is in the
+shoes.yaml file the the desktop window manager will send `open` requests to
+a running Shoes app when the user double clicks on a file the desktop manager
+believes your application will handle. Linux uses the registered `dbus` name,
+See below.
+
+By not implemented, I mean that we don't get open requests. We do get a dbus
+name. 
+
+=== settings.rdomain » string ===
+
+If an `Rdomain: <string>` entry is in the shoes.yaml file then it will be used 
+instead of `com.shoesrb` to form the dbus name. Your setting for `App_Name` will be used
+as well. So the default dbus name would be com.rbshoes.shoes. If MDI is false then the 
+process id (pid) in Linux is appended. That make the dbus name fairly unique 
+(enough) that you can start multiple shoes apps without one of them grabbing open
+requests from the desktop that don't belong to it.  When MDI is true,  you don't 
+want a unique name.  This has effects for systray notifications. 
+
+=== settings.dbus » string ===
+
+Linux and Windows only. As described above, this returns the registered dbus
+name for the process. Linux users might use that and a dbus gem to communicate with other
+applications that support dbus. Many Linux application do and in theory your 
+Shoes application can too. In Theory.
 
 For example
 {{{

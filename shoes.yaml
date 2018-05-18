@@ -1,4 +1,5 @@
-#App_Name: Foobar
+App_Name: Foobar
+Icon_Path: static/shoes-icon-blue.png
 #Theme: XP 
-Use_Menus: true 
+Use_Menus: true
 Extra1: E:\exe-shoes\build-exe.rb

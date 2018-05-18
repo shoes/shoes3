@@ -93,6 +93,7 @@ SHOES_EXTERN shoes_code shoes_final(void);
 typedef struct _shoes_yaml_init {
     int   active;
     char* app_name;
+    char* icon_path;
     char* theme_name;
     char* rdomain;
     char* use_menus;

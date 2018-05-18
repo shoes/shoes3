@@ -156,7 +156,7 @@ Shoes.app :title => "Shoes Cobbler", menus: true do
       csitem = menuitem "Setup ./cshoes" do
         cshoes_screen
       end
-      pfmenu << csitem
+      @pfmenu << csitem
     end
     @mb << @gemmenu
     @mb << @pfmenu

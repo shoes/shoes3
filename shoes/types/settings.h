@@ -13,6 +13,7 @@ extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget, cShoesMenubar;
 
 typedef struct {
   VALUE app_name;
+  VALUE icon_path;
   VALUE theme;
   VALUE theme_path;
   VALUE mdi; 
@@ -34,6 +35,9 @@ VALUE shoes_settings_alloc(VALUE klass);
 VALUE shoes_settings_new(shoes_yaml_init *);
 VALUE shoes_settings_dbus(VALUE self);
 VALUE shoes_settings_app_name(VALUE self);
+VALUE shoes_settings_set_app_name(VALUE self, VALUE name);
+VALUE shoes_settings_app_icon(VALUE self);
+VALUE shoes_settings_set_app_icon(VALUE self, VALUE path);
 VALUE shoes_settings_get_theme(VALUE self);
 VALUE shoes_settings_set_theme(VALUE self, VALUE theme);
 VALUE shoes_settings_mdi(VALUE self);

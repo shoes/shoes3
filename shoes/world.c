@@ -259,8 +259,10 @@ int shoes_init_load_yaml() {
         fputs("Failed to initialize parser!\n", stderr);
         return 0;
     }
+    // set defaults
     shoes_config_yaml = malloc(sizeof(shoes_yaml_init));
     shoes_config_yaml->app_name = "Shoes";
+    shoes_config_yaml->icon_path = "static/shoes-icon.png";
     shoes_config_yaml->theme_name = NULL;
     shoes_config_yaml->active = FALSE;
     shoes_config_yaml->rdomain = "com.shoesrb.shoes";
@@ -291,6 +293,8 @@ int shoes_init_load_yaml() {
                          one string is a literal */
                       if (!strcmp(tk, "App_Name")) {
                           datap = &shoes_config_yaml->app_name;
+                      } else if (!strcmp(tk,"Icon_Path")) {
+                          datap = &shoes_config_yaml->icon_path;
                       } else if (!strcmp(tk, "Theme")) {
                           datap = &shoes_config_yaml->theme_name;
                       } else if (!strcmp(tk,"RDomain")) {

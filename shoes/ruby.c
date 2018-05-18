@@ -819,6 +819,9 @@ void shoes_ruby_init() {
     rb_define_alloc_func(cSettings, shoes_settings_alloc);
     rb_define_method(cSettings, "dbus", CASTHOOK(shoes_settings_dbus),0);
     rb_define_method(cSettings, "app_name", CASTHOOK(shoes_settings_app_name),0);
+    rb_define_method(cSettings, "app_name=", CASTHOOK(shoes_settings_set_app_name),1);
+    rb_define_method(cSettings, "icon_path", CASTHOOK(shoes_settings_app_icon),0);
+    rb_define_method(cSettings, "icon_path=", CASTHOOK(shoes_settings_set_app_icon),1);
     rb_define_method(cSettings, "theme", CASTHOOK(shoes_settings_get_theme),0);
     rb_define_method(cSettings, "theme=", CASTHOOK(shoes_settings_set_theme),1);
     rb_define_method(cSettings, "mdi", CASTHOOK(shoes_settings_mdi),0);

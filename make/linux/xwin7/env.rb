@@ -162,6 +162,7 @@ SOLOCS.merge!(
     'croco'       => "#{bindll}/libcroco-0.6-3.dll",
     'rsvg'        => "#{bindll}/librsvg-2-2.dll",
     'curl'        => "#{bindll}/libcurl-4.dll",
+     #'portaudio' => "#{bindll}/libportaudio-2.dll",
     'thread'      => "#{bindll}/libgthread-2.0-0.dll",
     'zlib1'       => "#{bindll}/zlib1.dll",
     'siji'        => "/usr/lib/gcc/i686-w64-mingw32/5.3-posix/libgcc_s_sjlj-1.dll",

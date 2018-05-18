@@ -474,9 +474,17 @@ static gboolean shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gp
     return TRUE;
 }
 
+// called only by Window signal handler for "size-allocate"
 static void shoes_app_gtk_paint(GtkWidget *widget, cairo_t *cr, gpointer data) {
+    // TODO: this only sets things in app-> It does not move anything directly
+    // really should use widget_size(app->slot-oxcanvas) when menus active
     shoes_app *app = (shoes_app *)data;
     gtk_window_get_size(GTK_WINDOW(app->os.window), &app->width, &app->height);
+    if (app->have_menu) {
+      // window size includes menubar , we want canvas height
+      app->height -= app->mb_height;
+      fprintf(stderr,"size_paint wid: %d hgt: %d\n", app->width, app->height);
+    }
     shoes_canvas_size(app->canvas, app->width, app->height);
 }
 
@@ -598,6 +606,7 @@ static void shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpoint
     VALUE c = (VALUE)data;
     shoes_canvas *canvas;
     Data_Get_Struct(c, shoes_canvas, canvas);
+    fprintf(stderr,"sizing\n");
     if (canvas->slot->vscroll &&
             (size->height != canvas->slot->scrollh || size->width != canvas->slot->scrollw)) {
         GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
@@ -606,7 +615,9 @@ static void shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpoint
         //gtk_widget_set_size_request(GTK_CONTAINER(widget), canvas->app->width, size->height);
 
         GtkAllocation alloc;
-        gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);
+        gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);  
+        fprintf(stderr,"size: %d %d %d %d\n", size->x, size->y, size->width, size->height);
+        fprintf(stderr, "alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
         gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
                        size->width - alloc.width, 0);
         gtk_adjustment_set_page_size(adj, size->height);
@@ -614,9 +625,9 @@ static void shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpoint
 
         if (gtk_adjustment_get_page_size(adj) >= gtk_adjustment_get_upper(adj))
             gtk_widget_hide(canvas->slot->vscroll);
-        else
+        else {
             gtk_widget_show(canvas->slot->vscroll);
-
+        }
         canvas->slot->scrollh = size->height;
         canvas->slot->scrollw = size->width;
     }
@@ -823,6 +834,7 @@ done:
 
 void shoes_native_app_title(shoes_app *app, char *msg) {
     gtk_window_set_title(GTK_WINDOW(app->os.window), _(msg));
+    //gtk_window_set_title(GTK_WINDOW(app->os.window), msg);
 }
 
 void shoes_native_app_resize_window(shoes_app *app) {
@@ -855,11 +867,16 @@ void shoes_native_app_fullscreen(shoes_app *app, char yn) {
 void shoes_native_app_set_icon(shoes_app *app, char *icon_path) {
     // replace default icon
     gboolean err;
-    err = gtk_window_set_icon_from_file((GtkWindow *) app->slot->oscanvas, icon_path, NULL);
+    GtkWindow *win;
+    if (app->have_menu)
+      win = (GtkWindow *)app->os.window;
+    else
+      win = (GtkWindow *) app->slot->oscanvas;  // TODO: needed? 
+    err = gtk_window_set_icon_from_file(win, icon_path, NULL);
     err = gtk_window_set_default_icon_from_file(icon_path, NULL);
 }
 
-// new in 3.2.19
+// new in 3.2.19. TODO 3.3.7 update for use_menu app->os.window
 void shoes_native_app_set_wtitle(shoes_app *app, char *wtitle) {
     gtk_window_set_title(GTK_WINDOW(app->slot->oscanvas), _(wtitle));
 }
@@ -909,7 +926,7 @@ void shoes_native_app_window_move(shoes_app *app, int x, int y) {
  */
  
 shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
-#if !defined(SHOES_GTK_WIN32)
+#if 0 //!defined(SHOES_GTK_WIN32)
     char icon_path[SHOES_BUFSIZE];
     sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
     gtk_window_set_default_icon_from_file(icon_path, NULL);
@@ -919,6 +936,19 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
 
     shoes_settings *st;
     Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+    
+    char icon_path[SHOES_BUFSIZE];
+    if (st->icon_path == Qnil)
+      sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
+    else {
+      char *ip = RSTRING_PTR(st->icon_path);
+      if (*ip == '/' || ip[1] ==':')  
+        strcpy(icon_path, ip);
+      else
+       sprintf(icon_path, "%s/%s", shoes_world->path, ip);
+    }
+    gtk_window_set_default_icon_from_file(icon_path, NULL);
+
     if (st->use_menus == Qtrue) {
       app->have_menu = 1;   
     }
@@ -946,8 +976,8 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
       vbox =  gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
       gtk_container_add(GTK_CONTAINER(window), vbox);
       gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
-      // Gtk Container of the fixed variety. Not the alt version!!
-      shoes_window = gtk_fixed_new();
+      // Gtk Container of the fixed variety. Note the alt version!!
+      shoes_window = gtk_fixed_new(); //gtk_fixed_new();
       gtk_box_pack_start(GTK_BOX(vbox), shoes_window, FALSE, FALSE, 0);
       
       
@@ -972,7 +1002,7 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
           hints.min_height = app->minheight + app->mb_height;
           gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL,
                                         &hints, GDK_HINT_MIN_SIZE);
-     }
+      }
       gtk_window_set_default_size(GTK_WINDOW(window), app->width, app->height + app->mb_height);
   
       gtk_window_get_position(GTK_WINDOW(window), &app->x, &app->y);

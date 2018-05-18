@@ -149,7 +149,7 @@ VALUE shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner) {
       app_t->title = ATTR(attr, title);
     else {
       shoes_settings *st;
-      Data_Get_Struct(shoes_settings_globalv, shoes_settings, st);
+      Data_Get_Struct(shoes_world->settings, shoes_settings, st);
       app_t->title = st->app_name;
     }
 #endif 
@@ -240,6 +240,9 @@ VALUE shoes_app_set_icon(VALUE app, VALUE icon_path) {
     char *path;
     Data_Get_Struct(app, shoes_app, app_t);
     path = RSTRING_PTR(icon_path);
+    shoes_settings *st;
+    Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+    st->icon_path = icon_path;  // Watch out, this could be ABS path
     shoes_native_app_set_icon(app_t, path);
     return Qtrue;
 }
@@ -268,14 +271,17 @@ VALUE shoes_app_set_resizable(VALUE app, VALUE resizable) {
     return resizable;
 }
 
-
+// TODO deprecate this in Ruby
 VALUE shoes_app_set_wtitle(VALUE app, VALUE title) {
     shoes_app *app_t;
     char *wtitle;
     Data_Get_Struct(app, shoes_app, app_t);
     app_t->title = title;
+    shoes_settings *st;
+    Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+    st->app_name = title;
     wtitle = RSTRING_PTR(title);
-    shoes_native_app_set_wtitle(app_t, wtitle);
+    shoes_native_app_title(app_t, wtitle);
     return Qtrue;
 }
 
@@ -288,32 +294,26 @@ VALUE shoes_app_get_title(VALUE app) {
 VALUE shoes_app_set_title(VALUE app, VALUE title) {
     shoes_app *app_t;
     Data_Get_Struct(app, shoes_app, app_t);
-    shoes_app_name = RSTRING_PTR(title);
-    return app_t->title = title;
+    if (!NIL_P(title)) {
+      app_t->title = title;
+      // api change 3.3.7: really change the visible title
+      shoes_native_app_title(app_t, RSTRING_PTR(title));  
+    }
+    return app_t->title ;
 }
 
 void shoes_app_title(shoes_app *app, VALUE title) {
-#ifndef MTITLE
-    char *msg;
-    if (!NIL_P(title))
-        app->title = title;
-    else
-        app->title = rb_str_new2(SHOES_APPNAME);
-    msg = RSTRING_PTR(app->title);
-    shoes_native_app_title(app, msg);
-#else
     char *msg;
     if (!NIL_P(title))
         app->title = title;
     else {
       shoes_settings *st;
-      Data_Get_Struct(shoes_settings_globalv, shoes_settings, st);
+      Data_Get_Struct(shoes_world->settings, shoes_settings, st);
       app->title = st->app_name;
     }
     msg = RSTRING_PTR(app->title);
     shoes_app_name = msg;
     shoes_native_app_title(app, msg);
-#endif
 }
 
 
