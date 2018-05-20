@@ -7,6 +7,7 @@
 #include "shoes/types/menubar.h"
 #include "shoes/types/menu.h"
 #include "shoes/types/menuitem.h"
+#include "shoes/types/settings.h"
 #include "shoes/native/cocoa/menus.h"
 
 // This wraooer may not be needed but it doesn't hurt very much

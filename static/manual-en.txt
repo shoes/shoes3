@@ -5868,7 +5868,7 @@ that are common to all Windows/Apps. The values in settings are created before
 Shoes starts your script - even before Shoes starts it's own scripts.
 
 
-You can supply a shoes.yaml file with your application and Shoes will use those
+You can supply a startup.yaml file with your application and Shoes will use those
 instead of the normal defaults. This should interest those that want to create more 
 polished applications that the simple Shoes defaults. Please see the wiki
 for some additional hints. Most of these settings are to improve Merge packaging. 
@@ -5891,7 +5891,7 @@ would appear in the menus or titles.
 
 === settings.icon_path » string ===
 
-Returns the Icon_Path string from the shoes.yaml. The icon is a png that
+Returns the Icon_Path string from the startup.yaml. The icon is a png that
 should be inside the Shoes (your) app. Default is "static/shoes-app-icon.png"
 
 === settings.icon_path  = path_string ===
@@ -5900,7 +5900,7 @@ When called this way it's behaves like `app.set_window_icon_path`
 
 === setting.theme » string ===
 
-For Linux and Windows, you can include a Gtk3 theme name in the shoes.yaml file,
+For Linux and Windows, you can include a Gtk3 theme name in the startup.yaml file,
 field `Theme;` The theme must be included with Shoes (see Merge packaging) in a themes folder.
 If given, it's checked and used before any theme choices in the user's diretory -
 ~/.shoes/themes/ or {APPDATA}/Local/Shoes/Themes, should the user have them.
@@ -5909,17 +5909,17 @@ manager.
 
 === settings.extra1 » string ===
 
-Returns the `Extra1` string from the shoes.yaml. Up to the developer what
+Returns the `Extra1` string from the startup.yaml. Up to the developer what
 the string means or does.
 
 === settings.extra2 » string ===
 
-Returns the `Extra2` string from the shoes.yaml. Up to the developer what
+Returns the `Extra2` string from the startup.yaml. Up to the developer what
 the string means or does.
 
 === setting.use_menus » boolean ===
 
-Returns the setting of the shoes.yaml `Use_menus` entry. This will put
+Returns the setting of the startup.yaml `Use_menus` entry. This will put
 a small default menubar on every window (app)  in the application. If used, 
 it overrides the individual `menus: ` value for app/windows creation. 
 
@@ -5947,7 +5947,7 @@ pixel based drawing (games).
 
 A Linux and Windows Future. Not implemented yet. OSX already does this and
 needs no setting. MDI is Multi-Mocument-Interface. When `MDI: true` is in the
-shoes.yaml file the the desktop window manager will send `open` requests to
+startup.yaml file the the desktop window manager will send `open` requests to
 a running Shoes app when the user double clicks on a file the desktop manager
 believes your application will handle. Linux uses the registered `dbus` name,
 See below.
@@ -5957,7 +5957,7 @@ name.
 
 === settings.rdomain » string ===
 
-If an `Rdomain: <string>` entry is in the shoes.yaml file then it will be used 
+If an `Rdomain: <string>` entry is in the startup.yaml file then it will be used 
 instead of `com.shoesrb` to form the dbus name. Your setting for `App_Name` will be used
 as well. So the default dbus name would be com.rbshoes.shoes. If MDI is false then the 
 process id (pid) in Linux is appended. That make the dbus name fairly unique 
