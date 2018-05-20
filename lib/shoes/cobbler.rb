@@ -874,7 +874,10 @@ but it needs to know where Shoes is"
     @panel.append do
       stack do
         tagline "Linux - Merge you aoo into Shoes and create a .deb"
-        para "You need some things like icons and ..."
+        flow do 
+          para "You will need a png icon and license file. All field should be considered mandatory,"
+          para "especially if you intend to submit your .deb to a site."
+        end
         # should check and only perform on Loose Shoes.
         button "Merge" do
           require "package/build-lin"
