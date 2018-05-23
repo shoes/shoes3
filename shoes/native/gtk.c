@@ -483,7 +483,7 @@ static void shoes_app_gtk_paint(GtkWidget *widget, cairo_t *cr, gpointer data) {
     if (app->have_menu) {
       // window size includes menubar , we want canvas height
       app->height -= app->mb_height;
-      fprintf(stderr,"size_paint wid: %d hgt: %d\n", app->width, app->height);
+      //fprintf(stderr,"size_paint wid: %d hgt: %d\n", app->width, app->height);
     }
     shoes_canvas_size(app->canvas, app->width, app->height);
 }
@@ -606,7 +606,7 @@ static void shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpoint
     VALUE c = (VALUE)data;
     shoes_canvas *canvas;
     Data_Get_Struct(c, shoes_canvas, canvas);
-    fprintf(stderr,"sizing\n");
+    //fprintf(stderr,"sizing\n");
     if (canvas->slot->vscroll &&
             (size->height != canvas->slot->scrollh || size->width != canvas->slot->scrollw)) {
         GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
@@ -616,8 +616,8 @@ static void shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpoint
 
         GtkAllocation alloc;
         gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);  
-        fprintf(stderr,"size: %d %d %d %d\n", size->x, size->y, size->width, size->height);
-        fprintf(stderr, "alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
+        //fprintf(stderr,"size: %d %d %d %d\n", size->x, size->y, size->width, size->height);
+        //fprintf(stderr, "alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
         gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
                        size->width - alloc.width, 0);
         gtk_adjustment_set_page_size(adj, size->height);

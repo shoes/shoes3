@@ -14,6 +14,7 @@ module Make
     mkdir_p "#{TGT_DIR}/lib"
     cp   "lib/shoes.rb", "#{TGT_DIR}/lib"
     cp_r "lib/shoes", "#{TGT_DIR}/lib"
+    cp_r "lib/package", "#{TGT_DIR}/lib"
     cp_r "lib/exerb", "#{TGT_DIR}/lib"
     cp_r "samples", "#{TGT_DIR}/samples"
     cp_r "static", "#{TGT_DIR}/static"

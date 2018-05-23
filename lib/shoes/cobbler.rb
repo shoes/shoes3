@@ -873,13 +873,19 @@ but it needs to know where Shoes is"
     @panel.clear
     @panel.append do
       stack do
-        tagline "Linux - Merge you aoo into Shoes and create a .deb"
+        tagline "Linux - Merge your app into Shoes and create a .deb"
         flow do 
-          para "You will need a png icon and license file. All field should be considered mandatory,"
-          para "especially if you intend to submit your .deb to a site."
+          para "You will need a png icon and license file. All field should \
+be considered mandatory, Especially if you intend to submit your .deb to a site."
+          para "You also need a Ruby installed with the fpm gem installed \
+in that ruby. The merge will create the app directory and a script for you run \
+to create the .deb"
         end
-        # should check and only perform on Loose Shoes.
+        # should check and only perform on Tight Shoes.
         button "Merge" do
+          #Shoes.setup do
+          #  gem 'fpm'
+          #end
           require "package/build-lin"
         end
       end

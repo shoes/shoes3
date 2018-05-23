@@ -260,7 +260,7 @@ int shoes_init_load_yaml(char *path) {
     // set defaults
     shoes_config_yaml = malloc(sizeof(shoes_yaml_init));
     shoes_config_yaml->app_name = "Shoes";
-    shoes_config_yaml->icon_path = "static/shoes-icon.png";
+    shoes_config_yaml->icon_path = "static/app-icon.png";
     shoes_config_yaml->theme_name = NULL;
     shoes_config_yaml->active = FALSE;
     shoes_config_yaml->rdomain = "com.shoesrb.shoes";
