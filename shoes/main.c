@@ -75,6 +75,10 @@ main(argc, argv)
     argv = &argv[1];
     {
       RUBY_INIT_STACK
+      /* in ruby 2.3+ we need to fake  */
+      int zedc = 0;
+      int *zeda = &zedc;
+      ruby_sysinit(&zedc, &zeda);
       ruby_init();
       rb_eval_string(bootup);
       return ruby_run_node(ruby_options(argc, argv));
