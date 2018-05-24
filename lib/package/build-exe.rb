@@ -2,26 +2,36 @@ Shoes.app(title: "Package app in exe", width: 600, height: 900, resizable: false
 require("yaml")
 	
 	@edit_box_height, @edit_box_width = 28, 250 ### box dimmensions
-	@options = [ 0, 0, 0, 0, 0, 3, -1, 1, 0, 1, 1, 1, 1 ]
-	@output = [ "app_name", "app_version", "app_startmenu", "publisher", "website", "app_start", "app_loc", "app_ico", "installer_header", "installer_sidebar_bmp", "installer_header_bmp", "app_installer_ico", "license", "include_gems" ]
-	@database = []  ##array of all page 1 fields
+  # template [ [yaml-name, option, prompt, tooltip], ...] in Visual order.
+  @template = [
+    ['app_name', 0, "Application Name", "Appname and the Subname string will be used to name the installer File"],
+    ["app_version",  0,  "Application subname","Appname and the Subname string will be used to name the installer File"],
+    ["app_startmenu", 0, "Start Menu folder name", "Start Menu folder name. If not set Appname will be chosen as default value."],
+    ["publisher", 0, 	"Publisher name", "Company or organization name"],
+    ["website", 0, "Website", "Publisher website URL"],
+    ["app_start", 3, "Starting script source", "The first script to run for your Shoes app"],
+    ["app_loc", -1, "Application folder", "Application directory. Chosen automatically based on starting script selection"],
+    ["app_ico", 1, "Exe icon (.ico)" ,"Window app icon for your Shoes app"],
+    ["installer_header", 0, "Installer window name", "Installation wizard header name. If empty Appname is chosen as default value."],
+    ["installer_sidebar_bmp", 1, "Installer side pic (164 x 309) .bmp", "The sidebar image (old bmp) for the installer"],
+    ["installer_header_bmp", 1, "Installer header pic (150 x 57) .bmp", "The header image for the installer"],
+    ["app_installer_ico", 1, 			"Installer icon (.ico)", "The icon for the installer exe file - NOT the icon for app desktop"],
+    ["license", 1, "License", "Prepend the contents to the Shoes LICSENSE.txt file\nwill be shown to the User at install time, so make it pretty." ]
+  ]
+  # decompose template into @output, @options, @prompts, @tooltips, @must_haves=true
+  @output = []; @options = []; @prompts = []; @tooltips = []; @must_have = [];
+  @template.each do |fld|
+    @output << fld[0]
+    @options << fld[1]
+    @prompts << fld[2]
+    @tooltips << fld[3]
+    @must_have << false
+  end
+  @database = []  ##array of all page 1 fields
 	@values = Hash[@output.map {|x| [x, ""]}] ##Hash of all user input taken from the database fields
 	@values['include_gems']	= [] ##defining an array that will hold all gems
-	@must_have = [ 'app_name', 'app_version','app_loc', 'app_start' ] ### @must_have consists of mandatory app options
-	@tooltips = [ "Appname and the Subname string will be used to name the installer File",
-"Appname and the Subname string will be used to name the installer File",
-"Start Menu folder name. If not set Appname will be chosen as default value.",
-"Company or organization name",
-"Publisher website URL",
-"The first script to run for your Shoes app",
-"Application directory. Chosen automatically based on starting script selection",
-"Window app icon for your Shoes app",
-"Installation wizard header name. If empty Appname is chosen as default value.",
-"The sidebar image (old bmp) for the installer",
-"The header image for the installer",
-"The icon for the #{@values['app_name']}-#{@values['app_version']}.exe file - NOT the icon for app desktop",
-"Prepend the contents to the Shoes LICSENSE.txt file\nwill be shown to the User at install time, so make it pretty." ]
-	
+	@must_have = ["app_name" , 'app_version','app_loc', 'app_start' ] ### @must_have consists of mandatory app options
+
 	
 	def fix_string str
 		length, count, new_str = str.length, 0, ""
@@ -77,19 +87,7 @@ require("yaml")
 		end
 		
 		stack left: 70, top: 170, width: 460, height: 630, scroll: true do
-			[ "Application name",    #### arranged the array vertically to make troubleshooting page 1 managable
-			"Application subname",
-			"Start Menu folder name",
-			"Publisher name",
-			"Website",
-			"Starting script source",
-			"Application folder",
-			"Exe icon (.ico)",
-			"Installer window name",
-			"Installer side pic (164 x 309) .bmp",
-			"Installer header pic (150 x 57) .bmp",	
-			"Installer icon (.ico)",
-			"License" ].each_with_index do | item, i |
+      @prompts.each_with_index do |item, i|
 				req = @must_have.include?(@output[i]) ? "* " : ""
 				case @output[i] 
 				when 'app_name' then para "Application properties", size: 16

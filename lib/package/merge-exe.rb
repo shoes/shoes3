@@ -94,8 +94,25 @@ module PackShoes
 		  	rm_rf "#{sgpath}/extensions/x86-mingw32/#{ruby_ver}.0/#{gem}"
 		  	rm_rf "#{sgpath}/gems/#{gem}"
 		  end
+      incl_gems.delete(gem)
 	  end
-
+    yield "User gems" if blk
+    # copy requested gems from user's Shoes ~/.shoes/+gem/
+    # incl_gems will be empty if there are none
+    gloc = "#{ENV['APPDATA'].tr("\\",'/')}/Local/Shoes/+gem/"
+    incl_gems.each do |name| 
+      next if !File.exist?("#{gloc}/specifications/#{name}.gemspec")
+      puts "Copy #{name} from user dir"
+      cp "#{gloc}/specifications/#{name}.gemspec", "#{sgpath}/specifications"
+      # does the gem have binary?
+      built = "#{gloc}/extensions/#{RUBY_PLATFORM}/#{rbmm}.0/#{name}/gem.build_complete"
+      if File.exist? built
+        mkdir_p "#{sgpath}/extensions/#{RUBY_PLATFORM}/#{rbmm}.0/#{name}"
+        cp "#{GEMS_DIR}/extensions/#{RUBY_PLATFORM}/#{rbmm}.0/#{name}/gem.build_complete",
+          "#{sgpath}/extensions/#{RUBY_PLATFORM}/#{rbmm}.0/#{name}"
+      end
+      cp_r "#{gloc}/gems/#{name}", "#{sgpath}/gems"
+    end
     yield "make installer - patience please" if blk
     puts "make_installer"
     #mkdir_p "pkg"

@@ -30,7 +30,7 @@ module PackShoes
     exclude = %w(static CHANGELOG cshoes.exe gmon.out README.md
       samples package VERSION.txt)
     #packdir = "#{opts['app_name']}-app"
-    packdir = "#{ENV['HOME']}/.shoes/package/#{opts['app_name']}-app"
+    packdir = "#{ENV['HOME']}/.shoes/package/#{opts['app_name']}"
     rm_rf packdir
     mkdir_p(packdir) # where fpm will find it.
     # copy shoes
@@ -159,32 +159,32 @@ SCR
           f << "Terminal=false\n"
           f << "Type=Application\n"
           f << "Comment=#{opts['purpose']}\n"
-          f << "Icon=#{where}/lib/#{packdir}/#{opts['app_png']}\n"
+          f << "Icon=#{where}/lib/#{opts['app_name']}/#{opts['app_png']}\n"
           f << "Categories=#{opts['category']};\n"
         end
       end
       File.open(after_install, 'w') do |f|
         f << "#!/bin/bash\n"
         f << "cd #{where}/bin\n"
-        f << "ln -s #{where}/lib/#{packdir}/#{opts['app_name']} .\n"
+        f << "ln -s #{where}/lib/#{opts['app_name']}/#{opts['app_name']} .\n"
         # do we have a menu?
         if opts['create_menu'] == true
-          f << "cd #{where}/lib/#{packdir}\n"
+          f << "cd #{where}/lib/#{opts['app_name']}\n"
           f << "xdg-desktop-menu install --novendor  #{opts['app_name']}.desktop\n"
         end
       end
       chmod 0755, after_install
       File.open(before_remove, 'w') do |f|
         f << "#!/bin/bash\n"
-        f << "rm #{where}/bin/#{opts['app_name']}\n"
-        f << "cd #{where}/lib/#{packdir}\n"
+        f << "rm -rf #{where}/bin/#{opts['app_name']}\n"
+        f << "cd #{where}/lib/#{opts['app_name']}\n"
         if opts['create_menu'] == true
           f << "xdg-desktop-menu uninstall #{opts['app_name']}.desktop\n"
         end
       end
       chmod 0755, before_remove
     end
-    # now we do fpm things - lets build a bash script for debugging
+    # now we do fpm things - lets build a bash script for debugging/
     arch = `uname -m`.strip
     scriptp = "#{ENV['HOME']}/.shoes/package"
     bscr = "#{scriptp}/fpm.sh"
@@ -193,10 +193,10 @@ SCR
 #!/bin/bash
 echo $PATH
 fpm --verbose -t deb -s dir -p #{packdir}.deb -f -n #{opts['app_name']} \
---prefix '#{opts['linux_where']}/lib' --after-install #{packdir}/#{after_install} \
--a #{arch} --url "#{opts['website']}" --license '#{opts['license_tag']}' --before-remove #{packdir}/#{before_remove} \
+--prefix '#{opts['linux_where']}/lib' --after-install #{opts['app_name']}/#{after_install} \
+-a #{arch} --url "#{opts['website']}" --license '#{opts['license_tag']}' --before-remove #{opts['app_name']}/#{before_remove} \
 --vendor '#{opts['publisher']}' --category #{opts['category']} \
---description "#{opts['purpose']}" -m '#{opts['maintainer']}' #{packdir}
+--description "#{opts['purpose']}" -m '#{opts['maintainer']}' "#{opts['app_name']}"
 SCR
     end
     chmod 0755, bscr
