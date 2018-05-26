@@ -203,7 +203,8 @@ void shoes_osx_create_apple_menu(VALUE mbv) {
 	Data_Get_Struct(mbv, shoes_menubar, mb);
     NSMenu *main = (NSMenu *)mb->native; 
     // Create the Native application (Apple) menu.
-    NSMenu *menuApp = [[NSMenu alloc] initWithTitle: @"Apple Menu"];
+   // NSMenu *menuApp = [[NSMenu alloc] initWithTitle: @"Apple Menu"];
+    NSMenu *menuApp = [[NSMenu alloc] initWithTitle: @"MyApp"];
     [menuApp setAutoenablesItems: NO]; // Beware
 
     shoes_settings *st;
