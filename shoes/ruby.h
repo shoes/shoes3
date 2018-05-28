@@ -117,7 +117,7 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
 #if defined(SHOES_WIN32) && ! defined(SHOES_GTK_WIN32)
 #define QUIT_ALERT_MSG() MessageBox(NULL, RSTRING_PTR(msg), "Shoes", MB_OK)
 #else
-#define QUIT_ALERT_MSG() printf("%s\n", RSTRING_PTR(msg))
+#define QUIT_ALERT_MSG() fprintf(stderr, "%s\n", RSTRING_PTR(msg))
 #endif
 #define QUIT_ALERT(v) \
    VALUE line_re = rb_eval_string("/:\\d+:\\s*/"); \

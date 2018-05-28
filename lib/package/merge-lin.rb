@@ -18,7 +18,7 @@ module PackShoes
   
   def PackShoes.merge_linux opts, &blk
     # setup defaults if not in the opts
-    puts "Starting merge"
+    #puts opts.inspect
     opts['publisher'] = 'shoerb' unless opts['publisher']
     opts['website'] = 'http://shoesrb.com/' unless opts['website']
     opts['linux_where'] = '/usr/local' unless opts['linux_where']
@@ -28,11 +28,11 @@ module PackShoes
       Dir.glob('*') {|f| toplevel << f}
     end
     exclude = %w(static CHANGELOG cshoes.exe gmon.out README.md
-      samples package VERSION.txt)
-    #packdir = "#{opts['app_name']}-app"
-    packdir = "#{ENV['HOME']}/.shoes/package/#{opts['app_name']}"
+      samples package VERSION.txt tmp)
+    packdir = "#{opts['packdir']}/#{opts['app_name']}"
+    #packdir = "#{ENV['HOME']}/.shoes/package/#{opts['app_name']}"
     rm_rf packdir
-    mkdir_p(packdir) # where fpm will find it.
+    mkdir_p packdir 
     # copy shoes
     yield "Copy Shoes" if blk
     (toplevel-exclude).each do |p|
@@ -42,7 +42,7 @@ module PackShoes
     licf = File.open("#{packdir}/COPYING.txt", 'w')
     if opts['license'] && File.exist?(opts['license'])
       IO.foreach(opts['license']) {|ln| licf.puts ln}
-      rm_rf "{packdir}/#{File.basename(opts['license'])}"
+      rm_rf "#{packdir}/#{File.basename(opts['license'])}"
     end
     IO.foreach("#{DIR}/COPYING.txt") {|ln| licf.puts ln}  
     licf.close
@@ -186,7 +186,7 @@ SCR
     end
     # now we do fpm things - lets build a bash script for debugging/
     arch = `uname -m`.strip
-    scriptp = "#{ENV['HOME']}/.shoes/package"
+    scriptp = opts['packdir']
     bscr = "#{scriptp}/fpm.sh"
     File.open(bscr,'w') do |f|
       f << <<SCR

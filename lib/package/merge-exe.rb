@@ -17,7 +17,7 @@ module PackShoes
   def PackShoes.merge_exe opts, &blk
     # setup defaults if not in the opts
 	  #packdir = 'packdir'
-    packdir = opts['packdir']
+    packdir = "#{opts['packdir']}/#{opts['app_name']}"
     opts['publisher'] = 'shoerb' unless opts['publisher']
     opts['website'] = 'http://shoesrb.com/' unless opts['website']
     opts['hkey_org'] = 'mvmanila.com'

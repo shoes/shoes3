@@ -1,23 +1,21 @@
-Shoes.app(title: "Package app in exe", width: 600, height: 900, resizable: false ) do
+Shoes.app(title: "Package app with shoes in .dmg", width: 600, height: 900, resizable: false ) do
   require("yaml")
 	
 	@edit_box_height, @edit_box_width = 28, 250 ### box dimmensions
   # template [ [yaml-name, option, prompt, tooltip], ...] in Visual order.
   @template = [
-    ['packdir', 2, "Folder for output", "path to output folder"],
+    ['packdir', 2, "Where to place output", "Directory for output"],
     ['app_name', 0, "Application Name", "Appname and the Subname string will be used to name the installer File"],
     ["app_version",  0,  "Application subname","Appname and the Subname string will be used to name the installer File"],
-    ["app_startmenu", 0, "Start Menu folder name", "Start Menu folder name. If not set Appname will be chosen as default value."],
-    ["publisher", 0, 	"Publisher name", "Company or organization name"],
-    ["website", 0, "Website", "Publisher website URL"],
-    ["app_start", 3, "Starting script source", "The first script to run for your Shoes app"],
-    ["app_loc", -1, "Application folder", "Application directory. Chosen automatically based on starting script selection"],
-    ["app_ico", 1, "Exe icon (.ico)" ,"Window app icon for your Shoes app"],
-    ["installer_header", 0, "Installer window name", "Installation wizard header name. If empty Appname is chosen as default value."],
-    ["installer_sidebar_bmp", 1, "Installer side pic (164 x 309) .bmp", "The sidebar image (old bmp) for the installer"],
-    ["installer_header_bmp", 1, "Installer header pic (150 x 57) .bmp", "The header image for the installer"],
-    ["app_installer_ico", 1, 			"Installer icon (.ico)", "The icon for the installer exe file - NOT the icon for app desktop"],
-    ["license", 1, "License", "Prepend the contents to the Shoes LICSENSE.txt file\nwill be shown to the User at install time, so make it pretty." ]
+    ["publisher", 0, "Publisher Name", "Publisher Name"],
+    ["website", 0, "Website", "Website url"],
+    ["app_start", 3, "Starting script", "App start script.rb"],
+    ["app_loc", -1, "Application directory", "Start script is in here"],
+    ["app_png", 0, "Icon for application", "Icon must be a png in the folder"],
+    ["maintainer", 0, "Maintainer", "Your name or email"],
+    ["license", 1, "Your license", "in a txt file"],
+    ['app_icns', 1, "OSX icns file", "osx icns file"],
+    ['dmg_background', 1, "Installer background PNG", "background png file"]
   ]
   # decompose template into @output, @options, @prompts, @tooltips, @must_haves=true
   @output = []; @options = []; @prompts = []; @tooltips = []; @must_have = [];
@@ -26,13 +24,13 @@ Shoes.app(title: "Package app in exe", width: 600, height: 900, resizable: false
     @options << fld[1]
     @prompts << fld[2]
     @tooltips << fld[3]
-    @must_have << false
+    @must_have << fld[0]  # all are required
   end
-  @database = []  ##array of all page 1 fields
+  # add include_gems to @output ?
+	@database = []  ##array of all page 1 fields
 	@values = Hash[@output.map {|x| [x, ""]}] ##Hash of all user input taken from the database fields
 	@values['include_gems']	= [] ##defining an array that will hold all gems
-	@must_have = ["app_name" , 'app_version','app_loc', 'app_start' ] ### @must_have consists of mandatory app options
-
+	
 	
 	def fix_string str
 		length, count, new_str = str.length, 0, ""
@@ -46,7 +44,7 @@ Shoes.app(title: "Package app in exe", width: 600, height: 900, resizable: false
 	end
 	
 	def help
-		@other_win = window tittle:"Exe builder help" do
+		@other_win = window tittle:"Deb builder help" do
 			tagline "When installing the app", align: "center"
 			image "gui_files/Wizard options.png", left: 10, top: 35, width: 280, height: 240 
 			image "gui_files/Wizard options2.png", left: 300, top: 35, width: 280, height: 240 
@@ -58,13 +56,19 @@ Shoes.app(title: "Package app in exe", width: 600, height: 900, resizable: false
 	end
 	
 	def load_yaml 
-    fl = ask_open_file
+		fl = ask_open_file
 		if fl
 			##loading values from yaml into app vars
-		    opts = YAML.load_file(fl)
-		    opts.each {|k, v| @values[k] = v}
+			opts = YAML.load_file(fl)
+			opts.each {|k, v| @values[k] = v}
 			##updating text on all fields at page1
-			@database.each_with_index { |d, i| d.text = @values["#{@output[i]}"] }
+			@database.each_with_index do |d, i|
+				if @options[i] == 4  # check box
+					d.checked =  @values["#{@output[i]}"]
+				else
+					d.text = @values["#{@output[i]}"]
+				end
+			end
 		end
 	end
 	
@@ -81,33 +85,36 @@ Shoes.app(title: "Package app in exe", width: 600, height: 900, resizable: false
 		stack(left: 50, top: 70, width: 500, height: 750) do
 			background darkgray;
 			border black, strokewidth: 2; 
-			button("Help", left: 350, top: 15, width: 80) { help }
+			##button("Help", left: 350, top: 15, width: 80) { help }
 			button("Load yaml", left: 65, top: 15, width: 80, tooltip: "Load existing yaml configuration") { load_yaml }
 			line(30,55,470,55)
 			para "* - required field", left: 340, top: 60
 		end
 		
 		stack left: 70, top: 170, width: 460, height: 630, scroll: true do
-      @prompts.each_with_index do |item, i|
+			@prompts.each_with_index do |item, i|
 				req = @must_have.include?(@output[i]) ? "* " : ""
-				case @output[i] 
-				when 'app_name' then para "Application properties", size: 16
-				when 'installer_header' then para "Installation file properties", left: 0, size: 16, margin_top: 10
-				end
 				flow height: 60 do
 					para "#{req}#{item}", left: 20, top: 0, height: @edit_box_height
-					@database[i] = edit_line @values[@output[i]], left: 20, top: 28, height: @edit_box_height, width: @edit_box_width, tooltip: @tooltips[i] do
-						@values[@output[i]]=@database[i].text
-					end
+          case @options[i] # checkbox or editline? 
+            when 4 then
+              @database[i] = check checked: @values[@output[i]], left: 20, top: 28, tooltip: @tooltips[i] do |ck| 
+                @values[@output[i]] = ck.checked?
+              end
+            else
+					    @database[i] = edit_line @values[@output[i]], left: 20, top: 28, height: @edit_box_height, width: @edit_box_width, tooltip: @tooltips[i] do
+						    @values[@output[i]]=@database[i].text
+              end
+          end
 					case @options[i] ## adding ask_folder, ask_file boxes where needed
-						when 1 then button("Select file", left: 20 + @edit_box_width, top: 27, width: 100) { @database[i].text = fix_string(ask_open_file) }
-						when 2 then button("Select folder", left: 20 + @edit_box_width, top: 27, width: 100) { @database[i].text = fix_string(ask_open_folder) }
+						when 1 then button("Select file", left: 20 + @edit_box_width, top: 27, width: 100, margin: 3) { @database[i].text = fix_string(ask_open_file) }
+						when 2 then button("Select folder", left: 20 + @edit_box_width, top: 27, width: 100, margin: 3) { @database[i].text = fix_string(ask_open_folder) }
 						when 3 then @database[i].state = 'disabled';
-						button("Select *.rb file", left: 20 + @edit_box_width, top: 27, width: 100) do
+						button("Select *.rb file", left: 20 + @edit_box_width, top: 27, width: 120, margin: 3) do
 							 longfn = fix_string(ask_open_file)
 							 @database[i].text = File.basename(longfn)
 							 appdir = File.dirname(longfn)
-							 # @database[6].text = appdir  # TDOD: don't hard code index
+							 # @database[5].text = appdir
 							 @database[@output.find_index('app_loc')].text = appdir 
 							 @values['app_loc'] = appdir
 						end
@@ -143,7 +150,10 @@ Shoes.app(title: "Package app in exe", width: 600, height: 900, resizable: false
 		subtitle "Configuration summary", align: "center", top: 5
 		values_exist = {}
 		@values.each do |k, v|
-			if v != "" and v != nil and !v.empty? then
+		if ([true, false].include? v) 
+         # a boolean - check box
+         values_exist["#{k}"] = v
+			elsif v != "" and v != nil and !v.empty? then
 				values_exist["#{k}"] = v
 			end
 		end
@@ -158,19 +168,15 @@ Shoes.app(title: "Package app in exe", width: 600, height: 900, resizable: false
 				start { deploy.state = 'disabled' }
 				#File.open("temp", "w") { |f| f.write(values_exist.to_yaml) }
 				#system("cshoes.exe --ruby cmd-merge.rb temp")
-        require 'package/merge-exe'
-        appdata = ENV['LOCALAPPDATA']
-        appdata  = ENV['APPDATA'] if ! appdata
-        exes = YAML.load_file("#{appdata}\\Shoes\\package\\util.yaml")
-        values_exist['NSIS'] = exes['nsp']
-        values_exist['RESH'] = exes['rhp']
-        # packdir needs to be forward '/'
-        #values_exist['packdir'] = "#{appdata.gsub'\\','/'}/Shoes/package/temp"
-        th = Thread.new do
-          app.cursor = :watch_cursor
-          PackShoes::merge_exe(values_exist) {|msg| @stmsg.text = msg }
-          app.cursor = :arrow_cursor
-        end
+				values_exist['shoes_at'] = DIR
+				values_exist['target_ruby'] = RUBY_VERSION
+				values_exist['target_ruby_arch'] = RbConfig::CONFIG['arch'] # 'x86_64-darwin-14'
+				require 'package/merge-osx'
+				th = Thread.new do
+				  app.cursor = :watch_cursor
+				  PackShoes::merge_osx(values_exist) {|msg| @stmsg.text = msg }
+				  app.cursor = :arrow_cursor
+				end
 			end
       stack left: 70, top: 70, width: 400 do
         flow do
@@ -182,8 +188,7 @@ Shoes.app(title: "Package app in exe", width: 600, height: 900, resizable: false
 		end
 		stack left: 70, top: 200, width: 460, height: 640, scroll: true do
 			para "#{values_exist.to_yaml}"
-		end
-		
+		end		
 	end
 	
 	background dimgray

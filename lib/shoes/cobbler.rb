@@ -183,7 +183,9 @@ Shoes.app :title => "Shoes Cobbler", menus: true do
     end
     exeitem.enable = false unless RUBY_PLATFORM =~ /mingw/
     @pkgmenu << exeitem
-    osxitem = menuitem "Advanced OSX"
+    osxitem = menuitem "Advanced OSX" do
+      osx_merge_screen
+    end
     osxitem.enable = false unless RUBY_PLATFORM =~ /darwin/
     @pkgmenu << osxitem
     debitem = menuitem "Linux Merge .deb" do
@@ -191,6 +193,11 @@ Shoes.app :title => "Shoes Cobbler", menus: true do
     end
     debitem.enable = false unless RUBY_PLATFORM =~ /linux/
     @pkgmenu << debitem
+    bsditem = menuitem "Freebsd Merge" do
+      bsd_merge_screen
+    end
+    bsditem.enable = false unless RUBY_PLATFORM =~ /linux|bsd/
+    @pkgmenu << bsditem
     @mb << @pkgmenu
     @mb << @helpmenu
 =begin    
@@ -887,6 +894,43 @@ to create the .deb"
           #  gem 'fpm'
           #end
           require "package/build-lin"
+        end
+      end
+    end
+  end
+  
+  def osx_merge_screen
+    @panel.clear
+    @panel.append do
+      stack do
+        tagline "OSX - Merge your app into Shoes and create a .dmg"
+        flow do 
+          para "You will need a png icon, license file. All field should \
+be considered mandatory, Especially if you intend to submit your .dmg to a site."
+          para "You also need a separate Ruby installed with a version near #{RUBY_VERSION}. \
+Your will also need the `hdutil` program installed'.
+The merge will create the app directory and a script you run later\
+to re-create the .dmg"
+        end
+        button "Merge" do
+          require "package/build-osx"
+        end
+      end
+    end  
+  end
+  
+  def bsd_merge_screen
+    @panel.clear
+    @panel.append do
+      stack do
+        tagline "Freebsd - Merge your app into Shoes and create package"
+        flow do 
+          para "Experiment"
+        end
+        # should check and only perform on Tight Shoes.
+        button "Merge" do
+          require "package/build-bsd"
+          require "package/build-bsd"
         end
       end
     end

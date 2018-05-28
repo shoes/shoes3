@@ -245,7 +245,7 @@ class Shoes
     end
   end
 
-  def self.args!
+  def self.args!(*args)  # OSX needs the args arg see world.c 
     #Shoes.splash if RUBY_PLATFORM !~ /darwin/ && ARGV.empty?
     #OPTS.parse! ARGV
     #ARGV[0] || true

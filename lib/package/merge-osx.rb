@@ -16,6 +16,8 @@ module PackShoes
   end
   
   def PackShoes.merge_osx(opts, &blk)
+    app_dir = opts['packdir']
+    yield "using #{app_dir}" if blk
     # setup defaults if not in the opts
     rbvstr = opts['target_ruby'] ? opts['target_ruby'] : RUBY_VERSION
     rbmm = rbvstr[/\d.\d/].to_str
@@ -35,17 +37,14 @@ module PackShoes
     end
     opts['publisher'] = 'shoerb' unless opts['publisher']
     opts['website'] = 'http://shoesrb.com/' unless opts['website']
-    opts['linux_where'] = '/usr/local' unless opts['linux_where']
     toplevel = []
     Dir.chdir(DIR) do
       Dir.glob('*') {|f| toplevel << f}
     end
     exclude = %w(static CHANGELOG.txt cshoes gmon.out README.txt
-      samples package VERSION.txt Shoes.app)
-    #exclude = []
-    #packdir = 'packdir'
-    app_dir = "#{ENV['HOME']}/.shoes/package" 
-    rm_rf app_dir
+      samples package VERSION.txt Shoes.app tmp pangorc command-manual.rb)
+
+    rm_rf "#{app_dir}/#{opts['app_name']}.app"
     mkdir_p "#{app_dir}/#{opts['app_name']}.app/Contents/MacOS"
     mkdir_p "#{app_dir}/#{opts['app_name']}.app/Contents/Resources/English.lproj"
     packdir = "#{app_dir}/#{opts['app_name']}.app/Contents/MacOS"
@@ -80,6 +79,8 @@ module PackShoes
   <string>6.0</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
+  <key>NSHighResolutionCapable</key>
+  <string>true</string>
   <key>IFMajorVersion</key>
   <integer>#{vers[0]}</integer>
   <key>IFMinorVersion</key>
@@ -112,8 +113,7 @@ END
 APPPATH="${0%/*}"
 unset DYLD_LIBRARY_PATH
 cd "$APPPATH"
-echo "[Pango]" > pangorc
-DYLD_LIBRARY_PATH="$APPPATH" PANGO_RC_FILE="$APPPATH/pangorc" SHOES_RUBY_ARCH="#{opts['shoesruby']}" ./#{app_name}-bin 
+DYLD_LIBRARY_PATH="$APPPATH"  SHOES_RUBY_ARCH="#{opts['target_ruby_arch']}" ./#{app_name}-bin 
 END
     end
     chmod 0755, File.join("#{packdir}/#{app_name}-launch")
@@ -165,11 +165,11 @@ END
     end
     #create new lib/shoes.rb with rewrite
     newf = File.open("#{packdir}/lib/shoes.rb", 'w')
-    rewrite newf, 'min-shoes.rb', {'APP_START' => opts['app_start'] }
+    rewrite newf, "#{DIR}/lib/package/min-shoes.rb", {'APP_START' => opts['app_start'] }
     newf.close
     # create a new lib/shoes/log.rb with rewrite
     logf = File.open("#{packdir}/lib/shoes/log.rb", 'w')
-    rewrite logf, 'min-log.rb', {'CONSOLE_HDR' => "#{opts['app_name']} Errors"}
+    rewrite logf, "#{DIR}/lib/package/min-log.rb", {'CONSOLE_HDR' => "#{opts['app_name']} Errors"}
     logf.close
     # copy/remove gems - tricksy - pay attention
     # remove the Shoes built-in gems if not in the list 
@@ -232,10 +232,7 @@ END
     end
     
     # hide shoes-bin and shoes launch script names
-    puts "make_installer"
-    after_install = "#{opts['app_name']}_install.sh"
-    before_remove = "#{opts['app_name']}_remove.sh"
-    where = opts['linux_where']
+    yield "make_installer" if blk
     Dir.chdir(packdir) do
       mv 'shoes-bin', "#{opts['app_name']}-bin"
       #chmod 0755, "#{opts['app_name']}"
@@ -290,12 +287,13 @@ SCR
 =end
     
     # build a dmg assumes create_dmg is in ./yoursway-create-dmg
-    bgp = opts['dmg-backgound'] ? opts['dmg-background'] : 'bg/osx-background.png'
-    File.open("#{app_dir}/dmg.sh", 'w') do |f|
-      f << <<SCR
+    bgp = opts['dmg_background']
+    Dir.chdir(app_dir) do
+	  File.open("dmg.sh", 'w') do |f|
+	    f << <<SCR
 #!/bin/bash 
 test -f #{app_name}-Installer.dmg && rm #{app_name}-Installer.dmg
-./yoursway-create-dmg/create-dmg --volname "#{app_name} Installer" \
+#{DIR}/lib/package/yoursway-create-dmg/create-dmg --volname "#{app_name} Installer" \
 --window-pos 200 120 \
 --window-size 400 300 \
 --background #{bgp} \
@@ -303,12 +301,15 @@ test -f #{app_name}-Installer.dmg && rm #{app_name}-Installer.dmg
 --icon #{app_name}.app 150 10 \
 --hide-extension #{app_name}.app \
 --app-drop-link 150 185 \
---eula #{app_dir}/Contents/MacOS/COPYING.txt \
+--eula #{opts['license']} \
 #{app_name}-Installer.dmg #{app_dir}
 SCR
-    end
-    chmod 0755, "#{app_dir}/dmg.sh"
-    puts "For a dmg, do './dmg.sh'"
+	  end
+	  chmod 0755, "#{app_dir}/dmg.sh"
+	  #puts "For a dmg, do './dmg.sh'"
+	  `./dmg.sh`
+	  yield "All done!" if blk
+	end
   end
 end
 
