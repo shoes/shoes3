@@ -189,7 +189,7 @@ Shoes.app :title => "Shoes Cobbler", menus: true do
     osxitem.enable = false unless RUBY_PLATFORM =~ /darwin/
     @pkgmenu << osxitem
     debitem = menuitem "Linux Merge .deb" do
-      lin_merge_screen
+      deb_merge_screen
     end
     debitem.enable = false unless RUBY_PLATFORM =~ /linux/
     @pkgmenu << debitem
@@ -876,7 +876,7 @@ but it needs to know where Shoes is"
       end
   end
   
-  def lin_merge_screen
+  def deb_merge_screen
     @panel.clear
     @panel.append do
       stack do
@@ -888,12 +888,12 @@ be considered mandatory, Especially if you intend to submit your .deb to a site.
 in that ruby. The merge will create the app directory and a script for you run \
 to create the .deb"
         end
-        # should check and only perform on Tight Shoes.
+        # should check and only perform on Tight Shoes. (loose shoes seqfaults in copy)
         button "Merge" do
           #Shoes.setup do
           #  gem 'fpm'
           #end
-          require "package/build-lin"
+          require "package/build-deb"
         end
       end
     end
