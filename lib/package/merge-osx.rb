@@ -37,6 +37,7 @@ module PackShoes
     end
     opts['publisher'] = 'shoerb' unless opts['publisher']
     opts['website'] = 'http://shoesrb.com/' unless opts['website']
+    opts['osx_identifier'] = "com.mvmanila" unless opts['osx_identifier']
     toplevel = []
     Dir.chdir(DIR) do
       Dir.glob('*') {|f| toplevel << f}
@@ -125,7 +126,7 @@ END
     licf = File.open("#{packdir}/COPYING.txt", 'w')
     if opts['license'] && File.exist?(opts['license'])
       IO.foreach(opts['license']) {|ln| licf.puts ln}
-      rm_rf "{packdir}/#{File.basename(opts['license'])}"
+      rm_rf "{packdir}/#{File.basename(opts['license'])}"		# TODO?
     end
     IO.foreach("#{DIR}/COPYING.txt") {|ln| licf.puts ln}  
     licf.close
@@ -246,10 +247,10 @@ END
       rm_rf 'Shoes.desktop'
       rm_rf 'shoes-launch'
     end
-    # now we build scripts that have to be executed manually.
+
     arch = `uname -m`.strip
-    # !!! pkgbuild doesn't work yet!!!
 =begin
+    # !!! pkgbuild doesn't work yet!!!
     # create the plist for pkgbuild to use
     File.open('pkg.plist','w') do |f|
       f << <<END

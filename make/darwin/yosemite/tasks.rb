@@ -196,14 +196,14 @@ class MakeDarwin
     end
     
     def osx_create_app
-      puts "Enter setup_system_resources"
+      puts "Enter setup_system_resources #{TGT_DIR}"
       # create plist version string
       tf = File.open("VERSION.txt")
       str = tf.readline
       tf.close
       flds = str.split(' ');
       APP['plist_version_string'] = "#{flds[1]} #{flds[2]} #{flds[3]}"
-      puts "plist_version_string #{APP['plist_version_string']}"
+      puts "plist_version_string: #{APP['plist_version_string']}"
       
       tmpd = "/tmp"
       rm_rf "#{tmpd}/#{APPNAME}.app"
@@ -230,6 +230,7 @@ class MakeDarwin
       chmod 0755, "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}"
       # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
       `echo -n 'APPL????' > "#{tmpd}/#{APPNAME}.app/Contents/PkgInfo"`
+      puts "remove and replace"
       rm_rf "#{TGT_DIR}/#{APPNAME}.app"
       mv "#{tmpd}/#{APPNAME}.app",  "#{TGT_DIR}"
       # create cshoes script /Users/ccoupe/build/mavericks/Shoes.app/Contents/MacOS

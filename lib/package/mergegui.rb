@@ -25,32 +25,42 @@ module Shoes::Types
 	end
 	
 	def load_yaml 
-    fl = ask_open_file
+		fl = ask_open_file
 		if fl
 			##loading values from yaml into app vars
-      opts = YAML.load_file(fl)
-      opts.each {|k, v| @values[k] = v}
+			opts = YAML.load_file(fl)
+			opts.each {|k, v| @values[k] = v}
 			##updating text on all fields at page1
 			@database.each_with_index do |d, i|
-        if @options[i] == 4  # check box
-          d.checked =  @values["#{@output[i]}"]
-        else
-          d.text = @values["#{@output[i]}"]
-        end
-      end
+				if @options[i] == 4  # check box
+					d.checked =  @values["#{@output[i]}"]
+				else
+					d.text = @values["#{@output[i]}"]
+				end
+			end
 		end
 	end
 	
+	# returns array of missing fields
 	def prerequisites
+=begin
 		if @must_have.any? { |m| @values["#{m}"].nil? || @values["#{m}"] == "" } then
 			return 1
 		else 
 			return 0
 		end
+=end
+      whoops = []
+      @required.each_index do |i| 
+        if @required[i] == true && (@values[@output[i]].nil? || @values[@output[i]] == "")
+          whoops << @output[i]
+        end
+      end
+      return whoops
 	end
 	
 	def page1
-		subtitle "Wizard & application settings", align: "center", top: 10
+		subtitle "Application settings", align: "center", top: 10
 		stack(left: 50, top: 70, width: 500, height: 750) do
 			background darkgray;
 			border black, strokewidth: 2; 
@@ -59,31 +69,31 @@ module Shoes::Types
 			line(30,55,470,55)
 			para "* - required field", left: 340, top: 60
 		end
-		
+			
 		stack left: 70, top: 170, width: 460, height: 630, scroll: true do
-      @prompts.each_with_index do |item, i|
-				req = @must_have.include?(@output[i]) ? "* " : ""
+			@prompts.each_with_index do |item, i|
+				#req = @must_have.include?(@output[i]) ? "* " : ""
+				req = @required[i] ? "* " : ""
 				flow height: 60 do
 					para "#{req}#{item}", left: 20, top: 0, height: @edit_box_height
-          case @options[i] # checkbox or editline? 
-            when 4 then
-              @database[i] = check checked: @values[@output[i]], left: 20, top: 28, tooltip: @tooltips[i] do |ck| 
-                @values[@output[i]] = ck.checked?
-              end
-            else
+					case @options[i] # checkbox or editline? 
+					  when 4 then
+						@database[i] = check checked: @values[@output[i]], left: 20, top: 28, tooltip: @tooltips[i] do |ck| 
+							@values[@output[i]] = ck.checked?
+						end
+					  else
 					    @database[i] = edit_line @values[@output[i]], left: 20, top: 28, height: @edit_box_height, width: @edit_box_width, tooltip: @tooltips[i] do
 						    @values[@output[i]]=@database[i].text
-              end
-          end
+                      end
+                    end
 					case @options[i] ## adding ask_folder, ask_file boxes where needed
-						when 1 then button("Select file", left: 20 + @edit_box_width, top: 27, width: 100, margin: 3) { @database[i].text = fix_string(ask_open_file) }
-						when 2 then button("Select folder", left: 20 + @edit_box_width, top: 27, width: 110, margin: 3) { @database[i].text = fix_string(ask_open_folder) }
+						when 1 then button("Select file", left: 20 + @edit_box_width, top: 27, width: 100, margin: 3) {@values[@output[i]] =  @database[i].text = fix_string(ask_open_file) }
+						when 2 then button("Select folder", left: 20 + @edit_box_width, top: 27, width: 110, margin: 3) {@values[@output[i]] = @database[i].text = fix_string(ask_open_folder) }
 						when 3 then @database[i].state = 'disabled';
 						button("Select *.rb file", left: 20 + @edit_box_width, top: 27, width: 120, margin: 3) do
 							 longfn = fix_string(ask_open_file)
 							 @database[i].text = File.basename(longfn)
 							 appdir = File.dirname(longfn)
-							 #@database[6].text = appdir   #TODO don't hard code
 							 @database[@output.find_index('app_loc')].text = appdir 
 							 @values['app_loc'] = appdir
 						end
@@ -157,14 +167,13 @@ module Shoes::Types
 	
     @edit_box_height, @edit_box_width = 28, 250 ### box dimmensions
     # decompose/parse template into @output, @options, @must_haves, @prompts, @tooltips
-    @output = []; @options = []; @prompts = []; @tooltips = []; @must_have = [];
+    @output = []; @options = []; @prompts = []; @tooltips = []; @required = [];
     @template.each do |fld|
       @output << fld[0]
       @options << fld[1]
-      @must_have << fld[0] if fld[2] == true
+      @required << fld[2]
       @prompts << fld[3]
       @tooltips << fld[4]
-      #@must_have << fld[0]  # all are required
     end
     # add include_gems to @output ?
     @database = []  ##array of all page 1 fields
@@ -182,8 +191,10 @@ module Shoes::Types
     end
     start { @previous.hide } ##hiding previous button on page 1
     @next = button "Next", left: 295, top: 85, width: 80 do
-      if @page == 0 && prerequisites == 1 then
-        alert "One or more required fields are empty!"
+	  pr = prerequisites
+      if @page == 0 && pr.length > 0 then
+        $stderr.puts pr.inspect
+        alert "One or more required fields are empty!\n #{pr.inspect}"
       else
         turn_page "up"
         @previous.show
