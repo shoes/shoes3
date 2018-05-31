@@ -905,12 +905,9 @@ to create the .deb"
       stack do
         tagline "OSX - Merge your app into Shoes and create a .dmg"
         flow do 
-          para "You will need a png icon, license file. All field should \
-be considered mandatory, Especially if you intend to submit your .dmg to a site."
-          para "You also need a separate Ruby installed with a version near #{RUBY_VERSION}. \
-Your will also need the `hdutil` program installed'.
-The merge will create the app directory and a script you run later\
-to re-create the .dmg"
+          para "You will need a png icon, a .icns image, a license file and \
+background png image for the .dmg.  You will also need the `hdutil` program installed'.\
+Also some patience: dmgs are not the quickest thing to build and its done silently"
         end
         button "Merge" do
           require "package/build-osx"
@@ -929,7 +926,6 @@ to re-create the .dmg"
         end
         # should check and only perform on Tight Shoes.
         button "Merge" do
-          require "package/build-bsd"
           require "package/build-bsd"
         end
       end
