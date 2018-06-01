@@ -178,7 +178,7 @@ class MakeDarwin
     end
 
     def postbuild_fix
-      # if this is called the only thing that has changed is libshoes.dylib
+      # if this is called, the only thing that has changed is libshoes.dylib
       # and shoes-bin. This hasn't needed but might involve
       #$stderr.puts "called postbuild_fix"
 =begin
@@ -203,39 +203,35 @@ class MakeDarwin
       tf.close
       flds = str.split(' ');
       APP['plist_version_string'] = "#{flds[1]} #{flds[2]} #{flds[3]}"
-      puts "plist_version_string: #{APP['plist_version_string']}"
+      puts "plist_version_string #{APP['plist_version_string']}"
+      # TGT_DIR points at ..../Shoes.app/Contents/Macos 
+      p = TGT_DIR.split('/');
+      topd  = p[0..-3].join('/')
+      puts "topd #{topd}"
+
+      mkdir_p "#{topd}/Contents/Resources"
+      mkdir_p "#{topd}/Contents/Resources/English.lproj"
+      sh "ditto \"#{APP['icons']['osx']}\" \"#{topd}//App.icns\""
+      sh "ditto \"#{APP['icons']['osx']}\" \"#{topd}/Contents/Resources/App.icns\""
       
-      tmpd = "/tmp"
-      rm_rf "#{tmpd}/#{APPNAME}.app"
-      mkdir "#{tmpd}/#{APPNAME}.app"
-      mkdir "#{tmpd}/#{APPNAME}.app/Contents"
-      cp_r "#{TGT_DIR}", "#{tmpd}/#{APPNAME}.app/Contents/MacOS"
-      mkdir "#{tmpd}/#{APPNAME}.app/Contents/Resources"
-      mkdir "#{tmpd}/#{APPNAME}.app/Contents/Resources/English.lproj"
-      sh "ditto \"#{APP['icons']['osx']}\" \"#{tmpd}/#{APPNAME}.app/App.icns\""
-      sh "ditto \"#{APP['icons']['osx']}\" \"#{tmpd}/#{APPNAME}.app/Contents/Resources/App.icns\""
-      #rewrite "platform/mac/Info.plist", "#{tmpd}/#{APPNAME}.app/Contents/Info.plist"
-      rewrite "platform/mac/Info.plist", "#{tmpd}/#{APPNAME}.app/Contents/Info.plist-1"
-      rewrite_ary  "#{tmpd}/#{APPNAME}.app/Contents/Info.plist-1",
-         "#{tmpd}/#{APPNAME}.app/Contents/Info.plist"
-      rm "#{tmpd}/#{APPNAME}.app/Contents/Info.plist-1"
-      
-      cp "platform/mac/version.plist", "#{tmpd}/#{APPNAME}.app/Contents/"
-      rewrite "platform/mac/pangorc", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/pangorc"
-      cp "platform/mac/command-manual.rb", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/"
-      rewrite "platform/mac/shoes-launch", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
-      chmod 0755, "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}-launch"
-      chmod 0755, "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}-bin"
-      rewrite "platform/mac/shoes", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}"
-      chmod 0755, "#{tmpd}/#{APPNAME}.app/Contents/MacOS/#{NAME}"
-      # cp InfoPlist.strings YourApp.app/Contents/Resources/English.lproj/
-      `echo -n 'APPL????' > "#{tmpd}/#{APPNAME}.app/Contents/PkgInfo"`
-      puts "remove and replace"
-      rm_rf "#{TGT_DIR}/#{APPNAME}.app"
-      mv "#{tmpd}/#{APPNAME}.app",  "#{TGT_DIR}"
+      rewrite "platform/mac/Info.plist", "#{topd}/Contents/Info.plist-1"
+      rewrite_ary  "#{topd}/Contents/Info.plist-1",
+         "#{topd}/Contents/Info.plist"
+      rm "#{topd}/Contents/Info.plist-1"
+      cp "platform/mac/version.plist", "#{topd}/Contents/"
+      # rewrite "platform/mac/pangorc", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/pangorc"
+      # cp "platform/mac/command-manual.rb", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/"
+
+      rewrite "platform/mac/shoes-launch", "#{topd}/Contents/MacOS/#{NAME}-launch"
+      chmod 0755, "#{topd}/Contents/MacOS/#{NAME}-launch"
+      chmod 0755, "#{topd}/Contents/MacOS/#{NAME}-bin"
+      rewrite "platform/mac/shoes", "#{topd}/Contents/MacOS/#{NAME}"
+      chmod 0755, "#{topd}/Contents/MacOS/#{NAME}"
+ 
+      `echo -n 'APPL????' > "#{topd}/Contents/PkgInfo"`
       # create cshoes script /Users/ccoupe/build/mavericks/Shoes.app/Contents/MacOS
       rewrite "platform/mac/cshoes.tmpl", "cshoes"
-      chmod 0755, "cshoes"
+      chmod 0755, "cshoes"   
     end
 
     def make_stub
@@ -278,13 +274,15 @@ class MakeDarwin
       puts "tbz_create from #{`pwd`}"
       nfs=APP['Bld_Pre']
       mkdir_p "#{nfs}pkg"
-      #distfile = "#{nfs}pkg/#{PKG}#{TINYVER}-osx-10.9.tbz"
       distfile = "#{nfs}pkg/#{APPNAME}-#{APP['VERSION']}-osx-10.10.tgz"
-      Dir.chdir("#{TGT_DIR}") do
-        unless ENV['DEBUG']
+      p = TGT_DIR.split('/')
+      topd = p[0..-4].join('/')
+      $stderr.puts "topd: #{topd}"
+      Dir.chdir(topd) do
+        unless APP['GDB']
           Dir.chdir("#{APPNAME}.app/Contents/MacOS") do
-            #sh "strip -x *.dylib"
-            #Dir.glob("lib/ruby/**/*.bundle").each {|lib| sh "strip -x #{lib}"}
+            sh "strip -x *.dylib"
+            Dir.glob("lib/ruby/**/*.bundle").each {|lib| sh "strip -x #{lib}"}
           end
         end
         distname = "#{APPNAME}-#{APP['VERSION']}".downcase

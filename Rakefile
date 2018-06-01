@@ -1,6 +1,8 @@
 require 'rubygems'
 require 'rake'
+if RUBY_PLATFORM !~ /darwin/
 require 'rake/clean'
+end
 require 'fileutils'
 require 'find'
 require 'yaml'
@@ -62,11 +64,21 @@ if File.exists? "build_target"
   File.open('build_target','r') do |f|
     str = f.readline
     TGT_ARCH = str.split('=')[1].strip
-    # is the build output directory outside the shoes3 dir
-    if APP['Bld_Pre']
-      TGT_DIR = APP['Bld_Pre']+TGT_ARCH
-    else
-      TGT_DIR = TGT_ARCH
+    if RUBY_PLATFORM  =~ /darwin/
+      # osx is just different. It needs build performance optimizations 
+	  # is the build output directory outside the shoes3 dir?    
+	  if APP['Bld_Pre']
+	    TGT_DIR = APP['Bld_Pre']+TGT_ARCH+"/#{APPNAME}.app/Contents/MacOS"
+	  else
+	    TGT_DIR = TGT_ARCH++"/#{APPNAME}.app/Contents/MacOS"
+	  end
+    else 
+	  # is the build output directory outside the shoes3 dir?    
+	  if APP['Bld_Pre']
+	    TGT_DIR = APP['Bld_Pre']+TGT_ARCH
+	  else
+	    TGT_DIR = TGT_ARCH
+	  end
     end
     mkdir_p "#{TGT_DIR}"
     BLD_ARGS = {}
@@ -100,10 +112,12 @@ end
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 #CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
 #CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
-CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe", 
+if RUBY_PLATFORM !~ /darwin/
+  CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe", 
     "#{TGT_DIR}/libshoes.so","#{TGT_DIR}/shoes", "#{TGT_DIR}/shoes-bin",
     "#{TGT_DIR}/*.app", "#{TGT_DIR}/#{APP['Bld_tmp']}/**/*.o"]
-CLOBBER.include ["#{TGT_DIR}/.DS_Store", "#{TGT_DIR}", "build_target", "cshoes", "shoes/**/*.o"]
+  CLOBBER.include ["#{TGT_DIR}/.DS_Store", "#{TGT_DIR}", "build_target", "cshoes", "shoes/**/*.o"]
+end
 
 # for Host building for target
 case RUBY_PLATFORM
@@ -395,6 +409,23 @@ task  :install do
 end
 
 
+if RUBY_PLATFORM =~ /darwin/
+  desc "remove objects and libshoes.dylib"
+  task :clean do
+    rm_rf "#{TGT_DIR}/libshoes.dylib"
+    rm_rf "#{TGT_DIR}/tmp"
+  end
+  
+  desc "remove all build products"
+  task :clobber do
+    p = TGT_DIR.split('/');
+    topd  = p[0..-3].join('/')
+    rm_rf topd if topd && topd != ""
+    rm_f "build_target"
+  end
+end
+
+
 directory "#{TGT_DIR}"	# was 'dist'
 
 def cc(t)
@@ -424,6 +455,7 @@ namespace :osx do
     task :yosemite do
       sh "echo 'TGT_ARCH=yosemite' >build_target"
     end
+    
 
     #desc "Downshift Build 10.6 from 10.9"
     #task "xsnow" do
