@@ -1,8 +1,5 @@
 #  Build a fpm for .deb 
 Shoes.app(title: "Deb Merge", width: 600, height: 900, resizable: false ) do
-  #require("yaml")
-	
-	#@edit_box_height, @edit_box_width = 28, 250 ### box dimmensions
 
   # template [ [yaml-name, option, required, prompt, tooltip], ...] in Visual order.
   @template = [
