@@ -17,7 +17,8 @@ typedef struct _GtkButton_AltPrivate GtkButton_AltPrivate;
 
 struct _GtkButton_AltPrivate {
     /* to avoid warnings (g_type_class_add_private: assertion `private_size > 0' failed) */
-    gchar dummy;
+    int shoes_width;
+    int shoes_height;
 };
 
 /* Forward declarations */
@@ -52,13 +53,17 @@ static void gtk_button_alt_init(GtkButton_Alt *buttontAlt) {
 
     /* Initialize private members */
     // TODO: determine whether priv has any use.
-    //GtkButton_AltPrivate *priv = GTK_BUTTON_ALT_PRIVATE(buttontAlt);
+    GtkButton_AltPrivate *priv = GTK_BUTTON_ALT_PRIVATE(buttontAlt);
 
 }
 
 /* Return a new GtkButton_Alt cast to a GtkWidget */
-GtkWidget *gtk_button_alt_new() {
-    return GTK_WIDGET(g_object_new(gtk_button_alt_get_type(), NULL));
+GtkWidget *gtk_button_alt_new(int width, int height) {
+	GtkWidget *btn = GTK_WIDGET(g_object_new(gtk_button_alt_get_type(), NULL));
+    GtkButton_AltPrivate *priv = GTK_BUTTON_ALT_PRIVATE(btn);
+    priv->shoes_width = width;
+    priv->shoes_height = height;
+    return btn;
 }
 
 GtkWidget *gtk_button_alt_new_with_label(const gchar *label) {
@@ -68,16 +73,43 @@ GtkWidget *gtk_button_alt_new_with_label(const gchar *label) {
 
 static void gtk_button_alt_get_preferred_width(GtkWidget *widget, int *minimal, int *natural) {
     g_return_if_fail(widget != NULL);
-
-    *minimal = 1;
-    *natural = 1;
+    GtkButton_Alt *btn = (GtkButton_Alt *)widget;
+    GtkButton_AltPrivate *priv = GTK_BUTTON_ALT_PRIVATE(btn);
+    *natural = *minimal = priv->shoes_width;
+    // To quiet Gtk3.20+ call the contained widgets get_preferred_widths 
+    GList *children; 
+    GtkWidget *child;
+    int child_min, child_nat;
+    for (children = gtk_container_get_children((GtkContainer *)widget); children; children = children->next)
+    {
+      child = children->data;
+      if (!gtk_widget_get_visible (child))
+        continue;
+      gtk_widget_get_preferred_width(child, &child_min, &child_nat);
+    }
+    //*minimal = 1;
+    //*natural = 1;
 }
 
 static void gtk_button_alt_get_preferred_height(GtkWidget *widget, int *minimal, int *natural) {
     g_return_if_fail(widget != NULL);
+    GtkButton_Alt *btn = (GtkButton_Alt *)widget;
+    GtkButton_AltPrivate *priv = GTK_BUTTON_ALT_PRIVATE(btn);
+    *natural = *minimal = priv->shoes_height;
+    // To quiet Gtk3.20+ call the contained widgets get_preferred_widths 
+    GList *children; 
+    GtkWidget *child;
+    int child_min, child_nat;
+    for (children = gtk_container_get_children((GtkContainer *)widget); children; children = children->next)
+    {
+      child = children->data;
+      if (!gtk_widget_get_visible (child))
+        continue;
+      gtk_widget_get_preferred_height(child, &child_min, &child_nat);
+    }
 
-    *minimal = 1;
-    *natural = 1;
+    //*minimal = 1;
+    //*natural = 1;
 }
 // end gtk subclass fun
 
@@ -102,7 +134,7 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
     GtkWidget *glabel = NULL; 
     GtkWidget *gimage = NULL;
     char *icon_pos = NULL;
-    SHOES_CONTROL_REF ref = gtk_button_alt_new();
+    SHOES_CONTROL_REF ref = gtk_button_alt_new(place->w, place->h);
     if (msg && (strlen(msg) > 0)) {
       if (!NIL_P(shoes_hash_get(attr, rb_intern("font")))) {
         fntstr = RSTRING_PTR(shoes_hash_get(attr, rb_intern("font")));

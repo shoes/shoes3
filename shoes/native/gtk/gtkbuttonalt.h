@@ -25,7 +25,7 @@ typedef struct _GtkButton_AltClass {
 } GtkButton_AltClass;
 
 GType gtk_button_alt_get_type(void) G_GNUC_CONST;
-GtkWidget *gtk_button_alt_new(void);
+GtkWidget *gtk_button_alt_new(int h, int w);
 GtkWidget *gtk_button_alt_new_with_label(const gchar *label);
 
 G_END_DECLS
