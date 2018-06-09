@@ -9,7 +9,7 @@
 #include "gtkcomboboxtextalt.h"
 //#include <gtk/gtkcombobox.h>
 
-
+#if 0 // not used - probably a copy of Gtk internals
 struct _GtkComboBoxPrivate {
     GtkTreeModel *model;
 
@@ -77,6 +77,7 @@ struct _GtkComboBoxPrivate {
 
     gchar *tearoff_title;
 };
+#endif 
 
 /* Private class member */
 #define GTK_COMBOBOXTEXT_ALT_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), \
@@ -86,7 +87,9 @@ typedef struct _GtkComboBoxText_AltPrivate GtkComboBoxText_AltPrivate;
 
 struct _GtkComboBoxText_AltPrivate {
     /* to avoid warnings (g_type_class_add_private: assertion `private_size > 0' failed) */
-    gchar dummy;
+    /* Shoes controls are fixed size and known in advanced. */
+    int shoes_width;
+    int shoes_height;
 };
 
 /* Forward declarations */
@@ -108,9 +111,10 @@ static void gtk_combo_box_text_alt_class_init(GtkComboBoxText_AltClass *klass) {
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
     widget_class->get_preferred_width = gtk_combo_box_text_alt_get_preferred_width;
     widget_class->get_preferred_height = gtk_combo_box_text_alt_get_preferred_height;
+#ifdef ADVANCED_GTK
     widget_class->get_preferred_height_for_width = gtk_combo_box_text_alt_get_preferred_height_for_width;
     widget_class->get_preferred_width_for_height = gtk_combo_box_text_alt_get_preferred_width_for_height;
-
+#endif
     /* Override GtkComboBoxText methods */
     // TODO: determine whether gobject_class has any use.
     // GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
@@ -127,7 +131,7 @@ static void gtk_combo_box_text_alt_init(GtkComboBoxText_Alt *comboboxtextAlt) {
 
     /* Initialize private members */
     // TODO: determine whether priv has any use.
-    //GtkComboBoxText_AltPrivate *priv = GTK_COMBOBOXTEXT_ALT_PRIVATE(comboboxtextAlt);
+    GtkComboBoxText_AltPrivate *priv = GTK_COMBOBOXTEXT_ALT_PRIVATE(comboboxtextAlt);
 }
 
 extern VALUE cColor;
@@ -140,6 +144,10 @@ GtkWidget *gtk_combo_box_text_alt_new(VALUE attribs, int bottom_margin) {
     int w = 160, h = 30;
     if (RTEST(ATTR(attribs, width))) w = NUM2INT(ATTR(attribs, width));
     if (RTEST(ATTR(attribs, height))) h = NUM2INT(ATTR(attribs, height));
+    
+    GtkComboBoxText_AltPrivate *priv = GTK_COMBOBOXTEXT_ALT_PRIVATE(ref);
+    priv->shoes_width = w;
+    priv->shoes_height = h;
 
 
     //GtkCellArea *area = gtk_cell_layout_get_area((GtkCellLayout *)ref);
@@ -192,7 +200,13 @@ static void gtk_combo_box_text_alt_get_preferred_width(GtkWidget *widget, int *m
       gint box_width;
       gtk_widget_get_preferred_width(priv->box, &box_width, NULL);
     */
-
+#ifndef ADVANCED_GTK
+    GtkComboBoxText_Alt *ref = (GtkComboBoxText_Alt *)widget;
+    GtkComboBoxText_AltPrivate *priv = GTK_COMBOBOXTEXT_ALT_PRIVATE(ref);
+    // Enough to quiet Gtk3.20+ whines  
+    *minimal = priv->shoes_width;
+    *natural = priv->shoes_width;
+#else
     GList *renderers = gtk_cell_layout_get_cells((GtkCellLayout *)widget);
     GtkCellRenderer *cell = g_list_first(renderers)->data;    //only one renderer
     g_list_free(renderers);
@@ -201,6 +215,7 @@ static void gtk_combo_box_text_alt_get_preferred_width(GtkWidget *widget, int *m
 
     *minimal = cell_width;
     *natural = cell_width;
+#endif    
 }
 
 static void gtk_combo_box_text_alt_get_preferred_height(GtkWidget *widget, int *minimal, int *natural) {
@@ -213,7 +228,7 @@ static void gtk_combo_box_text_alt_get_preferred_height(GtkWidget *widget, int *
     GTK_WIDGET_GET_CLASS(widget)->get_preferred_height_for_width(widget, min_width, minimal, natural);
 
 }
-
+#ifdef ADVANCED_GTK
 static void gtk_combo_box_text_alt_get_preferred_width_for_height(GtkWidget *widget,
         gint       avail_size,
         gint      *minimum_size,
@@ -242,7 +257,7 @@ static void gtk_combo_box_text_alt_get_preferred_height_for_width(GtkWidget *wid
     *natural_size = nat_size.height;
 
 }
-
+#endif
 // end subclass fun
 
 extern void shoes_widget_changed(GtkWidget *ref, gpointer data);
