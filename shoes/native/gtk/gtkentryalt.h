@@ -25,7 +25,7 @@ typedef struct _GtkEntry_AltClass {
 } GtkEntry_AltClass;
 
 GType gtk_entry_alt_get_type(void) G_GNUC_CONST;
-GtkWidget *gtk_entry_alt_new(void);
+GtkWidget *gtk_entry_alt_new(int width, int height);
 
 G_END_DECLS
 

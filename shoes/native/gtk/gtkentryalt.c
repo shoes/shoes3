@@ -15,7 +15,8 @@ typedef struct _GtkEntry_AltPrivate GtkEntry_AltPrivate;
 
 struct _GtkEntry_AltPrivate {
     /* to avoid warnings (g_type_class_add_private: assertion `private_size > 0' failed) */
-    gchar dummy;
+    int shoes_width;
+    int shoes_height;
 };
 
 /* Forward declarations */
@@ -59,23 +60,33 @@ gtk_entry_alt_init(GtkEntry_Alt *entryAlt) {
 
 /* Return a new GtkEntry_Alt cast to a GtkWidget */
 GtkWidget *
-gtk_entry_alt_new() {
-    return GTK_WIDGET(g_object_new(gtk_entry_alt_get_type(), NULL));
+gtk_entry_alt_new(int width, int height) {
+    GtkWidget *ent = GTK_WIDGET(g_object_new(gtk_entry_alt_get_type(), NULL));
+    GtkEntry_AltPrivate *priv = GTKENTRY_ALT_PRIVATE(ent);
+    priv->shoes_width = width;
+    priv->shoes_height = height;
+    return ent;
 }
 
 
 static void
 gtk_entry_alt_get_preferred_width(GtkWidget *widget, int *minimal, int *natural) {
     g_return_if_fail(widget != NULL);
+    GtkEntry_Alt *ent = (GtkEntry_Alt *)widget;
+    GtkEntry_AltPrivate *priv = GTKENTRY_ALT_PRIVATE(ent);
+    *natural = *minimal = priv->shoes_width;
 
-    *minimal = 1;
-    *natural = 1;
+    //*minimal = 1;
+    //*natural = 1;
 }
 
 static void
 gtk_entry_alt_get_preferred_height(GtkWidget *widget, int *minimal, int *natural) {
     g_return_if_fail(widget != NULL);
+    GtkEntry_Alt *ent = (GtkEntry_Alt *)widget;
+    GtkEntry_AltPrivate *priv = GTKENTRY_ALT_PRIVATE(ent);
+    *natural = *minimal = priv->shoes_height;
 
-    *minimal = 1;
-    *natural = 1;
+    //*minimal = 1;
+    //*natural = 1;
 }

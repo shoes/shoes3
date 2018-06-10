@@ -14,7 +14,7 @@
 static char *css_template = "GtkEntry {\n font: %s;\n color: %s;\n}\n";
 
 SHOES_CONTROL_REF shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
-    SHOES_CONTROL_REF ref = gtk_entry_alt_new();
+    SHOES_CONTROL_REF ref = gtk_entry_alt_new(place->w, place->h);
 
     if (RTEST(ATTR(attr, secret))) shoes_native_secrecy(ref);
     
