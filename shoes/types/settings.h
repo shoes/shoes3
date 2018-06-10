@@ -22,6 +22,7 @@ typedef struct {
   VALUE dbus_name;
   VALUE extra1;
   VALUE extra2;
+  VALUE osx_menutrim; 
 } shoes_settings;
 
 typedef struct {

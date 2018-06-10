@@ -223,53 +223,54 @@ void shoes_osx_create_apple_menu(VALUE mbv) {
     [NSApp setServicesMenu:menuServices];    
     
     
-    // Now populate with MenuItems
+    // Now populate with MenuItems unless told not to..
     NSMenuItem *menuitem;    
+	int flags = MENUITEM_ENABLE; 
+	char *key = "";
 
-    //menuitem = [menuApp addItemWithTitle:@"Open..."
-    //    action:@selector(openFile:) keyEquivalent:@"o"];
-    //[menuitem setTarget: shoes_world->os.events];
-    
-    // We don't have Shoes app yet. 
-    int flags = MENUITEM_ENABLE; 
-    char *key = "";
-    VALUE otext = rb_str_new2("Open");
-    VALUE oproc = rb_eval_string("proc { Shoes.show_selector }");
-    VALUE oitem = shoes_menuitem_new(otext, flags | MENUITEM_CONTROL, "o", oproc, Qnil);
-    shoes_menu_append(shoesmenu, oitem);
-
-    // Console (log)
-    VALUE lgtext = rb_str_new2("Console");
-    VALUE lgproc = rb_eval_string("proc { Shoes.show_log }");
-    VALUE lgitem = shoes_menuitem_new(lgtext, flags | MENUITEM_CONTROL, "/", lgproc, Qnil);
-    shoes_menu_append(shoesmenu, lgitem);
-  
-	// Manual 
-	VALUE mtext = rb_str_new2("Manual");
-	VALUE mproc = rb_eval_string("proc { Shoes.show_manual }");
-	VALUE mitem = shoes_menuitem_new(mtext, flags, key, mproc, Qnil);
-	shoes_menu_append(shoesmenu, mitem);
-	// Cobbler
-	VALUE ctext = rb_str_new2("Cobbler");
-	VALUE cproc = rb_eval_string("proc { Shoes.cobbler }");
-	VALUE citem = shoes_menuitem_new(ctext, flags, key, cproc, Qnil);
-	shoes_menu_append(shoesmenu, citem);
-	// Profile - bug in profiler (#400 , @dredknight)
-	VALUE ftext = rb_str_new2("Profile");
-	VALUE fproc = rb_eval_string("proc { require 'shoes/profiler'; Shoes.profile(nil) }");
-	VALUE fitem = shoes_menuitem_new(ftext, flags, key, fproc, Qnil);
-	shoes_menu_append(shoesmenu, fitem);
-	// Package
-	VALUE ptext = rb_str_new2("Package");
-	VALUE pproc = rb_eval_string("proc { Shoes.app_package }");
-	VALUE pitem = shoes_menuitem_new(ptext, flags, key, pproc, Qnil);
-	shoes_menu_append(shoesmenu, pitem);
-    // Preferences 
-    //[menuApp addItemWithTitle:@"Preferences..." action:nil keyEquivalent:@""];
-    VALUE pftext = rb_str_new2("Preferences...");
-    VALUE pfitem = shoes_menuitem_new(pftext, 0, "", Qnil, Qnil);
-    shoes_menu_append(shoesmenu, pfitem);
-    
+    if ( st->osx_menutrim == Qfalse) {    
+	    //menuitem = [menuApp addItemWithTitle:@"Open..."
+	    //    action:@selector(openFile:) keyEquivalent:@"o"];
+	    //[menuitem setTarget: shoes_world->os.events];
+	    
+	    // We don't have Shoes app yet. 
+	    VALUE otext = rb_str_new2("Open");
+	    VALUE oproc = rb_eval_string("proc { Shoes.show_selector }");
+	    VALUE oitem = shoes_menuitem_new(otext, flags | MENUITEM_CONTROL, "o", oproc, Qnil);
+	    shoes_menu_append(shoesmenu, oitem);
+	
+	    // Console (log)
+	    VALUE lgtext = rb_str_new2("Console");
+	    VALUE lgproc = rb_eval_string("proc { Shoes.show_log }");
+	    VALUE lgitem = shoes_menuitem_new(lgtext, flags | MENUITEM_CONTROL, "/", lgproc, Qnil);
+	    shoes_menu_append(shoesmenu, lgitem);
+	  
+		// Manual 
+		VALUE mtext = rb_str_new2("Manual");
+		VALUE mproc = rb_eval_string("proc { Shoes.show_manual }");
+		VALUE mitem = shoes_menuitem_new(mtext, flags, key, mproc, Qnil);
+		shoes_menu_append(shoesmenu, mitem);
+		// Cobbler
+		VALUE ctext = rb_str_new2("Cobbler");
+		VALUE cproc = rb_eval_string("proc { Shoes.cobbler }");
+		VALUE citem = shoes_menuitem_new(ctext, flags, key, cproc, Qnil);
+		shoes_menu_append(shoesmenu, citem);
+		// Profile - bug in profiler (#400 , @dredknight)
+		VALUE ftext = rb_str_new2("Profile");
+		VALUE fproc = rb_eval_string("proc { require 'shoes/profiler'; Shoes.profile(nil) }");
+		VALUE fitem = shoes_menuitem_new(ftext, flags, key, fproc, Qnil);
+		shoes_menu_append(shoesmenu, fitem);
+		// Package
+		VALUE ptext = rb_str_new2("Package");
+		VALUE pproc = rb_eval_string("proc { Shoes.app_package }");
+		VALUE pitem = shoes_menuitem_new(ptext, flags, key, pproc, Qnil);
+		shoes_menu_append(shoesmenu, pitem);
+	    // Preferences 
+	    //[menuApp addItemWithTitle:@"Preferences..." action:nil keyEquivalent:@""];
+	    VALUE pftext = rb_str_new2("Preferences...");
+	    VALUE pfitem = shoes_menuitem_new(pftext, 0, "", Qnil, Qnil);
+	    shoes_menu_append(shoesmenu, pfitem);
+    }
     //[menuApp addItem: [NSMenuItem separatorItem]];
     VALUE stext = rb_str_new2("--- a seperator");
     VALUE s3item = shoes_menuitem_new(stext, flags, key, Qnil, Qnil);

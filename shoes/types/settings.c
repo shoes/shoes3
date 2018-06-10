@@ -27,6 +27,7 @@ void shoes_settings_mark(shoes_settings *st) {
     rb_gc_mark_maybe(st->dbus_name);
     rb_gc_mark_maybe(st->extra1);
     rb_gc_mark_maybe(st->extra2);
+    rb_gc_mark_maybe(st->osx_menutrim);
 }
 
 static void shoes_settings_free(shoes_settings *st) {
@@ -48,6 +49,7 @@ VALUE shoes_settings_alloc(VALUE klass) {
     st->dbus_name = Qnil;
     st->extra1 = Qnil;
     st->extra2 = Qnil;
+    st->osx_menutrim = Qnil;
     return obj;
 }
 
@@ -93,6 +95,11 @@ VALUE shoes_settings_new(shoes_yaml_init *yml) {
     st->extra2 = rb_str_new2(yml->extra2);
   else
     st->extra2 = Qnil;
+    
+  if (! strcmp(yml->osx_menutrim, "true"))
+    st->osx_menutrim = Qtrue;
+  else
+    st->osx_menutrim = Qfalse;
    
   //free(yml);
   return shoes_world->settings; 

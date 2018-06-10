@@ -268,6 +268,7 @@ int shoes_init_load_yaml(char *path) {
     shoes_config_yaml->mdi = "false";
     shoes_config_yaml->extra1 = NULL;
     shoes_config_yaml->extra2 = NULL;
+    shoes_config_yaml->osx_menutrim = "false";
     
     // check current dir (script location) first
     FILE* fh = fopen("startup.yaml", "r");
@@ -316,8 +317,11 @@ int shoes_init_load_yaml(char *path) {
                           datap = &shoes_config_yaml->mdi;
                       } else if (!strcmp(tk,"Extra1")) {
                           datap = &shoes_config_yaml->extra1;
-                       } else if (!strcmp(tk,"Extra2")) {
+                      } else if (!strcmp(tk,"Extra2")) {
                           datap = &shoes_config_yaml->extra2;
+                     } else if (!strcmp(tk,"OSX_Menu_Trim")) {
+						 datap = &shoes_config_yaml->osx_menutrim;
+                          
                      } else {
                           printf("Unrecognised key: %s\n", tk);
                           return 0;

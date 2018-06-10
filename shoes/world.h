@@ -100,6 +100,7 @@ typedef struct _shoes_yaml_init {
     char* mdi;
     char* extra1;
     char* extra2;
+    char* osx_menutrim;
 } shoes_yaml_init;
 
 extern shoes_yaml_init *shoes_config_yaml;

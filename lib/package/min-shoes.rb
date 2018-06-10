@@ -263,6 +263,7 @@ class Shoes
   end
 
   def self.visit(path, debug=false)
+    $stderr.puts "In visit"
     uri = Shoes.uri(path)
     case uri
     when URI::HTTP
