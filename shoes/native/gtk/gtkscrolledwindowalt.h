@@ -26,7 +26,7 @@ typedef struct _GtkScrolledWindow_AltClass {
 
 GType gtk_scrolled_window_alt_get_type(void) G_GNUC_CONST;
 GtkWidget* gtk_scrolled_window_alt_new(GtkAdjustment *hadjustment,
-                                       GtkAdjustment *vadjustment);
+  GtkAdjustment *vadjustment, int width, int height);
 
 G_END_DECLS
 

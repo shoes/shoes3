@@ -59,7 +59,7 @@ static void gtk_button_alt_init(GtkButton_Alt *buttontAlt) {
 
 /* Return a new GtkButton_Alt cast to a GtkWidget */
 GtkWidget *gtk_button_alt_new(int width, int height) {
-	GtkWidget *btn = GTK_WIDGET(g_object_new(gtk_button_alt_get_type(), NULL));
+	  GtkWidget *btn = GTK_WIDGET(g_object_new(gtk_button_alt_get_type(), NULL));
     GtkButton_AltPrivate *priv = GTK_BUTTON_ALT_PRIVATE(btn);
     priv->shoes_width = width;
     priv->shoes_height = height;

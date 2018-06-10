@@ -6,7 +6,8 @@ Shoes.app height: 500, width: 300 do
     end
     flow do 
       para "Font  "
-      @eb2 = edit_box "Font Is?", font: "Monaco 9", tooltip: "monaco 9"
+      @eb2 = edit_box "Font Is?", font: "Monaco 9", tooltip: "monaco 9",
+         width: 300
     end
     flow do
       para "Stroke "

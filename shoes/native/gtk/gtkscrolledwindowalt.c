@@ -15,7 +15,8 @@ typedef struct _GtkScrolledWindow_AltPrivate GtkScrolledWindow_AltPrivate;
 
 struct _GtkScrolledWindow_AltPrivate {
     /* to avoid warnings (g_type_class_add_private: assertion `private_size > 0' failed) */
-    gchar dummy;
+    int shoes_width;
+    int shoes_height;
 };
 
 /* Forward declarations */
@@ -48,7 +49,7 @@ static void gtk_scrolled_window_alt_init(GtkScrolledWindow_Alt *scrolledwindowAl
     /* This means that GtkScrolledWindow_Alt doesn't supply its own GdkWindow */
     //gtk_widget_set_has_window(GTK_WIDGET(scrolledwindowAlt), FALSE);
     gtk_widget_set_has_window(GTK_WIDGET(scrolledwindowAlt),
-                              gtk_widget_get_has_window(GTK_WIDGET(&(scrolledwindowAlt->parent_instance))));
+        gtk_widget_get_has_window(GTK_WIDGET(&(scrolledwindowAlt->parent_instance))));
 
     /* Initialize private members */
     // TODO: determine whether gobject_class has any use.
@@ -57,31 +58,46 @@ static void gtk_scrolled_window_alt_init(GtkScrolledWindow_Alt *scrolledwindowAl
 
 /* Return a new GtkScrolledWindow_Alt cast to a GtkWidget */
 GtkWidget *gtk_scrolled_window_alt_new(GtkAdjustment *hadjustment,
-                                       GtkAdjustment *vadjustment) {
+    GtkAdjustment *vadjustment, int width, int height) {
     if (hadjustment)
         g_return_val_if_fail (GTK_IS_ADJUSTMENT (hadjustment), NULL);
-
     if (vadjustment)
         g_return_val_if_fail (GTK_IS_ADJUSTMENT (vadjustment), NULL);
+        
+	  GtkWidget *win = GTK_WIDGET(g_object_new (gtk_scrolled_window_alt_get_type(),
+            "hadjustment", hadjustment, "vadjustment", vadjustment, NULL));
+                                    
+    GtkScrolledWindow_AltPrivate *priv = GTK_SCROLLED_WINDOW_ALT_PRIVATE(win);
+    priv->shoes_width = width;
+    priv->shoes_height = height;
+    return win;
 
-    return GTK_WIDGET(g_object_new (gtk_scrolled_window_alt_get_type(),
+/*    return GTK_WIDGET(g_object_new (gtk_scrolled_window_alt_get_type(),
                                     "hadjustment", hadjustment,
                                     "vadjustment", vadjustment,
                                     NULL));
+*/
 }
 
 static void gtk_scrolled_window_alt_get_preferred_width(GtkWidget *widget, int *minimal, int *natural) {
     g_return_if_fail(widget != NULL);
+    
+    GtkScrolledWindow_Alt *win = (GtkScrolledWindow_Alt *)widget;
+    GtkScrolledWindow_AltPrivate *priv = GTK_SCROLLED_WINDOW_ALT_PRIVATE(win);
+    *natural = *minimal = priv->shoes_width;
 
-    *minimal = 1;
-    *natural = 1;
+    //*minimal = 1;
+    //*natural = 1;
 }
 
 static void gtk_scrolled_window_alt_get_preferred_height(GtkWidget *widget, int *minimal, int *natural) {
     g_return_if_fail(widget != NULL);
+    GtkScrolledWindow_Alt *win = (GtkScrolledWindow_Alt *)widget;
+    GtkScrolledWindow_AltPrivate *priv = GTK_SCROLLED_WINDOW_ALT_PRIVATE(win);
+    *natural = *minimal = priv->shoes_height;
 
-    *minimal = 1;
-    *natural = 1;
+    //*minimal = 1;
+    //*natural = 1;
 }
 
 

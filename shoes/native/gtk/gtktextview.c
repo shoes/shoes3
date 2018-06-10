@@ -12,7 +12,7 @@
 SHOES_CONTROL_REF shoes_native_text_view(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
     GtkTextBuffer *buffer;
     GtkWidget* textview = gtk_text_view_new();
-    SHOES_CONTROL_REF ref = gtk_scrolled_window_alt_new(NULL, NULL);
+    SHOES_CONTROL_REF ref = gtk_scrolled_window_alt_new(NULL, NULL, place->w, place->h);
 
     if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
         gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));

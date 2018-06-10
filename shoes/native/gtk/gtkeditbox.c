@@ -15,7 +15,7 @@ static char *css_template = "GtkTextView {\n font: %s;\n color: %s;\n}\n";
 SHOES_CONTROL_REF shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
     GtkTextBuffer *buffer;
     GtkWidget* textview = gtk_text_view_new();
-    SHOES_CONTROL_REF ref = gtk_scrolled_window_alt_new(NULL, NULL);
+    SHOES_CONTROL_REF ref = gtk_scrolled_window_alt_new(NULL, NULL, place->w, place->h);
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD);
     buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview));
     gtk_text_buffer_set_text(buffer, _(msg), -1);
