@@ -25,7 +25,7 @@ typedef struct _GtkProgressBar_AltClass {
 } GtkProgressBar_AltClass;
 
 GType gtk_progress_bar_alt_get_type(void) G_GNUC_CONST;
-GtkWidget* gtk_progress_bar_alt_new(void);
+GtkWidget* gtk_progress_bar_alt_new(int width, int height);
 
 G_END_DECLS
 

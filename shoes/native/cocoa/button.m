@@ -43,7 +43,8 @@ extern VALUE cTimer;
   {
     object = o;
     [self setButtonType: t];
-    [self setBezelStyle: NSRoundedBezelStyle];
+    //[self setBezelStyle: NSRoundedBezelStyle];   // RoundedBezel doesn't resize.
+    [self setBezelStyle: NSSmallSquareBezelStyle];
     [self setTarget: self];
     [self setAction: @selector(handleClick:)];
     //NSLog(@"button with frame w: %i h: %i\n", (int) NSWidth(rect), (int)NSHeight(rect));
@@ -64,6 +65,7 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
   char *fntstr = 0;
   VALUE fgclr = Qnil; // Could be hex color string or Shoes color object
   VALUE lblposv = Qnil;
+  VALUE hgtv = Qnil;
   NSInteger fsize = 0;
   NSArray *fontsettings;
   NSCellImagePosition imgpos = NSImageLeft;
@@ -121,7 +123,9 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
   }
   if (! msg) imgpos = NSImageOnly;
   
-  if (fntstr || !NIL_P(fgclr)) {
+  hgtv = shoes_hash_get(attr, rb_intern("height"));
+  
+  if (fntstr || !NIL_P(fgclr) || !NIL_P(hgtv)) {
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity: 5];
     NSString *title = [NSString stringWithUTF8String: msg];
     if (fntstr) {
@@ -155,8 +159,15 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
     //Connect dict to title
     NSAttributedString *attrString = [[NSAttributedString alloc] initWithString:title
         attributes: dict];  
-    button = [[ShoesButton alloc] initWithTypeF: NSMomentaryPushInButton
+        
+    // if height is specified, use a BezelStyle that resizes
+    if (NIL_P(hgtv))
+      button = [[ShoesButton alloc] initWithType: NSMomentaryPushInButton
+        andObject: self];
+    else 
+      button = [[ShoesButton alloc] initWithTypeF: NSMomentaryPushInButton
         withFrame: reqsize andObject: self];
+        
     [button setAttributedTitle : attrString];
   } else {
   

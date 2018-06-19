@@ -2,6 +2,7 @@
 // shoes/native.h
 // Common native Shoes routines.
 //
+#include "shoes/types/settings.h"
 #ifndef SHOES_NATIVE_H
 #define SHOES_NATIVE_H
 
@@ -49,7 +50,8 @@ int shoes_native_app_get_decoration(shoes_app *app);
 void shoes_native_app_resize_window(shoes_app *);
 VALUE shoes_native_get_resizable(shoes_app *app);
 void shoes_native_set_resizable(shoes_app *app, int resizable);
-shoes_code shoes_native_app_open(shoes_app *, char *, int);
+shoes_code shoes_native_app_open(shoes_app *, char *, int, shoes_settings *);
+shoes_code shoes_native_app_open_menu(shoes_app *, char *, int, shoes_settings *);
 void shoes_native_app_show(shoes_app *);
 void shoes_native_loop(void);
 void shoes_native_app_close(shoes_app *);
@@ -60,6 +62,7 @@ int shoes_native_terminal();
 void shoes_native_app_console();
 void shoes_browser_open(char *);
 void shoes_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
+void shoes_slot_init_menu(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
 cairo_t *shoes_cairo_create(shoes_canvas *);
 void shoes_slot_destroy(shoes_canvas *, shoes_canvas *);
 void shoes_cairo_destroy(shoes_canvas *);

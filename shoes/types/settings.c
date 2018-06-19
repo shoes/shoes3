@@ -1,6 +1,6 @@
+#include "shoes/types/settings.h"
 #include "shoes/types/native.h"
 #include "shoes/app.h"
-#include "shoes/types/settings.h"
 /*
  * The settings object
  */ 

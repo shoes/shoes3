@@ -11,6 +11,7 @@
 #include "shoes/ruby.h"
 #include "shoes/config.h"
 #include "shoes/world.h"
+#include "shoes/types/settings.h"
 #include "shoes/native/native.h"
 #include "shoes/types/native.h"
 #include "shoes/types/color.h"
@@ -21,7 +22,7 @@
 #include "shoes/internal.h"
 #include "shoes/types/menubar.h"
 #include "shoes/native/gtk/gtkmenus.h"
-#include "shoes/types/settings.h"
+
 
 #include <fontconfig/fontconfig.h>
 #ifndef RUBY_HTTP
@@ -43,6 +44,10 @@
 #define HEIGHT_PAD 0
 
 #define SHOES_GTK_INVISIBLE_CHAR (gunichar)0x2022
+
+/* forward declares in this file */
+static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer data);
+static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, gpointer data);
 
 #ifndef SHOES_GTK_WIN32
 static VALUE shoes_make_font_list(FcFontSet *fonts, VALUE ary) {
@@ -474,16 +479,47 @@ static gboolean shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gp
     return TRUE;
 }
 
-// called only by Window signal handler for "size-allocate"
-static void shoes_app_gtk_paint(GtkWidget *widget, cairo_t *cr, gpointer data) {
-    // TODO: this only sets things in app-> It does not move anything directly
-    // really should use widget_size(app->slot-oxcanvas) when menus active
+// TODO: unused? called when window was maximized (window adornment button)
+// considered to be a hack.
+static void shoes_gtk_resized_max(shoes_app *app, int width, int height) {
+    shoes_canvas *canvas;
+    Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+    fprintf(stderr,"shoes_gtk_resized_max: %d %d\n", width, height);
+    if (canvas->slot->vscroll &&
+            (height != canvas->slot->scrollh || width != canvas->slot->scrollw)) {
+        GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
+        //gtk_widget_set_size_request(canvas->slot->vscroll, -1, height);
+        gtk_widget_set_size_request(canvas->slot->vscroll, -1, height);
+
+        //gtk_widget_set_size_request(GTK_CONTAINER(widget), canvas->app->width, size->height);
+        GtkAllocation alloc;
+        gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);  
+        fprintf(stderr, "alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
+        gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
+                    (width - alloc.width)-100, 0);
+        gtk_adjustment_set_page_size(adj, height);
+        gtk_adjustment_set_page_increment(adj, height - 32);
+
+        if (gtk_adjustment_get_page_size(adj) >= gtk_adjustment_get_upper(adj))
+            gtk_widget_hide(canvas->slot->vscroll);
+        else {
+            gtk_widget_show(canvas->slot->vscroll);
+        }
+        canvas->slot->scrollh = height;
+        canvas->slot->scrollw = width;
+    }
+}
+
+
+// called only by **Window** signal handler for "size-allocate"
+static void shoes_app_gtk_size(GtkWidget *widget, cairo_t *cr, gpointer data) {
     shoes_app *app = (shoes_app *)data;
     gtk_window_get_size(GTK_WINDOW(app->os.window), &app->width, &app->height);
-    if (app->have_menu) {
-      // window size includes menubar , we want canvas height
-      app->height -= app->mb_height;
-      //fprintf(stderr,"size_paint wid: %d hgt: %d\n", app->width, app->height);
+    fprintf(stderr,"shoes_app_gtk_size: wid: %d hgt: %d\n", app->width, app->height);
+    // This calls shoes_native_canvas_resize - a no-opp in gtk
+    if (gtk_window_is_maximized(widget)) {
+      // because of maimize button and asynch behaviour app->w/h are incorrect here.
+      fprintf(stderr,"resized max %d, %d\n", app->width, app->height);
     }
     shoes_canvas_size(app->canvas, app->width, app->height);
 }
@@ -606,18 +642,19 @@ static void shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpoint
     VALUE c = (VALUE)data;
     shoes_canvas *canvas;
     Data_Get_Struct(c, shoes_canvas, canvas);
-    //fprintf(stderr,"sizing\n");
+    fprintf(stderr,"shoes_canvas_gtk_size: %d %d %d %d\n", size->x, size->y, size->width, size->height);
     if (canvas->slot->vscroll &&
             (size->height != canvas->slot->scrollh || size->width != canvas->slot->scrollw)) {
         GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
         gtk_widget_set_size_request(canvas->slot->vscroll, -1, size->height);
-
+        
         //gtk_widget_set_size_request(GTK_CONTAINER(widget), canvas->app->width, size->height);
-
         GtkAllocation alloc;
         gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);  
-        //fprintf(stderr,"size: %d %d %d %d\n", size->x, size->y, size->width, size->height);
-        //fprintf(stderr, "alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
+        fprintf(stderr, "alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
+        if (canvas->slot->oscanvas != widget) 
+          fprintf(stderr,"ooops\n");
+          
         gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
                        size->width - alloc.width, 0);
         gtk_adjustment_set_page_size(adj, size->height);
@@ -931,7 +968,7 @@ void shoes_native_app_window_move(shoes_app *app, int x, int y) {
  *  That causes some pixel tweaking and redundency. 
  */
  
-shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
+shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_settings *st) {
 #if 0 //!defined(SHOES_GTK_WIN32)
     char icon_path[SHOES_BUFSIZE];
     sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
@@ -940,10 +977,7 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
     GtkWidget *window;       // Root window 
     shoes_app_gtk *gk = &app->os; //lexical - typing shortcut
 
-    shoes_settings *st;
-    Data_Get_Struct(shoes_world->settings, shoes_settings, st);
-    
-    char icon_path[SHOES_BUFSIZE];
+   char icon_path[SHOES_BUFSIZE];
     if (st->icon_path == Qnil)
       sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
     else {
@@ -955,128 +989,53 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog) {
     }
     gtk_window_set_default_icon_from_file(icon_path, NULL);
 
-    if (st->use_menus == Qtrue) {
-      app->have_menu = 1;   
-    }
-    
-    if (app->have_menu) {  
-      GtkWidget *vbox;         // contents of root window
-      GtkWidget *menubar;      // top of vbox
-      GtkWidget *shoes_window; // bottom of vbox where shoes does its thing.
-      
-      menubar = gtk_menu_bar_new();
-      gk->menubar = menubar;
+    // The Good old way, menu-less
 #if 0
-      // don't do this if gtk_init() is used.
-      window = gtk_application_window_new(shoes_GtkApp);
+    // don't do this if gtk_init() is used.
+    window = gtk_application_window_new(shoes_GtkApp);
 #else
-      window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 #endif
-      // theme the window
-      if (shoes_css_provider != NULL) {
-        gtk_style_context_add_provider(gtk_widget_get_style_context(window),
-            GTK_STYLE_PROVIDER(shoes_css_provider),
-            GTK_STYLE_PROVIDER_PRIORITY_USER);
-      }
-
-      vbox =  gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-      gtk_container_add(GTK_CONTAINER(window), vbox);
-      gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
-      // Gtk Container of the fixed variety. Note the alt version!!
-      shoes_window = gtk_fixed_new(); //gtk_fixed_new();
-      gtk_box_pack_start(GTK_BOX(vbox), shoes_window, FALSE, FALSE, 0);
-      
-      
-      gk->window = window;
-      gk->vlayout = vbox;
-      app->slot->oscanvas = shoes_window;
-      app->mb_height = 30;  // TODO adhoc (a guess)
-
-      // now we can add the default Shoes menus
-      VALUE mbv = shoes_native_menubar_setup(app, menubar);
-      shoes_native_build_menus(app, mbv);
-      app->menubar = mbv;
-           
-      gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-     // commit https://github.com/shoes/shoes/commit/4e7982ddcc8713298b6959804dab8d20111c0038
-      if (!app->resizable) {
-          gtk_widget_set_size_request(window, app->width, app->height + app->mb_height);
-          gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
-      } else if (app->minwidth < app->width || app->minheight < app->height + app->mb_height) {
-          GdkGeometry hints;
-          hints.min_width = app->minwidth;
-          hints.min_height = app->minheight + app->mb_height;
-          gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL,
-                                        &hints, GDK_HINT_MIN_SIZE);
-      }
-      gtk_window_set_default_size(GTK_WINDOW(window), app->width, app->height + app->mb_height);
-  
-      gtk_window_get_position(GTK_WINDOW(window), &app->x, &app->y);
-      // get memubar height
-      GtkRequisition reqmin, reqnat;
-      gtk_widget_get_preferred_size(menubar, &reqmin, &reqnat);
-      app->mb_height = reqmin.height;
-
-      g_signal_connect(G_OBJECT(window), "size-allocate",
-                       G_CALLBACK(shoes_app_gtk_paint), app);
-      g_signal_connect(G_OBJECT(window), "motion-notify-event",
-                       G_CALLBACK(shoes_app_gtk_motion), app);
-      g_signal_connect(G_OBJECT(window), "button-press-event",
-                       G_CALLBACK(shoes_app_gtk_button), app);
-      g_signal_connect(G_OBJECT(window), "button-release-event",
-                       G_CALLBACK(shoes_app_gtk_button), app);
-      g_signal_connect(G_OBJECT(window), "scroll-event",
-                       G_CALLBACK(shoes_app_gtk_wheel), app);
-      g_signal_connect(G_OBJECT(window), "key-press-event",
-                       G_CALLBACK(shoes_app_gtk_keypress), app);
-      g_signal_connect(G_OBJECT(window), "key-release-event",
-                       G_CALLBACK(shoes_app_gtk_keypress), app);
-      g_signal_connect(G_OBJECT(window), "delete-event",
-                       G_CALLBACK(shoes_app_gtk_quit), app);
-      
-    } else {
-      // The Good old way, menu-less
-      window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-      gk->window = window;
-      app->slot->oscanvas = window;
-      // theme the window
-      if (shoes_css_provider != NULL) {
-        gtk_style_context_add_provider(gtk_widget_get_style_context(window),
-            GTK_STYLE_PROVIDER(shoes_css_provider),
-            GTK_STYLE_PROVIDER_PRIORITY_USER);
-      }
-          
-      gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-      if (!app->resizable) {
-          gtk_widget_set_size_request(window, app->width, app->height);
-          gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
-      } else if (app->minwidth < app->width || app->minheight < app->height) {
-          GdkGeometry hints;
-          hints.min_width = app->minwidth;
-          hints.min_height = app->minheight;
-          gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL,
-                                        &hints, GDK_HINT_MIN_SIZE);
-      }
-      gtk_window_set_default_size(GTK_WINDOW(window), app->width, app->height);
-  
-      gtk_window_get_position(GTK_WINDOW(window), &app->x, &app->y);
-      g_signal_connect(G_OBJECT(window), "size-allocate",
-                       G_CALLBACK(shoes_app_gtk_paint), app);
-      g_signal_connect(G_OBJECT(window), "motion-notify-event",
-                       G_CALLBACK(shoes_app_gtk_motion), app);
-      g_signal_connect(G_OBJECT(window), "button-press-event",
-                       G_CALLBACK(shoes_app_gtk_button), app);
-      g_signal_connect(G_OBJECT(window), "button-release-event",
-                       G_CALLBACK(shoes_app_gtk_button), app);
-      g_signal_connect(G_OBJECT(window), "scroll-event",
-                       G_CALLBACK(shoes_app_gtk_wheel), app);
-      g_signal_connect(G_OBJECT(window), "key-press-event",
-                       G_CALLBACK(shoes_app_gtk_keypress), app);
-      g_signal_connect(G_OBJECT(window), "key-release-event",
-                       G_CALLBACK(shoes_app_gtk_keypress), app);
-      g_signal_connect(G_OBJECT(window), "delete-event",
-                       G_CALLBACK(shoes_app_gtk_quit), app);
+    gk->window = window;
+    app->slot->oscanvas = window;
+    // theme the window
+    if (shoes_css_provider != NULL) {
+      gtk_style_context_add_provider(gtk_widget_get_style_context(window),
+          GTK_STYLE_PROVIDER(shoes_css_provider),
+          GTK_STYLE_PROVIDER_PRIORITY_USER);
     }
+        
+    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+    if (!app->resizable) {
+        gtk_widget_set_size_request(window, app->width, app->height);
+        gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+    } else if (app->minwidth < app->width || app->minheight < app->height) {
+        GdkGeometry hints;
+        hints.min_width = app->minwidth;
+        hints.min_height = app->minheight;
+        fprintf(stderr,"resize hints: %d, %d\n", hints.min_width, hints.min_height);
+        gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL,
+                                      &hints, GDK_HINT_MIN_SIZE);
+    }
+    gtk_window_set_default_size(GTK_WINDOW(window), app->width, app->height);
+
+    gtk_window_get_position(GTK_WINDOW(window), &app->x, &app->y);
+    g_signal_connect(G_OBJECT(window), "size-allocate",
+                     G_CALLBACK(shoes_app_gtk_size), app);
+    g_signal_connect(G_OBJECT(window), "motion-notify-event",
+                     G_CALLBACK(shoes_app_gtk_motion), app);
+    g_signal_connect(G_OBJECT(window), "button-press-event",
+                     G_CALLBACK(shoes_app_gtk_button), app);
+    g_signal_connect(G_OBJECT(window), "button-release-event",
+                     G_CALLBACK(shoes_app_gtk_button), app);
+    g_signal_connect(G_OBJECT(window), "scroll-event",
+                     G_CALLBACK(shoes_app_gtk_wheel), app);
+    g_signal_connect(G_OBJECT(window), "key-press-event",
+                     G_CALLBACK(shoes_app_gtk_keypress), app);
+    g_signal_connect(G_OBJECT(window), "key-release-event",
+                     G_CALLBACK(shoes_app_gtk_keypress), app);
+    g_signal_connect(G_OBJECT(window), "delete-event",
+                       G_CALLBACK(shoes_app_gtk_quit), app);
     
     if (app->fullscreen) shoes_native_app_fullscreen(app, 1);
 
@@ -1150,19 +1109,20 @@ void shoes_browser_open(char *url) {
     shoes_sys(RSTRING_PTR(browser), 1);
 }
 
+ 
 void shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int height, int scrolls, int toplevel) {
     shoes_canvas *canvas;
     SHOES_SLOT_OS *slot;
     Data_Get_Struct(c, shoes_canvas, canvas);
-
+          
     slot = shoes_slot_alloc(canvas, parent, toplevel);
 
     /* Subclassing GtkFixed so we can override gtk3 size management which creates
        problems with slot height being always tied to inside widgets cumulative heights
        creating heights overflow with no scrollbar !
     */
-    slot->oscanvas = gtkfixed_alt_new(); // can fail on bsd for odd reasons
-    GObject *gob = G_OBJECT(slot->oscanvas);
+    slot->oscanvas = gtkfixed_alt_new(width, height); 
+    fprintf(stderr,"shoes_slot_init topleve: %d, slot->canvas %lx\n", toplevel, slot->oscanvas);
 
     g_signal_connect(G_OBJECT(slot->oscanvas), "draw",
                      G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
@@ -1171,11 +1131,11 @@ void shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, in
                      G_CALLBACK(shoes_canvas_gtk_size), (gpointer)c);
     INFO("shoes_slot_init(%lu)\n", c);
 
-    if (toplevel)
+    if (toplevel) {
         gtk_container_add(GTK_CONTAINER(parent->oscanvas), slot->oscanvas);
-    else
+    } else {
         gtk_fixed_put(GTK_FIXED(parent->oscanvas), slot->oscanvas, x, y);
-
+    }
     slot->scrollh = slot->scrollw = 0;
     slot->vscroll = NULL;
     if (scrolls) {
@@ -1196,7 +1156,8 @@ void shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, in
         if (!toplevel) ATTRSET(canvas->attr, wheel, scrolls);
     }
 
-    if (toplevel) shoes_canvas_size(c, width, height);
+    if (toplevel)
+        shoes_canvas_size(c, width, height);
     else {
         gtk_widget_show_all(slot->oscanvas);
         canvas->width = 100;
@@ -1255,6 +1216,21 @@ void shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc) {
 }
 
 void shoes_native_canvas_resize(shoes_canvas *canvas) {
+#if 0
+  if (canvas->app->have_menu) {
+    int w = canvas->width;
+    int h = canvas->height;
+    fprintf(stderr,"shoes_native_canvas_resize: %d, %d\n", w, h);
+    // gtk_widget_queue_resize(canvas->app->os.shoes_window);  // nope
+    gtk_widget_set_size_request(canvas->slot->oscanvas, w, h); // won't shrink
+    GtkAllocation rect;
+    rect.width = w;
+    rect.height = h;
+    rect.x = 0;
+    rect.y = 29;
+    //gtk_widget_set_allocation(canvas->slot->oscanvas, &rect); // not as good,
+  }
+#endif
 }
 
 /*
@@ -1857,4 +1833,231 @@ int shoes_native_monitor_get(shoes_app *app) {
   }
   // should never get here, but if it does:
   return gdk_screen_get_primary_monitor(screen);
+}
+
+/*  ------- have_menu == true and sizing ---------- */
+
+// called only by **Window** signal handler for *size-allocate*
+static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer data) {
+    shoes_app *app = (shoes_app *)data;
+    if (widget != app->os.window)
+      fprintf(stderr, "widget != app->os.window\n");
+    gtk_window_get_size(GTK_WINDOW(app->os.window), &app->width, &app->height);
+    fprintf(stderr,"shoes_app_gtk_size_menu: wid: %d hgt: %d\n", app->width, app->height);
+    app->height -= app->mb_height;
+    // trigger a resize & paint 
+    GtkWidget *wdg = app->slot->oscanvas;
+    gtk_widget_set_size_request(wdg, app->width, app->height);
+    
+    shoes_canvas_size(app->canvas, app->width, app->height);
+}
+
+// called by **canvas->slot** signal handler for *size-allocate*
+static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, gpointer data) {
+    VALUE c = (VALUE)data;
+    shoes_canvas *canvas;
+    Data_Get_Struct(c, shoes_canvas, canvas);
+    fprintf(stderr,"shoes_canvas_gtk_size_menu: %d %d %d %d\n", size->x, size->y, size->width, size->height);
+    if (canvas->slot->vscroll &&
+            (size->height != canvas->slot->scrollh || size->width != canvas->slot->scrollw)) {
+        GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
+        gtk_widget_set_size_request(canvas->slot->vscroll, -1, size->height);
+        
+        //gtk_widget_set_size_request(GTK_CONTAINER(widget), canvas->app->width, size->height);
+        GtkAllocation alloc;
+        gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);  
+        fprintf(stderr, "alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
+        gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
+                       size->width - alloc.width, 0);
+        gtk_adjustment_set_page_size(adj, size->height);
+        gtk_adjustment_set_page_increment(adj, size->height - 32);
+
+        if (gtk_adjustment_get_page_size(adj) >= gtk_adjustment_get_upper(adj))
+            gtk_widget_hide(canvas->slot->vscroll);
+        else {
+            gtk_widget_show(canvas->slot->vscroll);
+        }
+        canvas->slot->scrollh = size->height;
+        canvas->slot->scrollw = size->width;
+    }
+}
+
+void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int height, int scrolls, int toplevel) {
+  shoes_canvas *canvas;
+  SHOES_SLOT_OS *slot;
+  Data_Get_Struct(c, shoes_canvas, canvas);
+  
+  slot = shoes_slot_alloc(canvas, parent, toplevel);
+  
+  /* Subclassing GtkFixed so we can override gtk3 size management which creates
+     problems with slot height being always tied to inside widgets cumulative heights
+     creating heights overflow with no scrollbar !
+  */
+  if (toplevel)
+    slot->oscanvas = canvas->app->os.shoes_window; // created in app_open
+  else
+    slot->oscanvas = gtkfixed_alt_new(width, height);
+
+  fprintf(stderr,"shoes_slot_init_menu toplevel: %d, slot->oscanvas %lx\n", toplevel, slot->oscanvas);  
+  g_signal_connect(G_OBJECT(slot->oscanvas), "draw",
+                   G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
+  
+  g_signal_connect(G_OBJECT(slot->oscanvas), "size-allocate",
+                   G_CALLBACK(shoes_canvas_gtk_size_menu), (gpointer)c);
+  INFO("shoes_slot_init(%lu)\n", c);
+  
+  if (toplevel) {
+    gtk_container_add(GTK_CONTAINER(parent->oscanvas), slot->oscanvas);
+  } else {
+    gtk_fixed_put(GTK_FIXED(parent->oscanvas), slot->oscanvas, x, y);
+  }
+  slot->scrollh = slot->scrollw = 0;
+  slot->vscroll = NULL;
+  if (scrolls) {
+    slot->vscroll = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL,NULL);
+    GtkAdjustment *adj;
+    adj = gtk_range_get_adjustment(GTK_RANGE(slot->vscroll));
+    gtk_adjustment_set_step_increment(adj, 16);
+    gtk_adjustment_set_page_increment(adj, height - 32);
+    slot->drawevent = NULL;
+
+    g_signal_connect(G_OBJECT(slot->vscroll), "value-changed",
+                     G_CALLBACK(shoes_canvas_gtk_scroll), (gpointer)c);
+    gtk_fixed_put(GTK_FIXED(slot->oscanvas), slot->vscroll, -100, -100);
+
+    gtk_widget_set_size_request(slot->oscanvas, width, height);
+    //gtk_widget_set_size_request(slot->oscanvas, canvas->app->minwidth, canvas->app->minheight);
+
+    if (!toplevel) 
+      ATTRSET(canvas->attr, wheel, scrolls);
+  }
+  
+  if (toplevel)
+    shoes_canvas_size(c, width, height);
+  else {
+    gtk_widget_show_all(slot->oscanvas);
+    canvas->width = 100;
+    canvas->height = 100;
+  }
+}
+
+/*
+ *  All apps windows can have a menubur and then the old shoes space below. 
+ *  it's optional and the default is no menu for backwards compatibilty
+ *  That causes some pixel tweaking and redundency. 
+ */
+ 
+shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, shoes_settings *st) {
+#if 0 //!defined(SHOES_GTK_WIN32)
+    char icon_path[SHOES_BUFSIZE];
+    sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
+    gtk_window_set_default_icon_from_file(icon_path, NULL);
+#endif
+    GtkWidget *window;       // Root window 
+    shoes_app_gtk *gk = &app->os; //lexical - typing shortcut
+
+    
+    char icon_path[SHOES_BUFSIZE];
+    if (st->icon_path == Qnil)
+      sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
+    else {
+      char *ip = RSTRING_PTR(st->icon_path);
+      if (*ip == '/' || ip[1] ==':')  
+        strcpy(icon_path, ip);
+      else
+       sprintf(icon_path, "%s/%s", shoes_world->path, ip);
+    }
+    gtk_window_set_default_icon_from_file(icon_path, NULL);
+
+    GtkWidget *vbox;         // contents of root window
+    GtkWidget *menubar;      // top of vbox
+    GtkWidget *shoes_window; // bottom of vbox where shoes does its thing.
+    
+    menubar = gtk_menu_bar_new();
+    gk->menubar = menubar;
+#if 0
+    // don't do this if gtk_init() is used.
+    window = gtk_application_window_new(shoes_GtkApp);
+#else
+    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+#endif
+    // theme the window
+    if (shoes_css_provider != NULL) {
+      gtk_style_context_add_provider(gtk_widget_get_style_context(window),
+          GTK_STYLE_PROVIDER(shoes_css_provider),
+          GTK_STYLE_PROVIDER_PRIORITY_USER);
+    }
+
+    vbox =  gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_container_add(GTK_CONTAINER(window), vbox);
+    gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
+    // Gtk Container of the fixed variety. Note the alt version!!
+    shoes_window = gtkfixed_alt_new(app->width, app->height); 
+    gtk_box_pack_start(GTK_BOX(vbox), shoes_window, FALSE, FALSE, 0);
+    
+    gk->window = window;
+    gk->vlayout = vbox;
+    gk->shoes_window = shoes_window;
+    app->slot->oscanvas = shoes_window;
+    fprintf(stderr,"shoes_native_app_open slot->canvas %lx\n", app->slot->oscanvas);
+    app->mb_height = 26;  // TODO adhoc (a guess)
+
+    // now we can add the default Shoes menus
+    VALUE mbv = shoes_native_menubar_setup(app, menubar);
+    shoes_native_build_menus(app, mbv);
+    app->menubar = mbv;
+         
+    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+   // commit https://github.com/shoes/shoes/commit/4e7982ddcc8713298b6959804dab8d20111c0038
+    if (!app->resizable) {
+        gtk_widget_set_size_request(window, app->width, app->height + app->mb_height);
+        gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+    } else if (app->minwidth < app->width || app->minheight < app->height + app->mb_height) {
+        GdkGeometry hints;
+        hints.min_width = app->minwidth;
+        hints.min_height = app->minheight + app->mb_height;
+        fprintf(stderr,"resize hints: %d, %d\n", hints.min_width, hints.min_height);
+        gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL,
+                                      &hints, GDK_HINT_MIN_SIZE);
+    }
+    gtk_window_set_default_size(GTK_WINDOW(window), app->width, app->height + app->mb_height);
+
+    gtk_window_get_position(GTK_WINDOW(window), &app->x, &app->y);
+    // get memubar height
+    GtkRequisition reqmin, reqnat;
+    gtk_widget_get_preferred_size(menubar, &reqmin, &reqnat);
+    app->mb_height = reqmin.height;
+
+    g_signal_connect(G_OBJECT(window), "size-allocate",
+                     G_CALLBACK(shoes_app_gtk_size_menu), app);
+    g_signal_connect(G_OBJECT(window), "motion-notify-event",
+                     G_CALLBACK(shoes_app_gtk_motion), app);
+    g_signal_connect(G_OBJECT(window), "button-press-event",
+                     G_CALLBACK(shoes_app_gtk_button), app);
+    g_signal_connect(G_OBJECT(window), "button-release-event",
+                     G_CALLBACK(shoes_app_gtk_button), app);
+    g_signal_connect(G_OBJECT(window), "scroll-event",
+                     G_CALLBACK(shoes_app_gtk_wheel), app);
+    g_signal_connect(G_OBJECT(window), "key-press-event",
+                     G_CALLBACK(shoes_app_gtk_keypress), app);
+    g_signal_connect(G_OBJECT(window), "key-release-event",
+                     G_CALLBACK(shoes_app_gtk_keypress), app);
+    g_signal_connect(G_OBJECT(window), "delete-event",
+                     G_CALLBACK(shoes_app_gtk_quit), app);
+       
+    if (app->fullscreen) shoes_native_app_fullscreen(app, 1);
+
+    gtk_window_set_decorated(GTK_WINDOW(window), app->decorated);
+#if GTK_CHECK_VERSION(3,8,0)
+    gtk_widget_set_opacity(GTK_WIDGET(window), app->opacity);
+#endif
+    // ORIG: gtk_widget_set_events(window, GDK_POINTER_MOTION_MASK | GDK_SCROLL_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
+    gtk_widget_add_events(window, GDK_POINTER_MOTION_MASK | GDK_SCROLL_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
+
+
+    // If the user asked for a specific Screen (Monitor) for the Window
+    if (app->monitor >= 0) {
+      shoes_native_monitor_set(app);
+    }
+    return SHOES_OK;
 }

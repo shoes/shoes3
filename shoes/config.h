@@ -82,6 +82,7 @@ typedef struct {
     GtkWidget *window;
     GtkWidget *menubar;
     GtkWidget *vlayout; // vbox
+    GtkWidget *shoes_window;  // GtkFixed, not a GtkWindow
     GtkAccelGroup *accel_group;
 } shoes_app_gtk, SHOES_APP_OS;
 

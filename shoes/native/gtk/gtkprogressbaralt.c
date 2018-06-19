@@ -15,7 +15,8 @@ typedef struct _GtkProgressBar_AltPrivate GtkProgressBar_AltPrivate;
 
 struct _GtkProgressBar_AltPrivate {
     /* to avoid warnings (g_type_class_add_private: assertion `private_size > 0' failed) */
-    gchar dummy;
+    int shoes_width;
+    int shoes_height;
 };
 
 /* Forward declarations */
@@ -55,27 +56,37 @@ static void gtk_progress_bar_alt_init(GtkProgressBar_Alt *progressbarAlt) {
 }
 
 /* Return a new GtkProgressBar_Alt cast to a GtkWidget */
-GtkWidget *gtk_progress_bar_alt_new() {
-    return GTK_WIDGET(g_object_new(gtk_progress_bar_alt_get_type(), NULL));
+GtkWidget *gtk_progress_bar_alt_new(int width, int height) {
+    GtkWidget *bar = GTK_WIDGET(g_object_new(gtk_progress_bar_alt_get_type(), NULL));
+    GtkProgressBar_AltPrivate *priv = GTK_PROGRESS_BAR_ALT_PRIVATE(bar);
+    priv->shoes_width = width;
+    priv->shoes_height = height;
+    return bar;
 }
 
 static void gtk_progress_bar_alt_get_preferred_width(GtkWidget *widget, int *minimal, int *natural) {
     g_return_if_fail(widget != NULL);
+    GtkProgressBar_Alt *bar = (GtkProgressBar_Alt *)widget;
+    GtkProgressBar_AltPrivate *priv = GTK_PROGRESS_BAR_ALT_PRIVATE(bar);
+    *natural = *minimal = priv->shoes_width;
 
-    *minimal = 1;
-    *natural = 1;
+    //*minimal = 1;
+    //*natural = 1;
 }
 
 static void gtk_progress_bar_alt_get_preferred_height(GtkWidget *widget, int *minimal, int *natural) {
     g_return_if_fail(widget != NULL);
+    GtkProgressBar_Alt *bar = (GtkProgressBar_Alt *)widget;
+    GtkProgressBar_AltPrivate *priv = GTK_PROGRESS_BAR_ALT_PRIVATE(bar);
+    *natural = *minimal = priv->shoes_height;
 
-    *minimal = 1;
-    *natural = 1;
+    //*minimal = 1;
+    //*natural = 1;
 }
 // end of subclass fun
 
 SHOES_CONTROL_REF shoes_native_progress(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
-    SHOES_CONTROL_REF ref = gtk_progress_bar_alt_new();
+    SHOES_CONTROL_REF ref = gtk_progress_bar_alt_new(place->w, place->h);
 
     if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
         gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));

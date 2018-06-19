@@ -8,13 +8,13 @@
 #include "shoes/ruby.h"
 #include "shoes/canvas.h"
 #include "shoes/world.h"
+#include "shoes/types/settings.h"
 #include "shoes/native/native.h"
 #include "shoes/types/text.h"
 #include "shoes/types/text_link.h"
 #include "shoes/types/textblock.h"
 #include "shoes/types/native.h"
 #include "shoes/types/event.h"
-#include "shoes/types/settings.h"
 
 // Global var:
 int shoes_app_serial_num = 0;
@@ -411,7 +411,20 @@ shoes_code shoes_app_start(VALUE allapps, char *uri) {
 shoes_code shoes_app_open(shoes_app *app, char *path) {
     shoes_code code = SHOES_OK;
     int dialog = (rb_obj_class(app->self) == cDialog);
-    code = shoes_native_app_open(app, path, dialog);
+    shoes_settings *st;
+    Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+    
+    if (st->use_menus == Qtrue) {
+      app->have_menu = 1;   
+    }
+#ifndef SHOES_QUARTZ
+    // gtk has two ways to open 
+    if (app->have_menu)
+      code = shoes_native_app_open_menu(app, path, dialog, st);
+    else
+#endif
+      code = shoes_native_app_open(app, path, dialog, st);
+      
     if (code != SHOES_OK)
         return code;
 #ifndef MTITTLE
@@ -421,8 +434,15 @@ shoes_code shoes_app_open(shoes_app *app, char *path) {
     Data_Get_Struct(shoes_settings_globalv, shoes_settings, st);
     shoes_app_title(app, st->app_name);
 #endif
-    if (app->slot != NULL) shoes_native_slot_reset(app->slot);
-    shoes_slot_init(app->canvas, app->slot, 0, 0, app->width, app->height, TRUE, TRUE);
+    if (app->slot != NULL)
+       shoes_native_slot_reset(app->slot);
+#ifndef SHOES_QUARTZ
+    if (app->have_menu)
+      shoes_slot_init_menu(app->canvas, app->slot, 0, 0, app->width, app->height, TRUE, TRUE);
+    else
+#endif
+      shoes_slot_init(app->canvas, app->slot, 0, 0, app->width, app->height, TRUE, TRUE);
+
     code = shoes_app_goto(app, path);
     if (code != SHOES_OK)
         return code;

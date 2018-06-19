@@ -1074,7 +1074,7 @@ shoes_native_app_fullscreen(shoes_app *app, char yn)
 }
 
 shoes_code
-shoes_native_app_open(shoes_app *app, char *path, int dialog)
+shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_settings *st)
 {
   shoes_code code = SHOES_OK;
   app->os.normal = NSMakeRect(0, 0, app->width, app->height);
