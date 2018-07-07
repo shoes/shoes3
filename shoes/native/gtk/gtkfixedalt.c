@@ -86,8 +86,8 @@ gtkfixed_alt_get_preferred_width(GtkWidget *widget, int *minimal, int *natural) 
     g_return_if_fail(IS_GTKFIXED_ALT(widget));
     GtKFixed_Alt *fixed = (GtKFixed_Alt *)widget;
     GtKFixed_AltPrivate *priv = GTKFIXED_ALT_PRIVATE(fixed);
-    //*minimal = 1;
-    *minimal = priv->shoes_width;
+    *minimal = 1;
+    //*minimal = priv->shoes_width;
     *natural = priv->shoes_width;
 }
 
@@ -100,8 +100,8 @@ gtkfixed_alt_get_preferred_height(GtkWidget *widget, int *minimal, int *natural)
     g_return_if_fail(IS_GTKFIXED_ALT(widget));
     GtKFixed_Alt *fixed = (GtKFixed_Alt *)widget;
     GtKFixed_AltPrivate *priv = GTKFIXED_ALT_PRIVATE(fixed);
-    //*minimal = 1;
-    *minimal = priv->shoes_height;
+    *minimal = 1;
+    //*minimal = priv->shoes_height;
     *natural = priv->shoes_height;
 
     //*minimal = 1;

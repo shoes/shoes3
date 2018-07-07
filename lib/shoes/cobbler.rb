@@ -805,7 +805,7 @@ but it needs to know where Shoes is"
         utilp = "#{LIB_DIR}/package/util.yaml"
         if ! File.exist? utilp
           rsexe = "reshacker_setup.exe"
-          nsexe = "nsis-2.46.5-Unicode-setup.exe"
+          nsexe = "Shoes-Nsis-3.03.exe"
           para "Where is ResourceHacker.exe?  "
           flow do
             @rhel = edit_line width:300
@@ -821,7 +821,7 @@ but it needs to know where Shoes is"
               @rhel.text = ask_open_file
             end
           end
-          para "Where is NSIS Unicde's makensis.exe?"
+          para "Where is Shoes_Nsis\\bin\\makensis.exe?"
           flow do
             @nsel = edit_line width:300
             button "Download" do
@@ -830,12 +830,12 @@ but it needs to know where Shoes is"
                 "#{LIB_DIR}/package/#{nsexe}"
              end
             button "install" do
-              system "#{LIB_DIR}/package/#{rsexe}"
+              system "#{LIB_DIR}/package/#{nsexe}"
             end
             button "Select" do
                @nsel.text = ask_open_file
             end
-         end
+          end
           button "Save Locations" do
             exe = {}
             exe['rhp'] = @rhel.text

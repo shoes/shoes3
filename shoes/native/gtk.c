@@ -484,7 +484,9 @@ static gboolean shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gp
 static void shoes_gtk_resized_max(shoes_app *app, int width, int height) {
     shoes_canvas *canvas;
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#ifdef SZBUG
     fprintf(stderr,"shoes_gtk_resized_max: %d %d\n", width, height);
+#endif
     if (canvas->slot->vscroll &&
             (height != canvas->slot->scrollh || width != canvas->slot->scrollw)) {
         GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
@@ -494,7 +496,9 @@ static void shoes_gtk_resized_max(shoes_app *app, int width, int height) {
         //gtk_widget_set_size_request(GTK_CONTAINER(widget), canvas->app->width, size->height);
         GtkAllocation alloc;
         gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);  
-        fprintf(stderr, "alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
+#ifdef SZBUG
+       fprintf(stderr, "alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
+#endif
         gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
                     (width - alloc.width)-100, 0);
         gtk_adjustment_set_page_size(adj, height);
@@ -515,12 +519,16 @@ static void shoes_gtk_resized_max(shoes_app *app, int width, int height) {
 static void shoes_app_gtk_size(GtkWidget *widget, cairo_t *cr, gpointer data) {
     shoes_app *app = (shoes_app *)data;
     gtk_window_get_size(GTK_WINDOW(app->os.window), &app->width, &app->height);
+#ifdef SZBUG
     fprintf(stderr,"shoes_app_gtk_size: wid: %d hgt: %d\n", app->width, app->height);
-    // This calls shoes_native_canvas_resize - a no-opp in gtk
+#if 0 // only exists in gtk 3.12 and above which aint' windows
     if (gtk_window_is_maximized(widget)) {
       // because of maimize button and asynch behaviour app->w/h are incorrect here.
       fprintf(stderr,"resized max %d, %d\n", app->width, app->height);
     }
+#endif
+#endif
+    // This calls shoes_native_canvas_resize - a no-opp in gtk
     shoes_canvas_size(app->canvas, app->width, app->height);
 }
 
@@ -642,7 +650,9 @@ static void shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpoint
     VALUE c = (VALUE)data;
     shoes_canvas *canvas;
     Data_Get_Struct(c, shoes_canvas, canvas);
+#ifdef SZBUG
     fprintf(stderr,"shoes_canvas_gtk_size: %d %d %d %d\n", size->x, size->y, size->width, size->height);
+#endif
     if (canvas->slot->vscroll &&
             (size->height != canvas->slot->scrollh || size->width != canvas->slot->scrollw)) {
         GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
@@ -651,9 +661,11 @@ static void shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpoint
         //gtk_widget_set_size_request(GTK_CONTAINER(widget), canvas->app->width, size->height);
         GtkAllocation alloc;
         gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);  
+#ifdef SZBUG
         fprintf(stderr, "alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
+#endif
         if (canvas->slot->oscanvas != widget) 
-          fprintf(stderr,"ooops\n");
+          fprintf(stderr,"shoes_canvas_gtk_size: ooops\n");
           
         gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
                        size->width - alloc.width, 0);
@@ -1013,7 +1025,9 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_s
         GdkGeometry hints;
         hints.min_width = app->minwidth;
         hints.min_height = app->minheight;
+#ifdef SZBUG
         fprintf(stderr,"resize hints: %d, %d\n", hints.min_width, hints.min_height);
+#endif
         gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL,
                                       &hints, GDK_HINT_MIN_SIZE);
     }
@@ -1122,8 +1136,9 @@ void shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, in
        creating heights overflow with no scrollbar !
     */
     slot->oscanvas = gtkfixed_alt_new(width, height); 
+#ifdef SZBUG
     fprintf(stderr,"shoes_slot_init topleve: %d, slot->canvas %lx\n", toplevel, slot->oscanvas);
-
+#endif
     g_signal_connect(G_OBJECT(slot->oscanvas), "draw",
                      G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
 
@@ -1220,7 +1235,9 @@ void shoes_native_canvas_resize(shoes_canvas *canvas) {
   if (canvas->app->have_menu) {
     int w = canvas->width;
     int h = canvas->height;
+#ifdef SZBUG
     fprintf(stderr,"shoes_native_canvas_resize: %d, %d\n", w, h);
+#endif
     // gtk_widget_queue_resize(canvas->app->os.shoes_window);  // nope
     gtk_widget_set_size_request(canvas->slot->oscanvas, w, h); // won't shrink
     GtkAllocation rect;
@@ -1843,7 +1860,9 @@ static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer dat
     if (widget != app->os.window)
       fprintf(stderr, "widget != app->os.window\n");
     gtk_window_get_size(GTK_WINDOW(app->os.window), &app->width, &app->height);
+#ifdef SZBUG
     fprintf(stderr,"shoes_app_gtk_size_menu: wid: %d hgt: %d\n", app->width, app->height);
+#endif
     app->height -= app->mb_height;
     // trigger a resize & paint 
     GtkWidget *wdg = app->slot->oscanvas;
@@ -1857,7 +1876,9 @@ static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, g
     VALUE c = (VALUE)data;
     shoes_canvas *canvas;
     Data_Get_Struct(c, shoes_canvas, canvas);
+#ifdef SZBUG
     fprintf(stderr,"shoes_canvas_gtk_size_menu: %d %d %d %d\n", size->x, size->y, size->width, size->height);
+#endif
     if (canvas->slot->vscroll &&
             (size->height != canvas->slot->scrollh || size->width != canvas->slot->scrollw)) {
         GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
@@ -1866,7 +1887,9 @@ static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, g
         //gtk_widget_set_size_request(GTK_CONTAINER(widget), canvas->app->width, size->height);
         GtkAllocation alloc;
         gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);  
+#ifdef SZBUG
         fprintf(stderr, "alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
+#endif
         gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
                        size->width - alloc.width, 0);
         gtk_adjustment_set_page_size(adj, size->height);
@@ -1897,8 +1920,9 @@ void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int widt
     slot->oscanvas = canvas->app->os.shoes_window; // created in app_open
   else
     slot->oscanvas = gtkfixed_alt_new(width, height);
-
-  fprintf(stderr,"shoes_slot_init_menu toplevel: %d, slot->oscanvas %lx\n", toplevel, slot->oscanvas);  
+#ifdef SZBUG
+  fprintf(stderr,"shoes_slot_init_menu toplevel: %d, slot->oscanvas %lx\n", toplevel, slot->oscanvas); 
+#endif
   g_signal_connect(G_OBJECT(slot->oscanvas), "draw",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
   
@@ -1907,7 +1931,7 @@ void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int widt
   INFO("shoes_slot_init(%lu)\n", c);
   
   if (toplevel) {
-    gtk_container_add(GTK_CONTAINER(parent->oscanvas), slot->oscanvas);
+    //gtk_container_add(GTK_CONTAINER(parent->oscanvas), slot->oscanvas);
   } else {
     gtk_fixed_put(GTK_FIXED(parent->oscanvas), slot->oscanvas, x, y);
   }
@@ -1999,7 +2023,9 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
     gk->vlayout = vbox;
     gk->shoes_window = shoes_window;
     app->slot->oscanvas = shoes_window;
+#ifdef SZBUG
     fprintf(stderr,"shoes_native_app_open slot->canvas %lx\n", app->slot->oscanvas);
+#endif
     app->mb_height = 26;  // TODO adhoc (a guess)
 
     // now we can add the default Shoes menus
@@ -2016,7 +2042,9 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
         GdkGeometry hints;
         hints.min_width = app->minwidth;
         hints.min_height = app->minheight + app->mb_height;
+#ifdef SZBUG
         fprintf(stderr,"resize hints: %d, %d\n", hints.min_width, hints.min_height);
+#endif
         gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL,
                                       &hints, GDK_HINT_MIN_SIZE);
     }

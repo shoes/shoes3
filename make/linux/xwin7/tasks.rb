@@ -71,8 +71,12 @@ class MakeLinux
     # does nothing
     def make_userinstall
     end
-    
-    def make_installer
+ 
+    # don't have a qtifw windows install creator on Linux
+    def make_installer_gtifw exe_path
+    end
+   
+    def make_installer_nsis exe_path
       # assumes you have NSIS installed on your box in the system PATH
       # def sh(*args); super; end
       $stderr.puts "make_installer #{`pwd`} moving tmp/"
@@ -86,8 +90,7 @@ class MakeLinux
       cp APP['icons']['win32'], "#{TGT_DIR}/nsis/setup.ico"
       rewrite "#{TGT_DIR}/nsis/base.nsi", "#{TGT_DIR}/nsis/#{WINFNAME}.nsi"
       Dir.chdir("#{TGT_DIR}/nsis") do
-        #sh "\"#{env('NSIS')}\\makensis.exe\" #{NAME}.nsi"
-        sh "makensis -V1 #{WINFNAME}.nsi"
+        sh "#{exe_path} -V1 #{WINFNAME}.nsi"
       end
       mv "#{TGT_DIR}/nsis/#{WINFNAME}.exe", "pkg/"
       Dir.chdir('pkg/') do
@@ -98,5 +101,19 @@ class MakeLinux
       $stderr.puts "restore tmp/"
       mv mp, tp
     end
-  end
+    
+    #Allow diffrent installers
+    def make_installer
+      if APP['INSTALLER'] == 'qtifw'
+        installer = "qtifw"
+        installer = APP['INSTALLER_LOC'] if APP['INSTALLER_LOC']
+        make_installer_gtifw installer
+      elsif APP['INSTALLER'] == 'nsis'
+        installer = "makensis"
+        installer = APP['INSTALLER_LOC'] if APP['INSTALLER_LOC'] 
+        make_installer_nsis installer
+      else 
+        puts "No Installer defined"
+      end
+    end  end
 end

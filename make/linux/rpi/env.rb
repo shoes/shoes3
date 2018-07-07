@@ -17,7 +17,8 @@ else
 end
 
 APP['GTK'] = 'gtk+-3.0' # installer needs this to name the output
-SHOES_TGT_ARCH = 'armv7l-linux-eabihf'
+#SHOES_TGT_ARCH = 'armv7l-linux-eabihf'
+SHOES_TGT_ARCH = 'arm-linux-gnueabihf'
 SHOES_GEM_ARCH = "#{Gem::Platform.local}"
 # Setup some shortcuts for the library locations
 arch = 'arm-linux-gnueabihf'
@@ -58,7 +59,7 @@ if ignore_deprecations
 end
 MISC_LIB = " #{ularch}/librsvg-2.so"
 
-justgif = File.exist? "#{ularch}/libgif.so.4"
+justgif = File.exist? "#{ularch}/libgif.so.7"
 if justgif
   LINUX_LIB_NAMES = %W[gif jpeg yaml]
 else
@@ -78,26 +79,26 @@ LINUX_LIBS << " #{CURL_LDFLAGS if !RUBY_HTTP} #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PAN
 
 SOLOCS = {}
 SOLOCS['ungif'] = "#{uldir}/libgif.so.4.1.6" if !justgif
-SOLOCS['gif'] = "#{ularch}/libgif.so.4.1.6"  if justgif
-SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.8.4.0"
-SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2.0.4"
-SOLOCS['pcre'] = "#{larch}/libpcre.so.3.13.1"  # needed? 
-SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.0"
-SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.0"
+SOLOCS['gif'] = "#{ularch}/libgif.so.7.0.0"  if justgif
+SOLOCS['jpeg'] = "#{ularch}/libjpeg.so.62.2.0"
+SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2.0.5"
+SOLOCS['pcre'] = "#{larch}/libpcre.so.3.13.3"  # needed? 
+SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.2"
+SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.2"
 SOLOCS['sqlite'] = "#{ularch}/libsqlite3.so.0.8.6"
-SOLOCS['ffi'] = "#{ularch}/libffi.so.5.0.10" 
-SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so.2.40.5"
+SOLOCS['ffi'] = "#{ularch}/libffi.so.6.0.4" 
+SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so.2.40.16"
 SOLOCS['curl'] = "#{EXT_RUBY}/lib/libcurl.so.4.4.0"
 
 # sigh, curl and tyhpoeus - processed in setup.rb
 
 SYMLNK = {}
 SYMLNK['libcurl.so.4.4.0'] = ['libcurl.so', 'libcurl.so.4']
-SYMLNK['libgif.so.4.1.6'] = ['libgif.so', 'libgif.so.4']
-SYMLNK['libjpeg.so.8.4.0'] = ['libjpeg.so', 'libjpeg.so.8']
-SYMLNK['libyaml-0.so.2.0.4'] = ['libyaml.so', 'libyaml-0.so.2']
-SYMLNK['libcrypto.so.1.0.0'] = ['libcrypto.so', 'libcrypto.so.1']
-SYMLNK['libssl.so.1.0.0'] = ['libssl.so']
+SYMLNK['libgif.so.7.0.0'] = ['libgif.so', 'libgif.so.7']
+SYMLNK['libjpeg.so.62.2.0'] = ['libjpeg.so', 'libjpeg.so.62']
+SYMLNK['libyaml-0.so.2.0.5'] = ['libyaml.so', 'libyaml-0.so.2']
+SYMLNK['libcrypto.so.1.0.2'] = ['libcrypto.so', 'libcrypto.so.1']
+SYMLNK['libssl.so.1.0.2'] = ['libssl.so']
 SYMLNK['libsqlite3.so.0.8.6'] = ['libsqlite3.so', 'libsqlite3.so.0']
-SYMLNK['libffi.so.5.0.10'] = ['libffi.so', 'libffi.so.6']
-SYMLNK['librsvg-2.so.2.40.5'] = ['librsvg-2.so', 'librsvg-2.so.2']
+SYMLNK['libffi.so.6.0.4'] = ['libffi.so', 'libffi.so.6']
+SYMLNK['librsvg-2.so.2.40.16'] = ['librsvg-2.so', 'librsvg-2.so.2']

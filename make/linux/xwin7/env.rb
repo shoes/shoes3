@@ -15,6 +15,8 @@ if File.exists? cf
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
+  APP['INSTALLER'] = custmz['Installer'] == 'qtifw'? 'qtifw' : 'nsis'
+  APP['INSTALLER_LOC'] = custmz['InstallerLoc']
   ignore_deprecations = (!custmz['Deprecations']) if custmz['Deprecations']
 else
   abort "You must have an 'xwin7-custom.yaml' file!"
