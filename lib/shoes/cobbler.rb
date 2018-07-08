@@ -790,7 +790,7 @@ but it needs to know where Shoes is"
     @panel.clear
     @panel.append do
       stack do
-        tagline "The will merge your app into a copy of Shoes for Windows"
+        tagline "Merge your app into a copy of Shoes to create a Windows .exe"
         flow do 
           para "This avoids the dreaded Windows 10 Install problems and much "
           para "more. Shoes can be hidden from the user.  It won't conflict with "
@@ -800,7 +800,9 @@ but it needs to know where Shoes is"
         end
         flow do
           para "That means you have to do somme more work. You'll need to download and "
-          para "install the Installer maker, NSIS-Unicode and the ResourceHacker programs"
+          para "install the Installer maker, Shoes-Nsis and the ResourceHacker programs"
+          para "You can download them but Security may prevent Shoes from running the"
+          para "installer so you'll have to do that manually. 
         end
         utilp = "#{LIB_DIR}/package/util.yaml"
         if ! File.exist? utilp
@@ -830,7 +832,11 @@ but it needs to know where Shoes is"
                 "#{LIB_DIR}/package/#{nsexe}"
              end
             button "install" do
-              system "#{LIB_DIR}/package/#{nsexe}"
+              cmdl = "\"#{LIB_DIR}/package/#{nsexe}\""
+              rtn = system(cmdl)
+              if !rtn 
+                alert "Failed #{rtn} for #{cmdl}"
+              end
             end
             button "Select" do
                @nsel.text = ask_open_file

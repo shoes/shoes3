@@ -147,8 +147,12 @@ module PackShoes
       }
     newn.close
     Dir.chdir("#{packdir}/nsis") do |p|
-	  system "\"#{opts['NSIS']}\" \"#{opts['app_name']}\".nsi\""
-      Dir.glob('*.exe') { |p| mv p, '../../' }
+      cmdl = "\"#{opts['NSIS']}\" \"#{opts['app_name']}\".nsi\""
+	    if system(cmdl)
+        Dir.glob('*.exe') { |p| mv p, '../../' }
+      else
+        puts "FAIL: #{$7} #{cmdl}"
+      end
     end
     yield "All Done!" if blk
   end
