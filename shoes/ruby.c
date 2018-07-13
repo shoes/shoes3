@@ -833,6 +833,8 @@ void shoes_ruby_init() {
     rb_define_method(cSettings, "monitor_default", CASTHOOK(shoes_settings_monitor_default), 0);
     rb_define_method(cSettings, "extra1", CASTHOOK(shoes_setting_extra1), 0);
     rb_define_method(cSettings, "extra2", CASTHOOK(shoes_setting_extra2), 0);
+    rb_define_method(cSettings, "wintmo", CASTHOOK(shoes_setting_get_wintmo), 0);
+    rb_define_method(cSettings, "wintmo=", CASTHOOK(shoes_setting_set_wintmo), 1);
 
     cDialog = rb_define_class_under(cTypes, "Dialog", cApp);
 

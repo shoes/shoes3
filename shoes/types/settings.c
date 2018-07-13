@@ -231,3 +231,14 @@ VALUE shoes_setting_extra2(VALUE self) {
   Data_Get_Struct(self, shoes_settings, st);
   return st->extra2;
 }
+
+extern int win_current_tmo; // in gtk.c 
+
+VALUE shoes_setting_get_wintmo(VALUE self) {
+  return INT2NUM(win_current_tmo);
+}
+
+VALUE shoes_setting_set_wintmo(VALUE self, VALUE msec) {
+  win_current_tmo = NUM2INT(msec);
+  return msec;
+}

@@ -802,12 +802,13 @@ but it needs to know where Shoes is"
           para "That means you have to do somme more work. You'll need to download and "
           para "install the Installer maker, Shoes-Nsis and the ResourceHacker programs"
           para "You can download them but Security may prevent Shoes from running the"
-          para "installer so you'll have to do that manually. 
+          para "installer so you'll have to do that manually."
         end
         utilp = "#{LIB_DIR}/package/util.yaml"
         if ! File.exist? utilp
           rsexe = "reshacker_setup.exe"
-          nsexe = "Shoes-Nsis-3.03.exe"
+          #nsexe = "shoesnsis_setup.exe"
+          nsexe = "nsis-2.46.5-Unicode-setup.exe"
           para "Where is ResourceHacker.exe?  "
           flow do
             @rhel = edit_line width:300
@@ -817,13 +818,17 @@ but it needs to know where Shoes is"
                 "#{LIB_DIR}/package/#{rsexe}"
             end
             button "Install" do
-              system "#{LIB_DIR}/package/#{rsexe}"
+              cmdl = Shoes.winpath "#{LIB_DIR}/package/#{rsexe}"
+              rtn = system cmdl
+              if !rtn 
+                alert "Failed #{$?} for #{cmdl}"
+              end
             end
             button "Select" do
               @rhel.text = ask_open_file
             end
           end
-          para "Where is Shoes_Nsis\\bin\\makensis.exe?"
+          para "Where is shoesnsis\\bin\\makensis.exe?"
           flow do
             @nsel = edit_line width:300
             button "Download" do
@@ -832,10 +837,10 @@ but it needs to know where Shoes is"
                 "#{LIB_DIR}/package/#{nsexe}"
              end
             button "install" do
-              cmdl = "\"#{LIB_DIR}/package/#{nsexe}\""
+              cmdl = Shoes.winpath "#{LIB_DIR}/package/#{nsexe}"
               rtn = system(cmdl)
               if !rtn 
-                alert "Failed #{rtn} for #{cmdl}"
+                alert "Failed #{$?} for #{cmdl}"
               end
             end
             button "Select" do

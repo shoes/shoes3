@@ -5969,7 +5969,7 @@ want a unique name.  This has effects for systray notifications.
 
 Linux and Windows only. As described above, this returns the registered dbus
 name for the process. Linux users might use that and a dbus gem to communicate with other
-applications that support dbus. Many Linux application do and in theory your 
+applications that support dbus. Many Linux application do talk to dbugs and in theory your,
 Shoes application can too. In Theory.
 
 For example
@@ -5985,6 +5985,28 @@ Shoes.app do
   end
 end
 }}}
+
+=== settings.wintmo » integer
+
+Only usable for Windows and only until the problem is fixed. See next paragraph.
+Returns the current setting.
+
+=== settings.wintmo = integer
+
+Only for Window. Integer is the number of milliseconds for the mainloop
+timeout (tmo). This controls how frequently time is given to backgound Ruby
+threads. The default value is 10 which is a good balance of responsiveness for things
+like animating a progress bar with a download - download use threads. If you have a long
+operation like a very large copy of a complex file tree operation that is run in another thread
+then it may not get as much time as you want. In that case try setting the tmo to 2 or even 1. 
+
+It Is Highly Recommended that you restore the value after your long threaded operation. It's meaning 
+and operation may seem counter intuitive. You should only do this if you really have a long threaded 
+background operation (aka minutes long). Lower values will reduce the GUI speed.  Setting to zero would be
+a very silly thing to do, so don't do it. Don't pass in floating point numbers.
+
+Generally speaking, don't use this call. There is no setting in the startup.yaml
+file for this.
 
 == Terminal ==
 

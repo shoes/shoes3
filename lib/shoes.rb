@@ -378,6 +378,18 @@ class Shoes
   def self.url(path, meth)
     Shoes.mount(path, [self, meth])
   end
+  
+  # converts Ruby syntax paths to windows 
+  # Use for system() calls where it matters.
+  def self.winpath(path) 
+    needq = path.index(' ')
+    parts = path.split('/')
+    if needq 
+      return "\"#{parts.join("\\")}\""
+    else
+      return parts.join("\\")
+    end
+  end
 
   module Basic
     def tween(opts, &blk)

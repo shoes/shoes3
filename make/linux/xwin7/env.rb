@@ -89,7 +89,9 @@ else
 end
 
 LINUX_CFLAGS << " -DSHOES_GTK -DSHOES_GTK_WIN32 "
-LINUX_CFLAGS << "-DRUBY_HTTP "
+#LINUX_CFLAGS << "-DRUBY_HTTP -DGPOLL "
+#LINUX_CFLAGS << "-DRUBY_HTTP -DGIDLE "
+LINUX_CFLAGS << "-DRUBY_HTTP "  # GTMO is default. 
 LINUX_CFLAGS << xfixrvmp(`pkg-config --cflags "#{pkgruby}"`.strip)+" "
 LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include/#{arch} "
 LINUX_CFLAGS << xfixip("-I/usr/include")+" "

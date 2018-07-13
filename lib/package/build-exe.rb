@@ -28,7 +28,11 @@ Shoes.app(title: "Package app in exe", width: 600, height: 900, resizable: false
     opts['RESH'] = exes['rhp']
     th = Thread.new do
       app.cursor = :watch_cursor
+      st = Shoes.settings
+      curtmo = st.wintmo
+      st.wintmo = 2
       PackShoes::merge_exe(opts) {|msg| @stmsg.text = msg }
+      st.wintmo = curtmo
       app.cursor = :arrow_cursor
     end
   end
