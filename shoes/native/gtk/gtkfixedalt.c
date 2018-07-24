@@ -73,6 +73,9 @@ gtkfixed_alt_new(int width, int height) {
     GtKFixed_AltPrivate *priv = GTKFIXED_ALT_PRIVATE(fixed);
     priv->shoes_width = width;
     priv->shoes_height = height;
+#ifdef Nothing
+    fprintf(stderr,"fixed_new %d,%d\n",width,height);
+#endif
     return fixed;
 }
 
@@ -88,7 +91,11 @@ gtkfixed_alt_get_preferred_width(GtkWidget *widget, int *minimal, int *natural) 
     GtKFixed_AltPrivate *priv = GTKFIXED_ALT_PRIVATE(fixed);
     *minimal = 1;
     //*minimal = priv->shoes_width;
+    //*natural = 1;
     *natural = priv->shoes_width;
+#ifdef Nothing
+    fprintf(stderr,"fixed_pref_wid %d, %d\n",*minimal,*natural);
+#endif
 }
 
 /* Get the height of the container(GtkFixed_Alt)
@@ -102,8 +109,9 @@ gtkfixed_alt_get_preferred_height(GtkWidget *widget, int *minimal, int *natural)
     GtKFixed_AltPrivate *priv = GTKFIXED_ALT_PRIVATE(fixed);
     *minimal = 1;
     //*minimal = priv->shoes_height;
-    *natural = priv->shoes_height;
-
-    //*minimal = 1;
     //*natural = 1;
+    *natural = priv->shoes_height;
+#ifdef Nothing
+    fprintf(stderr,"fixed_pref_hgt %d, %d\n",*minimal,*natural);
+#endif
 }

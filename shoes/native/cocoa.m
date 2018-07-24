@@ -32,6 +32,7 @@ extern VALUE cTimer;
 } while (0)
 
 extern void shoes_osx_stdout_sink(); // in cocoa-term.m
+int win_current_tmo = 10; // unused in OSX
 
 @implementation ShoesEvents
 - (id)init

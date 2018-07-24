@@ -778,8 +778,8 @@ static gint shoes_app_g_poll(GPollFD *fds, guint nfds, gint timeout) {
  * in what the bit flags are for events and revents. Since we are polling
  * ruby primarily we need to use it's definitions/macros of C library things
  * 
- * NOTE: as of July 11, 2018 this will crash windows. see xwin7\env.rb
- * for options.
+ * NOTE: as of July 13, 2018 this doesn't crash - also doesn't work well
+ * 
 */
 
 static gint shoes_app_g_poll(GPollFD *fds, guint nfds, gint timeout) {
@@ -794,8 +794,8 @@ static gint shoes_app_g_poll(GPollFD *fds, guint nfds, gint timeout) {
     FD_ZERO(&xset);
 
     int i;
-    // On Windows, GPollFD->fd could be a handle (Gtk), or a small int (ruby)
-    // Watch out for maxid in that case
+    // In Windows/Gtk, GPollFD->fd could be a handle (Gtk/Gio/glib), or a small int (ruby)
+    // Watch out for maxfd - it's wrong, according to select() doc.
     for (i = 0; i < nfds; i++) {
         f = &fds[i];
         if (f->fd >= 0) {
@@ -806,7 +806,7 @@ static gint shoes_app_g_poll(GPollFD *fds, guint nfds, gint timeout) {
             if (f->events & G_IO_PRI)
                 FD_SET(f->fd, &xset);
             if (f->fd > maxfd && (f->events & (G_IO_IN|G_IO_OUT|G_IO_PRI)))
-                maxfd = max (maxfd, i);
+                maxfd = max (maxfd, i+1);
         }
     }
     //
@@ -816,17 +816,23 @@ static gint shoes_app_g_poll(GPollFD *fds, guint nfds, gint timeout) {
     // Give Ruby half-seconds in which to work, in order to
     // keep it from completely blocking the GUI. 
     //
+    // WARNING timeout can be (is) 0 on Windows and Linux
     if (timeout == -1 || timeout > 500)
         timeout = 500;
 
     tv.tv_sec = timeout / 1000;
     tv.tv_usec = (timeout % 1000) * 1000;
 
-    ready = rb_fd_select (maxfd + 1, &rset, &wset, &xset, &tv); 
+    //ready = rb_fd_select (maxfd + 1, &rset, &wset, &xset, &tv); // crash
+    ready = select (maxfd + 1, &rset, &wset, &xset, &tv); 
+    if (ready < 0) {
+      // fails a  lot on Windows/Gtk
+      // fprintf(stderr, "loop fail\n");
+    }
     if (ready > 0) {
         for (f = fds; f < &fds[nfds]; ++f) {
             f->revents = 0;
-            if (f->fd >= 0 && f->fd < 1024) {
+            if (f->fd >= 0) {
                 if (FD_ISSET (f->fd, &rset))
                     f->revents |= G_IO_IN;
                 if (FD_ISSET (f->fd, &wset))
