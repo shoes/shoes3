@@ -1045,6 +1045,53 @@ void shoes_native_app_window_move(shoes_app *app, int x, int y) {
  *  That causes some pixel tweaking and redundency. 
  */
  
+/* TODO fixes bug #349 
+ * seems like overkill or incomplete 
+*/
+#if !GTK_CHECK_VERSION(3,12,0)
+// forward declares 
+int shoes_gtk_is_maximized(shoes_app *app, int width, int height); 
+void shoes_gtk_set_max(shoes_app *app);
+#endif
+gboolean shoes_app_gtk_configure_event(GtkWidget *widget, GdkEvent *evt, gpointer data) {
+  shoes_app *app = (shoes_app *)data;
+  if (widget == app->os.window) {  // GtkWindow
+    //gtk_widget_set_size_request(widget, evt->configure.width, evt->configure.height);
+    shoes_canvas *canvas;
+    Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#if GTK_CHECK_VERSION(3,12,0)
+    if (gtk_window_is_maximized((GtkWindow *)widget)) {
+#else
+    if (shoes_gtk_is_maximized(app, evt->configure.width, evt->configure.height)) {
+#endif
+    //if (canvas->slot->vscroll && evt->configure.height != app->height) { 
+          GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
+          gtk_widget_set_size_request(canvas->slot->vscroll, -1, evt->configure.height);
+          
+          GtkAllocation alloc;
+          gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);  
+#ifdef SZBUG
+          fprintf(stderr, "shoes_app_gtk_configure_menu %d, %d, %d, %d\n", 
+              evt->configure.x, evt->configure.y, evt->configure.width, evt->configure.height);
+          fprintf(stderr, "cfg alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
+#endif
+          gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
+                         evt->configure.width - alloc.width, 0);
+          gtk_adjustment_set_page_size(adj, evt->configure.height);
+          gtk_adjustment_set_page_increment(adj, evt->configure.height - 32);
+  
+          if (gtk_adjustment_get_page_size(adj) >= gtk_adjustment_get_upper(adj))
+              gtk_widget_hide(canvas->slot->vscroll);
+          else {
+              gtk_widget_show(canvas->slot->vscroll);
+          }
+      }
+  }
+  app->width = evt->configure.width;
+  app->height = evt->configure.height;
+  return FALSE;
+}
+ 
 shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_settings *st) {
 #if 0 //!defined(SHOES_GTK_WIN32)
     char icon_path[SHOES_BUFSIZE];
@@ -1115,6 +1162,8 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_s
                      G_CALLBACK(shoes_app_gtk_keypress), app);
     g_signal_connect(G_OBJECT(window), "delete-event",
                        G_CALLBACK(shoes_app_gtk_quit), app);
+    g_signal_connect(G_OBJECT(window), "configure-event",   // bug #349
+                     G_CALLBACK(shoes_app_gtk_configure_event), app);
     
     if (app->fullscreen) shoes_native_app_fullscreen(app, 1);
 
@@ -1130,6 +1179,9 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_s
     if (app->monitor >= 0) {
       shoes_native_monitor_set(app);
     }
+#if ! GTK_CHECK_VERSION(3,12,0)
+    shoes_gtk_set_max(app);
+#endif
     return SHOES_OK;
 }
 
@@ -1167,7 +1219,7 @@ void shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, in
     */
     slot->oscanvas = gtkfixed_alt_new(width, height); 
 #ifdef SZBUG
-    fprintf(stderr,"shoes_slot_init topleve: %d, slot->canvas %lx\n", toplevel, slot->oscanvas);
+    fprintf(stderr,"shoes_slot_init topleve: %d, slot->canvas %lx\n", toplevel, (unsigned long)slot->oscanvas);
 #endif
     g_signal_connect(G_OBJECT(slot->oscanvas), "draw",
                      G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
@@ -1882,7 +1934,26 @@ int shoes_native_monitor_get(shoes_app *app) {
   return gdk_screen_get_primary_monitor(screen);
 }
 
+
 /*  ------- have_menu == true and sizing ---------- */
+
+// hack for windows (gtk < 3.12) - the 65 below is the taskbar height. Hack!!
+#if ! GTK_CHECK_VERSION(3,12,0)
+void shoes_gtk_set_max(shoes_app *app) {
+  int m = shoes_native_monitor_get(app);
+  shoes_monitor_t geo;
+  shoes_native_monitor_geometry(m, &geo);
+  app->os.maxwidth = geo.width;
+  app->os.maxheight = geo.height;
+  //fprintf(stderr, "max wid: %d hgh: %d\n", geo.width, geo.height);
+}
+
+int shoes_gtk_is_maximized(shoes_app *app, int wid, int hgt) {
+  int t = wid >= app->os.maxwidth && hgt >= (app->os.maxheight-65);
+  //fprintf(stderr, "check %d for wid: %d, hgt: %d\n", t, wid, hgt);
+  return t; 
+}
+#endif
 
 // called only by **Window** signal handler for *size-allocate*
 static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer data) {
@@ -1901,7 +1972,10 @@ static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer dat
     shoes_canvas_size(app->canvas, app->width, app->height);
 }
 
-// called by **canvas->slot** signal handler for *size-allocate*
+/*
+ *  Called by **canvas->slot** signal handler for *size-allocate*
+ *  We can be called twice - for width then for height
+*/
 static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, gpointer data) {
     VALUE c = (VALUE)data;
     shoes_canvas *canvas;
@@ -1909,31 +1983,78 @@ static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, g
 #ifdef SZBUG
     fprintf(stderr,"shoes_canvas_gtk_size_menu: %d %d %d %d\n", size->x, size->y, size->width, size->height);
 #endif
-    if (canvas->slot->vscroll &&
-            (size->height != canvas->slot->scrollh || size->width != canvas->slot->scrollw)) {
-        GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
-        gtk_widget_set_size_request(canvas->slot->vscroll, -1, size->height);
-        
-        //gtk_widget_set_size_request(GTK_CONTAINER(widget), canvas->app->width, size->height);
-        GtkAllocation alloc;
-        gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);  
+    if (canvas->slot->vscroll) { 
+            // && (size->height != canvas->slot->scrollh || size->width != canvas->slot->scrollw)) 
+        if (size->height != canvas->slot->scrollh) {
+          GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
+          gtk_widget_set_size_request(canvas->slot->vscroll, -1, size->height);
+          
+          //gtk_widget_set_size_request(GTK_CONTAINER(widget), canvas->app->width, size->height);
+          GtkAllocation alloc;
+          gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);  
 #ifdef SZBUG
-        fprintf(stderr, "alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
+          fprintf(stderr, "alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
 #endif
-        gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
-                       size->width - alloc.width, 0);
-        gtk_adjustment_set_page_size(adj, size->height);
-        gtk_adjustment_set_page_increment(adj, size->height - 32);
-
-        if (gtk_adjustment_get_page_size(adj) >= gtk_adjustment_get_upper(adj))
-            gtk_widget_hide(canvas->slot->vscroll);
-        else {
-            gtk_widget_show(canvas->slot->vscroll);
-        }
-        canvas->slot->scrollh = size->height;
-        canvas->slot->scrollw = size->width;
+          gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
+                         size->width - alloc.width, 0);
+          gtk_adjustment_set_page_size(adj, size->height);
+          gtk_adjustment_set_page_increment(adj, size->height - 32);
+  
+          if (gtk_adjustment_get_page_size(adj) >= gtk_adjustment_get_upper(adj))
+              gtk_widget_hide(canvas->slot->vscroll);
+          else {
+              gtk_widget_show(canvas->slot->vscroll);
+          }
+          canvas->slot->scrollh = size->height;
+      } else if (size->width != canvas->slot->scrollw) {
+          canvas->slot->scrollw = size->width;
+      }
     }
 }
+
+
+/* TODO sort of fixes bug #349 depends on gtk 3.12 or higher (Boo Windows)
+ * seems like overkill or incomplete 
+*/
+gboolean shoes_app_gtk_configure_menu(GtkWidget *widget, GdkEvent *evt, gpointer data) {
+  shoes_app *app = (shoes_app *)data;
+  if (widget == app->os.window) {  // GtkWindow
+    //gtk_widget_set_size_request(widget, evt->configure.width, evt->configure.height);
+    shoes_canvas *canvas;
+    Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#if GTK_CHECK_VERSION(3,12,0)
+    if (gtk_window_is_maximized((GtkWindow *)widget)) {
+#else
+    if (shoes_gtk_is_maximized(app, evt->configure.width, evt->configure.height)) {
+#endif
+    //if (canvas->slot->vscroll && evt->configure.height != app->height) { 
+          GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
+          gtk_widget_set_size_request(canvas->slot->vscroll, -1, evt->configure.height);
+          
+          GtkAllocation alloc;
+          gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);  
+#ifdef SZBUG
+          fprintf(stderr, "shoes_app_gtk_configure_menu %d, %d, %d, %d\n", 
+              evt->configure.x, evt->configure.y, evt->configure.width, evt->configure.height);
+          fprintf(stderr, "cfg alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
+#endif
+          gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
+                         evt->configure.width - alloc.width, 0);
+          gtk_adjustment_set_page_size(adj, evt->configure.height);
+          gtk_adjustment_set_page_increment(adj, evt->configure.height - 32);
+  
+          if (gtk_adjustment_get_page_size(adj) >= gtk_adjustment_get_upper(adj))
+              gtk_widget_hide(canvas->slot->vscroll);
+          else {
+              gtk_widget_show(canvas->slot->vscroll);
+          }
+      }
+  }
+  app->width = evt->configure.width;
+  app->height = evt->configure.height;
+  return FALSE;
+}
+
 
 void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int height, int scrolls, int toplevel) {
   shoes_canvas *canvas;
@@ -1951,7 +2072,7 @@ void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int widt
   else
     slot->oscanvas = gtkfixed_alt_new(width, height);
 #ifdef SZBUG
-  fprintf(stderr,"shoes_slot_init_menu toplevel: %d, slot->oscanvas %lx\n", toplevel, slot->oscanvas); 
+  fprintf(stderr,"shoes_slot_init_menu toplevel: %d, slot->oscanvas %lx\n", toplevel, (unsigned long)slot->oscanvas); 
 #endif
   g_signal_connect(G_OBJECT(slot->oscanvas), "draw",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
@@ -2054,7 +2175,7 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
     gk->shoes_window = shoes_window;
     app->slot->oscanvas = shoes_window;
 #ifdef SZBUG
-    fprintf(stderr,"shoes_native_app_open slot->canvas %lx\n", app->slot->oscanvas);
+    fprintf(stderr,"shoes_native_app_open slot->canvas %lx\n", (unsigned long)app->slot->oscanvas);
 #endif
     app->mb_height = 26;  // TODO adhoc (a guess)
 
@@ -2102,6 +2223,8 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
                      G_CALLBACK(shoes_app_gtk_keypress), app);
     g_signal_connect(G_OBJECT(window), "delete-event",
                      G_CALLBACK(shoes_app_gtk_quit), app);
+    g_signal_connect(G_OBJECT(window), "configure-event",   // bug #349
+                     G_CALLBACK(shoes_app_gtk_configure_menu), app);
        
     if (app->fullscreen) shoes_native_app_fullscreen(app, 1);
 
@@ -2117,5 +2240,8 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
     if (app->monitor >= 0) {
       shoes_native_monitor_set(app);
     }
+#if ! GTK_CHECK_VERSION(3,12,0)
+    shoes_gtk_set_max(app);
+#endif
     return SHOES_OK;
 }

@@ -79,11 +79,15 @@ typedef struct {
 } shoes_group_gtk, SHOES_GROUP_OS;
 
 typedef struct {
-    GtkWidget *window;
+    GtkWidget *window;        // GtkWindow 
     GtkWidget *menubar;
-    GtkWidget *vlayout; // vbox
-    GtkWidget *shoes_window;  // GtkFixed, not a GtkWindow
+    GtkWidget *vlayout;       // vbox
+    GtkWidget *shoes_window;  // GtkFixedAlt, NOT a GtkWindow
     GtkAccelGroup *accel_group;
+    // gtk < 3.12
+#if !GTK_CHECK_VERSION(3,12,0)
+    int maxwidth, maxheight;
+#endif
 } shoes_app_gtk, SHOES_APP_OS;
 
 typedef struct {
