@@ -37,7 +37,7 @@ VALUE shoes_canvas_menu(int, VALUE *, VALUE);
 
 // natives
 void *shoes_native_menu_new(shoes_menu *mn);
-void *shoes_native_menu_append(shoes_menu *mn, shoes_menuitem *mi);
+void shoes_native_menu_append(shoes_menu *mn, shoes_menuitem *mi);
 void shoes_native_menu_insert(shoes_menu *mn, shoes_menuitem *mi, int pos);
 void shoes_native_menu_remove(shoes_menu *mn, int pos);
 #endif

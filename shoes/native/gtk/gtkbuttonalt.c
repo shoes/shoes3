@@ -53,7 +53,7 @@ static void gtk_button_alt_init(GtkButton_Alt *buttontAlt) {
 
     /* Initialize private members */
     // TODO: determine whether priv has any use.
-    GtkButton_AltPrivate *priv = GTK_BUTTON_ALT_PRIVATE(buttontAlt);
+    //GtkButton_AltPrivate *priv = GTK_BUTTON_ALT_PRIVATE(buttontAlt);
 
 }
 
@@ -129,8 +129,6 @@ gboolean shoes_button_gtk_clicked(GtkButton *button, gpointer data) {
 SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, char *msg) {
     char *fntstr = NULL;
     VALUE fgclr = Qnil; // Could be hex color or name
-    VALUE icon = Qnil;
-    //SHOES_CONTROL_REF ref = gtk_button_alt_new_with_label(_(msg));
     GtkWidget *glabel = NULL; 
     GtkWidget *gimage = NULL;
     char *icon_pos = NULL;
@@ -265,7 +263,6 @@ GtkWidget *shoes_gtk_button_icon_box(GtkWidget *glabel, GtkWidget *gimage, char 
 {
   GtkWidget *grid = gtk_grid_new();
   gtk_grid_set_column_spacing((GtkGrid *)grid, 6);
-  int pos = 0;
   if ((icon_pos == NULL) || (strlen(icon_pos)== 0) || (strcmp(icon_pos, "left") == 0)) {
     gtk_grid_attach(GTK_GRID(grid), gimage, 0,0,1,1);
     gtk_grid_attach(GTK_GRID(grid), glabel, 1,0,1,1);

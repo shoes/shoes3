@@ -99,7 +99,7 @@ WIN32_LDFLAGS << RUBY_LDFLAGS
 WIN32_LIBS << RUBY_LDFLAGS
 WIN32_LIBS << CAIRO_LDFLAGS
 WIN32_LIBS << PANGO_LDFLAGS
-WIN32_LIBS << "-L#{ShoesDeps}/lib -lrsvg-2"
+WIN32_LIBS << "-L#{ShoesDeps}/lib -lrsvg-2 -lyaml"
 
 # Cleaning up duplicates. Clunky? Hell yes!
 wIN32_CFLAGS = WIN32_CFLAGS.join(' ').split(' ').uniq
@@ -115,7 +115,7 @@ bindll = "#{ShoesDeps}/bin"
 basedll = `cygpath -m /mingw32/bin`.chomp
 gtkdll = "#{GtkDeps}/bin"
 SOLOCS = {
-  'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby220.dll",
+  'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby230.dll",
   'gif'     => "#{bindll}/libgif-7.dll",
   'jpeg'    => "#{bindll}/libjpeg-9.dll",
   'libyaml' => "#{bindll}/libyaml-0-2.dll",
@@ -145,6 +145,7 @@ if APP['GTK'] == 'gtk+-3.0'
       'gobject'     => "#{bindll}/libgobject-2.0-0.dll",
       'gdk3'        => "#{gtkdll}/libgdk-3-0.dll", 
       'gtk3'        => "#{gtkdll}/libgtk-3-0.dll",
+      'epoxy'       => "#{bindll}/libepoxy-0.dll",
       'pixman'      => "#{bindll}/libpixman-1-0.dll", 
       'intl8'       => "#{bindll}/libintl-8.dll",
       'pango'       => "#{bindll}/libpango-1.0-0.dll",

@@ -299,7 +299,7 @@ int shoes_init_load_yaml(char *path) {
               case YAML_KEY_TOKEN:     state = 0; break;
               case YAML_VALUE_TOKEN:   state = 1; break;
               case YAML_SCALAR_TOKEN:
-                  tk = token.data.scalar.value;
+                  tk = (char *)token.data.scalar.value;
                   if (state == 0) {
                       /* It's safe to not use strncmp as 
                          one string is a literal */

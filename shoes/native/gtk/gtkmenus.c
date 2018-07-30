@@ -243,7 +243,7 @@ void shoes_gtk_accel_path(shoes_menu *mn, shoes_menuitem *mi) {
  }
 }
 
-void *shoes_native_menu_append(shoes_menu *mn, shoes_menuitem *mi) {
+void shoes_native_menu_append(shoes_menu *mn, shoes_menuitem *mi) {
   // does menuitem have accel key? We can create the path now
   if (mi->key && (mi->state & (MENUITEM_CONTROL|MENUITEM_SHIFT|MENUITEM_ALT))) {
     shoes_gtk_accel_path(mn, mi);
@@ -339,21 +339,6 @@ void shoes_native_menuitem_enable(shoes_menuitem *mi, int state) {
 
 void shoes_native_menuitem_set_key(shoes_menuitem *mi, int newflags, char *newkey) {
   int mask = MENUITEM_ALT | MENUITEM_CONTROL | MENUITEM_SHIFT;
-  GtkWidget *gmi = (GtkWidget *)mi->native;
-  VALUE cvsv = (VALUE)mi->context;
-  shoes_canvas *canvas;
-  Data_Get_Struct(cvsv, shoes_canvas, canvas);
-  shoes_app *app = canvas->app;
-#if 0 
-  gint oldgkey = gdk_keyval_from_name(mi->key);
-  int oldgflags = 0;
-  if (mi->state | MENUITEM_CONTROL)
-    oldgflags |= GDK_CONTROL_MASK;
-  if (mi->state | MENUITEM_ALT)
-    oldgflags |= GDK_MOD1_MASK;
-  if (mi->state | MENUITEM_SHIFT)
-    oldgflags |= GDK_SHIFT_MASK;
-#endif    
   mi->state = newflags;
   if (mi->key) {
     free(mi->key);

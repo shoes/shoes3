@@ -25,7 +25,7 @@ void shoes_menu_init() {
 
 void shoes_menu_mark(shoes_menu *mn) {
     rb_gc_mark_maybe(mn->items);
-    rb_gc_mark_maybe(mn->context);
+    // not a VALUE rb_gc_mark_maybe(mn->context);
 }
 
 static void shoes_menu_free(shoes_menu *mn) {
@@ -43,7 +43,8 @@ VALUE shoes_menu_alloc(VALUE klass) {
     mn->extra = NULL;
     mn->parent = NULL;
     mn->title = NULL;
-    mn->context = Qnil;
+    //mn->context = Qnil;
+    mn->context = NULL;
     mn->items = rb_ary_new();
     return obj;
 }

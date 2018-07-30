@@ -76,7 +76,6 @@ void shoes_css_apply(GtkWidget *widget, VALUE attr, char *css_template)
     char *font = "Arial 12";
     char color[40] = "black";
     int do_sub = 0;
-    int have_color = 0;
     VALUE vclr = Qnil;
     VALUE vfont = ATTR(attr, font);
     if (! NIL_P(vfont)) {

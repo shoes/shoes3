@@ -1,4 +1,5 @@
 # xmsys2 cross  build  
+# TODO: missing curl
 cf =(ENV['ENV_CUSTOM'] || "xmsys2-custom.yaml")
 gtk_version = '3'
 if File.exists? cf
@@ -60,14 +61,14 @@ end
 gtk_pkg_path = "#{GtkDeps}/lib/pkgconfig/gtk+-3.0.pc"
 
 GTK_CFLAGS = `#{PKG_CONFIG} --cflags gtk+-3.0 --define-variable=prefix=#{ShoesDeps}`.chomp
-GTK_LDFLAGS = `#{PKG_CONFIG} --libs gtk+-3.0 --define-variable=prefix=#{ShoesDeps}`.chomp
+GTK_LDFLAGS = `#{PKG_CONFIG} --libs #{gtk_pkg_path} --define-variable=prefix=#{ShoesDeps}`.chomp
 CAIRO_CFLAGS = `#{PKG_CONFIG} --cflags glib-2.0 --define-variable=prefix=#{ShoesDeps}`.chomp +
     `#{PKG_CONFIG} --cflags cairo --define-variable=prefix=#{ShoesDeps}`.chomp
 CAIRO_LDFLAGS = `#{PKG_CONFIG} --libs cairo --define-variable=prefix=#{ShoesDeps}`.chomp
 PANGO_CFLAGS = `#{PKG_CONFIG} --cflags pango --define-variable=prefix=#{ShoesDeps}`.chomp
 PANGO_LDFLAGS = `#{PKG_CONFIG} --libs pango --define-variable=prefix=#{ShoesDeps}`.chomp
 
-RUBY_LDFLAGS = " -Wl,-export-all-symbols -L#{EXT_RUBY}/lib -lmsvcrt-ruby220 "
+RUBY_LDFLAGS = " -Wl,-export-all-symbols -L#{EXT_RUBY}/lib -lmsvcrt-ruby230 "
 
 WIN32_CFLAGS << "-DSHOES_GTK -DSHOES_GTK_WIN32 -DRUBY_HTTP -DVIDEO"
 WIN32_CFLAGS << "-DGTK3 "
@@ -77,12 +78,13 @@ WIN32_CFLAGS << GTK_CFLAGS
 WIN32_CFLAGS << CAIRO_CFLAGS
 WIN32_CFLAGS << PANGO_CFLAGS
 WIN32_CFLAGS << "-I#{ShoesDeps}/include/librsvg-2.0/librsvg "
-WIN32_CFLAGS << `pkg-config --cflags #{EXT_RUBY}/lib/pkgconfig/ruby-2.2.pc --define-variable=prefix=#{EXT_RUBY}`.chomp
+WIN32_CFLAGS << `pkg-config --cflags #{EXT_RUBY}/lib/pkgconfig/ruby-2.3.pc --define-variable=prefix=#{EXT_RUBY}`.chomp
 WIN32_CFLAGS << "-Ishoes"
 
 WIN32_LDFLAGS << "-lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32"
 WIN32_LDFLAGS << "-lgif -ljpeg -lfontconfig"
-WIN32_LDFLAGS << "-L#{ENV['RI_DEVKIT']}/mingw/bin".gsub('\\','/').gsub(/^\//,'//')
+#WIN32_LDFLAGS << "-L#{ENV['RI_DEVKIT']}/mingw/bin".gsub('\\','/').gsub(/^\//,'//')
+WIN32_LDFLAGS << "-L#{ShoesDeps}/bin"
 WIN32_LDFLAGS << "-fPIC -shared"
 WIN32_LDFLAGS << GTK_LDFLAGS
 WIN32_LDFLAGS << CAIRO_LDFLAGS
@@ -92,7 +94,7 @@ WIN32_LDFLAGS << RUBY_LDFLAGS
 WIN32_LIBS << RUBY_LDFLAGS
 WIN32_LIBS << CAIRO_LDFLAGS
 WIN32_LIBS << PANGO_LDFLAGS
-WIN32_LIBS << "-L#{ShoesDeps}/lib -lrsvg-2"
+WIN32_LIBS << "-L#{ShoesDeps}/lib -lrsvg-2 -lyaml -lpthread"
 
 # Cleaning up duplicates. Clunky? Hell yes!
 wIN32_CFLAGS = WIN32_CFLAGS.join(' ').split(' ').uniq
@@ -105,10 +107,10 @@ LINUX_LIBS = wIN32_LIBS.join(' ')
 
 # hash of dlls to copy in tasks.rb pre_build - no particular order.
 bindll = "#{ShoesDeps}/bin"
-basedll = "#{ShoesDeps}/../basedll"
+basedll = "#{ShoesDeps}/basedll"
 gtkdll = "#{GtkDeps}/bin"
 SOLOCS = {
-  'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby220.dll",
+  'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby230.dll",
   'gif'     => "#{bindll}/libgif-7.dll",
   'jpeg'    => "#{bindll}/libjpeg-9.dll",
   'libyaml' => "#{bindll}/libyaml-0-2.dll",

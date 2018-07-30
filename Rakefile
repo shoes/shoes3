@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'rake'
-if RUBY_PLATFORM !~ /darwin/
+if RUBY_PLATFORM !~ /darwin|mingw/
 require 'rake/clean'
 end
 require 'fileutils'
@@ -112,7 +112,7 @@ end
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 #CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
 #CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
-if RUBY_PLATFORM !~ /darwin/
+if RUBY_PLATFORM !~ /darwin|mingw/
   CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe", 
     "#{TGT_DIR}/libshoes.so","#{TGT_DIR}/shoes", "#{TGT_DIR}/shoes-bin",
     "#{TGT_DIR}/*.app", "#{TGT_DIR}/#{APP['Bld_tmp']}/**/*.o"]
@@ -409,7 +409,7 @@ task  :install do
 end
 
 
-if RUBY_PLATFORM =~ /darwin/
+if RUBY_PLATFORM =~ /darwin|mingw/
   desc "remove objects and libshoes.dylib"
   task :clean do
     rm_rf "#{TGT_DIR}/libshoes.dylib"
@@ -418,9 +418,11 @@ if RUBY_PLATFORM =~ /darwin/
   
   desc "remove all build products"
   task :clobber do
+    puts "TGT_DIR = #{TGT_DIR}"
     p = TGT_DIR.split('/');
     topd  = p[0..-3].join('/')
     rm_rf topd if topd && topd != ""
+    rm_rf TGT_DIR
     rm_f "build_target"
   end
 end

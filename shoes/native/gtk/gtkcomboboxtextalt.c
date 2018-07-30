@@ -97,10 +97,12 @@ static void gtk_combo_box_text_alt_get_preferred_width(GtkWidget *widget,
         int *minimal, int *natural);
 static void gtk_combo_box_text_alt_get_preferred_height(GtkWidget *widget,
         int *minimal, int *natural);
+#ifdef ADVANCED_GTK
 static void gtk_combo_box_text_alt_get_preferred_height_for_width(GtkWidget *widget,
         gint avail_size, gint *minimum_size, gint *natural_size);
 static void gtk_combo_box_text_alt_get_preferred_width_for_height(GtkWidget *widget,
         gint avail_size, gint *minimum_size, gint *natural_size);
+#endif
 
 /* Define the GtkComboBoxText_Alt type and inherit from GtkComboBoxText */
 G_DEFINE_TYPE(GtkComboBoxText_Alt, gtk_combo_box_text_alt, GTK_TYPE_COMBO_BOX_TEXT);
@@ -131,7 +133,7 @@ static void gtk_combo_box_text_alt_init(GtkComboBoxText_Alt *comboboxtextAlt) {
 
     /* Initialize private members */
     // TODO: determine whether priv has any use.
-    GtkComboBoxText_AltPrivate *priv = GTK_COMBOBOXTEXT_ALT_PRIVATE(comboboxtextAlt);
+    //GtkComboBoxText_AltPrivate *priv = GTK_COMBOBOXTEXT_ALT_PRIVATE(comboboxtextAlt);
 }
 
 extern VALUE cColor;

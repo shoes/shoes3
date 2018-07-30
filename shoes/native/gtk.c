@@ -487,6 +487,7 @@ static gboolean shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gp
     return TRUE;
 }
 
+#if 0
 // TODO: unused? called when window was maximized (window adornment button)
 // considered to be a hack.
 static void shoes_gtk_resized_max(shoes_app *app, int width, int height) {
@@ -521,7 +522,7 @@ static void shoes_gtk_resized_max(shoes_app *app, int width, int height) {
         canvas->slot->scrollw = width;
     }
 }
-
+#endif
 
 // called only by **Window** signal handler for "size-allocate"
 static void shoes_app_gtk_size(GtkWidget *widget, cairo_t *cr, gpointer data) {
