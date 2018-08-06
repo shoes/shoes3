@@ -115,5 +115,6 @@ class MakeLinux
       else 
         puts "No Installer defined"
       end
-    end  end
+    end
+  end
 end

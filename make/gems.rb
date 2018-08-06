@@ -125,6 +125,16 @@ module Make
     # precompiled gems here - just copy
     APP['INCLGEMS'].each do |gemn|
       gemp = "#{APP['GEMLOC']}/built/#{TGT_ARCH}/#{gemn}"
+      if ! File.exist?(gemp)
+        pos = Dir.glob("#{APP['GEMLOC']}/built/#{TGT_ARCH}/#{gemn}")
+        if pos && pos.length == 1
+          gemp = pos[0]
+          gemn = File.basename(gemp)
+        else
+          $stderr.puts "Failed to find #{gemn}. Wildcard correct? "
+          abort
+        end
+      end
       $stderr.puts "Copying prebuilt gem #{gemp}"
       spec = eval(File.read("#{gemp}/gemspec"))
       mkdir_p "#{gdir}/specifications"

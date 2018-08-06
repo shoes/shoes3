@@ -336,9 +336,10 @@ the first selection and then the Folder named plugins"
       para "Shoes Release: #{Shoes::RELEASE_NAME}   #{Shoes::VERSION_NUMBER}  r#{Shoes::VERSION_REVISION}"
       para "    built on #{Shoes::VERSION_DATE}"
       para "    Fit: #{Shoes::RELEASE_TYPE}"
-      para "Gems Version #{Gem::RubyGemsVersion}"
-      para "Shoes Exe Directory: #{DIR}"
-      para "Shoes Home: #{@shoes_home}"
+      para "Gems Version #{Gem::RubyGemsVersion} using arch: #{Gem::Platform.local}"
+      para "Current Dir: #{Dir.getwd}"
+      para "DIR: #{DIR}"
+      para "@shoes_home: #{@shoes_home}"
       para "LIB_DIR: #{LIB_DIR}"
     end
   end

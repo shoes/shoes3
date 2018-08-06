@@ -32,7 +32,7 @@
   * Merge style packaging for OSX - must be done on OSX. 
   
 === Fixed with 3.3.7
-  * Fewer complaints from Gkt 3.20+ systems
+  * Fewer complaints (none?) from Gkt 3.20+ systems
   * OSX: fullscreen incomplete
     https://github.com/shoes/shoes3/issues/408 
   * app.name = now works as documented. 
@@ -40,12 +40,14 @@
   * command line --ruby working again
   * OSX: buttons can be created that use non default height.
 
+
 === Developer Issues with 3.3.7
   * make/**/env.rb - link against distributed libyaml
-  * added lib/package/*  for mege packaging.
+  * Added lib/package/*  for mege packaging.
   * Using nsis 3.03 for Windows installer. Maintained and faster!
-    with unicdoe and large string enables. Potential to break
+    with unicode and large string enables. Potential to break
     user written installers.
+  * Better cross build rakefiles: xrpi, xmsys2 targets.
   
 -------------- Shoes 3.3.6 -------------------------------
 

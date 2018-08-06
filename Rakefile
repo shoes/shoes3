@@ -66,18 +66,18 @@ if File.exists? "build_target"
     TGT_ARCH = str.split('=')[1].strip
     if RUBY_PLATFORM  =~ /darwin/
       # osx is just different. It needs build performance optimizations 
-	  # is the build output directory outside the shoes3 dir?    
-	  if APP['Bld_Pre']
-	    TGT_DIR = APP['Bld_Pre']+TGT_ARCH+"/#{APPNAME}.app/Contents/MacOS"
-	  else
-	    TGT_DIR = TGT_ARCH++"/#{APPNAME}.app/Contents/MacOS"
-	  end
+	    # is the build output directory outside the shoes3 dir?    
+	    if APP['Bld_Pre']
+	      TGT_DIR = APP['Bld_Pre']+TGT_ARCH+"/#{APPNAME}.app/Contents/MacOS"
+	    else
+	      TGT_DIR = TGT_ARCH++"/#{APPNAME}.app/Contents/MacOS"
+	    end
     else 
-	  # is the build output directory outside the shoes3 dir?    
-	  if APP['Bld_Pre']
-	    TGT_DIR = APP['Bld_Pre']+TGT_ARCH
-	  else
-	    TGT_DIR = TGT_ARCH
+	    # is the build output directory outside the shoes3 dir?    
+	    if APP['Bld_Pre']
+	      TGT_DIR = APP['Bld_Pre']+TGT_ARCH
+	    else
+	      TGT_DIR = TGT_ARCH
 	  end
     end
     mkdir_p "#{TGT_DIR}"
@@ -198,6 +198,12 @@ when /linux/
       require File.expand_path("make/gems")
       require File.expand_path('make/subsys')
 =end
+    when /xrpi/
+      require File.expand_path('make/linux/xrpi/env')
+      require File.expand_path('make/linux/xrpi/tasks')
+      require File.expand_path('make/linux/xrpi/setup')
+      require File.expand_path("make/gems")
+      require File.expand_path('make/subsys')
     when /rpi/
       require File.expand_path('make/linux/rpi/env')
       require File.expand_path('make/linux/rpi/tasks')
@@ -528,18 +534,23 @@ namespace :linux do
      sh "echo 'TGT_ARCH=xarmv6hf' >build_target"
     end
 =end    
-    desc "Native Raspberry Pi build - 2+"
+    desc "Native Raspberry Pi build  >= 2"
     task :rpi do
       sh "echo 'TGT_ARCH=rpi' >build_target"
     end
     
-    #desc "Cross compile for msys2 deps (mingw)"
+    desc "Cross compile Pi build >= 3"
+    task :xrpi do
+      sh "echo 'TGT_ARCH=xrpi' >build_target"
+    end
+    
+    desc "Cross compile for msys2 deps (mingw)"
     task :xmsys2 do
       puts "Cross compile newer deps (mingw)"
       sh "echo 'TGT_ARCH=xmsys2' >build_target"
     end
 
-    desc "Cross compile with  MingW32"
+    desc "Cross compile with devkit (mingw)"
     task :xwin7 do
       puts "Cross compile for Windows MingW32"
       sh "echo 'TGT_ARCH=xwin7' >build_target"
@@ -565,4 +576,101 @@ namespace :linux do
     Builder.make_installer
   end
 
+end
+
+# TODO: not all targets call this from setup.rb. Requires env.rb mods.
+# Function to find the lib(s), copy and symlink. locs is probably APP['LIBPATHS']
+# and shlibs is the SOLOCS hash - only the key is used so it needs to be 
+# correct
+def dep_find_and_copy(locs, shlibs)
+  # load all the file names in locs into some hashes
+  loc = {}
+  locs.each do |lib| 
+    loc[lib] = {}
+    Dir.glob("#{lib}/*").each do |fp|
+      fn = File.basename(fp)
+      short = fn[/(\w|\d|_|\-)+/]   # up to first period
+      hsh = loc[lib]
+      ary = hsh[short]
+      ary ? ary << fn : ary=[fn]
+      hsh[short] = ary  # needed? reference vs copy
+    end
+  end
+  shlibs.each_key do |libname|
+    hit = nil
+    p = ""
+    loc.each_pair do |k,hsh|
+      if hsh[libname]
+        hit = hsh[libname]
+        p = k
+        break
+      end
+    end
+    if !hit
+      puts "Failed to find #{libname} in hashes"
+      abort
+    else
+      hits = []
+      hit.each do |ent| 
+        if ent.include? "#{libname}.#{DLEXT}"
+          hits << ent
+        end
+      end
+      #puts "Deal with #{hits.inspect} in #{p}"
+      if RUBY_PLATFORM =~ /mingw/
+        cp "#{p}/#{hits[0]}", TGT_DIR
+      else
+        syml = {}
+        cph = ""
+        hits.each do |fn|
+          fp ="#{p}/#{fn}"
+          if File.symlink? fp
+            syml[fp] = File.readlink(fp)
+          else
+            cph = fp
+          end
+        end
+        if cph.length > 0
+          cp cph, TGT_DIR
+          Dir.chdir(TGT_DIR) do
+            cph = File.basename(cph)
+            syml.each_pair { |k,v| File.symlink(cph, File.basename(k)) }
+          end
+        else
+          # We're Special! A symlink between dirs (libpcre.so?) - chase it
+          syml.each_pair do |k,v|
+            pos = "#{ShoesDeps}#{v}"
+            while File.symlink?(pos) do
+               #puts "chase #{pos}"
+               pos = "#{ShoesDeps}/#{File.readlink(pos)}"
+            end
+            dp = File.dirname(v)
+            fn = File.basename(pos)
+            #puts "chased #{k}, #{v} to here: #{pos}"
+            cp "#{ShoesDeps}#{dp}/#{fn}", TGT_DIR
+          end
+        end
+      end
+    end
+  end
+end
+
+def win_dep_find_and_copy(locs, shlibs)
+  shlibs.each_pair do |lib, xxx|
+    hit = nil
+    locs.each do |dir| 
+      pos = Dir.glob("#{dir}/#{lib}*.dll")
+      if pos && pos.length == 1
+        hit = pos[0]
+        cp hit, TGT_DIR
+        break;
+      end
+    end
+    if hit 
+      next
+    else
+      puts "Can't find #{lib}"
+      abort
+    end
+  end
 end
