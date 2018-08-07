@@ -1,6 +1,6 @@
 # Build a 64 bit Linux Tight Shoes (from a 64 bit host)
-# In this case Unbuntu 14.04 to debian 7.2 in a chroot.
-# You should modify your custom.yaml
+# In this case Unbuntu 16.04 dependencies.
+
 ignore_deprecations = true
 cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
 if File.exists? cf
@@ -83,7 +83,7 @@ SOLOCS = {}
 #SOLOCS['ungif'] = "#{uldir}/libungif.so.4.1.6"
 SOLOCS['libgif'] = "#{ularch}/libgif.so.7.0.0" 
 SOLOCS['libjpeg'] = "#{ularch}/libjpeg.so.8.0.2"
-SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2.0.4"
+SOLOCS['libyaml-0'] = "#{ularch}/libyaml-0.so.2.0.4"
 SOLOCS['libpcre'] = "#{larch}/libpcre.so.3"  # TODO: is this needed? 
 SOLOCS['libcrypto'] = "#{larch}/libcrypto.so.1.0.0"
 SOLOCS['libssl'] = "#{larch}/libssl.so.1.0.0"

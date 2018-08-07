@@ -184,6 +184,12 @@ when /bsd/
 when /linux/
   if CROSS
     case TGT_ARCH
+    when /xlin64/
+      require File.expand_path('make/linux/xlin64/env')
+      require File.expand_path('make/linux/xlin64/tasks')
+      require File.expand_path('make/linux/xlin64/setup')
+      require File.expand_path("make/gems")
+      require File.expand_path('make/subsys')
     when /lin64/
       require File.expand_path('make/linux/lin64/env')
       require File.expand_path('make/linux/lin64/tasks')
@@ -567,6 +573,12 @@ namespace :linux do
       puts "Native complile for x86_64 Linux"
       sh "echo 'TGT_ARCH=lin64' >build_target"
     end
+    
+    desc "cross build for X86_64 Linux"
+    task :xlin64 do
+      puts "Native complile for x86_64 Linux"
+      sh "echo 'TGT_ARCH=xlin64' >build_target"
+    end
 
   end
   
@@ -674,3 +686,5 @@ def win_dep_find_and_copy(locs, shlibs)
     end
   end
 end
+
+

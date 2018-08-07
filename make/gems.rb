@@ -188,8 +188,6 @@ module Make
       end
     end
   end
-
-
 end
 
 desc "build all gems for platform"
