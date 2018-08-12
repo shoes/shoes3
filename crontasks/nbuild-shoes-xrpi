@@ -1,0 +1,9 @@
+#!/bin/bash
+echo "Build Shoes rpi3"
+cd ~/Projects/shoes3
+rm -f build_target
+rake linux:setup:xrpi
+rake
+rake package
+rake clobber
+ls -ld /home/ccoupe/Projects/shoes3/pkg/*armhf.install

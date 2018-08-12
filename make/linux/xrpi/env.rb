@@ -20,13 +20,8 @@ end
 
 # We don't care about the Ruby running the rake. We want the info
 # from the *target* ruby. Ugly or clever hack ahead - you decide
-rbcfg = Dir.glob("#{EXT_RUBY}/lib/ruby/**/*/rbconfig.rb")[0]
-module RbConfig
-  remove_const(:TOPDIR)
-  remove_const(:CONFIG)
-  remove_const(:MAKEFILE_CONFIG)
-end
-require rbcfg
+require_relative '../../switch_ruby'
+
 # Ruby doesn't do triplets like everyone else. 
 #
 arch_2_file = {'arm-linux-eabihf' => 'arm-linux-gnueabihf',
@@ -37,6 +32,9 @@ arch_2_gem =  {'arm-linux-eabihf' => "arm-linux"}
 APP['GTK'] = 'gtk+-3.0' # installer needs this to name the output
 SHOES_TGT_ARCH = RbConfig::CONFIG['arch']
 SHOES_GEM_ARCH = arch_2_gem[RbConfig::CONFIG['arch']]
+APP['RUBY_V'] = RbConfig::CONFIG['ruby_version']
+APP['PLATFORM'] = RbConfig::CONFIG['arch'] # now correct for cross compile
+
 arch = arch_2_file[RbConfig::CONFIG["arch"]]
 uldir = "#{ShoesDeps}/usr/lib"
 ularch = "#{ShoesDeps}/usr/lib/#{arch}"

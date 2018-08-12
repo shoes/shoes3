@@ -6,6 +6,8 @@ end
 require 'fileutils'
 require 'find'
 require 'yaml'
+#td = "#{RbConfig::TOPDIR}/lib/ruby/#{RbConfig::CONFIG['ruby_version']}/#{RbConfig::CONFIG['arch']}/rbconfig.rb"
+#puts td
 require 'rbconfig'
 include FileUtils
 

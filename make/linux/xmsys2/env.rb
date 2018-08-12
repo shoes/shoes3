@@ -22,6 +22,7 @@ else
   abort "missing #{TGT_ARCH}-custom.yaml"
 end
 
+=begin
 # We don't care about the Ruby running the rake. We want the info
 # from the *target* ruby. Ugly or clever hack ahead - you decide
 rbcfg = Dir.glob("#{EXT_RUBY}/lib/ruby/**/*/rbconfig.rb")[0]
@@ -32,14 +33,18 @@ module RbConfig
 end
 
   require rbcfg
+=end
 
-APP['RUBY_V'] = RbConfig::CONFIG['ruby_version']
+require_relative '../../switch_ruby'
+
 # Ruby doesn't do triplets like everyone else. 
 arch_2_file = {'i386-mingw32' => 'i386-mingw32'}
 # Match what Gem:: does (not what you think it should do)
 arch_2_gem =  {'i386-mingw32' => 'x86-mingw32'}
+
 SHOES_TGT_ARCH = RbConfig::CONFIG['arch']
 SHOES_GEM_ARCH = arch_2_gem[RbConfig::CONFIG['arch']]
+APP['RUBY_V'] = RbConfig::CONFIG['ruby_version']
 # dll locations
 bindll = "#{ShoesDeps}/bin"
 basedll = "#{ShoesDeps}/basedll"
@@ -52,7 +57,7 @@ WINFNAME = "#{APPNAME}-#{WINVERSION}"
 RUBY_HTTP = true
 
 DLEXT = "dll"
-
+# RbConfig doesn't have good values for these:
 CC = "i686-w64-mingw32-gcc"
 STRIP = "i686-w64-mingw32-strip -x"
 WINDRES = "i686-w64-mingw32-windres"

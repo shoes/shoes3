@@ -118,9 +118,9 @@ module Make
     gdir = ""
     if RUBY_PLATFORM =~ /bsd/
       #gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}.0"
-      gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
+      gdir = "#{TGT_DIR}/lib/ruby/gems/#{APP['RUBY_V']}"
     else
-      gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}"
+      gdir = "#{TGT_DIR}/lib/ruby/gems/#{APP['RUBY_V']}"
     end
     # precompiled gems here - just copy
     APP['INCLGEMS'].each do |gemn|
@@ -131,7 +131,7 @@ module Make
           gemp = pos[0]
           gemn = File.basename(gemp)
         else
-          $stderr.puts "Failed to find #{gemn}. Wildcard correct? "
+          $stderr.puts "Failed to find #{gemn}. Is wildcard correct? "
           abort
         end
       end
@@ -143,7 +143,8 @@ module Make
       if spec.full_name == gemn #newer if true
         mkdir_p "#{gdir}/gems/#{spec.full_name}"
         if File.exists? File.join(gemp, 'gem.build_complete')
-          rubyv = RUBY_VERSION[/\d.\d/]+'.0'
+          #rubyv = RUBY_VERSION[/\d.\d/]+'.0'
+          rubyv = APP['RUBY_V'][/\d.\d/]+'.0'
           gemcompl = File.join(gdir, 'extensions', SHOES_GEM_ARCH,
               rubyv, spec.full_name)
           mkdir_p gemcompl
@@ -176,7 +177,7 @@ module Make
       end
       # HACK ! we don't need the nokogiri.so for other ruby versions
       if spec.full_name  =~ /nokogiri-(\d+.\d+.\d+.\d+)-x86-mingw32/
-        grubyv = RUBY_VERSION[/\d.\d/]
+        grubyv = APP['RUBY_V'][/\d.\d/]
         Dir.chdir("#{gdir}/gems/#{spec.full_name}/lib/nokogiri/") do
           Dir.glob('*').each do |dirn|
             if dirn =~ /\d.\d/ && dirn != grubyv

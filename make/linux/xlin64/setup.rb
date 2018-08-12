@@ -5,8 +5,8 @@ module Make
  
   def static_setup (so_list)
     $stderr.puts "setup: dir=#{`pwd`}"
-    rbvt = RUBY_V
-    rbvm = RUBY_V[/^\d+\.\d+/]
+    rbvt = APP['RUBY_V']
+    rbvm = APP['RUBY_V'][/^\d+\.\d+/]
     mkdir_p "#{TGT_DIR}/lib"
     mkdir_p "#{TGT_DIR}/fonts"
     cp_r "fonts", "#{TGT_DIR}/fonts"
