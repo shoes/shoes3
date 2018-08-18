@@ -1,4 +1,4 @@
-#
+# 8-16-2018 mix of msys2 and mingw deps
 # Build shoes for Windows/Gtk3  Ruby is cross compiled
 # It's not really a chroot - it only looks like one
 # Remember, on Windows the dlls are in bin/ 
@@ -34,6 +34,7 @@ ularch = "#{ShoesDeps}/lib"
 larch = "#{ShoesDeps}/lib/"
 bindll = "#{ShoesDeps}/bin"
 ulbin = "#{ShoesDeps}/usr/local/bin"
+basedll = "#{ShoesDeps}/basedll"
 
 CC = "i686-w64-mingw32-gcc"
 STRIP = "strip -x"
@@ -169,6 +170,7 @@ SOLOCS.merge!(
      #'portaudio' => "#{bindll}/libportaudio-2.dll",
     'thread'      => "#{bindll}/libgthread-2.0-0.dll",
     'zlib1'       => "#{bindll}/zlib1.dll",
+    'libgcc_s_dw2-1'  => "#{basedll}/libgcc_s_dw2-1.dll",
     'siji'        => "/usr/lib/gcc/i686-w64-mingw32/5.3-posix/libgcc_s_sjlj-1.dll",
     'pthread'     => "/usr/i686-w64-mingw32/lib/libwinpthread-1.dll" 
     }

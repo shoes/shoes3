@@ -7,8 +7,8 @@ module Make
   #  Then copy the deps.
   def static_setup (so_list)
     $stderr.puts "setup: dir=#{`pwd`}"
-    rbvt = RUBY_V
-    rbvm = RUBY_V[/^\d+\.\d+/]
+    rbvt = APP['RUBY_V']
+    rbvm = APP['RUBY_V'][/^\d+\.\d+/]
     # remove leftovers from previous rake.
     rm_rf "#{TGT_DIR}/lib"
     rm_rf "#{TGT_DIR}/etc"
@@ -31,8 +31,13 @@ module Make
     # copy include files
     mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
     cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
-    so_list.each_value do |path|
-      cp "#{path}", "#{TGT_DIR}"
+    
+    if APP['LIBPATHS']
+      win_dep_find_and_copy( APP['LIBPATHS'], so_list)
+    else
+      so_list.each_value do |path|
+        cp "#{path}", "#{TGT_DIR}"
+      end
     end
     # copy/setup etc/share
     mkdir_p "#{TGT_DIR}/share/glib-2.0/schemas"

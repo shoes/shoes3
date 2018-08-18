@@ -8,7 +8,7 @@ if File.exists? cf
   EXT_RUBY = custmz['Ruby']
   GtkDeps = custmz['GtkLoc'] ? custmz['GtkLoc'] : ShoesDeps
   ENABLE_MS_THEME = custmz['MS-Theme'] == true
-  ENV['GDB'] = 'basic' if custmz['Debug'] == true
+  APP['GDB'] = 'basic' if custmz['Debug'] == true
   APP['GEMLOC'] = custmz['Gemloc'] if custmz['Gemloc']
   APP['EXTLOC'] = custmz['Extloc'] if custmz['Extloc']
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
@@ -21,19 +21,6 @@ if File.exists? cf
 else
   abort "missing #{TGT_ARCH}-custom.yaml"
 end
-
-=begin
-# We don't care about the Ruby running the rake. We want the info
-# from the *target* ruby. Ugly or clever hack ahead - you decide
-rbcfg = Dir.glob("#{EXT_RUBY}/lib/ruby/**/*/rbconfig.rb")[0]
-module RbConfig
-  remove_const(:TOPDIR)
-  remove_const(:CONFIG)
-  remove_const(:MAKEFILE_CONFIG)
-end
-
-  require rbcfg
-=end
 
 require_relative '../../switch_ruby'
 
@@ -136,10 +123,12 @@ SOLOCS = {
   'libeay32'     => "#{bindll}/libeay32.dll",
   'libgdbm-4'    => "#{bindll}/libgdbm-4.dll",
   'ssleay32'     => "#{bindll}/ssleay32.dll",
-  'libepoxy-0'   => "#{bindll}/libepoxy-0.dll",
+#  'libepoxy-0'   => "#{bindll}/libepoxy-0.dll",  # msys wants 
   'libgmp-10'     => "#{basedll}/libgmp-10.dll", # ruby 2.2.6 needs this
   'libgcc_s_dw2-1'  => "#{basedll}/libgcc_s_dw2-1.dll",
-  'libsqlite3-0'  => "#{bindll}/libsqlite3-0.dll"
+#  'libsqlite3-0'  => "#{bindll}/libsqlite3-0.dll"
+   'libgcc_s_sjlj-1' => "{basedll}/libgcc_s_sjlj-1.dll", # mingw needs msys doesn't?
+  'sqlite3'  => "#{bindll}/libsqlite3-0.dll"
 }
 
 

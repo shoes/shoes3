@@ -1760,7 +1760,10 @@ VALUE shoes_load_font(const char *filename) {
     // font load, the Shoes fontlist must be updated. Use the much faster
     // Windows api. First, make sure Windows knows about the new one.
     int fonts = AddFontResourceEx(filename, FR_PRIVATE, 0);
-    if (!fonts) return Qnil;
+    if (!fonts) {
+      printf("windows failed to add font resource for %s", filename);
+      return Qnil;
+    }
     allfonts = shoes_font_list();
     oldfonts = rb_const_get(cShoes, rb_intern("FONTS"));
     newfonts = rb_funcall(allfonts, rb_intern("-"), 1, oldfonts);
