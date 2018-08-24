@@ -1,6 +1,7 @@
-# xmsys2 cross  build  
+# mxe cross  build  
 # TODO: missing curl
-cf =(ENV['ENV_CUSTOM'] || "xmsys2-custom.yaml")
+# TODO: massage for mxe deps and locations. (basedll..)
+cf =(ENV['ENV_CUSTOM'] || "mxe-custom.yaml")
 gtk_version = '3'
 if File.exists? cf
   custmz = YAML.load_file(cf)
@@ -25,18 +26,18 @@ end
 require_relative '../../switch_ruby'
 
 # Ruby doesn't do triplets like everyone else. 
-arch_2_file = {'i386-mingw32' => 'i386-mingw32'}
+arch_2_file = {'i386-mingw32.shared' => 'i386-mingw32'}
 # Match what Gem:: does (not what you think it should do)
-arch_2_gem =  {'i386-mingw32' => 'x86-mingw32'}
+arch_2_gem =  {'i386-mingw32.shared' => 'x86-mingw32'}
 
 SHOES_TGT_ARCH = RbConfig::CONFIG['arch']
 SHOES_GEM_ARCH = arch_2_gem[RbConfig::CONFIG['arch']]
 APP['RUBY_V'] = RbConfig::CONFIG['ruby_version']
-# dll locations
+# dll locations for mxe 
 bindll = "#{ShoesDeps}/bin"
 basedll = "#{ShoesDeps}/basedll"
 gtkdll = "#{GtkDeps}/bin"
-APP['LIBPATHS'] = [bindll, basedll, gtkdll, "#{EXT_RUBY}/bin"]
+APP['LIBPATHS'] = [bindll, "#{EXT_RUBY}/bin"]
 
 WINVERSION = "#{APP['VERSION']}-gtk3-w32"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
@@ -79,7 +80,7 @@ RUBY_LDFLAGS = " -Wl,-export-all-symbols -L#{EXT_RUBY}/lib -l#{RbConfig::CONFIG[
 
 WIN32_CFLAGS << "-DSHOES_GTK -DSHOES_GTK_WIN32 -DRUBY_HTTP -DVIDEO"
 WIN32_CFLAGS << "-DGTK3 "
-WIN32_CFLAGS << "-Wno-unused-but-set-variable"
+WIN32_CFLAGS << "-Wno-unused-but-set-variable -Wno-attributes"
 WIN32_CFLAGS << "-D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS"
 WIN32_CFLAGS << GTK_CFLAGS
 WIN32_CFLAGS << CAIRO_CFLAGS
@@ -113,7 +114,7 @@ LINUX_LIBS = wIN32_LIBS.join(' ')
 
 
 # keys for SOLOCS are globed so libgio libgio-2 libgio-2.0 are the same
-# see win_dep_find_and_copy() in Rakefile. Values in hash are not used
+# see win_dep_find_and_copy() in Rakefile. Values in the hash are no longer used
 SOLOCS = {
   "#{RbConfig::CONFIG["RUBY_SO_NAME"]}"    => "#{EXT_RUBY}/foobar-not-here/msvcrt-ruby230.dll",
   'libgif-7'     => "#{bindll}/libgif-7.dll",
@@ -121,14 +122,18 @@ SOLOCS = {
   'libyaml-0-2' => "#{bindll}/libyaml-0-2.dll",
   'libiconv-2'   => "#{bindll}/libiconv-2.dll",
   'libeay32'     => "#{bindll}/libeay32.dll",
-  'libgdbm-4'    => "#{bindll}/libgdbm-4.dll",
+  'libgdbm-6'    => "#{bindll}/libgdbm-4.dll",
   'ssleay32'     => "#{bindll}/ssleay32.dll",
-  'libepoxy-0'   => "#{bindll}/libepoxy-0.dll",  # msys2 wants 
-  'libgmp-10'     => "#{basedll}/libgmp-10.dll", # ruby 2.2.6 needs this
-  'libgcc_s_dw2-1'  => "#{basedll}/libgcc_s_dw2-1.dll",
-#  'libsqlite3-0'  => "#{bindll}/libsqlite3-0.dll"
-   'libgcc_s_sjlj-1' => "{basedll}/libgcc_s_sjlj-1.dll", # mingw needs msys2 doesn't?
-  'sqlite3'  => "#{bindll}/libsqlite3-0.dll"
+  'libepoxy-0'   => "#{bindll}/libepoxy-0.dll",  
+   #'libgmp-10'     => "#{basedll}/libgmp-10.dll", 
+   #'libgcc_s_dw2-1'  => "#{basedll}/libgcc_s_dw2-1.dll",
+   #'libgcc_s_sjlj-1' => "{basedll}/libgcc_s_sjlj-1.dll", 
+  'libsqlite3'  => "#{bindll}/libsqlite3-0.dll",
+  'libexpat-1' => "",
+  'libbz2' => "",
+  'libpcre-1' => "",
+  'libtiff-5' => '',
+  'liblzma-5' => '',
 }
 
 

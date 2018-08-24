@@ -240,6 +240,14 @@ when /linux/
       require File.expand_path('make/linux/xmsys2/setup')
       require File.expand_path('make/gems')
       require File.expand_path('make/subsys')
+   when /mxe/
+      require File.expand_path('make/linux/mxe/env')
+      require File.expand_path('make/linux/mxe/tasks')
+      require File.expand_path('make/linux/mxe/stubs')
+      require File.expand_path('make/linux/mxe/packdeps')
+      require File.expand_path('make/linux/mxe/setup')
+      require File.expand_path('make/gems')
+      require File.expand_path('make/subsys')
    when /minlin/ 
       # This is Loose Shoes setup now known as minlin
       if CROSS && HAVE_BLD  # shortcut
@@ -386,7 +394,7 @@ SubDirs = ["#{rtp}/zzbase.done",  "#{rtp}/http/zzdownload.done",
     
 # Windows doesn't use console - don't try to build it. Delete from dependcies
 case TGT_DIR
-  when /win7/, /xwin7/, /msys2/, /xmsys2/
+  when /win7/, /xwin7/, /msys2/, /xmsys2/, /mxe/
     SubDirs.delete("#{rtp}/console/zzconsole.done")
 end
 
@@ -562,6 +570,12 @@ namespace :linux do
     task :xwin7 do
       puts "Cross compile for Windows MingW32"
       sh "echo 'TGT_ARCH=xwin7' >build_target"
+    end
+    
+    desc "Cross compile with mxe"
+    task :mxe do
+      puts "using mxe compiler and deps"
+      sh "echo 'TGT_ARCH=mxe' >build_target"
     end
 =begin    
     desc "chroot build for i686 (32bit linux)"
