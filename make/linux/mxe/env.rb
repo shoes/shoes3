@@ -46,9 +46,9 @@ RUBY_HTTP = true
 
 DLEXT = "dll"
 # RbConfig doesn't have good values for these:
-CC = "i686-w64-mingw32-gcc"
-STRIP = "i686-w64-mingw32-strip -x"
-WINDRES = "i686-w64-mingw32-windres"
+CC = RbConfig::CONFIG['CC']                 #"i686-w64-mingw32-gcc"
+STRIP = "#{RbConfig::CONFIG['STRIP']} -x"   #"i686-w64-mingw32-strip -x"
+WINDRES = RbConfig::CONFIG['WINDRES']       #"i686-w64-mingw32-windres"
 PKG_CONFIG = "pkg-config"
 
 
