@@ -43,7 +43,8 @@ end
 nat_src = []
 nat_obj = []
 mkdir_p "#{tp}/native", verbose: false
-if RUBY_PLATFORM =~ /darwin/
+#if RUBY_PLATFORM =~ /darwin/
+if TGT_ARCH =~ /yosemite|mavericks/
   nat_src = FileList['shoes/native/cocoa/*.m']
   nat_src.each do |c|
     fnm = File.basename(c,".*")
@@ -84,7 +85,8 @@ end
 dnl_src = []
 dnl_obj = []
 mkdir_p "#{tp}/http", verbose: false
-if RUBY_PLATFORM =~ /darwin/
+#if RUBY_PLATFORM =~ /darwin/
+if TGT_ARCH =~ /yosemite|mavericks/
   dnl_src = ["shoes/http/nsurl.m"]
 else
   dnl_src = ["shoes/http/rbload.c"]
@@ -119,7 +121,8 @@ end
 
 # Console 
 mkdir_p "#{tp}/console", verbose: false
-if RUBY_PLATFORM =~ /darwin/
+#if RUBY_PLATFORM =~ /darwin/
+if TGT_ARCH =~ /yosemite|mavericks/
   src = ["shoes/console/tesi.c", "shoes/console/colortab.c", "shoes/console/cocoa-term.m"]
   obj =[]
   src.each do |c|

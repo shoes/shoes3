@@ -105,7 +105,7 @@ module Make
 
   #  ---- this method is called from the shoes build
   def copy_gems
-    puts "copy_gems dir=#{pwd} #{SHOES_TGT_ARCH}"
+    puts "copy_gems dir=#{pwd} #{TGT_ARCH}"
     APP['EXTLIST'].each do |ext|
       $stderr.puts "copy prebuild ext #{ext}"
       copy_files "#{APP['EXTLOC']}/built/#{TGT_ARCH}/#{ext}/ext/*.#{Lext}", "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}"

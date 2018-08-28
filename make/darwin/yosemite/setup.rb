@@ -25,8 +25,13 @@ module Make
 	# copy include files - it might help build gems
 	mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
 	cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
-	SOLOCS.each do |k, v| 
-	  cp v, TGT_DIR
+	
+	if APP['LIBPATHS']
+	  dep_find_and_copy( APP['LIBPATHS'], SOLOCS)
+	else
+	  SOLOCS.each do |k, v| 
+	    cp v, TGT_DIR
+	  end
 	end
     
     # copy some static stuff

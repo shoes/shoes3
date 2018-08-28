@@ -34,6 +34,10 @@ end
 
 ADD_DLL = []
 
+
+libdll = "#{ShoesDeps}/lib"
+APP['LIBPATHS'] = [libdll]
+
 # nothing is going to change for 10.10 deps - don't bother with pkg-config
 # because it does go wrong in this situation.
 GLIB_CFLAGS   = "-I#{ShoesDeps}/include/glib-2.0 -I#{ShoesDeps}/lib/glib-2.0/include"
@@ -63,7 +67,7 @@ LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 #OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk'
 #ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk'
-# YES 10.11 is correct for Yosemite - talk to xcode developers.
+# YES 10.11 is correct for Yosemite SDK - talk to xcode developers.
 ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.10'
 #LINUX_CFLAGS << ' -mmacosx-version-min=10.9'
 #LINUX_LDFLAGS << ' -mmacosx-version-min=10.9'
@@ -89,8 +93,7 @@ LINUX_LDFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH} -L#{ShoesDeps}/lib/ #{GLIB_L
 LINUX_LIBS = " -l#{RUBY_SO} -L#{ShoesDeps}/lib -l cairo -L#{ShoesDeps}/lib -lpangocairo-1.0 -L#{ShoesDeps}/lib -lgif -ljpeg"
 LINUX_LIBS << " -L#{TGT_DIR} #{CAIRO_LDFLAGS} #{PANGO_LDFLAGS} #{GLIB_LDFLAGS}"
 
-libdll = "#{ShoesDeps}/lib"
 SOLOCS = {
-  'curl'    => "#{libdll}/libcurl.dylib"
+  'libcurl'    => "#{libdll}/libcurl.dylib"
 }
 

@@ -66,7 +66,8 @@ if File.exists? "build_target"
   File.open('build_target','r') do |f|
     str = f.readline
     TGT_ARCH = str.split('=')[1].strip
-    if RUBY_PLATFORM  =~ /darwin/
+    #if RUBY_PLATFORM  =~ /darwin/
+    if TGT_ARCH =~ /yosemite|mavericks/
       # osx is just different. It needs build performance optimizations 
 	    # is the build output directory outside the shoes3 dir?    
 	    if APP['Bld_Pre']
@@ -394,7 +395,7 @@ SubDirs = ["#{rtp}/zzbase.done",  "#{rtp}/http/zzdownload.done",
     
 # Windows doesn't use console - don't try to build it. Delete from dependcies
 case TGT_DIR
-  when /win7/, /xwin7/, /msys2/, /xmsys2/, /mxe/
+  when /win7/, /xwin7/, /msys2/, /xmsys2/, /mxe/, /mxe_osx/
     SubDirs.delete("#{rtp}/console/zzconsole.done")
 end
 
@@ -434,17 +435,29 @@ end
 if RUBY_PLATFORM =~ /darwin|mingw/
   desc "remove objects and libshoes.dylib"
   task :clean do
-    rm_rf "#{TGT_DIR}/libshoes.dylib"
-    rm_rf "#{TGT_DIR}/tmp"
+    rm_rf "#{TGT_DIR}/libshoes.#{DLEXT}"
+    Dir.chdir("#{TGT_DIR}/tmp") do
+      Dir.glob('*') do |f|
+        rm_rf f unless f=='zzsetup.done'
+      end
+    end
+    #rm_rf "#{TGT_DIR}/tmp"
   end
   
   desc "remove all build products"
   task :clobber do
+
     puts "TGT_DIR = #{TGT_DIR}"
     p = TGT_DIR.split('/');
     topd  = p[0..-3].join('/')
+    puts "topd: #{topd}"
+    if topd == ENV['HOME']
+      puts "TGT_DIR is wrong - will not delete"
+      abort
+    end
     rm_rf topd if topd && topd != ""
-    rm_rf TGT_DIR
+
+    #rm_rf TGT_DIR
     rm_f "build_target"
   end
 end
@@ -480,7 +493,12 @@ namespace :osx do
       sh "echo 'TGT_ARCH=yosemite' >build_target"
     end
     
-
+    desc "Cross compile for Windows with mxe"
+    task :mxe_osx do
+      puts "using mxe compiler and deps"
+      sh "echo 'TGT_ARCH=mxe_osx' >build_target"
+    end
+    
     #desc "Downshift Build 10.6 from 10.9"
     #task "xsnow" do
     #  sh "echo 'TGT_ARCH=xsnow' >build_target"

@@ -91,14 +91,13 @@ void *shoes_native_menu_new(shoes_menu *mn) {
   return NULL;
 }
 
-void *shoes_native_menu_append(shoes_menu *mn, shoes_menuitem *mi) {
+void shoes_native_menu_append(shoes_menu *mn, shoes_menuitem *mi) {
   if (mi->state & NO_NATIVE)
-    return NULL;
+    return;
   NSMenu *menu = (NSMenu *)mn->native;
   NSMenuItem *item = (NSMenuItem *)mi->native;
   [menu addItem: item];
   //fprintf(stderr, "append %s to menu %s\n", mi->title, mn->title);
-  return NULL;
 }
 
 void shoes_native_menu_insert(shoes_menu *mn, shoes_menuitem *mi, int pos) {
