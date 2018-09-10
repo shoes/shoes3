@@ -36,7 +36,7 @@ ADD_DLL = []
 
 
 libdll = "#{ShoesDeps}/lib"
-APP['LIBPATHS'] = [libdll]
+#APP['LIBPATHS'] = [libdll]
 
 # nothing is going to change for 10.10 deps - don't bother with pkg-config
 # because it does go wrong in this situation.
@@ -93,7 +93,15 @@ LINUX_LDFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH} -L#{ShoesDeps}/lib/ #{GLIB_L
 LINUX_LIBS = " -l#{RUBY_SO} -L#{ShoesDeps}/lib -l cairo -L#{ShoesDeps}/lib -lpangocairo-1.0 -L#{ShoesDeps}/lib -lgif -ljpeg"
 LINUX_LIBS << " -L#{TGT_DIR} #{CAIRO_LDFLAGS} #{PANGO_LDFLAGS} #{GLIB_LDFLAGS}"
 
+# Sigh - shoesdeps and homebrew versions can confuse the otool dance.
+# The following dylibs need explicit copying.
 SOLOCS = {
-  'libcurl'    => "#{libdll}/libcurl.dylib"
+  'libcurl.dylib'    => "#{libdll}/libcurl.dylib",
+  'libxml2.2.dylib' => "#{libdll}/libxml2.2.dylib",
+  'libgobject-2.0.0.dylib' => "#{libdll}/libgobject-2.0.0.dylib",
+  'libgdk_pixbuf-2.0.0.dylib' => "#{libdll}/libgdk_pixbuf-2.0.0.dylib",
+  'libgio-2.0.0.dylib' => "#{libdll}/libgio-2.0.0.dylib",
+  'libgmodule-2.0.0.dylib' => "#{libdll}/libgmodule-2.0.0.dylib",
+  'libcroco-0.6.3.dylib' => "#{libdll}/libcroco-0.6.3.dylib",
 }
 

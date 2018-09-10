@@ -8,6 +8,7 @@ require 'find'
 require 'yaml'
 #td = "#{RbConfig::TOPDIR}/lib/ruby/#{RbConfig::CONFIG['ruby_version']}/#{RbConfig::CONFIG['arch']}/rbconfig.rb"
 #puts td
+$stderr.puts "ruby: #{RbConfig::CONFIG['prefix']}"
 require 'rbconfig'
 include FileUtils
 
@@ -67,7 +68,7 @@ if File.exists? "build_target"
     str = f.readline
     TGT_ARCH = str.split('=')[1].strip
     #if RUBY_PLATFORM  =~ /darwin/
-    if TGT_ARCH =~ /yosemite|mavericks/
+    if TGT_ARCH =~ /yosemite|mavericks|minosx/
       # osx is just different. It needs build performance optimizations 
 	    # is the build output directory outside the shoes3 dir?    
 	    if APP['Bld_Pre']
@@ -142,13 +143,25 @@ when /mingw/
 
 when /darwin/
   if CROSS
-    # Building tight shoes on OSX for OSX
-    require File.expand_path("make/darwin/#{TGT_ARCH}/env")
-    require File.expand_path("make/darwin/#{TGT_ARCH}/tasks")
-    require File.expand_path("make/darwin/#{TGT_ARCH}/stubs")
-    require File.expand_path("make/darwin/#{TGT_ARCH}/setup")
-    require File.expand_path("make/gems")
-    require File.expand_path("make/subsys")
+    case TGT_ARCH
+    when /yosemite/, /mxe_osx/
+      # Building tight shoes on OSX for OSX
+      require File.expand_path("make/darwin/#{TGT_ARCH}/env")
+      require File.expand_path("make/darwin/#{TGT_ARCH}/tasks")
+      require File.expand_path("make/darwin/#{TGT_ARCH}/stubs")
+      require File.expand_path("make/darwin/#{TGT_ARCH}/setup")
+      require File.expand_path("make/gems")
+      require File.expand_path("make/subsys")
+    when /minosx/
+      require File.expand_path('make/darwin/minosx/env')
+      require File.expand_path('make/darwin/minosx/tasks')
+      require File.expand_path('make/darwin/minosx/setup')
+      require File.expand_path('make/subsys')
+    else
+      require File.expand_path('make/darwin/none/env')
+      require File.expand_path('make/darwin/none/tasks')
+      $stderr.puts "Please pick a osx:setup: target - see rake -T"
+    end
   else
     # just enough to do a rake w/o target 
     require File.expand_path('make/darwin/none/env')
@@ -421,7 +434,7 @@ end
 
 desc "Not Recommended! Install min Shoes in your ~/.shoes Directory"
 task  :install do
-  if ! (TGT_DIR[/minlin/] || TGT_DIR[/minbsd/])
+  if ! (TGT_DIR[/minlin/] || TGT_DIR[/minbsd/] || TGT_DIR[/minosx/])
      puts "Sorry. You can't do an install of your source built Tight Shoes"
      puts "  Install the 'rake package' distro just like a user does."
   else
@@ -491,6 +504,11 @@ namespace :osx do
     desc "Setup to build Shoes for 10.10+ from 10.10"
     task :yosemite do
       sh "echo 'TGT_ARCH=yosemite' >build_target"
+    end
+    
+    desc "Setup for osx native"
+    task :minosx do
+      sh "echo 'TGT_ARCH=minosx' >build_target"
     end
     
     desc "Cross compile for Windows with mxe"

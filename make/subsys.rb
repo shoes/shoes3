@@ -44,7 +44,7 @@ nat_src = []
 nat_obj = []
 mkdir_p "#{tp}/native", verbose: false
 #if RUBY_PLATFORM =~ /darwin/
-if TGT_ARCH =~ /yosemite|mavericks/
+if TGT_ARCH =~ /yosemite|mavericks|minosx/
   nat_src = FileList['shoes/native/cocoa/*.m']
   nat_src.each do |c|
     fnm = File.basename(c,".*")
@@ -86,7 +86,7 @@ dnl_src = []
 dnl_obj = []
 mkdir_p "#{tp}/http", verbose: false
 #if RUBY_PLATFORM =~ /darwin/
-if TGT_ARCH =~ /yosemite|mavericks/
+if TGT_ARCH =~ /yosemite|mavericks|minosx/
   dnl_src = ["shoes/http/nsurl.m"]
 else
   dnl_src = ["shoes/http/rbload.c"]
@@ -122,7 +122,7 @@ end
 # Console 
 mkdir_p "#{tp}/console", verbose: false
 #if RUBY_PLATFORM =~ /darwin/
-if TGT_ARCH =~ /yosemite|mavericks/
+if TGT_ARCH =~ /yosemite|mavericks|minosx/
   src = ["shoes/console/tesi.c", "shoes/console/colortab.c", "shoes/console/cocoa-term.m"]
   obj =[]
   src.each do |c|
@@ -158,21 +158,21 @@ end
 # Also handle sample/*/*.rb changes 
 mkdir_p "#{tp}/copyonly", verbose: false
 file "#{tp}/copyonly/zzmanual.done" => ["#{tp}/zzsetup.done", "static/manual-en.txt"] do
-  if CROSS && (! TGT_DIR[/minlin/]) && (! TGT_DIR[/minbsd/])
+  if CROSS && (! TGT_DIR[/minlin/]) && (! TGT_DIR[/minbsd/]) && (! TGT_DIR[/minosx/])
     cp "static/manual-en.txt", "#{TGT_DIR}/static/manual-en.txt"
   end
   touch "#{tp}/copyonly/zzmanual.done"
 end
 
 file "#{tp}/copyonly/zzshoesrb.done" => ["#{tp}/zzsetup.done", "lib/shoes.rb"] do
-  if CROSS && (! TGT_DIR[/minlin/]) && (! TGT_DIR[/minbsd/])
+  if CROSS && (! TGT_DIR[/minlin/]) && (! TGT_DIR[/minbsd/]) && (! TGT_DIR[/minosx/])
     cp "lib/shoes.rb", "#{TGT_DIR}/lib/shoes.rb"
   end
   touch "#{tp}/copyonly/zzshoesrb.done" 
 end
 
 # update lib/shoes/*.rb if changed. And  ssl certs file.
-if CROSS && TGT_DIR != 'minlin' && TGT_DIR != 'minbsd'
+if CROSS && TGT_DIR != 'minlin' && TGT_DIR != 'minbsd' && (! TGT_DIR[/minosx/])
   shoesrblib = FileList["lib/shoes/*.rb"] 
   shoesrblib << "lib/shoes/cacert.pem"
   taskl = []
@@ -193,7 +193,7 @@ else
 end
 
 # update lib/package/*.rb if changed
-if CROSS && TGT_DIR != 'minlin' && TGT_DIR != 'minbsd'
+if CROSS && TGT_DIR != 'minlin' && TGT_DIR != 'minbsd' && (! TGT_DIR[/minosx/])
   packrblib = FileList["lib/package/*.rb"] 
   taskl = []
   packrblib.each do |fp| 
@@ -214,7 +214,7 @@ end
 
 # samples simple/ good/ expert/
 ['simple', 'good', 'expert'].each do |sub|
-  if CROSS && TGT_DIR != 'minlin' && TGT_DIR != 'minbsd'
+  if CROSS && TGT_DIR != 'minlin' && TGT_DIR != 'minbsd' && (! TGT_DIR[/minosx/])
     samples = FileList["samples/#{sub}/*.rb"]
     sampl = []
     samples.each do |fp|

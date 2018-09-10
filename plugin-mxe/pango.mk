@@ -1,0 +1,32 @@
+# This file is part of MXE. See LICENSE.md for licensing information.
+
+PKG             := pango
+$(PKG)_WEBSITE  := https://www.pango.org/
+$(PKG)_DESCR    := Pango
+$(PKG)_IGNORE   :=
+$(PKG)_VERSION  := 1.38.0
+$(PKG)_CHECKSUM := 1d4e75974bad853ee9ac5fc5caee5e7ab235abbd945d51d01f3806e04e7c226c
+$(PKG)_SUBDIR   := pango-$($(PKG)_VERSION)
+$(PKG)_FILE     := pango-$($(PKG)_VERSION).tar.xz
+$(PKG)_URL      := https://download.gnome.org/sources/pango/$(call SHORT_PKG_VERSION,$(PKG))/$($(PKG)_FILE)
+$(PKG)_DEPS     := cc cairo fontconfig freetype glib harfbuzz
+
+define $(PKG)_UPDATE
+    $(WGET) -q -O- 'https://git.gnome.org/browse/pango/refs/tags' | \
+    grep '<a href=' | \
+    $(SED) -n "s,.*<a href='[^']*/tag/?h=\\([0-9][^']*\\)'.*,\\1,p" | \
+    head -1
+endef
+
+define $(PKG)_BUILD
+    rm '$(1)'/docs/Makefile.am
+    cd '$(1)' && NOCONFIGURE=1 ./autogen.sh
+    cd '$(1)' && ./configure \
+        $(MXE_CONFIGURE_OPTS) \
+        --enable-explicit-deps \
+        --with-included-modules \
+        --without-dynamic-modules \
+        --disable-gtk-doc \
+        CXX='$(TARGET)-g++' && CFLAGS='-g'
+    $(MAKE) -C '$(1)' -j '$(JOBS)' install bin_PROGRAMS= sbin_PROGRAMS= noinst_PROGRAMS=
+endef
