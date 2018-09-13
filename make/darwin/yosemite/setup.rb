@@ -5,11 +5,11 @@ module Make
  
   def static_setup (so_list)
     $stderr.puts "setup: dir=#{`pwd`} for #{TGT_DIR}"
-	#rm_rf "#{TGT_DIR}"
+	#rm_rf "#{TGT_DIR} "
 	mkdir_p "#{TGT_DIR}"
 	# copy Ruby, dylib, includes - have them in place before
 	# we build things 
-	puts "Ruby at #{EXT_RUBY}"
+	puts "Ruby at #{EXT_RUBY} : #{SHOES_GEM_ARCH}"
 	rbvt = RUBY_V
 	rbvm = RUBY_V[/^\d+\.\d+/]
 	rm_rf "#{TGT_DIR}/lib"

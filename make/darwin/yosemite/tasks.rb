@@ -142,6 +142,13 @@ class MakeDarwin
         key = File.basename(path)
         @brew_hsh[key] = path
       end
+      if EXT_RUBY != ShoesDeps
+        # replace libruby.*.dylib in Shoesdeps
+        Dir.glob("#{EXT_RUBY}/lib/libruby*.dylib").each do |path|
+          key = File.basename(path)
+          @brew_hsh[key] = path
+         end
+      end
       rbvm = RUBY_V[/^\d+\.\d+/]
       # Find ruby's + gems dependent libs
       cd "#{TGT_DIR}/lib/ruby/#{rbvm}.0/#{SHOES_TGT_ARCH}" do

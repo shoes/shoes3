@@ -135,7 +135,7 @@ module Make
           abort
         end
       end
-      $stderr.puts "Copying prebuilt gem #{gemp}"
+      $stderr.puts "Copying prebuilt gem #{gemp} for #{SHOES_GEM_ARCH}"
       spec = eval(File.read("#{gemp}/gemspec"))
       mkdir_p "#{gdir}/specifications"
       mkdir_p "#{gdir}/specifications/default"

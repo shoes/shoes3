@@ -20,13 +20,13 @@ def switch_ruby(rbpath)
 
   Object.instance_eval{ remove_const :RUBY_VERSION }
   Object.const_set("RUBY_VERSION", rbv)
-  puts "Using Ruby version #{RUBY_VERSION}"
+  puts "Switching to Ruby version #{RUBY_VERSION}"
   # remove rbconfig.rb from $" list.
   #$".delete("#{td}/rbconfig.rb")
   #puts $".inspect
 end
-rbcfg = Dir.glob("#{EXT_RUBY}/lib/ruby/**/*/rbconfig.rb")[0]
-# RVM id kind of weird for me. It can load the wrong rbconfig? Just Odd.
+rbcfg = Dir.glob("#{EXT_RUBY}/lib/ruby/**/*/rbconfig.rb")[-1]
+# RVM is kind of weird for me. It can load the wrong rbconfig? Just Odd.
 # Make sure we aren't replacing The rake running Ruby with itself.
 td = "#{RbConfig::TOPDIR}/lib/ruby/#{RbConfig::CONFIG['ruby_version']}/#{RbConfig::CONFIG['arch']}/rbconfig.rb"
 if rbcfg != td
