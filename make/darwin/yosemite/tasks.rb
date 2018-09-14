@@ -292,10 +292,18 @@ class MakeDarwin
             Dir.glob("lib/ruby/**/*.bundle").each {|lib| sh "strip -x #{lib}"}
           end
         end
+        # move tmp file out of Shoes.app
+        tf = "#{APPNAME}.app/Contents/MacOS/tmp"
+        if File.exist?(tf)
+          mv tf, '../ptmp'
+        end
         distname = "#{APPNAME}-#{APP['VERSION']}".downcase
         sh "tar -cf #{distname}.tar #{APPNAME}.app"
         sh "gzip #{distname}.tar"
         sh "mv #{distname}.tar.gz #{distfile.downcase}"
+        if File.exist?('../ptmp')
+          mv '../ptmp', tf
+        end
         #sh "bzip2 -f #{distname}.tar"
         #mv "#{distname}.tar.bz2", "#{distfile}"
       end

@@ -39,13 +39,14 @@
     May Break Existing Scripts
   * command line --ruby working again
   * OSX: buttons can be created that use non default height.
+  * Finally fixed the pristine gems error for OSX.
 
 
 === Developer Issues with 3.3.7
   * make/**/env.rb - link against distributed libyaml
-  * Added lib/package/*  for mege packaging.
+  * Added lib/package/*  for merge packaging.
   * Using nsis 3.03 for Windows installer. Maintained and faster!
-    with unicode and large string enables. Potential to break
+    with unicode and large string enabled. Potential to break
     user written installers.
   * Better cross build rakefiles: xrpi, xwin7 and xmsys2 targets.
   * Includes plugin for MXE to build all Windows dependencies
