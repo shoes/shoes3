@@ -68,13 +68,13 @@ if File.exists? "build_target"
     str = f.readline
     TGT_ARCH = str.split('=')[1].strip
     #if RUBY_PLATFORM  =~ /darwin/
-    if TGT_ARCH =~ /yosemite|mavericks|minosx/
+    if TGT_ARCH =~ /yosemite|mavericks|minosx|darwin14/
       # osx is just different. It needs build performance optimizations 
 	    # is the build output directory outside the shoes3 dir?    
 	    if APP['Bld_Pre']
 	      TGT_DIR = APP['Bld_Pre']+TGT_ARCH+"/#{APPNAME}.app/Contents/MacOS"
 	    else
-	      TGT_DIR = TGT_ARCH++"/#{APPNAME}.app/Contents/MacOS"
+	      TGT_DIR = TGT_ARCH+"/#{APPNAME}.app/Contents/MacOS"
 	    end
     else 
 	    # is the build output directory outside the shoes3 dir?    
@@ -260,6 +260,13 @@ when /linux/
       require File.expand_path('make/linux/mxe/stubs')
       require File.expand_path('make/linux/mxe/packdeps')
       require File.expand_path('make/linux/mxe/setup')
+      require File.expand_path('make/gems')
+      require File.expand_path('make/subsys')
+   when /darwin14/
+      require File.expand_path('make/linux/darwin14/env')
+      require File.expand_path('make/linux/darwin14/tasks')
+      require File.expand_path('make/linux/darwin14/stubs')
+      require File.expand_path('make/linux/darwin14/setup')
       require File.expand_path('make/gems')
       require File.expand_path('make/subsys')
    when /minlin/ 
@@ -630,6 +637,12 @@ namespace :linux do
     task :xlin64 do
       puts "Native complile for x86_64 Linux"
       sh "echo 'TGT_ARCH=xlin64' >build_target"
+    end
+    
+    desc "cross build for osx 10.10"
+    task :darwin14 do
+      puts "Native complile for x86_64 Linux"
+      sh "echo 'TGT_ARCH=darwin14' >build_target"
     end
 
   end

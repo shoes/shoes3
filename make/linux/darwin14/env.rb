@@ -77,7 +77,7 @@ PANGO_CFLAGS  = "-I#{ShoesDeps}/include/pango-1.0"
 PANGO_LDFLAGS = "-L#{ShoesDeps}/lib -lpango-1.0"
 #RUBY_CFLAGS   = "-I#{EXT_RUBY}/include/ruby-2.3.0/x86_64-darwin14 -I#{EXT_RUBY}/include/ruby-2.3.0 "
 RUBY_CFLAGS =`pkg-config --cflags "#{pkgruby}"`.strip+" "
-RUBY_LDFLAGS  = "-L#{EXT_RUBY}lib/ -Wl,-undefined,dynamic_lookup -Wl,-multiply_defined,suppress -lruby.2.3.0 -lpthread -ldl -lobjc "
+RUBY_LDFLAGS  = "-L#{EXT_RUBY}/lib/ -Wl,-undefined,dynamic_lookup -Wl,-multiply_defined,suppress -lruby.2.3.0 -lpthread -ldl -lobjc "
 
 LINUX_CFLAGS << " -I#{ShoesDeps}/include #{GLIB_CFLAGS} #{RUBY_CFLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS}"
 
@@ -91,7 +91,6 @@ LINUX_CFLAGS << " -DVIDEO -DSHOES_QUARTZ -Wall -fpascal-strings -x objective-c -
 LINUX_LDFLAGS = "-framework Cocoa -framework QuartzCore -framework Carbon -dynamiclib -Wl,-single_module INSTALL_NAME"
 LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 
-#OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk'
 OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk'
 ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.10'
 LINUX_CFLAGS << ' -mmacosx-version-min=10.10'
@@ -110,10 +109,12 @@ ENV['TGT_ARCH'] = SHOES_TGT_ARCH
 ENV['TGT_RUBY_V'] = '2.3.0'  # library version - all 2.3.x rubys
 ENV['SYSROOT'] = " -isysroot #{OSX_SDK} #{OSX_ARCH}"
 
-LINUX_CFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH}"
-LINUX_LDFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH} -L#{ShoesDeps}/lib/ #{GLIB_LDFLAGS}"
+# osxcross system doen't require? 
+#LINUX_CFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH}"
+#LINUX_LDFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH}"
+LINUX_LDFLAGS << " -L#{ShoesDeps}/lib/ #{GLIB_LDFLAGS}"
 
-LINUX_LIBS = " -l#{RUBY_SO} -L#{ShoesDeps}/lib -l cairo -L#{ShoesDeps}/lib -lpangocairo-1.0 -L#{ShoesDeps}/lib -lgif -ljpeg"
+LINUX_LIBS = "#{RUBY_LDFLAGS} -l#{RUBY_SO} -L#{ShoesDeps}/lib -l cairo -L#{ShoesDeps}/lib -lpangocairo-1.0 -L#{ShoesDeps}/lib -lgif -ljpeg"
 LINUX_LIBS << " -L#{TGT_DIR} #{CAIRO_LDFLAGS} #{PANGO_LDFLAGS} #{GLIB_LDFLAGS}"
 
 # Sigh - shoesdeps and homebrew versions can be out of sync.
