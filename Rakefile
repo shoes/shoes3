@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'rake'
-if RUBY_PLATFORM !~ /darwin|mingw/
+if RUBY_PLATFORM !~ /darwin|mingw|linux/
 require 'rake/clean'
 end
 require 'fileutils'
@@ -116,7 +116,7 @@ end
 BIN = "*.{bundle,jar,o,so,obj,pdb,pch,res,lib,def,exp,exe,ilk}"
 #CLEAN.include ["{bin,shoes}/#{BIN}", "req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
 #CLEAN.include ["req/**/#{BIN}", "#{TGT_DIR}", "*.app"]
-if RUBY_PLATFORM !~ /darwin|mingw/
+if RUBY_PLATFORM !~ /darwin|mingw|linux/
   CLEAN.include ["#{TGT_DIR}/libshoes.dll", "#{TGT_DIR}/*shoes.exe", 
     "#{TGT_DIR}/libshoes.so","#{TGT_DIR}/shoes", "#{TGT_DIR}/shoes-bin",
     "#{TGT_DIR}/*.app", "#{TGT_DIR}/#{APP['Bld_tmp']}/**/*.o"]
@@ -452,7 +452,7 @@ task  :install do
 end
 
 
-if RUBY_PLATFORM =~ /darwin|mingw/
+if RUBY_PLATFORM =~ /darwin|mingw|linux/
   desc "remove objects and libshoes.dylib"
   task :clean do
     rm_rf "#{TGT_DIR}/libshoes.#{DLEXT}"
@@ -466,18 +466,19 @@ if RUBY_PLATFORM =~ /darwin|mingw/
   
   desc "remove all build products"
   task :clobber do
-
-    puts "TGT_DIR = #{TGT_DIR}"
-    p = TGT_DIR.split('/');
-    topd  = p[0..-3].join('/')
-    puts "topd: #{topd}"
-    if topd == ENV['HOME']
-      puts "TGT_DIR is wrong - will not delete"
-      abort
+    tgtd = File.absolute_path(TGT_DIR)
+    #puts "TGT_DIR = #{tgtd}"
+    if TGT_ARCH =~ /yosemite|mavericks|minosx|darwin14/
+      p = tgtd.split('/');
+      topd  = p[0..-4].join('/')
+      if topd == ENV['HOME'] || p.size < 3
+        puts "TGT_DIR is wrong - will not delete"
+        abort
+      end
+      rm_rf topd
+    else
+      rm_rf tgtd
     end
-    rm_rf topd if topd && topd != ""
-
-    #rm_rf TGT_DIR
     rm_f "build_target"
   end
 end
@@ -502,12 +503,12 @@ task :installer => ["#{NAMESPACE}:installer"]
 
 namespace :osx do
   namespace :setup do
-
+=begin
     desc "Setup to build Shoes for 10.9+ from 10.10+"
     task :xmavericks do
       sh "echo 'TGT_ARCH=xmavericks' >build_target"
     end
-    
+=end   
     desc "Setup to build Shoes for 10.10+ from 10.10"
     task :yosemite do
       sh "echo 'TGT_ARCH=yosemite' >build_target"
@@ -523,12 +524,12 @@ namespace :osx do
       puts "using mxe compiler and deps"
       sh "echo 'TGT_ARCH=mxe_osx' >build_target"
     end
-    
-    #desc "Downshift Build 10.6 from 10.9"
-    #task "xsnow" do
-    #  sh "echo 'TGT_ARCH=xsnow' >build_target"
-    #end
-
+=begin    
+    desc "Downshift Build 10.6 from 10.9"
+    task "xsnow" do
+      sh "echo 'TGT_ARCH=xsnow' >build_target"
+    end
+=end
   end
 
   task :build => [:new_build]

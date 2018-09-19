@@ -73,7 +73,17 @@ class MakeDarwin
     end
 
     def dylibs_to_change lib
-      `#{OTOOL} -L #{lib}`.split("\n").inject([]) do |dylibs, line|
+       thislib = lib
+       if !File.exist?(lib)
+         fn = "#{ShoesDeps}/lib/#{File.basename(lib)}"
+         if File.exist?(fn)
+           thislib = fn
+        else
+           puts "Can't find #{fn}"
+           abort
+        end
+       end
+      `#{OTOOL} -L #{thislib}`.split("\n").inject([]) do |dylibs, line|
         if  line =~ /^\S/ or line =~ /System|@executable_path|libobjc/
           dylibs
         else
@@ -96,8 +106,10 @@ class MakeDarwin
         dylibs.concat get_dylibs(gb)
       end
       dupes = []
+      puts "Phase: Ruby and Gems processed - First Level:"
+      puts dylibs.inspect
       dylibs.each do |dylib|
-        get_dylibs(dylib).each do |d|
+        dylibs_to_change(dylib).each do |d|
           if dylibs.map {|lib| File.basename(lib)}.include?(File.basename(d))
             dupes << d
           else
@@ -105,7 +117,23 @@ class MakeDarwin
           end
         end
       end
-
+      puts "Phase: second level done"
+      dylibs.sort!
+      dylibs.uniq!
+      # Some call it a hack:
+      del_these = ['libz', 'libiconv', 'liblzma', 'libresolv']
+      dylibs.each_index do |i| 
+        ln = dylibs[i]
+        del_these.each_index do |k|
+          pat = del_these[k] 
+          if ln.include? pat 
+            del_these.delete_at(k)
+            dylibs.delete_at(i)
+            break
+          end
+        end
+      end
+      puts dylibs.inspect
       dylibs.each do |libn|
         keyf = File.basename libn
         if @brew_hsh[keyf]
@@ -125,6 +153,7 @@ class MakeDarwin
           puts "Missing #{libn}"
         end
       end
+      
       change_install_names
       # 2015-11-22 Hack Alert librsvg2 drags in some libs that are not
       # good Shoes citizens - So after the change_install_names - remove them
@@ -150,6 +179,9 @@ class MakeDarwin
          end
       end
       rbvm = RUBY_V[/^\d+\.\d+/]
+      #tgtd = File.join(Dir.getwd, TGT_DIR)
+      tgtd = File.absolute_path(TGT_DIR)
+      puts "tgtd: #{tgtd}"
       # Find ruby's + gems dependent libs
       cd "#{TGT_DIR}/lib/ruby/#{rbvm}.0/#{SHOES_TGT_ARCH}" do
         bundles = *Dir['*.bundle']
@@ -163,9 +195,9 @@ class MakeDarwin
         cplibs.each_key do |k|
           cppath = @brew_hsh[File.basename(k)]
           if cppath
-            cp cppath, "#{TGT_DIR}"
-            chmod 0755, "#{TGT_DIR}/#{File.basename k}"
-            puts "Copy #{cppath}"
+            puts "Copy #{cppath} to #{tgtd}"
+            cp cppath, "#{tgtd}"
+            chmod 0755, "#{tgtd}/#{File.basename k}"
           else
             puts "Missing Ruby: #{k}"
           end
@@ -218,16 +250,16 @@ class MakeDarwin
 
       mkdir_p "#{topd}/Contents/Resources"
       mkdir_p "#{topd}/Contents/Resources/English.lproj"
-      sh "ditto \"#{APP['icons']['osx']}\" \"#{topd}//App.icns\""
-      sh "ditto \"#{APP['icons']['osx']}\" \"#{topd}/Contents/Resources/App.icns\""
+      #sh "ditto \"#{APP['icons']['osx']}\" \"#{topd}//App.icns\""
+      #sh "ditto \"#{APP['icons']['osx']}\" \"#{topd}/Contents/Resources/App.icns\""
+      cp APP['icons']['osx'], "#{topd}/App.icns"
+      cp APP['icons']['osx'], "#{topd}/Contents/Resources/App.icns"
       
       rewrite "platform/mac/Info.plist", "#{topd}/Contents/Info.plist-1"
       rewrite_ary  "#{topd}/Contents/Info.plist-1",
          "#{topd}/Contents/Info.plist"
       rm "#{topd}/Contents/Info.plist-1"
       cp "platform/mac/version.plist", "#{topd}/Contents/"
-      # rewrite "platform/mac/pangorc", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/pangorc"
-      # cp "platform/mac/command-manual.rb", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/"
 
       rewrite "platform/mac/shoes-launch", "#{topd}/Contents/MacOS/#{NAME}-launch"
       chmod 0755, "#{topd}/Contents/MacOS/#{NAME}-launch"
@@ -317,8 +349,8 @@ class MakeDarwin
 
     def make_smaller
       puts "Shrinking #{`pwd`}"
-      sh "strip *.dylib"
-      Dir.glob("lib/ruby/**/*.so").each {|lib| sh "strip #{lib}"}
+      sh "#{STRIP} *.dylib"
+      Dir.glob("lib/ruby/**/*.so").each {|lib| sh "#{STRIP} #{lib}"}
     end
 
   end

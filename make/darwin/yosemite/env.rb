@@ -19,11 +19,12 @@ if File.exists? cf
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
   ENV['CDEFS'] = custmz['CFLAGS'] if custmz['CFLAGS']
   ENV['SQLLOC'] = ShoesDeps
+  APP['TOOLPRE'] = custmz['ToolPrefix'] ? custmz['ToolPrefix'] : '' #empty string is not nil
   APP['CC'] = custmz['CC'] if custmz['CC']
   APP['RANLIB']= custmz['RANLIB'] if custmz['RANLIB']
   APP['STRIP'] = custmz['STRIP'] if custmz['STRIP']
-  OTOOL = custmz['OTOOL'] ?  custmz['OTOOL'] : 'otool'
-  INTOOL = custmz['INTOOL'] ? custmz['INTOOL'] : 'install_name_tool'
+  OTOOL = APP['TOOLPRE'] + (custmz['OTOOL'] ?  custmz['OTOOL'] : 'otool')
+  INTOOL = APP['TOOLPRE'] + (custmz['INTOOL'] ? custmz['INTOOL'] : 'install_name_tool')
   ignore_deprecations = (!custmz['Deprecations']) if custmz['Deprecations']
 else
   abort "You must have a #{TGT_ARCH}-custom.yaml"
@@ -42,7 +43,7 @@ arch_2_gem =  {
   'x86_64-darwin17' => 'x86_64-darwin-17',
   'x86_64-darwin14' => 'x86_64-darwin-14',
   'x86_64-darwin13' => 'x86_64-darwin-13',
-}  # B E W A R E !
+}
 
 SHOES_TGT_ARCH = RbConfig::CONFIG['arch']
 SHOES_GEM_ARCH = arch_2_gem[RbConfig::CONFIG['arch']]
@@ -51,9 +52,9 @@ $stderr.puts "arch #{SHOES_TGT_ARCH} -> #{SHOES_GEM_ARCH}"
 APP['RUBY_V'] = RbConfig::CONFIG['ruby_version']
 APP['PLATFORM'] = RbConfig::CONFIG['arch'] # now correct for cross compile
 
-CC = APP['CC'] ? APP['CC'] : RbConfig::CONFIG["CC"]
-RANLIB = APP['RANLIB'] ? APP['RANLIB'] :  RbConfig::CONFIG['RANLIB']
-STRIP = APP['STRIP'] ? APP['STRIP'] : RbConfig::CONFIG["STRIP"]
+CC = APP['TOOLPRE'] + (APP['CC'] ? APP['CC'] : RbConfig::CONFIG["CC"])
+RANLIB =APP['TOOLPRE'] + ( APP['RANLIB'] ? APP['RANLIB'] :  RbConfig::CONFIG['RANLIB'])
+STRIP = APP['TOOLPRE'] + (APP['STRIP'] ? APP['STRIP'] : RbConfig::CONFIG["STRIP"])
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/#{RbConfig::CONFIG["ruby_pc"]}"
 
 if APP['GDB']

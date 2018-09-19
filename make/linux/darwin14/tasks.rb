@@ -179,7 +179,8 @@ class MakeLinux
          end
       end
       rbvm = RUBY_V[/^\d+\.\d+/]
-      tgtd = File.join(Dir.getwd, TGT_DIR)
+      #tgtd = File.join(Dir.getwd, TGT_DIR)
+      tgtd = File.absolute_path(TGT_DIR)
       puts "tgtd: #{tgtd}"
       # Find ruby's + gems dependent libs
       cd "#{TGT_DIR}/lib/ruby/#{rbvm}.0/#{SHOES_TGT_ARCH}" do
@@ -348,8 +349,8 @@ class MakeLinux
 
     def make_smaller
       puts "Shrinking #{`pwd`}"
-      sh "strip *.dylib"
-      Dir.glob("lib/ruby/**/*.so").each {|lib| sh "strip #{lib}"}
+      sh "#{STRIP} *.dylib"
+      Dir.glob("lib/ruby/**/*.so").each {|lib| sh "#{STRIP} #{lib}"}
     end
 
   end
