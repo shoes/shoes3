@@ -2,6 +2,8 @@
 # 
 desc "Build stubs (MinGW cross compile only)"
 task :stubs  do
+  puts "Build stub"
+  abort
   dbg = ENV['GDB']
   #dbg = 'basic'  # uncomment if needed
   CPP = "i686-w64-mingw32-g++"

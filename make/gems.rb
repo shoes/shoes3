@@ -190,7 +190,7 @@ module Make
     end
   end
 end
-
+=begin
 desc "build all gems for platform"
 task :gems  do
   Builder.build_all_gems
@@ -209,3 +209,4 @@ end
 if !APP['GEMLOC']
   abort "You must define APP['GEMLOC'] see make/#{TGT_ARCH}/env.rb"
 end
+=end
