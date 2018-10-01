@@ -111,7 +111,11 @@ class MakeMinGW
    
     def make_installer_nsis exe_path
       def sh(*args); super; end
-      puts "make_installer #{`pwd`.chomp} using #{exe_path}"
+      #puts "make_installer #{`pwd`.chomp} using #{exe_path}"
+      $stderr.puts "make_installer #{`pwd`} moving tmp/"
+      tp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
+      mp = "#{TGT_DIR}-#{APP['Bld_Tmp']}"
+      mv tp, mp
       mkdir_p "pkg"
       cp_r "VERSION.txt", "#{TGT_DIR}/VERSION.txt"
       rm_rf "#{TGT_DIR}/nsis"
@@ -123,7 +127,9 @@ class MakeMinGW
         sh "#{exe_path} #{WINFNAME}.nsi" 
       end
       mv "#{TGT_DIR}/nsis/#{WINFNAME}.exe", "pkg/"
-    end
+      $stderr.puts "restore tmp/"
+      mv mp, tp
+   end
     
     #Allow diffrent installers
     def make_installer

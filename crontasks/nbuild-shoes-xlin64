@@ -2,7 +2,7 @@
 echo "Build Shoes X86_64 for Linux"
 cd /home/ccoupe/Projects/shoes3
 rm -rf build_target
-rake linux:setup:xlin64
+rake setup:xlin64
 rake
 rake package
 rake clobber

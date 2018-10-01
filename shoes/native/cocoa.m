@@ -670,22 +670,37 @@ shoes_font_list()
 VALUE
 shoes_load_font(const char *filename)
 {
-#ifndef OLD_OSX
   VALUE families = Qnil;
+#ifndef OLD_OSX
   CFURLRef cfuref ;
   bool ok;
   CFErrorRef err;
   cfuref = CFURLCreateFromFileSystemRepresentation (NULL, (UInt8 *)filename, strlen(filename), false);
-
+  // Get array of CTFontDescriptorRef's
+  CFArrayRef arrayref = CTFontManagerCreateFontDescriptorsFromURL(cfuref);
+  CFIndex count = CFArrayGetCount(arrayref);
+  CFIndex i;
+  if (count == 0)
+    return Qnil;
+  families = rb_ary_new();
+  // get the names 
+  for (i=0; i<count; i++) {
+    CTFontDescriptorRef fdesc =(CTFontDescriptorRef)CFArrayGetValueAtIndex(arrayref, i);
+    CTFontRef font = CTFontCreateWithFontDescriptor(fdesc, 0., NULL);
+	CFStringRef cfname = CTFontCopyFullName(font);
+	static char fname[100];
+	CFStringGetCString(cfname, fname, sizeof(fname), kCFStringEncodingUTF8);
+    rb_ary_push(families, rb_str_new2(fname));
+  }
+  // Register the font
   ok = CTFontManagerRegisterFontsForURL(cfuref, kCTFontManagerScopeProcess, &err);
   if (!ok ) {
     NSLog(@"Failed CTFontManager");
-  }
+  } 
 #else
   FSRef fsRef;
   FSSpec fsSpec;
   Boolean isDir;
-  VALUE families = Qnil;
   ATSFontContainerRef ref;
   NSString *fontName;
   FSPathMakeRef(filename, &fsRef, &isDir);

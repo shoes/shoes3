@@ -147,10 +147,12 @@ class Shoes
   end
 
   def self.splash
-    font "#{DIR}/fonts/Lacuna.ttf" unless Shoes::FONTS.include? "Lacuna"
+    #font "#{DIR}/fonts/Lacuna.ttf" unless Shoes::FONTS.include? "Lacuna"
+    font "#{DIR}/fonts/DejaVuSans.ttf" unless Shoes::FONTS.include? "DejaVu Sans"
     Shoes.app width: 598, height: 520, resizable: false do
       background "#{DIR}/static/splash.png"
-      style(Para, align: 'center', weight: 'bold', font: 'Lacuna Regular', size: 13)
+      #style(Para, align: 'center', weight: 'bold', font: 'Lacuna Regular', size: 13)
+      style(Para, align: 'center', weight: 'bold', font: 'DejaVu Sans', size: 13)
       style(Link, stroke: khaki, underline: nil)
       style(LinkHover, stroke: yellow, fill: nil)
 

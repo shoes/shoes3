@@ -11,7 +11,7 @@ pwd
 echo $PATH
 rm -rf build_target
 rm -rf ~/build/freebsd
-rake bsd:setup:freebsd
+rake setup:freebsd
 rake
 rake package
 cp /usr/home/ccoupe/build/pkg/*freebsd*.install pkg

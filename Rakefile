@@ -389,12 +389,12 @@ end
 def osx_version_txt t
   create_version_file t
 end
-=begin
-desc "create VERSION.txt"
+
+# desc "create VERSION.txt"
 task :version do
  create_version_file 'VERSION.txt'
 end
-=end
+
 
 # --------------------------
 # tasks depending on Builder = MakeLinux|MakeDarwin|MakeMinGW

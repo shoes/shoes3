@@ -1,11 +1,12 @@
 #!/bin/bash
 ssh ccoupe@mini <<'ENDSSH'
 echo "Build Shoes OSX 10.10 Yosemite"
-source .bashrc
-rvm use 2.3.4
+PATH=/usr/local/bin:$PATH
+source ~/.bashrc
+#rvm use 2.3.6
 cd /Users/ccoupe/Projects/shoes3
 rm -f build_target
-rake osx:setup:yosemite
+rake setup:osx
 rake
 rake package
 rake clobber

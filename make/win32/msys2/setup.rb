@@ -57,8 +57,8 @@ module Make
         f.write "#gtk-theme-name=win32\n"
       end
     end
-    mkdir_p "#{ShoesDeps}/lib"
-    cp_r "#{ShoesDeps}/lib/gtk-3.0", "#{TGT_DIR}/lib" 
+    #mkdir_p "#{ShoesDeps}/lib"
+    #cp_r "#{ShoesDeps}/lib/gtk-3.0", "#{TGT_DIR}/lib" 
     bindir = "#{ShoesDeps}/bin"
     if File.exist?("#{bindir}/gtk-update-icon-cache-3.0.exe")
       cp "#{bindir}/gtk-update-icon-cache-3.0.exe",

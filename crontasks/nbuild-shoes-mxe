@@ -5,7 +5,7 @@ source ~/.rvm/scripts/rvm
 cd /home/ccoupe/Projects/shoes3
 rm -f build_target
 rvm use 2.3.6
-rake setup:xwin7
+rake setup:mxe
 rake
 rake package
 rake clobber

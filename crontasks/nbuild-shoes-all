@@ -3,7 +3,8 @@
 # my crontab so user name may not be set up for chroot
 #schroot -c debx86 -u ccoupe -- ~/Projects/shoes3/crontasks/nbuild-shoes-lin64
 ~/Projects/shoes3/crontasks/nbuild-shoes-xlin64
-~/Projects/shoes3/crontasks/nbuild-shoes-xwin7
+#~/Projects/shoes3/crontasks/nbuild-shoes-xwin7
+~/Projects/shoes3/crontasks/nbuild-shoes-mxe
 # ssh to Mac mini and build.
 #~/Projects/shoes3/crontasks/nbuild-shoes-mavericks
 ~/Projects/shoes3/crontasks/nbuild-shoes-yosemite

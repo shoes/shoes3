@@ -56,20 +56,78 @@ static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, g
 #define SGPOLL 
 #endif
 
-#ifndef SHOES_GTK_WIN32
+// ---------- fonts ------------
+
 static VALUE shoes_make_font_list(FcFontSet *fonts, VALUE ary) {
     int i = 0;
+    printf("fontconfig says %d fonts\n", fonts->nfont);
     for (i = 0; i < fonts->nfont; i++) {
         FcValue val;
         FcPattern *p = fonts->fonts[i];
-        if (FcPatternGet(p, FC_FAMILY, 0, &val) == FcResultMatch)
+        if (FcPatternGet(p, FC_FAMILY, 0, &val) == FcResultMatch) {
             rb_ary_push(ary, rb_str_new2((char *)val.u.s));
+            printf("fc says %s\n", (char *)val.u.s);
+        }    
     }
     rb_funcall(ary, rb_intern("uniq!"), 0);
     rb_funcall(ary, rb_intern("sort!"), 0);
     return ary;
 }
 
+#ifdef SHOES_GTK_WIN32
+/*
+ * This is only called when a shoe script uses the font(filename) command
+ * so the file name is lacuna.ttf, coolvetica.ttf (Shoes splash for the
+ * Shoes manual) or a user supplied font
+*/
+VALUE shoes_load_font(const char *filename) {
+    VALUE allfonts, newfonts, oldfonts;
+   // the Shoes api says after a font load, return an array of the font
+    // name(s). FamilyName in font-speak.
+    // The Shoes fontlist must be updated as side effect
+    
+    // Use the much faster Windows api. First remove the font if it
+    // exists in Windows session space - otherwise you won't get a reload without
+    // rebooting. Fun.
+    int i = 0;
+    while( RemoveFontResourceExA( filename, FR_PRIVATE, 0 ) )
+    {
+      i++;
+    }
+    if (i) 
+      printf("removed %s %d times\n", filename, i);
+    int fonts = AddFontResourceExA(filename, FR_PRIVATE, 0);
+    if (fonts == 0) {
+      printf("windows failed to add fonts in %s\n", filename);
+      return Qnil;
+    }
+    allfonts = shoes_font_list();   // everything, include the one loaded
+    oldfonts = rb_const_get(cShoes, rb_intern("FONTS"));
+    newfonts = rb_funcall(allfonts, rb_intern("-"), 1, oldfonts);
+    shoes_update_fonts(allfonts);
+    return newfonts;
+}
+
+
+static int CALLBACK shoes_font_list_iter(const ENUMLOGFONTEX *font, const NEWTEXTMETRICA *pfont, DWORD type, LPARAM l) {
+    rb_ary_push(l, rb_str_new2(font->elfLogFont.lfFaceName));
+    return TRUE;
+}
+
+VALUE shoes_font_list() {
+    LOGFONT font = {0, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, ""};
+    VALUE ary = rb_ary_new();
+    HDC dc = GetDC(NULL);
+    EnumFontFamiliesExA(dc, &font, (FONTENUMPROC)shoes_font_list_iter, (LPARAM)ary, 0);
+    ReleaseDC(NULL, dc);
+    rb_funcall(ary, rb_intern("uniq!"), 0);
+    rb_funcall(ary, rb_intern("sort!"), 0);
+    return ary;
+}
+
+#else  // Linux gtk3
+#if 0
+// Fontconfig list
 VALUE shoes_font_list() {
     VALUE ary = rb_ary_new();
     FcConfig *fc = FcConfigGetCurrent();
@@ -87,6 +145,48 @@ VALUE shoes_load_font(const char *filename) {
         return Qnil;
 
     VALUE ary = rb_ary_new();
+    shoes_make_font_list(fonts, ary);  // This is usually just 1 font
+    FcFontSetDestroy(fonts);
+
+    if (!FcConfigAppFontAddFile(fc, (const FcChar8 *)filename))
+        return Qnil;
+
+    // refresh the FONTS list
+    shoes_update_fonts(shoes_font_list());
+    return ary;
+}
+#else
+// Pango list from https://www.lemoda.net/pango/list-fonts/index.html
+VALUE shoes_font_list() {
+    int i;
+    PangoFontFamily ** families;
+    int n_families;
+    PangoFontMap * fontmap;
+    VALUE ary = rb_ary_new();
+
+    fontmap = pango_cairo_font_map_get_default();
+    pango_font_map_list_families (fontmap, & families, & n_families);
+    //printf ("There are %d families\n", n_families);
+    for (i = 0; i < n_families; i++) {
+        PangoFontFamily * family = families[i];
+        const char * family_name;
+
+        family_name = pango_font_family_get_name (family);
+        //printf ("Family %d: %s\n", i, family_name);
+        rb_ary_push(ary, rb_str_new2(family_name));
+    }
+    g_free (families);
+    return ary;
+}
+
+VALUE shoes_load_font(const char *filename) {
+    FcConfig *fc = FcConfigGetCurrent();
+    FcFontSet *fonts = FcFontSetCreate();
+    if (!FcFileScan(fonts, NULL, NULL, NULL, (const FcChar8 *)filename, FcTrue))
+        return Qnil;
+
+    VALUE ary = rb_ary_new();
+    // should have a pango version below, eh?
     shoes_make_font_list(fonts, ary);
     FcFontSetDestroy(fonts);
 
@@ -97,7 +197,8 @@ VALUE shoes_load_font(const char *filename) {
     shoes_update_fonts(shoes_font_list());
     return ary;
 }
-#endif
+#endif // Pango version
+#endif // Windows or Not
 
 /*
  * Shoes 3.3.4+ may use gtk_application_new (aka GApplication) instead of gtk_init
@@ -1741,53 +1842,8 @@ VALUE shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self) {
                                 _("_Save"), args.a[0]);
 }
 
-// July 2016 - Windows Fun!
+
 #ifdef SHOES_GTK_WIN32
-/*
- * This is only called when a shoe script uses the font(filename) command
- * so the file name is lacuna.ttf, coolvetica.ttf (Shoes splash or the
- * Shoes manual) or a user supplied font
-*/
-VALUE shoes_load_font(const char *filename) {
-    VALUE allfonts, newfonts, oldfonts;
-    // get current fconfig. Add the font to it so pango can find it.
-    FcConfig *fc = FcConfigGetCurrent();
-    FcBool yay = FcConfigAppFontAddFile(fc, (const FcChar8 *)filename);
-    if (yay == FcFalse) {
-        printf("failed to add font %s ?\n", filename);
-    }
-    // the Shoes api says an array of all fonts is returned. After a
-    // font load, the Shoes fontlist must be updated. Use the much faster
-    // Windows api. First, make sure Windows knows about the new one.
-    int fonts = AddFontResourceEx(filename, FR_PRIVATE, 0);
-    if (!fonts) {
-      printf("windows failed to add font resource for %s", filename);
-      return Qnil;
-    }
-    allfonts = shoes_font_list();
-    oldfonts = rb_const_get(cShoes, rb_intern("FONTS"));
-    newfonts = rb_funcall(allfonts, rb_intern("-"), 1, oldfonts);
-    shoes_update_fonts(allfonts);
-    return newfonts;
-}
-
-static int CALLBACK shoes_font_list_iter(const ENUMLOGFONTEX *font, const NEWTEXTMETRICA *pfont, DWORD type, LPARAM l) {
-    //VALUE ary = (VALUE)l; // TODO: compiler warning, remove because unused
-    rb_ary_push(l, rb_str_new2(font->elfLogFont.lfFaceName));
-    return TRUE;
-}
-
-VALUE shoes_font_list() {
-    LOGFONT font = {0, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, ""};
-    VALUE ary = rb_ary_new();
-    HDC dc = GetDC(NULL);
-    EnumFontFamiliesEx(dc, &font, (FONTENUMPROC)shoes_font_list_iter, (LPARAM)ary, 0);
-    ReleaseDC(NULL, dc);
-    rb_funcall(ary, rb_intern("uniq!"), 0);
-    rb_funcall(ary, rb_intern("sort!"), 0);
-    return ary;
-}
-
 // hat tip: https://justcheckingonall.wordpress.com/2008/08/29/console-window-win32-app/
 #include <stdio.h>
 #include <io.h>

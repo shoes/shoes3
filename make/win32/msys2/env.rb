@@ -1,6 +1,5 @@
 # msys2 native build 
-# NOTE this can be used with older version of GTK3 than msys2 normally
-# installs 
+# NOTE this assumes the deps are from an mxe build. 
 cf =(ENV['ENV_CUSTOM'] || "msys2-custom.yaml")
 gtk_version = '3'
 if File.exists? cf
@@ -20,18 +19,17 @@ if File.exists? cf
   APP['INSTALLER'] = custmz['Installer'] == 'qtifw'? 'qtifw' : 'nsis'
   APP['INSTALLER_LOC'] = custmz['InstallerLoc']
 else
-  # define where your deps are
-  #ShoesDeps = "E:/shoesdeps/mingw"
-  ShoesDeps = "C:/Users/Cecil/sandbox"
-  EXT_RUBY = RbConfig::CONFIG["prefix"]
-  ENABLE_MS_THEME = false
+  abort "missing #{TGT_ARCH}-custom.yaml"
 end
-puts "Ruby = #{EXT_RUBY} Deps = #{ShoesDeps}, Gtk: #{GtkDeps}"
-SHOES_GEM_ARCH = "#{Gem::Platform.local}"
-SHOES_TGT_ARCH = 'i386-mingw32'
-#APP['GTK'] = "gtk+-#{gtk_version}.0"
+require_relative '../../switch_ruby'
 
-WINVERSION = "#{APP['VERSION']}-gtk3-w32"
+arch_2_gem =  {'i386-mingw32' => 'x86-mingw32',
+               'i386-mingw32.shared' => 'x86-mingw32'}
+SHOES_TGT_ARCH = RbConfig::CONFIG['arch']
+SHOES_GEM_ARCH = arch_2_gem[RbConfig::CONFIG['arch']]
+APP['RUBY_V'] = RbConfig::CONFIG['ruby_version']
+
+WINVERSION = "#{APP['VERSION']}-gtk3-32"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
 WIN32_CFLAGS = []
 WIN32_LDFLAGS = []
@@ -62,6 +60,7 @@ else
   WIN32_CFLAGS << "-O -Wall"
 end
 
+
 gtk_pkg_path = "#{GtkDeps}/lib/pkgconfig/gtk+-3.0.pc"
 GTK_CFLAGS = `#{PKG_CONFIG} --cflags gtk+-3.0 --define-variable=prefix=#{ShoesDeps}`.chomp
 GTK_LDFLAGS = `#{PKG_CONFIG} --libs gtk+-3.0 --define-variable=prefix=#{ShoesDeps}`.chomp
@@ -76,7 +75,7 @@ RUBY_LDFLAGS << "-Wl,-export-all-symbols "
 
 WIN32_CFLAGS << "-DSHOES_GTK -DSHOES_GTK_WIN32 -DRUBY_HTTP -DVIDEO"
 WIN32_CFLAGS << "-DGTK3 "
-WIN32_CFLAGS << "-Wno-unused-but-set-variable"
+WIN32_CFLAGS << "-Wno-unused-but-set-variable -Wno-attributes"
 WIN32_CFLAGS << "-D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS"
 WIN32_CFLAGS << GTK_CFLAGS
 WIN32_CFLAGS << CAIRO_CFLAGS
@@ -122,16 +121,21 @@ APP['LIBPATHS'] = [bindll, basedll, gtkdll, "#{EXT_RUBY}/bin"]
 SOLOCS = {
   "#{RbConfig::CONFIG["RUBY_SO_NAME"]}"    => "#{EXT_RUBY}/foobar-not-here/msvcrt-ruby230.dll",
   'libgif-7'     => "#{bindll}/libgif-7.dll",
-  'libjpeg-8'    => "#{bindll}/libjpeg-9.dll",
+  'libjpeg-9'    => "#{bindll}/libjpeg-9.dll",
   'libyaml-0-2' => "#{bindll}/libyaml-0-2.dll",
   'libiconv-2'   => "#{bindll}/libiconv-2.dll",
   'libeay32'     => "#{bindll}/libeay32.dll",
   'libgdbm-6'    => "#{bindll}/libgdbm-4.dll",
   'ssleay32'     => "#{bindll}/ssleay32.dll",
   'libepoxy-0'   => "#{bindll}/libepoxy-0.dll",
-  'libgmp-10'     => "#{basedll}/libgmp-10.dll", # ruby 2.2.6 needs this
+  #'libgmp-10'     => "#{basedll}/libgmp-10.dll", # ruby 2.2.6 needs this
   'libgcc_s_dw2-1'  => "#{basedll}/libgcc_s_dw2-1.dll",
-  'libsqlite3-0'  => "#{bindll}/libsqlite3-0.dll"
+  'libgcc_s_sjlj-1' => "{basedll}/libgcc_s_sjlj-1.dll", 
+  'libsqlite3-0'  => "#{bindll}/libsqlite3-0.dll",
+  'libbz2'        => '',
+  'libpcre-1'     => '',
+  'libtiff-5'     => '',
+  'liblzma-5'     => '',
 }
 
 
@@ -141,6 +145,7 @@ SOLOCS.merge!(
     'libcairo-2'       => "#{bindll}/libcairo-2.dll",
     'libcairo-gobject-2'  => "#{bindll}/libcairo-gobject-2.dll",
     'libffi-6'         => "#{bindll}/libffi-6.dll",
+    'libexpat-1'  => '',
     'libfontconfig-1'  => "#{bindll}/libfontconfig-1.dll",
     'libfreetype-6'    => "#{bindll}/libfreetype-6.dll",
     'libgdk_pixbuf-2.'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
