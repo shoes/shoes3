@@ -106,6 +106,14 @@ module Make
   #  ---- this method is called from the shoes build
   def copy_gems
     puts "copy_gems dir=#{pwd} #{TGT_ARCH}"
+    if APP['RVMGEM'] 
+      # only minosx target does this. TODO: msys2 could if desired
+      Dir.glob("#{APP['RVMGEM']}/*") do |f|
+        p = "#{APP['RVMGEM']}/#{File.basename(f)}"
+        cp_r p ,"#{TGT_DIR}/lib/ruby/gems/#{APP['RUBY_V']}"
+      end
+      return 
+    end
     APP['EXTLIST'].each do |ext|
       $stderr.puts "copy prebuild ext #{ext}"
       copy_files "#{APP['EXTLOC']}/built/#{TGT_ARCH}/#{ext}/ext/*.#{Lext}", "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}"
@@ -134,7 +142,7 @@ module Make
           $stderr.puts "Failed to find #{gemn}. Is wildcard correct? "
           abort
         end
-      end
+	  end
       $stderr.puts "Copying prebuilt gem #{gemp} for #{SHOES_GEM_ARCH}"
       spec = eval(File.read("#{gemp}/gemspec"))
       mkdir_p "#{gdir}/specifications"

@@ -40,11 +40,6 @@ module Make
       end
     end
   end
-  
-  # a stub, loose osx doesn't copy gems but the Builder will call us
-  def copy_gems  
-  end
-
 end
 
 class MakeDarwin
@@ -56,11 +51,11 @@ class MakeDarwin
       puts "Entering change_install_names"
       cd "#{TGT_DIR}" do
         ["#{NAME}-bin", *Dir['*.dylib'], *Dir['lib/ruby/gems/2.1.0/**/*.bundle'], *Dir['pango/modules/*/*.so']].each do |f|
-          sh "install_name_tool -id @executable_path/#{File.basename f} #{f}"
+          sh "#{INTOOL} -id @executable_path/#{File.basename f} #{f}"
           dylibs = get_dylibs f
           dylibs.each do |dylib|
             chmod 0755, dylib if File.writable? dylib
-            sh "install_name_tool -change #{dylib} @executable_path/#{File.basename dylib} #{f}"
+            sh "#{INTOOL} -change #{dylib} @executable_path/#{File.basename dylib} #{f}"
           end
         end
       end
@@ -68,7 +63,7 @@ class MakeDarwin
 
     # Get a list of linked libraries for lib (discard the non-indented lines)
     def get_dylibs lib
-      `otool -L #{lib}`.split("\n").inject([]) do |dylibs, line|
+      `#{OTOOL} -L #{lib}`.split("\n").inject([]) do |dylibs, line|
         if  line =~ /^\S/ or line =~ /System|@executable_path|libobjc/
           dylibs
         else
@@ -78,7 +73,17 @@ class MakeDarwin
     end
 
     def dylibs_to_change lib
-      `otool -L #{lib}`.split("\n").inject([]) do |dylibs, line|
+       thislib = lib
+       if !File.exist?(lib)
+         fn = "#{ShoesDeps}/lib/#{File.basename(lib)}"
+         if File.exist?(fn)
+           thislib = fn
+        else
+           puts "Can't find #{fn}"
+           abort
+        end
+       end
+      `#{OTOOL} -L #{thislib}`.split("\n").inject([]) do |dylibs, line|
         if  line =~ /^\S/ or line =~ /System|@executable_path|libobjc/
           dylibs
         else
@@ -89,7 +94,6 @@ class MakeDarwin
 
     def copy_deps_to_dist
       puts "Entering copy_deps_to_dist #{TGT_DIR}"
-      return
       # Generate a list of dependencies straight from the generated files.
       # Start with dependencies of shoes-bin, and then add the dependencies
       # of those dependencies. Finally, add any oddballs that must be
@@ -102,8 +106,10 @@ class MakeDarwin
         dylibs.concat get_dylibs(gb)
       end
       dupes = []
+      puts "Phase: Ruby and Gems processed - First Level:"
+      puts dylibs.inspect
       dylibs.each do |dylib|
-        get_dylibs(dylib).each do |d|
+        dylibs_to_change(dylib).each do |d|
           if dylibs.map {|lib| File.basename(lib)}.include?(File.basename(d))
             dupes << d
           else
@@ -111,7 +117,23 @@ class MakeDarwin
           end
         end
       end
-
+      puts "Phase: second level done"
+      dylibs.sort!
+      dylibs.uniq!
+      # Some call it a hack:
+      del_these = ['libz', 'libiconv', 'liblzma', 'libresolv']
+      dylibs.each_index do |i| 
+        ln = dylibs[i]
+        del_these.each_index do |k|
+          pat = del_these[k] 
+          if ln.include? pat 
+            del_these.delete_at(k)
+            dylibs.delete_at(i)
+            break
+          end
+        end
+      end
+      puts dylibs.inspect
       dylibs.each do |libn|
         keyf = File.basename libn
         if @brew_hsh[keyf]
@@ -124,13 +146,14 @@ class MakeDarwin
           # the code below won't be triggered if they are.
           puts "Adding #{libn}"
           @brew_hsh[keyf] = libn
-          #cp "#{ShoesDeps}/lib/#{keyf}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
-          #chmod 0755, "#{TGT_DIR}/#{keyf}" unless File.writable? "#{TGT_DIR}/#{keyf}"
+          #cp @brew_hsh[keyf], "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
+          cp "#{ShoesDeps}/lib/#{keyf}", "#{TGT_DIR}/" unless File.exists? "#{TGT_DIR}/#{keyf}"
+          chmod 0755, "#{TGT_DIR}/#{keyf}" unless File.writable? "#{TGT_DIR}/#{keyf}"
         else
           puts "Missing #{libn}"
-          cp libn, TGT_DIR
         end
       end
+      
       change_install_names
       # 2015-11-22 Hack Alert librsvg2 drags in some libs that are not
       # good Shoes citizens - So after the change_install_names - remove them
@@ -148,25 +171,34 @@ class MakeDarwin
         key = File.basename(path)
         @brew_hsh[key] = path
       end
-      
-      return # don't fool with Ruby and gems
+      if EXT_RUBY != ShoesDeps
+        # replace libruby.*.dylib in Shoesdeps
+        Dir.glob("#{EXT_RUBY}/lib/libruby*.dylib").each do |path|
+          key = File.basename(path)
+          @brew_hsh[key] = path
+         end
+      end
       rbvm = RUBY_V[/^\d+\.\d+/]
+      #tgtd = File.join(Dir.getwd, TGT_DIR)
+      tgtd = File.absolute_path(TGT_DIR)
+      puts "tgtd: #{tgtd}"
       # Find ruby's + gems dependent libs
       cd "#{TGT_DIR}/lib/ruby/#{rbvm}.0/#{SHOES_TGT_ARCH}" do
         bundles = *Dir['*.bundle']
         puts "Bundles #{bundles}"
         cplibs = {}
         bundles.each do |bpath|
-          `otool -L #{bpath}`.split.each do |lib|
+          chmod 0644, bpath if !File.writable? bpath
+          `#{OTOOL} -L #{bpath}`.split.each do |lib|
             cplibs[lib] = lib if File.extname(lib)=='.dylib'
           end
         end
         cplibs.each_key do |k|
           cppath = @brew_hsh[File.basename(k)]
           if cppath
-            cp cppath, "#{TGT_DIR}"
-            chmod 0755, "#{TGT_DIR}/#{File.basename k}"
-            puts "Copy #{cppath}"
+            puts "Copy #{cppath} to #{tgtd}"
+            cp cppath, "#{tgtd}"
+            chmod 0755, "#{tgtd}/#{File.basename k}"
           else
             puts "Missing Ruby: #{k}"
           end
@@ -176,7 +208,7 @@ class MakeDarwin
           dylibs = get_dylibs f
           dylibs.each do |dylib|
             if @brew_hsh[File.basename(dylib)]
-              sh "install_name_tool -change #{dylib} @executable_path/../#{File.basename dylib} #{f}"
+              sh "#{INTOOL} -change #{dylib} @executable_path/../#{File.basename dylib} #{f}"
             else
               puts "Bundle lib missing #{dylib}"
             end
@@ -186,9 +218,9 @@ class MakeDarwin
     end
 
     def postbuild_fix
-      $stderr.puts "called postbuild_fix"
       # if this is called, the only thing that has changed is libshoes.dylib
       # and shoes-bin. This hasn't needed but might involve
+      #$stderr.puts "called postbuild_fix"
 =begin
       install_name_tool -id @executable_path/shoes-bin shoes-bin
       install_name_tool -change /usr/local/lib/libcairo.2.dylib @executable_path/libcairo.2.dylib shoes-bin
@@ -219,16 +251,16 @@ class MakeDarwin
 
       mkdir_p "#{topd}/Contents/Resources"
       mkdir_p "#{topd}/Contents/Resources/English.lproj"
-      sh "ditto \"#{APP['icons']['osx']}\" \"#{topd}//App.icns\""
-      sh "ditto \"#{APP['icons']['osx']}\" \"#{topd}/Contents/Resources/App.icns\""
+      #sh "ditto \"#{APP['icons']['osx']}\" \"#{topd}//App.icns\""
+      #sh "ditto \"#{APP['icons']['osx']}\" \"#{topd}/Contents/Resources/App.icns\""
+      cp APP['icons']['osx'], "#{topd}/App.icns"
+      cp APP['icons']['osx'], "#{topd}/Contents/Resources/App.icns"
       
       rewrite "platform/mac/Info.plist", "#{topd}/Contents/Info.plist-1"
       rewrite_ary  "#{topd}/Contents/Info.plist-1",
          "#{topd}/Contents/Info.plist"
       rm "#{topd}/Contents/Info.plist-1"
       cp "platform/mac/version.plist", "#{topd}/Contents/"
-      # rewrite "platform/mac/pangorc", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/pangorc"
-      # cp "platform/mac/command-manual.rb", "#{tmpd}/#{APPNAME}.app/Contents/MacOS/"
 
       rewrite "platform/mac/shoes-launch", "#{topd}/Contents/MacOS/#{NAME}-launch"
       chmod 0755, "#{topd}/Contents/MacOS/#{NAME}-launch"
@@ -268,17 +300,11 @@ class MakeDarwin
       rm_f name
       rm_f bin
       tp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
-      sh "#{CC} -L#{TGT_DIR} -o #{bin} #{tp}/main.o #{LINUX_LIBS} -lshoes -lruby  #{OSX_ARCH}"
+      sh "#{CC} -L#{TGT_DIR} -o #{bin} #{tp}/main.o #{LINUX_LIBS} -lshoes #{OSX_ARCH}"
       if File.exist? "#{tp}/zzshoesbin.done"
         postbuild_fix
       else
         copy_deps_to_dist
-      end
-      # Loose Shoes: fixup shoes-bin to point to correct ruby (instead of default system ruby)
-      #sh "install_name_tool -id @executable_path/shoes-bin shoes-bin"
-      Dir.chdir(TGT_DIR) do
-        sh "install_name_tool -change  @executable_path/libruby.dylib #{EXT_RUBY}/lib/libruby.dylib shoes-bin"
-        sh "install_name_tool -change  @executable_path/libruby.dylib #{EXT_RUBY}/lib/libruby.dylib libshoes.dylib"
       end
       osx_create_app # generate plist and much copying/moving
       touch "#{tp}/zzshoesbin.done"
@@ -299,10 +325,18 @@ class MakeDarwin
             Dir.glob("lib/ruby/**/*.bundle").each {|lib| sh "strip -x #{lib}"}
           end
         end
+        # move tmp file out of Shoes.app
+        tf = "#{APPNAME}.app/Contents/MacOS/tmp"
+        if File.exist?(tf)
+          mv tf, '../ptmp'
+        end
         distname = "#{APPNAME}-#{APP['VERSION']}".downcase
         sh "tar -cf #{distname}.tar #{APPNAME}.app"
         sh "gzip #{distname}.tar"
         sh "mv #{distname}.tar.gz #{distfile.downcase}"
+        if File.exist?('../ptmp')
+          mv '../ptmp', tf
+        end
         #sh "bzip2 -f #{distname}.tar"
         #mv "#{distname}.tar.bz2", "#{distfile}"
       end
@@ -316,8 +350,8 @@ class MakeDarwin
 
     def make_smaller
       puts "Shrinking #{`pwd`}"
-      sh "strip *.dylib"
-      Dir.glob("lib/ruby/**/*.so").each {|lib| sh "strip #{lib}"}
+      sh "#{STRIP} *.dylib"
+      Dir.glob("lib/ruby/**/*.so").each {|lib| sh "#{STRIP} #{lib}"}
     end
 
   end

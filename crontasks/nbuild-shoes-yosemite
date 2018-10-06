@@ -3,7 +3,7 @@ ssh ccoupe@mini <<'ENDSSH'
 echo "Build Shoes OSX 10.10 Yosemite"
 PATH=/usr/local/bin:$PATH
 source ~/.bashrc
-#rvm use 2.3.6
+rvm use 2.3.7
 cd /Users/ccoupe/Projects/shoes3
 rm -f build_target
 rake setup:osx

@@ -159,6 +159,7 @@ when :osx
       require File.expand_path('make/darwin/minosx/env')
       require File.expand_path('make/darwin/minosx/tasks')
       require File.expand_path('make/darwin/minosx/setup')
+      require File.expand_path('make/gems')
       require File.expand_path('make/subsys')
     else
       require File.expand_path('make/darwin/none/env')
@@ -339,7 +340,7 @@ task "shoes/version.h" do |t|
     f << "#define SHOES_VERSION_REVISION #{APP['REVISION']}\n"
     f << "#define SHOES_VERSION_DATE \"#{APP['DATE']}\"\n"
     f << "#define SHOES_VERSION_PLATFORM \"#{APP['PLATFORM']}\"\n"
-    if CROSS && (!TGT_DIR[/minlin/] &&  !TGT_DIR[/minbsd/])
+    if CROSS && (!TGT_DIR[/minlin/] &&  !TGT_DIR[/minbsd/] )
       f << "#define SHOES_STYLE \"TIGHT_SHOES\"\n\n"
     else
       f << "#define SHOES_STYLE \"LOOSE_SHOES\"\n\n"
@@ -505,7 +506,7 @@ namespace :setup do
        sh "echo 'TGT_ARCH=mxe_osx' >build_target"
 	 end
 	 
-	 desc "Setup for OSX - not distribuable"
+	 desc "Setup for OSX - not distributable"
 	 task :minosx do
        sh "echo 'TGT_ARCH=minosx' >build_target"
 	 end

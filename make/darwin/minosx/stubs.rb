@@ -1,4 +1,4 @@
-desc "Build stubs (OSX cross compile only)"
+desc "Build stubs (OSX only)"
 task :stubs  do
   #ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.4'
   #sh "gcc -O -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc -framework Cocoa -o stub platform/mac/stub.m -I."
