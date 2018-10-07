@@ -79,7 +79,7 @@ static inline void flip_endian(unsigned char* x, int length) {
 #undef s_host
 
 extern VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas;
-extern VALUE cFlow, cStack, cMask;
+extern VALUE cFlow, cStack, cMask, cLayout;
 extern VALUE cProgress, cShoesMenubar, cShoeMenu, cShoesMenuItem, cSettings;
 extern VALUE ssNestSlot;
 extern VALUE cWidget;

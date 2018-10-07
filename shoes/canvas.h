@@ -258,6 +258,7 @@ typedef struct {
     struct _shoes_app *app;
     SHOES_SLOT_OS *slot;
     SHOES_GROUP_OS group;
+    VALUE layout_mgr;         // we have a Layout object 
 } shoes_canvas;
 
 VALUE shoes_app_main(int, VALUE *, VALUE);
@@ -329,6 +330,7 @@ VALUE shoes_canvas_flow(int, VALUE *, VALUE);
 VALUE shoes_canvas_stack(int, VALUE *, VALUE);
 VALUE shoes_canvas_mask(int, VALUE *, VALUE);
 VALUE shoes_canvas_widget(int, VALUE *, VALUE);
+VALUE shoes_canvas_layout(int, VALUE *, VALUE);
 VALUE shoes_canvas_hide(VALUE);
 VALUE shoes_canvas_show(VALUE);
 VALUE shoes_canvas_toggle(VALUE);
@@ -383,6 +385,7 @@ VALUE shoes_slot_new(VALUE, VALUE, VALUE);
 VALUE shoes_flow_new(VALUE, VALUE);
 VALUE shoes_stack_new(VALUE, VALUE);
 VALUE shoes_mask_new(VALUE, VALUE);
+VALUE shoes_layout_new(VALUE, VALUE);
 VALUE shoes_widget_new(VALUE, VALUE, VALUE);
 
 VALUE shoes_chart_series_new(int, VALUE *, VALUE);
