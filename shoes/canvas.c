@@ -281,6 +281,10 @@ static void shoes_canvas_empty(shoes_canvas *canvas, int extras) {
     canvas->stage = CANVAS_EMPTY;
     shoes_ele_remove_all(canvas->contents);
     if (extras) shoes_extras_remove_all(canvas);
+    if (! NIL_P(canvas->layout_mgr)) {
+      shoes_layout_clear(canvas);
+    }
+    
     canvas->stage = stage;
 }
 
@@ -715,7 +719,7 @@ void shoes_canvas_compute(VALUE self) {
     cairo_restore(cr);
 }
 
-static void shoes_canvas_insert(VALUE self, long i, VALUE ele, VALUE block) {
+void shoes_canvas_insert(VALUE self, long i, VALUE ele, VALUE block) {
     SETUP_CANVAS();
 
     if (canvas->insertion != -2)
@@ -727,8 +731,15 @@ static void shoes_canvas_insert(VALUE self, long i, VALUE ele, VALUE block) {
     canvas->insertion = i;
     if (rb_respond_to(block, s_widget))
         rb_funcall(block, s_widget, 1, self);
-    else
+    else {
+      if (! NIL_P(canvas->layout_mgr)) {
+        shoes_layout *lay;
+        Data_Get_Struct(canvas->layout_mgr, shoes_layout, lay);
+        fprintf(stderr, "Insert into Layout\n"); 
+        
+      } else 
         shoes_canvas_memdraw(self, block);
+    }
     canvas->insertion = -2;
     shoes_canvas_repaint_all(self);
 }
@@ -855,30 +866,29 @@ VALUE shoes_canvas_widget(int argc, VALUE *argv, VALUE self) {
 
 VALUE shoes_canvas_layout(int argc, VALUE *argv, VALUE self) {
     rb_arg_list args;
-    VALUE layout;
+    VALUE layout_canvas;
     VALUE layout_obj;
     SETUP_CANVAS();
     fprintf(stderr, "canvas_layout: called\n");
 
     rb_parse_args(argc, argv, "|h&", &args);
     layout_obj = shoes_layout_new(args.a[0], self);
-    shoes_layout *self_t;
-    Data_Get_Struct(layout_obj, shoes_layout, self_t);
-    layout = self_t->canvas; // from shoes_slot_new()
+    shoes_layout *lay;
+    Data_Get_Struct(layout_obj, shoes_layout, lay);
+    layout_canvas = lay->canvas; 
     if (!NIL_P(args.a[1])) {
       /* expand macro by hand
       DRAW(layout, canvas->app, rb_funcall(args.a[1], s_call, 0));
       */
-      rb_ary_push(canvas->app->nesting, layout);
+      rb_ary_push(canvas->app->nesting, layout_canvas);
       rb_funcall(args.a[1], s_call, 0);  // this is the block arg
       rb_ary_pop(canvas->app->nesting);
     }
-    shoes_add_ele(canvas, layout);
+    shoes_add_ele(canvas, layout_canvas);  // Shoes tracks the canvas
 
-    //shoes_canvas *self_t;
-    //Data_Get_Struct(layout, shoes_canvas, self_t);
     // yes, we return the canvas, not the Layout Object
-    return layout;
+    //return layout_canvas;
+    return layout_obj;
 }
 
 void shoes_canvas_size(VALUE self, int w, int h) {
