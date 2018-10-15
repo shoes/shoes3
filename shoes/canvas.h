@@ -318,6 +318,7 @@ VALUE shoes_canvas_reset(VALUE);
 VALUE shoes_canvas_contents(VALUE);
 VALUE shoes_canvas_children(VALUE);
 void shoes_canvas_size(VALUE, int, int);
+void shoes_canvas_insert(VALUE self, long i, VALUE ele, VALUE block);
 VALUE shoes_canvas_clear_contents(int, VALUE *, VALUE);
 VALUE shoes_canvas_remove(VALUE);
 VALUE shoes_canvas_refresh_slot(VALUE);  // 3.3.0

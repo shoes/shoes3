@@ -211,9 +211,10 @@ void shoes_undo_transformation(cairo_t *cr, shoes_transform *st, shoes_place *pl
 
 VALUE shoes_add_ele(shoes_canvas *canvas, VALUE ele) {
     if (NIL_P(ele)) return ele;
-    if (canvas->insertion <= -1)
+    //if (canvas->insertion <= -1) { TODO TODO this should have worked !!!
+    if (canvas->insertion < 0) {
         rb_ary_push(canvas->contents, ele);
-    else {
+    } else {
         rb_ary_insert_at(canvas->contents, canvas->insertion, 0, ele);
         canvas->insertion++;
     }
@@ -282,7 +283,7 @@ static void shoes_canvas_empty(shoes_canvas *canvas, int extras) {
     shoes_ele_remove_all(canvas->contents);
     if (extras) shoes_extras_remove_all(canvas);
     if (! NIL_P(canvas->layout_mgr)) {
-      shoes_layout_clear(canvas);
+      shoes_layout_cleared(canvas);
     }
     
     canvas->stage = stage;
@@ -732,12 +733,6 @@ void shoes_canvas_insert(VALUE self, long i, VALUE ele, VALUE block) {
     if (rb_respond_to(block, s_widget))
         rb_funcall(block, s_widget, 1, self);
     else {
-      if (! NIL_P(canvas->layout_mgr)) {
-        shoes_layout *lay;
-        Data_Get_Struct(canvas->layout_mgr, shoes_layout, lay);
-        fprintf(stderr, "Insert into Layout\n"); 
-        
-      } else 
         shoes_canvas_memdraw(self, block);
     }
     canvas->insertion = -2;

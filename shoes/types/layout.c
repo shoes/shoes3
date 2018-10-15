@@ -26,15 +26,11 @@ FUNC_M("+layout", layout, -1);
 
 void shoes_layout_init() {
   cLayout = rb_define_class_under(cTypes, "Layout", cShoes);
-  //cLayout = rb_define_class_under(cFlow, "Layout", cShoes);
-  rb_define_method(cLayout, "append", CASTHOOK(shoes_layout_append), -1);  // crash in shoes_canvas_memdraw
-  //rb_define_method(cLayout, "append", CASTHOOK(shoes_canvas_append), -1); // slot is being modified
-  rb_define_method(cLayout, "clear", CASTHOOK(shoes_canvas_clear_contents), -1);
-  rb_define_method(cLayout, "prepend", CASTHOOK(shoes_canvas_prepend), -1);
-  rb_define_method(cLayout, "before", CASTHOOK(shoes_canvas_before), -1);
-  rb_define_method(cLayout, "after", CASTHOOK(shoes_canvas_after), -1);
+  rb_define_method(cLayout, "clear", CASTHOOK(shoes_layout_clear), -1);
+  rb_define_method(cLayout, "insert", CASTHOOK(shoes_layout_insert), -1);
+  rb_define_method(cLayout, "delete_at", CASTHOOK(shoes_layout_delete_at), -1);
   rb_define_method(cLayout, "rule", CASTHOOK(shoes_layout_add_rule), -1);  
-  rb_define_method(cLayout, "finish", CASTHOOK(shoes_layout_compute), -1);
+  rb_define_method(cLayout, "finish", CASTHOOK(shoes_layout_finish), -1);
   
   /*  RUBY_M generates defines (allow Ruby to call the FUNC_M funtions
   rb_define_method(cCanvas, "layout", CASTHOOK(shoes_canvas_c_layout), -1); 
@@ -90,35 +86,55 @@ VALUE shoes_layout_new(VALUE attr, VALUE parent) {
     return obj;
 }
 
-VALUE shoes_layout_append(int argc, VALUE *argv, VALUE self) {
+VALUE shoes_layout_insert(int argc, VALUE *argv, VALUE self) {
     shoes_layout *lay;
     Data_Get_Struct(self, shoes_layout, lay);
     VALUE canvas = lay->canvas;
     rb_arg_list args;
-    rb_parse_args(argc, argv, "o,&", &args);
-    shoes_canvas_insert(canvas, -1, Qnil, args.a[0]);
+    rb_parse_args(argc, argv, "i&", &args);  
+    long pos = NUM2LONG(args.a[0]);
+    shoes_canvas_insert(canvas, pos, Qnil, args.a[1]);
     return self;
 }
 
-VALUE shoes_layout_prepend(VALUE self, VALUE ele) {
-  shoes_layout *ly;
-  Data_Get_Struct(self, shoes_layout, ly);
-  shoes_canvas *canvas;
-  Data_Get_Struct(ly->canvas, shoes_canvas, canvas);
-  shoes_layout_add_ele(canvas, ele);
+VALUE shoes_layout_delete_at(int argc, VALUE *argv, VALUE self) {
+    shoes_layout *lay;
+    Data_Get_Struct(self, shoes_layout, lay);
+    VALUE canvas_obj = lay->canvas;
+    shoes_canvas *canvas;
+    Data_Get_Struct(canvas_obj, shoes_canvas, canvas);
+    rb_arg_list args;
+    rb_parse_args(argc, argv, "i", &args); 
+    long pos = NUM2LONG(args.a[0]);
+    VALUE ele = rb_ary_entry(canvas->contents, pos);
+    ID s_rm = rb_intern("remove");
+    if (rb_respond_to(ele, s_rm))
+      rb_funcall(ele, s_rm, 0, Qnil);
+    return self;
+}
+
+VALUE shoes_layout_clear(int argc, VALUE *argv, VALUE self) {
+    shoes_layout *lay;
+    Data_Get_Struct(self, shoes_layout, lay);
+    VALUE canvas = lay->canvas;
+    rb_arg_list args;
+    shoes_canvas_clear_contents(argc, argv, canvas);
 }
 
 // called from shoes_add_ele (def in canvas.c) by widget creators
 // The ele has already been added to canvas->contents
 void shoes_layout_add_ele(shoes_canvas *canvas, VALUE ele) {
   if (rb_obj_is_kind_of(ele, cBackground)) {
-    //fprintf(stderr, "skipping background widget\n");
+    fprintf(stderr, "skipping background widget\n");
     return;
   }
   // Find a delegate or use the internal default?
   if (canvas->layout_mgr != Qnil) {
     shoes_layout *ly;
     Data_Get_Struct(canvas->layout_mgr, shoes_layout, ly);
+    // for debug
+    shoes_canvas *cvs;
+    Data_Get_Struct(ly->canvas, shoes_canvas, cvs);
     if (! NIL_P(ly->delegate)) {
       //printf(stderr,"Delegating\n");
       VALUE del = ly->delegate;
@@ -137,7 +153,7 @@ void shoes_layout_add_ele(shoes_canvas *canvas, VALUE ele) {
 }
 
 // called from inside shoes (shoes_canvas_clear)
-void shoes_layout_clear(shoes_canvas *canvas) {
+void shoes_layout_cleared(shoes_canvas *canvas) {
   fprintf(stderr,"shoes_layout_clear called\n");
   if (canvas->layout_mgr != Qnil) {
     shoes_layout *ly;
@@ -171,10 +187,22 @@ void shoes_layout_default_clear(shoes_canvas *canvas) {
   fprintf(stderr, "default layout clear\n");
 }
 
-VALUE shoes_layout_add_rule(VALUE self, VALUE rule) {
+VALUE shoes_layout_add_rule(int argc, VALUE *argv, VALUE self) {
+  shoes_layout *lay;
+  Data_Get_Struct(self, shoes_layout, lay);
+  VALUE cobj = lay->canvas;
+  shoes_canvas *canvas;
+  Data_Get_Struct(cobj, shoes_canvas, canvas);
+
   fprintf(stderr,"shoes_layout_add_rule called\n");
 }
 
-VALUE shoes_layout_compute(VALUE self) {
+VALUE shoes_layout_finish(int argc, VALUE *argv, VALUE self) {
+  shoes_layout *lay;
+  Data_Get_Struct(self, shoes_layout, lay);
+  VALUE cobj = lay->canvas;
+  shoes_canvas *canvas;
+  Data_Get_Struct(cobj, shoes_canvas, canvas);
+
   fprintf(stderr, "shoes_layout_compute called\n");
 }
