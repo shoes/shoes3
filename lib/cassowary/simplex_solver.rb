@@ -46,41 +46,7 @@ module Cassowary
         @rows[self.objective] = Expression()
         @edit_variable_stack = [0]
 		end
-=begin
-    def __repr__(self):
-        parts = []
-        parts.append('stay_error_vars: %s' % self.stay_error_vars)
-        parts.append('edit_var_map: %s' % self.edit_var_map)
-        return super(SimplexSolver, self).__repr__() + '\n' + '\n'.join(parts)
 
-
-    def add_constraint(self, cn, strength=None, weight=None):
-        if strength or weight:
-            cn = cn.clone()
-            if strength:
-                cn.strength = strength
-            if weight:
-                cn.weight = weight
-
-        # print('add_constraint', cn)
-        expr, eplus, eminus, prev_edit_constant = self.new_expression(cn)
-
-        if not self.try_adding_directly(expr):
-            self.add_with_artificial_variable(expr)
-
-        self.needs_solving = True
-
-        if cn.is_edit_constraint:
-            i = len(self.edit_var_map)
-
-            self.edit_var_map[cn.variable] = EditInfo(cn, eplus, eminus, prev_edit_constant, i)
-
-        if self.auto_solve:
-            self.optimize(self.objective)
-            self.set_external_variables()
-
-        return cn
-=end
 		def add_constraint(cn, strength=nil, weight=nil)
 			if strength || weight
 				cn = cn.clone
@@ -105,23 +71,7 @@ module Cassowary
 				self.set_external_variables()		
 			end
 		end
-=begin
-    def add_edit_var(self, v, strength=STRONG):
-        # print("add_edit_var", v, strength)
-        return self.add_constraint(EditConstraint(v, strength))
 
-    def remove_edit_var(self, v):
-        self.remove_constraint(self.edit_var_map[v].constraint)
-
-    def edit(self):
-        return SolverEditContext(self)
-
-    def resolve(self):
-        self.dual_optimize()
-        self.set_external_variables()
-        self.infeasible_rows.clear()
-        self.reset_stay_constants()
-=end
 		def add_edit_var(v, strength=STRONG)
 			rreturn self.add_constraint(EditConstraint.new(v, strength))
 		end
@@ -141,12 +91,10 @@ module Cassowary
 			self.reset_stay_constants()
 		end
 		
-=begin
-
     #######################################################################
     # Internals
     #######################################################################
-
+=begin
     def new_expression(self, cn):
         # print("* new_expression", cn)
         # print("cn.is_inequality == ", cn.is_inequality)
@@ -221,24 +169,6 @@ module Cassowary
             expr.multiply(-1.0)
         return expr, eplus, eminus, prev_edit_constant
 =end
-
-=begin
-    def begin_edit(self):
-        assert len(self.edit_var_map) > 0
-        self.infeasible_rows.clear()
-        self.reset_stay_constants()
-        self.edit_variable_stack.append(len(self.edit_var_map))
-
-    def end_edit(self):
-        assert len(self.edit_var_map) > 0
-        self.resolve()
-        self.edit_variable_stack.pop()
-        self.remove_edit_vars_to(self.edit_variable_stack[-1])
-
-    def remove_all_edit_vars(self):
-        self.remove_edit_vars_to(0)
-=end
-
 		def begin_edit()
 			#assert len(self.edit_var_map) > 0
 			self.infeasible_rows.clear()
@@ -257,25 +187,7 @@ module Cassowary
         self.remove_edit_vars_to(0)
     end
     
-=begin
-    def remove_edit_vars_to(self, n):
-        try:
-            removals = []
-            for v, cei in self.edit_var_map.items():
-                if cei.index >= n:
-                    removals.append(v)
 
-            for v in removals:
-                self.remove_edit_var(v)
-
-            assert len(self.edit_var_map) == n
-
-        except ConstraintNotFound:
-            raise InternalError('Constraint not found during internal removal')
-
-    def add_stay(self, v, strength=WEAK, weight=1.0):
-        return self.add_constraint(StayConstraint(v, strength, weight))
-=end
 		def remove_edit_vars_to(n)
 			begin
 				
@@ -287,6 +199,7 @@ module Cassowary
 		def add_stay(v, strength=WEAK, weight=1.0)
 			return self.add_constraint(StayConstraint.new(v, strength, weight))
 		end
+		
 =begin
     def remove_constraint(self, cn):
         # print("removeConstraint", cn)
@@ -409,43 +322,8 @@ module Cassowary
             self.optimize(self.objective)
             self.set_external_variables()
 =end
-=begin
-    def resolve_array(self, new_edit_constants):
-        for v, cei in self.edit_var_map.items():
-            self.suggest_value(v, new_edit_constants[cei.index])
 
-        self.resolve()
 
-    def suggest_value(self, v, x):
-        cei = self.edit_var_map.get(v)
-        if not cei:
-            raise InternalError("suggestValue for variable %s, but var is not an edit variable" % v)
-        # print(cei)
-        delta = x - cei.prev_edit_constant
-        cei.prev_edit_constant = x
-        self.delta_edit_constant(delta, cei.edit_plus, cei.edit_minus)
-
-    def solve(self):
-        if self.needs_solving:
-            self.optimize(self.objective)
-            self.set_external_variables()
-
-    def set_edited_value(self, v, n):
-        if v not in self.columns or v not in self.rows:
-            v.value = n
-
-        if not approx_equal(n, v.value):
-            self.add_edit_var(v)
-            self.begin_edit()
-
-            self.suggest_value(v, n)
-
-            self.end_edit()
-
-    def add_var(self, v):
-        if v not in self.columns or v not in self.rows:
-            self.add_stay(v)
-=end
 		def resolve_array(new_edit_constants)
 			@edit_var_map.each_pair do |v, cei|
 				self.suggest_value(v, new_edit_constants[cei.index])  # TODO class/type of cei is?

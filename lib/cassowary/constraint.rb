@@ -5,22 +5,6 @@ module Cassowary
 # Constraints are the restrictions on linear programming; an equality or
 # inequality between two expressions.
 ###########################################################################
-=begin
-class AbstractConstraint(object):
-    def __init__(self, strength, weight=1.0):
-        self.strength = strength
-        self.weight = weight
-        self.is_edit_constraint = False
-        self.is_inequality = False
-        self.is_stay_constraint = False
-
-    @property
-    def is_required(self):
-        return self.strength == REQUIRED
-
-    def __repr__(self):
-        return '%s:{%s}(%s)' % (repr_strength(self.strength), self.weight, self.expression)
-=end
 	class AbstractConstraint
 		attr_accessor :strength, :weight, :s_edit_constraint, :is_inequality,
 			:is_stay_contraint
@@ -60,29 +44,6 @@ class AbstractConstraint(object):
 		end
 	end
 	
-=begin
-class EditConstraint(AbstractConstraint):
-    def __init__(self, variable, strength=STRONG, weight=1.0):
-        super(EditConstraint, self).__init__(strength, weight)
-        self.variable = variable
-        self.expression = Expression(variable, -1.0, variable.value)
-        self.is_edit_constraint = True
-
-    def __repr__(self):
-        return 'edit:%s' % super(EditConstraint, self).__repr__()
-
-
-class StayConstraint(AbstractConstraint):
-    def __init__(self, variable, strength=STRONG, weight=1.0):
-        super(StayConstraint, self).__init__(strength, weight)
-        self.variable = variable
-        self.expression = Expression(variable, -1.0, variable.value)
-        self.is_stay_constraint=True
-
-    def __repr__(self):
-        return 'stay:%s' % super(StayConstraint, self).__repr__()
-
-=end
 
 	class Constraint < AbstractConstraint
     LEQ = -1
