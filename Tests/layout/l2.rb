@@ -4,23 +4,35 @@ class MyLayout
   attr_accessor :incr_x, :incr_y, :canvas
   
   def initialize()
-    puts "initialized"
-    clear
+    $stderr.puts "initialized"
+    self.clear
   end
   
   def setup(canvas, attr)
     @canvas = canvas
     @w = attr[:width]
     @h = attr[:height]
-    puts "callback: setup #{@w} X #{@h}"
+    $stderr.puts "callback: setup #{@w} X #{@h}"
   end
   
-  def add(canvas, widget)
-    puts "callback add: #{widget.class} #{canvas.contents.size}"
-    puts "w: #{widget.width} h: #{widget.height}"
+  def add(canvas, widget, attrs)
+    $stderr.puts "callback add: #{widget.class} #{canvas.contents.size}"
     widget.move @pos_x, @pos_y
     @pos_x += @incr_x
     @pos_y += @incr_y
+    name = attrs && attrs[:name]
+    if name
+      $stderr.puts "Winner, Winner, Chicken Dinner for #{name}"
+    end
+  end
+  
+  def remove(canvas, widget, pos)
+    $stderr.puts"callback: remove"
+    return true
+  end
+  
+  def size(canvas, pass)
+    $stderr.puts "callback: size pass=#{pass} w: #{canvas.width} h:#{canvas.height}"
   end
   
   def clear
@@ -28,18 +40,11 @@ class MyLayout
     @pos_y = 5
     @incr_x = 25
     @incr_y = 25
-    puts "callback: clear"
+    $stderr.puts "callback: clear"
   end
-  
-  def refresh
-    @pos_x = 5
-    @pos_y = 5
-    @canvas.contents.each do |widget| 
-      widget.move @pos_x, @pos_y
-      @pos_x += @incr_x
-      @pos_y += @incr_y
-      puts "w: #{widget.width} h: #{widget.height}"
-    end
+
+  def finish()
+    @canvas.show
   end
   
 end
@@ -48,10 +53,10 @@ Shoes.app width: 380, height: 450, resizeable: true do
   stack do
     @p = para "Before layout"
     @ml = MyLayout.new
-    @lay = layout manager: @ml, width: 340, height: 380  do
+    @lay = layout use: @ml, width: 340, height: 380  do
       background yellow
-      p1 = para "First Para"
-      a = button "one"
+      p1 = para "First Para", name: 'p1'
+      a = button "one", name: 'b1'
       b = button "two"
       p2 = para "I am #{self.class}"
     end

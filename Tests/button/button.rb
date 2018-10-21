@@ -35,7 +35,7 @@ Shoes.app width: 600, height: 500 do
           icon_pos: "right" do
           para "right image"
       end
-      button "top", width: 80, height: 45, icon: "#{DIR}/static/icon-info.png",
+      @b = button "top", width: 80, height: 45, icon: "#{DIR}/static/icon-info.png",
           icon_pos: "top" do
         para "top image"
       end

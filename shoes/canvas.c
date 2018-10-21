@@ -122,7 +122,8 @@ VALUE shoes_canvas_style(int argc, VALUE *argv, VALUE self) {
             break;
 
         case 2:
-            if (NIL_P(canvas->attr)) canvas->attr = rb_hash_new();
+            if (NIL_P(canvas->attr)) 
+              canvas->attr = rb_hash_new();
             rb_funcall(canvas->attr, s_update, 1, args.a[0]);
             shoes_canvas_repaint_all(canvas->parent);
             break;
@@ -611,6 +612,9 @@ VALUE shoes_canvas_draw(VALUE self, VALUE c, VALUE actual) {
                 if (RTEST(actual)) {
                     shoes_canvas_place(c1);
                 }
+                if (c1->layout_mgr != Qnil) {
+									shoes_layout_size(c1, 1);			// TODO: is this the best place? 
+								}
             }
         }
 
@@ -864,7 +868,7 @@ VALUE shoes_canvas_layout(int argc, VALUE *argv, VALUE self) {
     VALUE layout_canvas;
     VALUE layout_obj;
     SETUP_CANVAS();
-    fprintf(stderr, "canvas_layout: called\n");
+    //fprintf(stderr, "canvas_layout: called\n");
 
     rb_parse_args(argc, argv, "|h&", &args);
     layout_obj = shoes_layout_new(args.a[0], self);
@@ -876,13 +880,15 @@ VALUE shoes_canvas_layout(int argc, VALUE *argv, VALUE self) {
       DRAW(layout, canvas->app, rb_funcall(args.a[1], s_call, 0));
       */
       rb_ary_push(canvas->app->nesting, layout_canvas);
-      rb_funcall(args.a[1], s_call, 0);  // this is the block arg
+      /*
+       * This calls the block (which adds the buttons, para, widgets etc
+      */
+      rb_funcall(args.a[1], s_call, 0);  
       rb_ary_pop(canvas->app->nesting);
     }
-    shoes_add_ele(canvas, layout_canvas);  // Shoes tracks the canvas
-
-    // yes, we return the canvas, not the Layout Object
-    //return layout_canvas;
+    shoes_add_ele(canvas, layout_canvas);  // Shoes tracks the layout's canvas
+    Data_Get_Struct(layout_canvas, shoes_canvas, canvas);
+    shoes_layout_size(canvas, 0);         // callback to user layout method
     return layout_obj;
 }
 
