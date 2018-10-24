@@ -1,0 +1,54 @@
+Vfl internal layout setup called
+shoes_layout_internal_add called
+shoes_layout_internal_add called
+shoes_layout_internal_add called
+shoes_layout_internal_size called pass: 0
+shoes_layout_internal_size called pass: 1
+In shoes_vfl_test
+Parsing [invalid]: 'V|[backgroundBox]|'
+Error: Expected ':' after vertical orientation
+Parsing [invalid]: '[backgroundBox)'
+Error: A predicate must follow a view name
+Parsing [invalid]: '[backgroundBox(]'
+Error: A predicate on a view must end with ')'
+Parsing [invalid]: '[view]'
+Error: Unable to find view with name 'view'
+Parsing [invalid]: '[view]-'
+Error: Unterminated spacing
+Parsing [invalid]: '-[view]'
+Error: Spacing cannot be set without a view
+Parsing [invalid]: '[['
+Error: View identifiers must be valid C identifiers
+Parsing [invalid]: '[9ab]'
+Error: View identifiers must be valid C identifiers
+Parsing [invalid]: '[-a]'
+Error: View identifiers must be valid C identifiers
+Parsing [invalid]: '[view(>30)]'
+Error: Unknown relation; must be one of '==', '>=', or '<='
+Parsing [invalid]: '[view(>=30@foo)]'
+Error: Priority must be a positive number or one of 'weak', 'medium', 'strong', and 'required'
+Parsing [invalid]: '[view(view + wrong)]'
+Error: Expected positive number as a constant
+Parsing [invalid]: '[view(view.wrong)]'
+Error: Attribute must be on one of 'width', 'height', 'centerX', 'centerY', 'top', 'bottom', 'left', 'right', 'start', 'end', 'baseline'
+Parsing [valid]: '[button]-[textField]'
+Parsing [valid]: '[button(>=50)]'
+Parsing [valid]: '|-50-[purpleBox]-50-|'
+Parsing [valid]: '|-[view]'
+Parsing [valid]: '[view]|'
+Parsing [valid]: 'V:[topField]-10-[bottomField]'
+Parsing [valid]: '[maroonView][blueView]'
+Parsing [valid]: '[button(100@strong)]'
+Parsing [valid]: '[button1(==button2)]'
+Parsing [valid]: '[flexibleButton(>=70,<=100)]'
+Parsing [valid]: '|-[find]-[findNext]-[findField(>=20)]-|'
+Parsing [valid]: 'H:|-8-[view1(==view2)]-12-[view2]-8-|'
+Parsing [valid]: 'H:|-8-[view3]-8-|'
+Parsing [valid]: 'V:|-8-[view1]-12-[view3(==view1,view2)]-8-|'
+Parsing [valid]: '|-(>=0)-[view]-(>=0)-|'
+Parsing [valid]: '[view(==0@500)]'
+Parsing [valid]: '[view1]-(==0@500)-[view2]'
+Parsing [valid]: '[view1(view2 * 2.0 + 20)]'
+Parsing [valid]: '|-(metric1/2-20.0)-'
+Parsing [valid]: '[view1(view1.height)]'
+shoes_layout_internal_finish called

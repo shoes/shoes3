@@ -33,7 +33,7 @@ solver.add_constraint(b1.width.cn_equal b2.width)
 # Button1 starts 50 from the left margin.
 solver.add_constraint(b1.left.cn_equal left_limit + 50)
 
-# Button2 ends 50 from the right margin (???)
+# Button2 ends 50 from the right margin 
 solver.add_constraint((left_limit + right_limit).cn_equal b2.left + b2.width + 50)
 
 # Button2 starts at least 100 from the end of Button1. This is the
@@ -46,7 +46,7 @@ solver.add_constraint(b1.width.cn_geq 87)
 
 # Button1's preferred width is 87
 solver.add_constraint(b1.width.cn_equal 87, Strength::StrongStrength)
-
+puts "b1: #{b1.inspect}"
 # Button2's minimum width is 113
 solver.add_constraint(b2.width.cn_geq 113)
 

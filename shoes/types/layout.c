@@ -11,6 +11,7 @@
 #include "shoes/types/types.h"
 #include "shoes/types/settings.h"
 #include "shoes/types/layout.h"
+#include "shoes/layout/layouts.h"
 //
 // Shoes::Layout needs to be a slot-like class - mostly same api
 //
@@ -19,7 +20,7 @@ extern VALUE cButton, cBackground;
 // user written managers must implment these methods:
 static ID s_manager, s_setup, s_addw, s_clear;
 extern ID s_remove, s_finish, s_size;
-
+ID s_name;
 /*  FUNC_M generate two functions here
  *  shoes_canvas_c_layout(int argc, VALUE *argv, VALUE self) { ..}
  *      + means call shoes_canvas_repaint_all() at end
@@ -39,6 +40,15 @@ void shoes_layout_init() {
   rb_define_method(cLayout, "width", CASTHOOK(shoes_layout_get_width), 0);
   rb_define_method(cLayout, "start", CASTHOOK(shoes_layout_start), -1);
   rb_define_method(cLayout, "style", CASTHOOK(shoes_layout_style), -1);
+  // VFL parser is not tied to a particular Shoes internal layout. 
+  rb_define_method(cLayout, "vfl_parse", CASTHOOK(shoes_layout_parse_vfl), -1);  
+  //rb_define_method(cLayout, "vfl_metrics", CASTHOOK(shoes_layout_get_metrics), -1);  
+  //rb_define_method(cLayout, "vft_views", CASTHOOK(shoes_layout_get_views), -1);  
+  rb_define_method(cLayout, "vfl_constraints", CASTHOOK(shoes_layout_get_constraints), -1);  
+
+
+  
+  /* Vfl needs, others could use */
   
   /*  RUBY_M generates defines (allow Ruby to call the FUNC_M funtions
   rb_define_method(cCanvas, "layout", CASTHOOK(shoes_canvas_c_layout), -1); 
@@ -47,23 +57,27 @@ void shoes_layout_init() {
   RUBY_M("+layout", layout, -1);
 }
 
-void shoes_layout_mark(shoes_layout *ly) {
-  rb_gc_mark_maybe(ly->canvas);
-  rb_gc_mark_maybe(ly->delegate);
+void shoes_layout_mark(shoes_layout *lay) {
+  rb_gc_mark_maybe(lay->canvas);
+  rb_gc_mark_maybe(lay->delegate);
+  rb_gc_mark_maybe(lay->views);
+  rb_gc_mark_maybe(lay->metrics);
 }
 
-static void shoes_layout_free(shoes_layout *ly) {
-  RUBY_CRITICAL(SHOE_FREE(ly));
+static void shoes_layout_free(shoes_layout *lay) {
+  RUBY_CRITICAL(SHOE_FREE(lay));
 }
 
 VALUE shoes_layout_alloc(VALUE klass) {
   VALUE obj;
-  shoes_layout *ly = SHOE_ALLOC(shoes_layout);
-  SHOE_MEMZERO(ly, shoes_layout, 1);
-  obj = Data_Wrap_Struct(klass, shoes_layout_mark, shoes_layout_free, ly);
+  shoes_layout *lay = SHOE_ALLOC(shoes_layout);
+  SHOE_MEMZERO(lay, shoes_layout, 1);
+  obj = Data_Wrap_Struct(klass, shoes_layout_mark, shoes_layout_free, lay);
   // set fields ? 
-  ly->delegate = Qnil;
-  ly->canvas = Qnil;
+  lay->delegate = Qnil;
+  lay->canvas = Qnil;
+  lay->views = rb_hash_new();
+  lay->metrics = rb_hash_new();
   return obj;
 }
 
@@ -88,6 +102,7 @@ VALUE shoes_layout_new(VALUE attr, VALUE parent) {
     s_setup = rb_intern("setup");
     s_addw = rb_intern("add");
     s_clear = rb_intern("clear");
+    s_name = rb_intern("name");
     // get manager from attr, put in delegate.
     mgr = ATTR(attr, manager);
     if (SYMBOL_P(mgr) || NIL_P(mgr)) {
@@ -229,27 +244,46 @@ VALUE shoes_layout_start(int argc, VALUE *argv, VALUE self) {
 }
 
 VALUE shoes_layout_add_rules(int argc, VALUE *argv, VALUE self) {
-  // TODO: call parse_args once we figure out what it is.
   VALUE arg;
-  if (argc < 1)
-    arg = Qnil;
-  else
-    arg = argv[1];
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "h", &args); 
+  arg = args.a[0];
 	shoes_layout *lay;
 	Data_Get_Struct(self, shoes_layout, lay);
 	shoes_canvas *canvas;
 	Data_Get_Struct(lay->canvas, shoes_canvas, canvas);
+  VALUE rtn;
   if (! NIL_P(lay->delegate)) {
       ID s_rules = rb_intern("rules");
       if (rb_respond_to(lay->delegate, s_rules))
-        rb_funcall(lay->delegate, s_rules, 1, arg);
+        rtn = rb_funcall(lay->delegate, s_rules, 1, arg);
       else
         rb_raise(rb_eArgError, "'rules' not implmented in Layout");
   } else {
-    shoes_layout_internal_rules(lay, canvas, arg);
+    rtn = shoes_layout_internal_rules(lay, canvas, arg);
   }
-  return Qtrue; 
+  return rtn; 
 }
+
+VALUE shoes_layout_parse_vfl(int argc, VALUE *argv, VALUE self) {
+  VALUE arg;
+  rb_arg_list args;
+  rb_parse_args(argc, argv, "h", &args); 
+  arg = args.a[0];
+	shoes_layout *lay;
+	Data_Get_Struct(self, shoes_layout, lay);
+	shoes_canvas *canvas;
+	Data_Get_Struct(lay->canvas, shoes_canvas, canvas);
+  VALUE rtn = shoes_vfl_rules(lay, canvas, arg);
+  return rtn; 
+}
+
+VALUE shoes_layout_get_constraints(int argc, VALUE *argv, VALUE self) {
+	shoes_layout *lay;
+	Data_Get_Struct(self, shoes_layout, lay);
+  return lay->constraints;
+}
+
 
 // --------------- called from canvas internals ------------
 
@@ -286,19 +320,19 @@ void shoes_layout_add_ele(shoes_canvas *canvas, VALUE ele) {
   }
   // Find a delegate or use the internal?
   if (canvas->layout_mgr != Qnil) {
-    shoes_layout *ly;
-    Data_Get_Struct(canvas->layout_mgr, shoes_layout, ly);
+    shoes_layout *lay;
+    Data_Get_Struct(canvas->layout_mgr, shoes_layout, lay);
     shoes_canvas *cvs;
-    Data_Get_Struct(ly->canvas, shoes_canvas, cvs);
-    if (! NIL_P(ly->delegate)) {
-      VALUE del = ly->delegate;
+    Data_Get_Struct(lay->canvas, shoes_canvas, cvs);
+    if (! NIL_P(lay->delegate)) {
+      VALUE del = lay->delegate;
 			shoes_abstract *widget;
 			Data_Get_Struct(ele, shoes_abstract, widget);
-			rb_funcall(del, s_addw, 3, ly->canvas, ele, widget->attr);
+			rb_funcall(del, s_addw, 3, lay->canvas, ele, widget->attr);
       return;
     }
   } 
-  // here if no delgate or no manager object
+  // here no manager object
   shoes_layout_internal_add(canvas, ele);
   return; 
 }
@@ -335,15 +369,24 @@ void shoes_layout_internal_setup(shoes_layout *lay, shoes_canvas *canvas,
 }
 
 void shoes_layout_internal_add(shoes_canvas *canvas, VALUE ele) {
-  fprintf(stderr, "shoes_layout_internal_add called\n");
+  shoes_layout *lay;
+  Data_Get_Struct(canvas->layout_mgr, shoes_layout, lay);
+  if (lay->mgr == Layout_VFL)
+    shoes_vfl_add_ele(canvas, ele);
+  else
+    fprintf(stderr, "shoes_layout_internal_add called\n");
 }
 
 void shoes_layout_internal_clear(shoes_canvas *canvas) {
   fprintf(stderr, "shoes_layout_internal_clear called\n");
 }
 
-void shoes_layout_internal_rules(shoes_layout *lay, shoes_canvas *canvas, VALUE arg) {
-  fprintf(stderr, "shoes_layout_internal_rules called\n");
+VALUE shoes_layout_internal_rules(shoes_layout *lay, shoes_canvas *canvas, VALUE arg) {
+  if (lay->mgr == Layout_VFL) {
+    shoes_vfl_rules(lay, canvas, arg);
+  } else
+    fprintf(stderr, "shoes_layout_internal_rules called\n");
+  return Qnil;
 }
 
 void shoes_layout_internal_finish(shoes_canvas *canvas) {

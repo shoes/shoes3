@@ -119,6 +119,23 @@ file "#{tp}/plot/zzplot.done" => plot_obj do
   touch "#{tp}/plot/zzplot.done"
 end
 
+# Layout 
+mkdir_p "#{tp}/layout", verbose: false
+lay_src = FileList['shoes/layout/*.c']
+lay_hdr = FileList['shoes/layout/*.h']
+lay_obj = []
+lay_src.each do |c|
+  fnm = File.basename(c, ".*")
+  o = "#{tp}/layout/#{fnm}.o"
+  lay_obj << o
+  file o => [c] + lay_hdr do
+    sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
+  end
+end
+file "#{tp}/layout/zzlayout.done" => lay_obj do 
+  touch "#{tp}/layout/zzlayout.done"
+end
+
 # Console 
 mkdir_p "#{tp}/console", verbose: false
 #if RUBY_PLATFORM =~ /darwin/
@@ -152,7 +169,7 @@ else
   end
 end
 
-# Too keep the main Rakefile almost legible, create some file tasks here for detecting 
+# To keep the main Rakefile almost legible, create some file tasks here for detecting 
 # updates to static/manual-en.txt and lib/shoes.rb, lib/shoes/*.rb after shoes is 'setup'
 # but BEFORE new_so/new_link is called - an OSX requirement 
 # Also handle sample/*/*.rb changes 
@@ -171,7 +188,7 @@ file "#{tp}/copyonly/zzshoesrb.done" => ["#{tp}/zzsetup.done", "lib/shoes.rb"] d
   touch "#{tp}/copyonly/zzshoesrb.done" 
 end
 
-# update lib/shoes/*.rb if changed. And  ssl certs file.
+# update lib/shoes/*.rb if changed. And ssl certs file.
 if CROSS && TGT_DIR != 'minlin' && TGT_DIR != 'minbsd' && (! TGT_DIR[/minosx/])
   shoesrblib = FileList["lib/shoes/*.rb"] 
   shoesrblib << "lib/shoes/cacert.pem"

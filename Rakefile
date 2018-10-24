@@ -417,7 +417,8 @@ end
 #These tasks create object files:
 SubDirs = ["#{rtp}/zzbase.done",  "#{rtp}/http/zzdownload.done",
    "#{rtp}/plot/zzplot.done", "#{rtp}/console/zzconsole.done", 
-   "#{rtp}/types/zzwidgets.done", "#{rtp}/native/zznative.done"]
+   "#{rtp}/types/zzwidgets.done", "#{rtp}/layout/zzlayout.done",
+   "#{rtp}/native/zznative.done"]
     
 # Windows doesn't use console - don't try to build it. Delete from dependcies
 case TGT_DIR
