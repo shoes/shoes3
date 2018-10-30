@@ -11,7 +11,7 @@ Shoes.app width: 350, height: 400, resizeable: true do
     end
     @lay.start {
       metrics = {
-        'el1' => 80 # what does this mean or do or should be?
+        'padding' => 10 
       }
       lines = [
         "H:|-[para1(but1)]-[but1]-|",

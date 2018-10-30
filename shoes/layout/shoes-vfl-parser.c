@@ -10,6 +10,7 @@
 #include "shoes/types/layout.h"
 #include "shoes/layout/layouts.h"
 
+#include "shoes/layout/emeus-vfl-parser-private.h"
 // Test data from emeus/examples/simple-grid.c
 
 
@@ -135,15 +136,6 @@ static VALUE wrap_constraint(VflConstraint *c) {
   
 }
 
-void shoes_vfl_add_ele(shoes_canvas *canvas, VALUE ele) {
-  shoes_layout *lay;
-  Data_Get_Struct(canvas->layout_mgr, shoes_layout, lay);
-  shoes_abstract *widget;
-	Data_Get_Struct(ele, shoes_abstract, widget);
-  VALUE name = ATTR(widget->attr, name);
-  char *str = RSTRING_PTR(name);
-  rb_hash_aset(lay->views, name, ele);
-}
 
 // args is a verified Ruby hash.
 VALUE shoes_vfl_rules(shoes_layout *lay, shoes_canvas *canvas, VALUE args) {
@@ -227,7 +219,7 @@ VALUE shoes_vfl_rules(shoes_layout *lay, shoes_canvas *canvas, VALUE args) {
     rb_raise(rb_eArgError, "missing lines: array?");
   
   // feed lines to parser 
-  lay->constraints = rb_ary_new();
+  lay->rbconstraints = rb_ary_new();
   for (int i = 0; i < RARRAY_LEN(lnary); i++) {
     VALUE ln = rb_ary_entry(lnary, i);
     char *line = RSTRING_PTR(ln);
@@ -242,7 +234,7 @@ VALUE shoes_vfl_rules(shoes_layout *lay, shoes_canvas *canvas, VALUE args) {
       //fprintf(stderr, "n_constraints: %d\n", n_constraints);
       for (int i = 0; i < n_constraints; i++) {
          VflConstraint *c = &constraints[i];
-         rb_ary_push(lay->constraints, wrap_constraint(c));
+         rb_ary_push(lay->rbconstraints, wrap_constraint(c));
       }
     }
   }

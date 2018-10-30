@@ -19,10 +19,8 @@ typedef struct {
   Layout_Types mgr;
   VALUE views;      // VFL speak. Aka Widgets, Shoes elements
   VALUE metrics;    // VFL speak. 
-  VALUE constraints; // VFL parse results, ruby-ized.  not used ? 
-  /*  emeus
-   *  emeus_create_constraints_from_description uses the parser
-   */
+  VALUE rbconstraints; // VFL parse results, ruby-ized.  not used ? 
+  void *root;       // whatever the layout wants.
 } shoes_layout;
 
 // all drawables do/should implement this at the top - slightly safer
@@ -63,6 +61,6 @@ VALUE shoes_layout_internal_delete_at(shoes_layout *lay, shoes_canvas *canvas,
       VALUE ele, int pos);
 void shoes_layout_internal_clear(shoes_canvas *canvas);
 void shoes_layout_internal_size(shoes_layout *lay, shoes_canvas *canvas, int pass);
-void shoes_layout_internal_finish(shoes_canvas *canvas);
+void shoes_layout_internal_finish(shoes_layout *lay, shoes_canvas *canvas);
 VALUE shoes_layout_internal_rules(shoes_layout *lay, shoes_canvas *canvas, VALUE arg);
 #endif

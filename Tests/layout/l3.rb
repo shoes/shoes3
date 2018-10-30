@@ -5,7 +5,7 @@ require 'cassowary'
 include Cassowary
 class CassowaryLayout 
   attr_accessor :canvas, :widgets, :solver, :attrs, :left_limit,
-	:right_limit, :top_limit, :height_limit, :right_limit_stay,
+	:right_limit, :top_limit, :height_limit, :rl_stay, :hl_stay,
   :canvas_set, :canvas_w, :canvas_h
   
   def initialize()
@@ -40,8 +40,11 @@ class CassowaryLayout
 		@right_limit = Variable.new(name: 'width', value: wid)
 		@top_limit = Variable.new(name: "top", value: 0.0)
 		@height_limit = Variable.new(name: "height", value: hgt)
-		@solver.add_stay(@left_limit)
-		@solver.add_stay(@right_limit, Strength::WeakStrength)
+    
+		@solver.add_stay(@left_limit, Strength::RequiredStrength)
+		@rl_stay = @solver.add_stay(@right_limit)
+    @solver.add_stay(@top_limit, Strength::RequiredStrength)
+    @hl_stay = @solver.add_stay(@height_limit)
     $stderr.puts "callback: setup #{wid} X #{hgt}"
   end
   
@@ -80,11 +83,17 @@ class CassowaryLayout
       return
     else
       $stderr.puts "callback: size Change!  w: #{canvas.width} h:#{canvas.height}"
+      # reset stays for new window size
+      #@solver.remove_constraint(@rl_stay)
+      @right_limit.value = canvas.width
+      #@rl_stay = @solver.add_constraint(@right_limit, Strength::RequiredStrength)
+      #@solver.add_constraint(@rl_stay)
+      @solver.solve
+      self.finish
     end
   end
   
   def widget_defaults
-    @canvas.show
 		@widgets.each_pair do |id, ele|
 			vh = @attrs[id]['height']
       vh.value = ele.height
@@ -95,13 +104,7 @@ class CassowaryLayout
   end
  
   def resize(w, h)
-    @right_limit.value = w
-    @height_limit.value = h
-    #@solver.add_stay(@right_limit, Strength::RequiredStrength)
-    
-    #right_limit_stay = solver.add_constraint(right_limit, strength=REQUIRED)
-    #solver.add_constraint(right_limit_stay)
- end
+  end
   
   def clear()
     $stderr.puts "callback: clear"
@@ -184,7 +187,7 @@ Shoes.app width: 480, height: 280, resizeable: true do
       @ml.add_constraint(@ml.var('b2-width').cn_equal 113, Strength::StrongStrength)
       
       # string b3 is at the bottom ? 
-      @ml.add_constraint(@ml.height_limit.cn_equal @ml.var('b3-top'))
+      @ml.add_constraint(@ml.var('b3-top').cn_equal 100)
       
       @lay.finish
       @p.text = @lay.inspect    

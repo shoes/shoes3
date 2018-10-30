@@ -42,8 +42,6 @@ void shoes_layout_init() {
   rb_define_method(cLayout, "style", CASTHOOK(shoes_layout_style), -1);
   // VFL parser is not tied to a particular Shoes internal layout. 
   rb_define_method(cLayout, "vfl_parse", CASTHOOK(shoes_layout_parse_vfl), -1);  
-  //rb_define_method(cLayout, "vfl_metrics", CASTHOOK(shoes_layout_get_metrics), -1);  
-  //rb_define_method(cLayout, "vft_views", CASTHOOK(shoes_layout_get_views), -1);  
   rb_define_method(cLayout, "vfl_constraints", CASTHOOK(shoes_layout_get_constraints), -1);  
 
 
@@ -211,7 +209,7 @@ VALUE shoes_layout_finish(int argc, VALUE *argv, VALUE self) {
     }
   } 
   // here if no delgate or no manager object
-  shoes_layout_internal_finish(canvas);
+  shoes_layout_internal_finish(lay, canvas);
   return Qtrue; 
 }
 
@@ -274,14 +272,23 @@ VALUE shoes_layout_parse_vfl(int argc, VALUE *argv, VALUE self) {
 	Data_Get_Struct(self, shoes_layout, lay);
 	shoes_canvas *canvas;
 	Data_Get_Struct(lay->canvas, shoes_canvas, canvas);
-  VALUE rtn = shoes_vfl_rules(lay, canvas, arg);
+  VALUE rtn;
+  if (lay->mgr == Layout_VFL)
+    rtn = shoes_vfl_parse(lay, canvas, arg);
+  else
+    rtn = shoes_vfl_rules(lay, canvas, arg); // standalone parser, creates ruby hash
   return rtn; 
 }
 
 VALUE shoes_layout_get_constraints(int argc, VALUE *argv, VALUE self) {
 	shoes_layout *lay;
 	Data_Get_Struct(self, shoes_layout, lay);
-  return lay->constraints;
+  if (lay->mgr == Layout_VFL) {
+    shoes_canvas *canvas;
+    Data_Get_Struct(lay->canvas, shoes_canvas, canvas);
+    return shoes_vfl_get_constraints(lay, canvas);
+  }
+  return lay->rbconstraints;
 }
 
 
@@ -363,7 +370,7 @@ void shoes_layout_cleared(shoes_canvas *canvas) {
 void shoes_layout_internal_setup(shoes_layout *lay, shoes_canvas *canvas,
       VALUE attr) {
   if (lay->mgr == Layout_VFL) 
-    fprintf(stderr, "Vfl internal layout setup called\n");
+    shoes_vfl_setup(lay, canvas, attr);
   else
     fprintf(stderr, "shoes_layout_internal_setup called\n");
 }
@@ -378,27 +385,43 @@ void shoes_layout_internal_add(shoes_canvas *canvas, VALUE ele) {
 }
 
 void shoes_layout_internal_clear(shoes_canvas *canvas) {
-  fprintf(stderr, "shoes_layout_internal_clear called\n");
+  shoes_layout *lay;
+  Data_Get_Struct(canvas->layout_mgr, shoes_layout, lay);
+  if (lay->mgr == Layout_VFL) {
+    shoes_vfl_clear(lay, canvas);
+  } else {
+    fprintf(stderr, "shoes_layout_internal_clear called\n");
+  }
 }
 
+// This is for adding constraints, not parsing
 VALUE shoes_layout_internal_rules(shoes_layout *lay, shoes_canvas *canvas, VALUE arg) {
   if (lay->mgr == Layout_VFL) {
-    shoes_vfl_rules(lay, canvas, arg);
+    shoes_vfl_add_contraints(lay, canvas, arg);
   } else
     fprintf(stderr, "shoes_layout_internal_rules called\n");
   return Qnil;
 }
 
-void shoes_layout_internal_finish(shoes_canvas *canvas) {
-	fprintf(stderr,"shoes_layout_internal_finish called\n");
+void shoes_layout_internal_finish(shoes_layout *lay, shoes_canvas *canvas) {
+  if (lay->mgr == Layout_VFL)
+    shoes_vfl_finish(lay, canvas);
+  else
+    fprintf(stderr,"shoes_layout_internal_finish called\n");
 }
 
 void shoes_layout_internal_size(shoes_layout *lay, shoes_canvas *canvas, int pass) {
-  fprintf(stderr,"shoes_layout_internal_size called pass: %d\n", pass);
+  if (lay->mgr == Layout_VFL)
+    shoes_vfl_size(lay, canvas, pass);
+  else
+    fprintf(stderr,"shoes_layout_internal_size called pass: %d\n", pass);
 }
 
 VALUE shoes_layout_internal_delete_at(shoes_layout *lay, shoes_canvas *canvas,
       VALUE ele, int pos) {
-  fprintf(stderr, "shoes_layout_internal_delete_at called\n");
+  if (lay->mgr == Layout_VFL)
+    shoes_vfl_delete_at(lay, canvas, ele, pos);
+  else
+    fprintf(stderr, "shoes_layout_internal_delete_at called\n");
   return Qtrue;
 }
