@@ -3,6 +3,16 @@
  *  Emeus has A LOT of Gobject/Glib stuff which we keep. Some of the
  *  emeus code has been deleted (the gtk interface builder for example).
  *  
+ * The shoes protocol for layouts is 'setup', add_ele..., finish and then
+ * responding to size events.  The emeus-contraint-layout.c uses the much
+ * more complicated Gtk process. We use the emeus names, macros and code
+ * even when it's been modified for the Shoes/ruby way.  
+ * 
+ * We  use a GObject implementation of EmeusConstraintLayout without all the 
+ * Gtk stuff. Same for EmeusContraintLayoutChild.  
+ * 
+ * We also have a a Ruby class CassowaryConstraint for mapping between
+ * Ruby and EmeusConstraint (and VflConstraint)
 */
 #include "shoes/app.h"
 #include "shoes/canvas.h"
