@@ -4,7 +4,6 @@
 // C level layouts. Not all are implemented. 
 typedef enum {
   Layout_None,
-  Layout_Constraints,
   Layout_VFL,
   Layout_Grid,
 } Layout_Types;
@@ -18,7 +17,7 @@ typedef struct {
   // turns out to be. 
   Layout_Types mgr;
   VALUE views;      // VFL speak. Aka Widgets, Shoes elements
-  VALUE metrics;    // VFL speak. 
+  VALUE metrics;    // VFL speak. sort of like a macro. 
   VALUE rbconstraints; // VFL parse results, ruby-ized.  not used ? 
   void *root;       // whatever the layout wants.
 } shoes_layout;
@@ -46,6 +45,7 @@ VALUE shoes_layout_start(int argc, VALUE *argv, VALUE self);
 VALUE shoes_layout_style(int argc, VALUE *argv, VALUE self);
 VALUE shoes_layout_parse_vfl(int argc, VALUE *argv, VALUE self);
 VALUE shoes_layout_get_constraints(int argc, VALUE *argv, VALUE self);
+VALUE shoes_layout_append_constraints(int argc, VALUE *argv, VALUE self);
 
 // canvas calls these, delegate to usr written (ruby) or the new C crafted layouts
 void shoes_layout_size(shoes_canvas *canvas, int pass);

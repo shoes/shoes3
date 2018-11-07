@@ -332,6 +332,7 @@ VALUE shoes_canvas_stack(int, VALUE *, VALUE);
 VALUE shoes_canvas_mask(int, VALUE *, VALUE);
 VALUE shoes_canvas_widget(int, VALUE *, VALUE);
 VALUE shoes_canvas_layout(int, VALUE *, VALUE);
+VALUE shoes_canvas_cassowary_constraint(int, VALUE *, VALUE);
 VALUE shoes_canvas_hide(VALUE);
 VALUE shoes_canvas_show(VALUE);
 VALUE shoes_canvas_toggle(VALUE);

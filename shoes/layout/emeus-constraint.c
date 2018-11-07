@@ -58,7 +58,7 @@
  */
 
 #include "config.h"
-#include "shoes/layout/layouts.h"
+#include "shoes/layout/shoes-vfl.h"
 #include "emeus-constraint-private.h"
 
 #include "emeus-expression-private.h"
@@ -218,7 +218,8 @@ emeus_constraint_class_init (EmeusConstraintClass *klass)
    */
   emeus_constraint_properties[PROP_TARGET_OBJECT] =
     g_param_spec_object ("target-object", "Target Object", NULL,
-                         GTK_TYPE_WIDGET,
+                         GSHOES_TYPE_ELE,
+//                         GTK_TYPE_WIDGET,
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_READWRITE |
                          G_PARAM_STATIC_STRINGS);
@@ -264,7 +265,8 @@ emeus_constraint_class_init (EmeusConstraintClass *klass)
    */
   emeus_constraint_properties[PROP_SOURCE_OBJECT] =
     g_param_spec_object ("source-object", "Source Object", NULL,
-                         GTK_TYPE_WIDGET,
+                         //GTK_TYPE_WIDGET,
+                         GSHOES_TYPE_ELE,
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_READWRITE |
                          G_PARAM_STATIC_STRINGS);
@@ -396,8 +398,10 @@ emeus_constraint_new (gpointer                 target_object,
                       double                   constant,
                       int                      strength)
 {
-  g_return_val_if_fail (target_object == NULL || GTK_IS_WIDGET (target_object), NULL);
-  g_return_val_if_fail (source_object == NULL || GTK_IS_WIDGET (source_object), NULL);
+  //g_return_val_if_fail (target_object == NULL || GTK_IS_WIDGET (target_object), NULL);
+  //g_return_val_if_fail (source_object == NULL || GTK_IS_WIDGET (source_object), NULL);
+  g_return_val_if_fail (target_object == NULL || GSHOES_IS_ELE (target_object), NULL);
+  g_return_val_if_fail (source_object == NULL || GSHOES_IS_ELE (source_object), NULL);
 
   return g_object_new (EMEUS_TYPE_CONSTRAINT,
                        "target-object", target_object,
@@ -439,7 +443,8 @@ emeus_constraint_new_constant (gpointer                 target_object,
                                double                   constant,
                                int                      strength)
 {
-  g_return_val_if_fail (target_object == NULL || GTK_IS_WIDGET (target_object), NULL);
+  //g_return_val_if_fail (target_object == NULL || GTK_IS_WIDGET (target_object), NULL);
+  g_return_val_if_fail (target_object == NULL || GSHOES_IS_ELE (target_object), NULL);
 
   return g_object_new (EMEUS_TYPE_CONSTRAINT,
                        "target-object", target_object,

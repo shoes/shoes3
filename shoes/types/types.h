@@ -30,6 +30,7 @@
 #include "shoes/types/menuitem.h"
 #include "shoes/types/settings.h"
 #include "shoes/types/layout.h"
+#include "shoes/types/cassowary-constraint.h"
 
 #define SHOES_TYPES_INIT \
 	shoes_0_native_type_init(); \
@@ -62,5 +63,6 @@
   shoes_menubar_init(); \
   shoes_menu_init(); \
   shoes_menuitem_init(); \
-  shoes_layout_init();
+  shoes_layout_init(); \
+  shoes_cassowary_constraint_init();
 

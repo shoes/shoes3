@@ -54,7 +54,7 @@ EmeusConstraint *emeus_constraint_new_constant (gpointer  target_object,
       int                      strength);
 
 extern
-gpointer  emeus_constraint_get_target_object(EmeusConstraint         *constraint);
+gpointer                  emeus_constraint_get_target_object(EmeusConstraint *constraint);
 extern 
 EmeusConstraintAttribute  emeus_constraint_get_target_attribute   (EmeusConstraint *constraint);
 extern
@@ -73,12 +73,13 @@ extern
 gboolean                  emeus_constraint_is_required            (EmeusConstraint *constraint);
 
 extern
-gboolean                   emeus_constraint_is_attached            (EmeusConstraint *constraint);
+gboolean                  emeus_constraint_is_attached            (EmeusConstraint *constraint);
 
 extern
-void                       emeus_constraint_set_active             (EmeusConstraint  *constraint,
+void                      emeus_constraint_set_active             (EmeusConstraint  *constraint,
       gboolean active);
 extern
-gboolean                   emeus_constraint_get_active(EmeusConstraint *constraint);
-
+gboolean                  emeus_constraint_get_active(EmeusConstraint *constraint);
+const char *
+emeus_constraint_to_string (EmeusConstraint *constraint);
 G_END_DECLS

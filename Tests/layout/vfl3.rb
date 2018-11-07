@@ -21,12 +21,14 @@ Shoes.app width: 350, height: 400, resizeable: true do
         "V:|-[but1(but2,but3)]-[but2]-[but3]-|"
       ]
       if @lay.vfl_parse lines: lines, metrics: metrics
-        constraints = @lay.vfl_constraints
+        constraints = @lay.vfl_constraints #true # true produces hash
         # display purposes only?
-        constraints.each { |c| $stderr.puts c.inspect }
+        #constraints.each { |c| $stderr.puts c.inspect }
+        #@lay.vfl_append  constraints[10]
         @lay.finish constraints 
       end
     }
   end
-  para "After layout"
+  #cs = Shoes::Constraint.new 'but1','width', 'eq', 'but3', 'width', 1, 8.0, 1001001000
+  #para "#{cs.inspect}"
 end

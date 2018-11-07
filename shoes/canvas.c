@@ -1449,4 +1449,3 @@ VALUE shoes_canvas_dialog_plain(VALUE self) {
     SETUP_CANVAS();
     return shoes_native_dialog_color(canvas->app);
 }
-

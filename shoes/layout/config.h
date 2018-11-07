@@ -9,12 +9,17 @@
 
 #define GETTEXT_PACKAGE PACKAGE_NAME
 
-#define HAVE_STDBOOL_H
+#ifndef HAVE_STDBOOL_H
+//#define HAVE_STDBOOL_H
+#endif
 
-#define HAVE_STDINT_H
+#ifndef HAVE_STDINT_H
+//#define HAVE_STDINT_H
+#endif
 
-#define HAVE_STDLIB_H
-
+#ifndef HAVE_STDLIB_H
+//#define HAVE_STDLIB_H
+#endif
 #define LOCALEDIR PACKAGE_LOCALE_DIR
 
 #define PACKAGE_DATADIR "/usr/local/share"

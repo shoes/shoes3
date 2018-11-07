@@ -8,7 +8,7 @@
 #include "shoes/types/types.h"
 #include "shoes/types/settings.h"
 #include "shoes/types/layout.h"
-#include "shoes/layout/layouts.h"
+#include "shoes/layout/shoes-vfl.h"
 
 #include "shoes/layout/emeus-vfl-parser-private.h"
 // Test data from emeus/examples/simple-grid.c
@@ -85,7 +85,7 @@ void  print_constraint(VflConstraint *c) {
 
 extern ID s_name;
 
-static VALUE wrap_constraint(VflConstraint *c) {
+VALUE shoes_vfl_wrap_constraint(VflConstraint *c) {
   VALUE hsh = rb_hash_new();
   VALUE val, key;
   key = ID2SYM(rb_intern("view1"));
@@ -234,7 +234,7 @@ VALUE shoes_vfl_rules(shoes_layout *lay, shoes_canvas *canvas, VALUE args) {
       //fprintf(stderr, "n_constraints: %d\n", n_constraints);
       for (int i = 0; i < n_constraints; i++) {
          VflConstraint *c = &constraints[i];
-         rb_ary_push(lay->rbconstraints, wrap_constraint(c));
+         rb_ary_push(lay->rbconstraints, shoes_vfl_wrap_constraint(c));
       }
     }
   }

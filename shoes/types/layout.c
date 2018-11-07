@@ -11,11 +11,11 @@
 #include "shoes/types/types.h"
 #include "shoes/types/settings.h"
 #include "shoes/types/layout.h"
-#include "shoes/layout/layouts.h"
+#include "shoes/layout/shoes-vfl.h"
 //
 // Shoes::Layout needs to be a slot-like class - mostly same api
 //
-extern VALUE cButton, cBackground;
+extern VALUE cButton, cBackground, cCassowaryconstraint;
 
 // user written managers must implment these methods:
 static ID s_manager, s_setup, s_addw, s_clear;
@@ -43,6 +43,7 @@ void shoes_layout_init() {
   // VFL parser is not tied to a particular Shoes internal layout. 
   rb_define_method(cLayout, "vfl_parse", CASTHOOK(shoes_layout_parse_vfl), -1);  
   rb_define_method(cLayout, "vfl_constraints", CASTHOOK(shoes_layout_get_constraints), -1);  
+  rb_define_method(cLayout, "vfl_append", CASTHOOK(shoes_layout_append_constraints), -1);  
 
 
   
@@ -111,8 +112,6 @@ VALUE shoes_layout_new(VALUE attr, VALUE parent) {
         ID  mgrid = SYM2ID(mgr);
         if (mgrid == rb_intern("Vfl"))
           lay->mgr = Layout_VFL;
-        else if (mgrid == rb_intern("constraints"))
-          lay->mgr = Layout_Constraints;
         else if (mgrid == rb_intern("grid"))
           lay->mgr = Layout_Grid;
         else {
@@ -263,6 +262,20 @@ VALUE shoes_layout_add_rules(int argc, VALUE *argv, VALUE self) {
   return rtn; 
 }
 
+VALUE shoes_layout_append_constraints(int argc, VALUE *argv, VALUE self)
+{
+	shoes_layout *lay;
+	Data_Get_Struct(self, shoes_layout, lay);
+  if (argc != 1 || (! rb_obj_is_kind_of(argv[0], cCassowaryconstraint)))
+    rb_raise(rb_eArgError, "not a Constraint argument");
+  if (lay->mgr != Layout_VFL)
+    rb_raise(rb_eArgError, "not allowed for this layout manager");
+  shoes_canvas *canvas;
+  Data_Get_Struct(lay->canvas, shoes_canvas, canvas);
+  shoes_vfl_add_contraints(lay, canvas, argv[0]);
+}
+
+
 VALUE shoes_layout_parse_vfl(int argc, VALUE *argv, VALUE self) {
   VALUE arg;
   rb_arg_list args;
@@ -283,10 +296,16 @@ VALUE shoes_layout_parse_vfl(int argc, VALUE *argv, VALUE self) {
 VALUE shoes_layout_get_constraints(int argc, VALUE *argv, VALUE self) {
 	shoes_layout *lay;
 	Data_Get_Struct(self, shoes_layout, lay);
+  VALUE ashash = Qnil;
+  if (argc==1 && TYPE(argv[0])==T_TRUE)
+    ashash = argv[0];
   if (lay->mgr == Layout_VFL) {
     shoes_canvas *canvas;
     Data_Get_Struct(lay->canvas, shoes_canvas, canvas);
-    return shoes_vfl_get_constraints(lay, canvas);
+    if (NIL_P(ashash))
+      return shoes_vfl_get_constraints(lay, canvas);
+    else
+      return shoes_vfl_get_constraints_hash(lay, canvas);
   }
   return lay->rbconstraints;
 }

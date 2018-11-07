@@ -46,7 +46,7 @@ solver.add_constraint(b1.width.cn_geq 87)
 
 # Button1's preferred width is 87
 solver.add_constraint(b1.width.cn_equal 87, Strength::StrongStrength)
-puts "b1: #{b1.inspect}"
+
 # Button2's minimum width is 113
 solver.add_constraint(b2.width.cn_geq 113)
 
