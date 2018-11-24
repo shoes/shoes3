@@ -27,7 +27,9 @@ G_BEGIN_DECLS
 struct _EmeusConstraintLayoutChild
 {
   //GtkBin parent_instance;
-  GshoesEle *parent_instance;
+  GObject   parent_instance;
+  
+  GshoesEle *widget;
 
   /* An optional name for the child, to be used when building
    * constraints from string descriptions
@@ -69,9 +71,13 @@ struct _EmeusConstraintLayoutChild
 struct _EmeusConstraintLayout
 {
   //GtkContainer parent_instance;
-  void * parent_instance;  // points to shoes_layout struct 
-
-  GSequence *children;
+  GObject parent_instance;
+  shoes_layout *sh_layout;  // points to shoes_layout struct 
+  gboolean setup; 
+  
+  GList *parsed_constraints;       // from load. Shoes can get them.
+  
+  GSequence *children;     // of EmeusConstraintLayoutChild NOT Gtk-Bin
 
   SimplexSolver solver;
 

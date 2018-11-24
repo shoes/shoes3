@@ -129,7 +129,8 @@ VALUE shoes_vfl_wrap_constraint(VflConstraint *c) {
   rb_hash_aset(hsh, key, val);
   
   key = ID2SYM(rb_intern("strength"));
-  val = DBL2NUM(c->strength);
+  //val = DBL2NUM(c->strength);
+  val = rb_str_new2(strength_to_string (c->strength));
   rb_hash_aset(hsh, key, val);
   
   return hsh;

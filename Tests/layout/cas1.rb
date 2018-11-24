@@ -89,7 +89,7 @@ class CassowaryLayout
       #@rl_stay = @solver.add_constraint(@right_limit, Strength::RequiredStrength)
       #@solver.add_constraint(@rl_stay)
       @solver.solve
-      self.finish
+      self.finish(nil)
     end
   end
   
@@ -114,7 +114,7 @@ class CassowaryLayout
     $stderr.puts "callback rules #{arg}"
   end
  
-  def finish()
+  def finish(arg)
 		@widgets.each_pair do |k, widget|
 			left = widget.left
 			top = widget.top
@@ -189,7 +189,7 @@ Shoes.app width: 480, height: 280, resizeable: true do
       # string b3 is at the bottom ? 
       @ml.add_constraint(@ml.var('b3-top').cn_equal 100)
       
-      @lay.finish
+      @lay.finish(nil)
       @p.text = @lay.inspect    
     end
   end

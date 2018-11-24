@@ -22,6 +22,7 @@
 #include "shoes/layout/emeus-types.h"
 #include "shoes/layout/emeus-constraint.h"
 #include "shoes/layout/gshoes-ele.h"
+#include "shoes/layout/shoes-vfl.h"
 G_BEGIN_DECLS
 
 #define EMEUS_TYPE_CONSTRAINT_LAYOUT (emeus_constraint_layout_get_type())
@@ -40,13 +41,22 @@ EMEUS_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (EmeusConstraintLayout, emeus_constraint_layout, EMEUS, CONSTRAINT_LAYOUT, GObject)
 
 EMEUS_AVAILABLE_IN_1_0
-EmeusConstraintLayout *     emeus_constraint_layout_new     (void);
+EmeusConstraintLayout *     emeus_constraint_layout_new  (shoes_layout *lay);
 EMEUS_AVAILABLE_IN_1_0
-void            emeus_constraint_layout_pack                    (EmeusConstraintLayout *layout,
-                                                                 GshoesEle            *child,
-                                                                 const char            *name,
-                                                                 EmeusConstraint       *first_constraint,
-                                                                 ...);
+void            emeus_constraint_layout_pack   (EmeusConstraintLayout *layout,
+                                                GshoesEle            *child,
+                                                const char            *name,
+                                                EmeusConstraint       *first_constraint,
+                                                ...);
+extern void
+emeus_constraint_layout_size_allocate (EmeusConstraintLayout *self, 
+                                          int width,
+                                          int height);
+extern Variable *
+get_layout_attribute (EmeusConstraintLayout   *layout,
+                      EmeusConstraintAttribute attr);
+
+
 EMEUS_AVAILABLE_IN_1_0
 void            emeus_constraint_layout_add_constraint          (EmeusConstraintLayout *layout,
                                                                  EmeusConstraint       *constraint);
@@ -77,8 +87,13 @@ EMEUS_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (EmeusConstraintLayoutChild, emeus_constraint_layout_child, EMEUS, CONSTRAINT_LAYOUT_CHILD, GObject)
 
 EMEUS_AVAILABLE_IN_1_0
-EmeusConstraintLayoutChild *     emeus_constraint_layout_child_new  (const char *name);
-
+EmeusConstraintLayoutChild *     emeus_constraint_layout_child_new  (const char *name,
+        GshoesEle *ele);
+        
+extern Variable *
+get_child_attribute (EmeusConstraintLayoutChild *child,
+                     EmeusConstraintAttribute    attr);
+                     
 EMEUS_AVAILABLE_IN_1_0
 const char *    emeus_constraint_layout_child_get_name                  (EmeusConstraintLayoutChild *child);
 EMEUS_AVAILABLE_IN_1_0

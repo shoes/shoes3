@@ -31,6 +31,9 @@
 #include "shoes/layout/emeus-simplex-solver-private.h"
 #include "shoes/layout/emeus-utils-private.h"
 #include "shoes/layout/emeus.h"
+#include "shoes/layout/emeus-constraint-layout-private.h"
+#include "shoes/layout/emeus-constraint-layout.h"
+#if 0
 // These structs are mostly glib - not ruby
 typedef struct {
   SimplexSolver *solver; 
@@ -50,7 +53,7 @@ typedef struct {
     Constraint *top, *left, *width, *height;
   } stays;
 } EmeusConstraintLayout;
-
+#endif
 // in shoes-vfl-parser.c:
 VALUE shoes_vfl_rules(shoes_layout *lay, shoes_canvas *canvas, VALUE args);
 // in shoes-vfl.c:
@@ -66,12 +69,16 @@ VALUE shoes_vfl_parse(shoes_layout *lay, shoes_canvas *canvas, VALUE arg);
 VALUE shoes_vfl_get_constraints(shoes_layout *lay, shoes_canvas *canvas);
 VALUE shoes_vfl_get_constraints_hash(shoes_layout *lay, shoes_canvas *canvas);
 gboolean shoes_vfl_is_element(GshoesEle *ele);
+
 // some emeus-contraint-layout functions we sort of emulate.
-SimplexSolver * emeus_constraint_layout_get_solver(EmeusConstraintLayout *layout);
+SimplexSolver *emeus_constraint_layout_get_solver(EmeusConstraintLayout *layout);
 void  emeus_constraint_layout_activate_constraint (EmeusConstraintLayout *layout,
      EmeusConstraint *constraint);
 void emeus_constraint_layout_deactivate_constraint(EmeusConstraintLayout *layout,
     EmeusConstraint *constraint);
-
+    
+void shoes_vfl_change_pos(GshoesEle *ele, int x, int y, int width, int height);
+void shoes_vfl_child_size(EmeusConstraintLayoutChild *child);       
+void shoes_vfl_outer_size(EmeusConstraintLayout *layout, int width, int height);
 
 #endif

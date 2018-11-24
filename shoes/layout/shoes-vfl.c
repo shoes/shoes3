@@ -39,7 +39,7 @@ VALUE shoes_vfl_hash_emeus(EmeusConstraint *c);
 EmeusConstraintAttribute shoes_vfl_attr_from_str(char *attr);
 EmeusConstraintRelation shoes_vfl_rel_from_str(char *rel);
 // Temporary - just enough to link on non gtk platforms. WARNING.
-
+#if 0
 SimplexSolver * emeus_constraint_layout_get_solver(EmeusConstraintLayout *layout)
 {
   return layout->solver;
@@ -56,7 +56,7 @@ void emeus_constraint_layout_deactivate_constraint(EmeusConstraintLayout *layout
 {
   printf("emeus_constraint_layout_deactivate_constraint called\n");
 }
-
+#endif
 
 // --------- implement shoes usr layout protocol for vfl/emeus  ----------- 
 
@@ -65,26 +65,20 @@ void shoes_vfl_setup(shoes_layout *lay, shoes_canvas *canvas, VALUE attr) {
   fprintf(stderr, "shoes_vfl_setup called\n");
   // create OUR layout struct - different from the shoes_layout, sort of.
   EmeusConstraintLayout *layout;
-  layout = malloc(sizeof(EmeusConstraintLayout));
-  // make a pointer to the solver (aka context, tableau)
-  SimplexSolver *solver = malloc(sizeof (SimplexSolver));
-  solver->initialized = 0;
-  simplex_solver_init (solver);
-  layout->solver = solver;
-  layout->children = NULL;
-  layout->shoes_contents = lay;  // cross link 
+  layout = emeus_constraint_layout_new(lay);
   lay->root = (void *)layout;
   
   // get height and width from attr
   VALUE hgtobj, widobj;
-  int wid, hgt = 0;
+  int wid, hgt = 100;
   widobj = ATTR(attr, width);
   if (! NIL_P(widobj))
     wid = NUM2INT(widobj);
   hgtobj = ATTR(attr, height);
   if (! NIL_P(hgtobj))
     hgt = NUM2INT(hgtobj);
-    
+  
+#if 0   
   // init hash tables for elements (views) and metrics
   layout->views = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_free);
   layout->metrics = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_free);
@@ -98,6 +92,7 @@ void shoes_vfl_setup(shoes_layout *lay, shoes_canvas *canvas, VALUE attr) {
                                              NULL);
 
   shoes_vfl_add_layout_stays (layout);
+#endif
 }
 
 void shoes_vfl_add_ele(shoes_canvas *canvas, VALUE ele) {
@@ -110,10 +105,16 @@ void shoes_vfl_add_ele(shoes_canvas *canvas, VALUE ele) {
     rb_raise(rb_eArgError, "please supply a name: ");
   char *str = RSTRING_PTR(name);
   rb_hash_aset(lay->views, name, ele);
+#if 0
   /*
    *  create Variables/constraints for 'ele'. At this point in time
-   *  we don't have w or h for the elements
+   *  we don't have w or h for the element 
   */
+  GString *gstr = g_string_new(str);
+  GshoesEle *gele = gshoes_ele_new(gstr, (gpointer)ele);
+  EmeusConstraintLayout *layout = (EmeusConstraintLayout *)lay->root;
+  emeus_constraint_layout_pack (layout, gele, str, NULL, NULL);
+#endif
 }
 
 void shoes_vfl_delete_at(shoes_layout *lay, shoes_canvas *canvas, VALUE ele,
@@ -129,25 +130,71 @@ void shoes_vfl_clear(shoes_layout *lay, shoes_canvas *canvas)
 
 void shoes_vfl_size(shoes_layout *lay, shoes_canvas *canvas, int pass) {
   fprintf(stderr, "shoes_vfl_size pass: %d  called\n", pass);
+  if (pass == 0) 
+    return;
+  EmeusConstraintLayout *layout = (EmeusConstraintLayout *)lay->root;
+  if (layout->setup) {
+    fprintf(stderr, "shoes_vfl_size: recomputing\n");
+    shoes_vfl_outer_size(layout, canvas->width, canvas->height);
+  }
+  return;
 }
  
+
 void shoes_vfl_finish(shoes_layout *lay, shoes_canvas *canvas) {
 	fprintf(stderr,"shoes_vfl_finish called\n");
+  /*
+   *  create Variables/constraints for elements 
+  */
   EmeusConstraintLayout *layout = (EmeusConstraintLayout *)lay->root;
-  // Now What ?
+  VALUE keys;
+  keys = rb_funcall(lay->views, rb_intern("keys"), 0);
+  for (int i = 0; i < RARRAY_LEN(keys); i++) {
+    VALUE ent = rb_ary_entry(keys, i); 
+    GString *str = g_string_new(RSTRING_PTR(ent));
+    // we want the Shoes ele to match the name (key)
+    VALUE ele = rb_hash_aref(lay->views, ent);
+    GshoesEle *gele = gshoes_ele_new(str, (gpointer)ele);    
+    emeus_constraint_layout_pack (layout, gele, RSTRING_PTR(ent), NULL, NULL);
+  }
+  // Update the outer w/h constraints and stays, and the inners.
+  shoes_vfl_outer_size(layout, canvas->width, canvas->height);
+  // compute (may not be needed ?
+  simplex_solver_resolve (&layout->solver); 
+  // debug printout 
+  layout->setup = true;
+   
   
 #if 0  // height,top,width,left - the stays.
   GHashTableIter iter;
   gpointer key, value;
   
-  g_hash_table_iter_init (&iter, layout->bound_attributes);
+  g_hash_table_iter_init (&iter, layout->constraints);
   while (g_hash_table_iter_next (&iter, &key, &value)) {
       /* do something with key and value */
       char *str = (char *)key;
-      EmeusConstraintAttribute *attr = (EmeusConstraintAttribute *)value;
-      fprintf(stderr, "attr: %s\n", str);
+      EmeusConstraint *cs = (EmeusConstraint *)value;
+      char *as =  emeus_constraint_to_string(cs);
+      fprintf(stderr, "stay cs: %s: %s \n", str, as);
   }
+  
 #endif 
+}
+
+GshoesEle * 
+shoes_vfl_find_child(EmeusConstraintLayout *layout, char *name) {
+  GSequenceIter *iter;
+  GshoesEle *target = NULL;
+  iter = g_sequence_get_begin_iter (layout->children);
+  while (!g_sequence_iter_is_end (iter)) {
+    EmeusConstraintLayoutChild *child;
+    child = (EmeusConstraintLayoutChild *)g_sequence_get (iter);
+    if (strcmp(child->name, name) == 0) {
+      target = child->widget;
+      break;
+    }
+  }
+  return target;
 }
 
 void shoes_vfl_add_contraints(shoes_layout *lay, shoes_canvas *canvas, VALUE arg)
@@ -174,8 +221,9 @@ void shoes_vfl_add_contraints(shoes_layout *lay, shoes_canvas *canvas, VALUE arg
     if (NIL_P(rbv))
       rb_raise(rb_eArgError,"no Shoes element named: %s", name);
     
-    // get the gshoes_ele from layout->views - 
-    target = g_hash_table_lookup(layout->views, name);
+    // get the gshoes_ele from layout->children
+    //target = g_hash_table_lookup(layout->views, name);
+    target = shoes_vfl_find_child(layout, name);
     if (target == NULL) {
       // make a gshoes_ele
       GString *gstr = g_string_new(name);
@@ -200,7 +248,8 @@ void shoes_vfl_add_contraints(shoes_layout *lay, shoes_canvas *canvas, VALUE arg
         rb_raise(rb_eArgError,"no Shoes element named: %s", name);
       
       // get the gshoes_ele from layout->views - 
-      source = g_hash_table_lookup(layout->views, name);
+      //source = g_hash_table_lookup(layout->views, name);
+      source = shoes_vfl_find_child(layout, name);
       if (source == NULL) {
         // make a gshoes_ele
         GString *gstr = g_string_new(name);
@@ -235,9 +284,12 @@ VALUE shoes_vfl_parse(shoes_layout *lay, shoes_canvas *canvas, VALUE args)
 {
   fprintf(stderr, "shoes_vfl_parse called\n");
   GError *error = NULL;
+  GHashTable *views, *metrics;
   //int hspacing = 10;
   //int vspacing = 10;
   EmeusConstraintLayout *layout = (EmeusConstraintLayout *)lay->root;
+  views = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_free);
+  metrics = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_free);
   
   // get view names (shoes ele's) 
   VALUE keys;
@@ -260,7 +312,7 @@ VALUE shoes_vfl_parse(shoes_layout *lay, shoes_canvas *canvas, VALUE args)
     // we want the Shoes ele to match the name (key)
     VALUE ele = rb_hash_aref(lay->views, ent);
     GshoesEle *gele = gshoes_ele_new(str, (gpointer)ele);
-    g_hash_table_insert(layout->views, RSTRING_PTR(ent), gele);
+    g_hash_table_insert(views, RSTRING_PTR(ent), gele);
     // create an EmuesChildLayout (equiv) here? Create solver variables?
   }
 
@@ -299,7 +351,7 @@ VALUE shoes_vfl_parse(shoes_layout *lay, shoes_canvas *canvas, VALUE args)
       *v  = NUM2DBL(metv);
       //fprintf(stderr,"metrics key: %s => %g\n", str, *v);
     }
-   g_hash_table_insert(layout->metrics, (char *)str, v);
+   g_hash_table_insert(metrics, (char *)str, v);
   }
   
   // convert lines. 
@@ -317,7 +369,7 @@ VALUE shoes_vfl_parse(shoes_layout *lay, shoes_canvas *canvas, VALUE args)
   
   // store the glist in EmeusConstrainLayout->parsed_constraints
   layout->parsed_constraints = emeus_create_constraints_from_description(
-      lines, n_lines, -1, -1, layout->views, layout->metrics);
+      lines, n_lines, -1, -1, views, metrics);
   // finish() will move them into the Solver somehow. 
   // In Theory. May not be need - the constraints are in the solver?
   // Don't forget to free the lines array strings
@@ -369,6 +421,7 @@ gboolean shoes_vfl_is_element(GshoesEle *p) {
   return true;
 }
 
+#if 0
 void shoes_vfl_add_layout_stays(EmeusConstraintLayout *self) {
    Variable *var;
 
@@ -405,7 +458,7 @@ void shoes_vfl_add_layout_stays(EmeusConstraintLayout *self) {
   self->stays.height =
     simplex_solver_add_stay_variable (self->solver, var, STRENGTH_WEAK);
 }
-
+#endif
 
 VALUE shoes_vfl_hash_emeus(EmeusConstraint *c) {
   gpointer source, target;
@@ -598,3 +651,180 @@ EmeusConstraintRelation shoes_vfl_rel_from_str(char *rel) {
   }
   return EMEUS_CONSTRAINT_RELATION_EQ;
 }
+
+void shoes_vfl_change_pos(GshoesEle *gs, int x, int y, int width, int height)
+{
+  shoes_abstract *ab;
+  gpointer gp = gshoes_ele_get_element(gs);
+  Data_Get_Struct((VALUE)gp, shoes_abstract, ab);
+  //if (x != ab->place.x || y != ab->place.y) {
+    fprintf(stderr, "move from %d,%d to %d,%d\n", ab->place.x, ab->place.y, x, y);
+    fprintf(stderr, "size from %d, %d to %d %d\n", ab->place.w, ab->place.h, width, height);
+  //}
+}
+
+// Move the shoes element's width,height to constraints 
+// TODO: finish the 
+void shoes_vfl_child_size(EmeusConstraintLayoutChild *self) {
+  Variable *attr = NULL;
+  Variable *top, *left, *width, *height;
+  if (self->solver == NULL)
+    return;
+  shoes_abstract *ab;
+  VALUE abv = (VALUE)gshoes_ele_get_element(self->widget);
+  Data_Get_Struct(abv, shoes_abstract, ab);
+  top = get_child_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_TOP);
+  left = get_child_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_LEFT);
+  width = get_child_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_WIDTH);
+  height = get_child_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_HEIGHT);
+  
+  Data_Get_Struct(abv, shoes_abstract, ab);
+  //variable_set_value(top, ab->place.y);
+  //variable_set_value(left, ab->place.x);
+  variable_set_value(width, ab->place.w);
+  variable_set_value(height, ab->place.h);
+  // width_constraint 
+  attr = get_child_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_WIDTH);
+  // if (element is not hidden in Shoes:
+  { 
+    /* replace the constraint because the min width can change */
+    if (self->width_constraint != NULL)
+      simplex_solver_remove_constraint (self->solver, self->width_constraint);
+
+    Expression *e = expression_new_from_constant (ab->place.w);
+
+    self->width_constraint =
+      simplex_solver_add_constraint (self->solver,
+                                     attr, OPERATOR_TYPE_GE, e,
+                                     STRENGTH_MEDIUM);
+    expression_unref (e);
+  }
+  /*  else hidden
+    if (self->width_constraint != NULL)
+      {
+        simplex_solver_remove_constraint (self->solver, self->width_constraint);
+        self->width_constraint = NULL;
+      }
+  */
+  // height_constraint
+  attr = get_child_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_HEIGHT);
+  // if (element is not hidden):
+  {
+    /* reeplace the constraint because the min height can change */
+    if (self->height_constraint != NULL)
+      simplex_solver_remove_constraint (self->solver, self->height_constraint);
+
+    Expression *e = expression_new_from_constant (ab->place.h);
+
+    self->height_constraint =
+      simplex_solver_add_constraint (self->solver,
+                                     attr, OPERATOR_TYPE_GE, e,
+                                     STRENGTH_MEDIUM);
+    expression_unref (e);
+  }
+  /* else hidden
+    if (self->height_constraint != NULL)
+      {
+        simplex_solver_remove_constraint (self->solver, self->height_constraint);
+        self->height_constraint = NULL;
+      }
+  */ 
+}
+
+void shoes_vfl_outer_size(EmeusConstraintLayout *self, int canvas_width, int canvas_height)
+{
+  //EmeusConstraintLayout *self = EMEUS_CONSTRAINT_LAYOUT (widget);
+  Constraint *stay_x, *stay_y;
+  Constraint *stay_w, *stay_h;
+
+  //gtk_widget_set_allocation (widget, allocation);
+
+  if (g_sequence_is_empty (self->children))
+    return;
+
+  Variable *layout_top = get_layout_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_TOP);
+  Variable *layout_left = get_layout_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_LEFT);
+  Variable *layout_width = get_layout_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_WIDTH);
+  Variable *layout_height = get_layout_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_HEIGHT);
+
+  //variable_set_value (layout_left, allocation->x);
+  variable_set_value (layout_left, 0);
+  stay_x = simplex_solver_add_stay_variable (&self->solver, layout_left, STRENGTH_REQUIRED);
+
+  //variable_set_value (layout_top, allocation->y);
+  variable_set_value (layout_top, 0);
+  stay_y = simplex_solver_add_stay_variable (&self->solver, layout_top, STRENGTH_REQUIRED);
+
+  //variable_set_value (layout_width, allocation->width);
+  variable_set_value (layout_width, canvas_width);
+  stay_w = simplex_solver_add_stay_variable (&self->solver, layout_width, STRENGTH_REQUIRED);
+
+  //variable_set_value (layout_height, allocation->height);
+  variable_set_value (layout_height, canvas_height);
+  stay_h = simplex_solver_add_stay_variable (&self->solver, layout_height, STRENGTH_REQUIRED);
+
+#ifdef EMEUS_ENABLE_DEBUG
+  printf("layout [%p] = { .top:%g, .left:%g, .width:%g, .height:%g }\n",
+                  self,
+                  variable_get_value (layout_top),
+                  variable_get_value (layout_left),
+                  variable_get_value (layout_width),
+                  variable_get_value (layout_height));
+#endif
+  // iterate thru the children
+  // Set the /h/w and constraints for the elements 
+  EmeusConstraintLayoutChild *child = NULL;
+  GSequenceIter *iter = g_sequence_get_begin_iter (self->children);
+  while (!g_sequence_iter_is_end (iter)) {      
+      child = g_sequence_get (iter);
+      shoes_vfl_child_size(child);
+      iter = g_sequence_iter_next (iter);
+  }
+  // loop again to copy computed positions to Shoes
+  iter = g_sequence_get_begin_iter (self->children);
+  while (!g_sequence_iter_is_end (iter)) {      
+      Variable *top, *left, *width, *height;
+      Variable *center_x, *center_y;
+      Variable *baseline;
+      int x,y,wid,hgt;
+      
+      child = g_sequence_get (iter);
+      iter = g_sequence_iter_next (iter);
+      
+      top = get_child_attribute (child, EMEUS_CONSTRAINT_ATTRIBUTE_TOP);
+      left = get_child_attribute (child, EMEUS_CONSTRAINT_ATTRIBUTE_LEFT);
+      width = get_child_attribute (child, EMEUS_CONSTRAINT_ATTRIBUTE_WIDTH);
+      height = get_child_attribute (child, EMEUS_CONSTRAINT_ATTRIBUTE_HEIGHT);
+      center_x = get_child_attribute (child, EMEUS_CONSTRAINT_ATTRIBUTE_CENTER_X);
+      center_y = get_child_attribute (child, EMEUS_CONSTRAINT_ATTRIBUTE_CENTER_Y);
+      baseline = get_child_attribute (child, EMEUS_CONSTRAINT_ATTRIBUTE_BASELINE);
+#ifdef EMEUS_ENABLE_DEBUG
+     printf ("child '%s' [%p] = { "
+                      ".top:%g, .left:%g, .width:%g, .height:%g, "
+                      ".center:(%g, %g), .baseline:%g "
+                      "}\n",
+                      child->name != NULL ? child->name : "<unnamed>",
+                      child,
+                      variable_get_value (top),
+                      variable_get_value (left),
+                      variable_get_value (width),
+                      variable_get_value (height),
+                      variable_get_value (center_x),
+                      variable_get_value (center_y),
+                      variable_get_value (baseline));
+#endif
+
+      x = floor (variable_get_value (left));
+      y = floor (variable_get_value (top));
+      wid = ceil (variable_get_value (width));
+      hgt = ceil (variable_get_value (height));
+      shoes_vfl_change_pos(child->widget, x, y, wid, hgt);
+  }
+  // remove the Required Stays (leaving the weak stays from setup)
+  // -- until we resize again
+  simplex_solver_remove_constraint (&self->solver, stay_x);
+  simplex_solver_remove_constraint (&self->solver, stay_y);
+  simplex_solver_remove_constraint (&self->solver, stay_w);
+  simplex_solver_remove_constraint (&self->solver, stay_h);
+}
+

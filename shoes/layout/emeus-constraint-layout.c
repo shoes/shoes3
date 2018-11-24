@@ -177,7 +177,7 @@
  */
 
 #include "config.h"
-
+#include "shoes/layout/shoes-vfl.h"
 #include "emeus-constraint-layout-private.h"
 
 #include "emeus-constraint-private.h"
@@ -192,7 +192,7 @@
 
 enum {
   CHILD_PROP_NAME = 1,
-
+  CHILD_PROP_ELEMENT,
   CHILD_N_PROPS
 };
 
@@ -253,7 +253,7 @@ emeus_constraint_layout_destroy (GshoesEle *widget)
   //GTK_WIDGET_CLASS (emeus_constraint_layout_parent_class)->destroy (widget);
 }
 
-static Variable *
+Variable *
 get_layout_attribute (EmeusConstraintLayout   *layout,
                       EmeusConstraintAttribute attr)
 {
@@ -378,7 +378,7 @@ get_layout_attribute (EmeusConstraintLayout   *layout,
   return res;
 }
 
-static Variable *
+extern Variable *
 get_child_attribute (EmeusConstraintLayoutChild *child,
                      EmeusConstraintAttribute    attr)
 {
@@ -545,6 +545,12 @@ add_layout_stays (EmeusConstraintLayout *self)
     simplex_solver_add_stay_variable (&self->solver, var, STRENGTH_WEAK);
 }
 
+/*
+ *  TODO CJC: This may not need to be called by Shoes. But, if it was, 
+ *  setup() phase would be the time to do it. 
+ *  Gtk discussion: By adding the temp stay(s) the solver (re)computes
+ *  layout(s) which is returned. Then the stays are removed. (which recomputes)
+*/
 #if 0
 static void
 emeus_constraint_layout_get_preferred_size (EmeusConstraintLayout *self,
@@ -619,7 +625,8 @@ emeus_constraint_layout_get_preferred_size (EmeusConstraintLayout *self,
   if (natural_p != NULL)
     *natural_p = value;
 }
-
+#endif
+#if 0
 static void
 emeus_constraint_layout_get_preferred_width (GtkWidget *widget,
                                              int       *minimum_p,
@@ -665,16 +672,23 @@ emeus_constraint_layout_get_preferred_height_for_width (GtkWidget *widget,
                                               width,
                                               minimum_p, natural_p);
 }
-
-static void
-emeus_constraint_layout_size_allocate (GtkWidget     *widget,
-                                       GtkAllocation *allocation)
+#endif
+/*
+ * Shoes calls this at size() time with real values for height and width
+ */
+//static void
+//emeus_constraint_layout_size_allocate (GtkWidget     *widget,
+//                                       GtkAllocation *allocation)
+void
+emeus_constraint_layout_size_allocate (EmeusConstraintLayout *self, 
+    int canvas_width,
+    int canvas_height)
 {
-  EmeusConstraintLayout *self = EMEUS_CONSTRAINT_LAYOUT (widget);
+  //EmeusConstraintLayout *self = EMEUS_CONSTRAINT_LAYOUT (widget);
   Constraint *stay_x, *stay_y;
   Constraint *stay_w, *stay_h;
 
-  gtk_widget_set_allocation (widget, allocation);
+  //gtk_widget_set_allocation (widget, allocation);
 
   if (g_sequence_is_empty (self->children))
     return;
@@ -684,16 +698,20 @@ emeus_constraint_layout_size_allocate (GtkWidget     *widget,
   Variable *layout_width = get_layout_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_WIDTH);
   Variable *layout_height = get_layout_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_HEIGHT);
 
-  variable_set_value (layout_left, allocation->x);
+  //variable_set_value (layout_left, allocation->x);
+  variable_set_value (layout_left, 0);
   stay_x = simplex_solver_add_stay_variable (&self->solver, layout_left, STRENGTH_REQUIRED);
 
-  variable_set_value (layout_top, allocation->y);
+  //variable_set_value (layout_top, allocation->y);
+  variable_set_value (layout_top, 0);
   stay_y = simplex_solver_add_stay_variable (&self->solver, layout_top, STRENGTH_REQUIRED);
 
-  variable_set_value (layout_width, allocation->width);
+  //variable_set_value (layout_width, allocation->width);
+  variable_set_value (layout_width, canvas_width);
   stay_w = simplex_solver_add_stay_variable (&self->solver, layout_width, STRENGTH_REQUIRED);
 
-  variable_set_value (layout_height, allocation->height);
+  //variable_set_value (layout_height, allocation->height);
+  variable_set_value (layout_height, canvas_height);
   stay_h = simplex_solver_add_stay_variable (&self->solver, layout_height, STRENGTH_REQUIRED);
 
 #ifdef EMEUS_ENABLE_DEBUG
@@ -713,8 +731,8 @@ emeus_constraint_layout_size_allocate (GtkWidget     *widget,
       Variable *top, *left, *width, *height;
       Variable *center_x, *center_y;
       Variable *baseline;
-      GtkAllocation child_alloc;
-      GtkRequisition minimum;
+      //GtkAllocation child_alloc;
+      //GtkRequisition minimum;
 
       child = g_sequence_get (iter);
       iter = g_sequence_iter_next (iter);
@@ -741,7 +759,7 @@ emeus_constraint_layout_size_allocate (GtkWidget     *widget,
                       variable_get_value (center_x), variable_get_value (center_y),
                       variable_get_value (baseline)));
 #endif
-
+#if 0
       gtk_widget_get_preferred_size (GTK_WIDGET (child), &minimum, NULL);
 
       child_alloc.x = floor (variable_get_value (left));
@@ -754,6 +772,27 @@ emeus_constraint_layout_size_allocate (GtkWidget     *widget,
                          : minimum.height;
 
       gtk_widget_size_allocate (GTK_WIDGET (child), &child_alloc);
+#else
+      // shoes: 
+      int x,y,wid,hgt;
+      shoes_abstract *ab;
+      VALUE abv = (VALUE)gshoes_ele_get_element(child->widget);
+      Data_Get_Struct(abv, shoes_abstract, ab);
+      //variable_set_value(top, ab->place.y);
+      //variable_set_value(left, ab->place.x);
+      //variable_set_value(width, ab->place.w);
+      //variable_set_value(height, ab->place.h);
+      x = floor (variable_get_value (left));
+      y = floor (variable_get_value (top));
+      wid = variable_get_value (width) > ab->place.w
+                        ? ceil (variable_get_value (width))
+                        : ab->place.w;
+      hgt = variable_get_value (height) > ab->place.h
+                         ? ceil (variable_get_value (height))
+                         : ab->place.h;
+      // call into shoes-vfl.c to do the Shoes work
+      shoes_vfl_change_pos(child->widget, x, y, wid, hgt);
+#endif
     }
 
   simplex_solver_remove_constraint (&self->solver, stay_x);
@@ -762,6 +801,7 @@ emeus_constraint_layout_size_allocate (GtkWidget     *widget,
   simplex_solver_remove_constraint (&self->solver, stay_h);
 }
 
+#if 0
 static gboolean
 emeus_constraint_layout_draw (GtkWidget *widget,
                               cairo_t   *cr)
@@ -935,355 +975,7 @@ typedef struct {
   double constant;
   double multiplier;
 } ConstraintData;
-#if 0
 
-typedef struct {
-  GObject *object;
-  GtkBuilder *builder;
-  GSList *items;
-} SubParserData;
-
-static void
-constraint_data_free (gpointer _data)
-{
-  ConstraintData *data = _data;
-
-  if (data == NULL)
-    return;
-
-  g_free (data->source_name);
-  g_free (data->source_attr);
-  g_free (data->target_name);
-  g_free (data->target_attr);
-  g_free (data->relation);
-  g_free (data->strength);
-
-  g_slice_free (ConstraintData, data);
-}
-
-/* Taken from gtk+/gtk/gtkbuilder.c */
-static gboolean
-_gtk_builder_enum_from_string (GType         type,
-                               const gchar  *string,
-                               gint         *enum_value,
-                               GError      **error)
-{
-  GEnumClass *eclass;
-  GEnumValue *ev;
-  gchar *endptr;
-  gint value;
-  gboolean ret;
-
-  g_return_val_if_fail (G_TYPE_IS_ENUM (type), FALSE);
-  g_return_val_if_fail (string != NULL, FALSE);
-
-  ret = TRUE;
-
-  endptr = NULL;
-  errno = 0;
-  value = g_ascii_strtoull (string, &endptr, 0);
-  if (errno == 0 && endptr != string) /* parsed a number */
-    *enum_value = value;
-  else
-    {
-      eclass = g_type_class_ref (type);
-      ev = g_enum_get_value_by_name (eclass, string);
-      if (!ev)
-        ev = g_enum_get_value_by_nick (eclass, string);
-
-      if (ev)
-        *enum_value = ev->value;
-      else
-        {
-          g_set_error (error,
-                       GTK_BUILDER_ERROR,
-                       GTK_BUILDER_ERROR_INVALID_VALUE,
-                       "Could not parse enum: '%s'",
-                       string);
-          ret = FALSE;
-        }
-
-      g_type_class_unref (eclass);
-    }
-
-  return ret;
-}
-
-static bool
-parse_double (const char *string,
-              double     *value_p,
-              double      default_value)
-{
-  double value;
-  char *endptr;
-
-  if (string == NULL)
-    {
-      *value_p = default_value;
-      return false;
-    }
-
-  errno = 0;
-  value = g_ascii_strtod (string, &endptr);
-  if (errno == 0 && endptr != string)
-    {
-      *value_p = value;
-      return true;
-    }
-
-  *value_p = default_value;
-
-  return false;
-}
-
-static EmeusConstraint *
-constraint_data_to_constraint (const ConstraintData *data,
-                               GtkBuilder           *builder,
-                               GError              **error)
-{
-  gpointer source, target;
-  int source_attr, target_attr;
-  int relation, strength;
-  gboolean res;
-
-  if (g_strcmp0 (data->source_name, "super") == 0)
-    source = NULL;
-  else if (data->source_name == NULL)
-    {
-      if (data->source_attr != NULL)
-        {
-          g_set_error (error, GTK_BUILDER_ERROR,
-                       GTK_BUILDER_ERROR_INVALID_VALUE,
-                       "Constraints without 'source-object' must also not "
-                       "have a 'source-attr' attribute");
-          return NULL;
-        }
-
-      source = NULL;
-    }
-  else
-    source = gtk_builder_get_object (builder, data->source_name);
-
-  if (g_strcmp0 (data->target_name, "super") == 0)
-    target = NULL;
-  else
-    {
-      target = gtk_builder_get_object (builder, data->target_name);
-
-      if (target == NULL)
-        {
-          g_set_error (error, GTK_BUILDER_ERROR,
-                       GTK_BUILDER_ERROR_INVALID_VALUE,
-                       "Unable to find target '%s' for constraint",
-                       data->target_name);
-          return NULL;
-        }
-    }
-
-  if (data->source_attr != NULL)
-    {
-      res = _gtk_builder_enum_from_string (EMEUS_TYPE_CONSTRAINT_ATTRIBUTE,
-                                           data->source_attr,
-                                           &source_attr,
-                                           error);
-      if (!res)
-        return NULL;
-    }
-  else
-    source_attr = EMEUS_CONSTRAINT_ATTRIBUTE_INVALID;
-
-  res = _gtk_builder_enum_from_string (EMEUS_TYPE_CONSTRAINT_ATTRIBUTE,
-                                       data->target_attr,
-                                       &target_attr,
-                                       error);
-  if (!res)
-    return NULL;
-
-  if (data->relation != NULL)
-    {
-      res = _gtk_builder_enum_from_string (EMEUS_TYPE_CONSTRAINT_RELATION,
-                                           data->relation,
-                                           &relation,
-                                           error);
-      if (!res)
-        return NULL;
-    }
-  else
-    relation = EMEUS_CONSTRAINT_RELATION_EQ;
-
-  if (data->strength != NULL)
-    {
-      res = _gtk_builder_enum_from_string (EMEUS_TYPE_CONSTRAINT_STRENGTH,
-                                           data->strength,
-                                           &strength,
-                                           error);
-    }
-  else
-    strength = EMEUS_CONSTRAINT_STRENGTH_REQUIRED;
-
-  return emeus_constraint_new (target, target_attr,
-                               relation,
-                               source, source_attr,
-                               data->multiplier,
-                               data->constant,
-                               strength);
-}
-
-static void
-constraints_free (gpointer data)
-{
-  g_slist_free_full (data, constraint_data_free);
-}
-
-static void
-constraint_layout_start_element (GMarkupParseContext  *context,
-                                 const gchar          *element_name,
-                                 const gchar         **names,
-                                 const gchar         **values,
-                                 gpointer              user_data,
-                                 GError              **error)
-{
-  SubParserData *data = user_data;
-
-  if (strcmp (element_name, TAG_CONSTRAINT) == 0)
-    {
-      const char *source_name, *source_attr;
-      const char *target_name, *target_attr;
-      const char *relation, *strength;
-      const char *multiplier, *constant;
-      ConstraintData *cdata;
-
-      if (!g_markup_collect_attributes (element_name, names, values, error,
-                                        G_MARKUP_COLLECT_STRING | G_MARKUP_COLLECT_OPTIONAL, ATTR_SOURCE_OBJECT, &source_name,
-                                        G_MARKUP_COLLECT_STRING | G_MARKUP_COLLECT_OPTIONAL, ATTR_SOURCE_ATTR, &source_attr,
-                                        G_MARKUP_COLLECT_STRING, ATTR_TARGET_OBJECT, &target_name,
-                                        G_MARKUP_COLLECT_STRING, ATTR_TARGET_ATTR, &target_attr,
-                                        G_MARKUP_COLLECT_STRING | G_MARKUP_COLLECT_OPTIONAL, ATTR_RELATION, &relation,
-                                        G_MARKUP_COLLECT_STRING | G_MARKUP_COLLECT_OPTIONAL, ATTR_STRENGTH, &strength,
-                                        G_MARKUP_COLLECT_STRING | G_MARKUP_COLLECT_OPTIONAL, ATTR_MULTIPLIER, &multiplier,
-                                        G_MARKUP_COLLECT_STRING | G_MARKUP_COLLECT_OPTIONAL, ATTR_CONSTANT, &constant,
-                                        G_MARKUP_COLLECT_INVALID))
-        {
-          return;
-        }
-
-      cdata = g_slice_new (ConstraintData);
-      cdata->source_name = g_strdup (source_name);
-      cdata->source_attr = g_strdup (source_attr);
-      cdata->target_name = g_strdup (target_name);
-      cdata->target_attr = g_strdup (target_attr);
-      cdata->relation = g_strdup (relation);
-      cdata->strength = g_strdup (strength);
-      parse_double (multiplier, &cdata->multiplier, 1.0);
-      parse_double (constant, &cdata->constant, 0.0);
-
-      data->items = g_slist_prepend (data->items, cdata);
-    }
-}
-
-static const GMarkupParser constraint_layout_parser = {
-  constraint_layout_start_element
-};
-
-static gboolean
-emeus_constraint_layout_buildable_custom_tag_start (GtkBuildable  *buildable,
-                                                    GtkBuilder    *builder,
-                                                    GObject       *child,
-                                                    const gchar   *tagname,
-                                                    GMarkupParser *parser,
-                                                    gpointer      *parser_data)
-{
-  if (parent_buildable_iface->custom_tag_start (buildable, builder, child, tagname, parser, parser_data))
-    return TRUE;
-
-  if (strcmp (tagname, TAG_CONSTRAINTS) == 0)
-    {
-      SubParserData *data;
-
-      data = g_slice_new0 (SubParserData);
-      data->items = NULL;
-      data->object = G_OBJECT (buildable);
-      data->builder = builder;
-
-      *parser = constraint_layout_parser;
-      *parser_data = data;
-
-      return TRUE;
-    }
-
-  return FALSE;
-}
-
-static void
-emeus_constraint_layout_buildable_custom_finished (GtkBuildable *buildable,
-                                                   GtkBuilder   *builder,
-                                                   GObject      *child,
-                                                   const gchar  *tagname,
-                                                   gpointer      user_data)
-{
-  parent_buildable_iface->custom_finished (buildable, builder, child, tagname, user_data);
-
-  if (strcmp (tagname, TAG_CONSTRAINTS) == 0)
-    {
-      SubParserData *data = user_data;
-
-      g_object_set_qdata_full (G_OBJECT (buildable), quark_buildable_constraints,
-                               data->items,
-                               constraints_free);
-
-      g_slice_free (SubParserData, data);
-    }
-}
-
-static void
-emeus_constraint_layout_buildable_parser_finished (GtkBuildable *buildable,
-                                                   GtkBuilder   *builder)
-{
-  EmeusConstraintLayout *self = EMEUS_CONSTRAINT_LAYOUT (buildable);
-  GSList *constraints, *l;
-  GError *error = NULL;
-
-  /* Maintain the order in which the constraints were defined */
-  constraints = g_object_get_qdata (G_OBJECT (buildable), quark_buildable_constraints);
-  constraints = g_slist_reverse (constraints);
-
-  for (l = constraints; l != NULL; l = l->next)
-    {
-      const ConstraintData *cdata = l->data;
-      EmeusConstraint *c = constraint_data_to_constraint (cdata, builder, &error);
-
-      if (error != NULL)
-        {
-          g_critical ("Unable to parse constraint '%s.%s [%s] %s.%s * %g + %g': %s",
-                      cdata->target_name, cdata->target_attr,
-                      cdata->relation,
-                      cdata->source_name, cdata->source_attr,
-                      cdata->multiplier,
-                      cdata->constant,
-                      error->message);
-          g_clear_error (&error);
-          continue;
-        }
-
-      DEBUG (g_debug ("Adding constraint [%p] from GtkBuilder definition", c));
-      emeus_constraint_layout_add_constraint (self, c);
-    }
-
-  g_object_set_qdata (G_OBJECT (buildable), quark_buildable_constraints, NULL);
-
-  parent_buildable_iface->parser_finished (buildable, builder);
-}
-
-static void
-emeus_constraint_layout_buildable_iface_init (GtkBuildableIface *iface)
-{
-  parent_buildable_iface = g_type_interface_peek_parent (iface);
-
-  iface->parser_finished = emeus_constraint_layout_buildable_parser_finished;
-  iface->custom_tag_start = emeus_constraint_layout_buildable_custom_tag_start;
-  iface->custom_finished = emeus_constraint_layout_buildable_custom_finished;
-}
-#endif
 // CJC Gtk 3.22 dependency:
 //extern void gtk_widget_class_set_css_name(GtkWidgetClass *widget_class,
 //                               const char *name);
@@ -1321,6 +1013,8 @@ emeus_constraint_layout_init (EmeusConstraintLayout *self)
   //gtk_widget_set_has_window (GTK_WIDGET (self), FALSE);
 
   simplex_solver_init (&self->solver);
+  
+  self->setup = false;
 
   self->children = g_sequence_new (NULL);
 
@@ -1344,11 +1038,16 @@ emeus_constraint_layout_init (EmeusConstraintLayout *self)
  *
  * Since: 1.0
  */
-//GtkWidget *
+// TODO cjc was GtkWidget *
+// Should use fancy Gobject parameters for init
 EmeusConstraintLayout *
-emeus_constraint_layout_new (void)
+emeus_constraint_layout_new (shoes_layout *lay)
 {
-  return g_object_new (EMEUS_TYPE_CONSTRAINT_LAYOUT, NULL);
+  EmeusConstraintLayout *layout;
+  layout = g_object_new (EMEUS_TYPE_CONSTRAINT_LAYOUT, NULL);
+  layout->sh_layout = lay;
+  return layout;
+  //return g_object_new (EMEUS_TYPE_CONSTRAINT_LAYOUT, NULL);
 }
 
 static void
@@ -1755,7 +1454,6 @@ emeus_constraint_layout_add_constraints (EmeusConstraintLayout *layout,
  *
  * Since: 1.0
  */
-// TODO cjc: may not be used in Shoes with this name
 void
 emeus_constraint_layout_pack (EmeusConstraintLayout *layout,
                               GshoesEle             *child,
@@ -1772,10 +1470,10 @@ emeus_constraint_layout_pack (EmeusConstraintLayout *layout,
   g_return_if_fail (EMEUS_IS_CONSTRAINT (first_constraint) || first_constraint == NULL);
 
   //g_return_if_fail (gtk_widget_get_parent (child) == NULL);
-
+  
+#if 0
   if (EMEUS_IS_CONSTRAINT_LAYOUT_CHILD (child))
     layout_child = EMEUS_CONSTRAINT_LAYOUT_CHILD (child);
-#if 0
   else
     {
       layout_child = (EmeusConstraintLayoutChild *) emeus_constraint_layout_child_new (name);
@@ -1783,6 +1481,11 @@ emeus_constraint_layout_pack (EmeusConstraintLayout *layout,
       gtk_widget_show (GTK_WIDGET (layout_child));
       gtk_container_add (GTK_CONTAINER (layout_child), child);
     }
+#else
+  // TODO cjc: arg should be GshoeEle (get name from there)
+  layout_child = (EmeusConstraintLayoutChild *) emeus_constraint_layout_child_new (name, child);
+
+  
 #endif
   layout_child->iter = g_sequence_append (layout->children, layout_child);
   layout_child->solver = &layout->solver;
@@ -1946,7 +1649,9 @@ emeus_constraint_layout_child_set_property (GObject      *gobject,
     case CHILD_PROP_NAME:
       self->name = g_value_dup_string (value);
       break;
-
+    case CHILD_PROP_ELEMENT:
+      self->widget = g_value_get_pointer(value);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (gobject, prop_id, pspec);
     }
@@ -1964,6 +1669,9 @@ emeus_constraint_layout_child_get_property (GObject    *gobject,
     {
     case CHILD_PROP_NAME:
       g_value_set_string (value, self->name);
+      break;
+    case CHILD_PROP_ELEMENT:
+      g_value_set_pointer(value, (gpointer)self->widget);
       break;
 
     default:
@@ -2159,6 +1867,11 @@ emeus_constraint_layout_child_class_init (EmeusConstraintLayoutChildClass *klass
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
+                         
+  emeus_constraint_layout_child_properties[CHILD_PROP_ELEMENT] =
+    g_param_spec_pointer ("element", "Element", "The shoes element",
+                          G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY);
 
   g_object_class_install_properties (gobject_class, CHILD_N_PROPS,
                                      emeus_constraint_layout_child_properties);
@@ -2191,10 +1904,11 @@ emeus_constraint_layout_child_init (EmeusConstraintLayoutChild *self)
  * Since: 1.0
  */
 EmeusConstraintLayoutChild *
-emeus_constraint_layout_child_new (const char *name)
+emeus_constraint_layout_child_new (const char *name, GshoesEle *ele)
 {
   return g_object_new (EMEUS_TYPE_CONSTRAINT_LAYOUT_CHILD,
                        "name", name,
+                       "element", ele,
                        NULL);
 }
 

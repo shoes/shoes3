@@ -1,10 +1,11 @@
-
+require 'layout/cassowary'
 
 Shoes.app width: 350, height: 400, resizeable: true do
   stack do
     para "Test vfl parser"
-
-    @lay = layout use: :Vfl, width: 300, height: 300 do
+    @cls = CassowaryLayout.new()
+    @lay = layout use: @cls, width: 300, height: 300 do
+      background cornsilk
       edit_line "one", name: 'el1'
       button "two", name: 'but1'
     end
@@ -13,10 +14,10 @@ Shoes.app width: 350, height: 400, resizeable: true do
         padding: 8
       }
       lines = [
-        '|[but1]-[el1]|'
+        '[but1]-[el1]'
       ]
       if false
-        cs = @cls.var('el1','start').cn_equal (@cls.var('but1','width'))
+        cs = @cls.var('el1','start').cn_equal (@cls.var('but1','end'))
         puts cs.inspect
         @lay.finish([cs])
       else 

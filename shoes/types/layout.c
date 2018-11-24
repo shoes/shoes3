@@ -194,6 +194,9 @@ VALUE shoes_layout_style(int argc, VALUE *argv, VALUE self) {
 
 VALUE shoes_layout_finish(int argc, VALUE *argv, VALUE self) {
 	//fprintf(stderr, "shoes_layout_finish called\n");
+  VALUE arg = Qnil;
+  if (argc > 0)
+    arg = argv[0];
 	shoes_layout *lay;
 	Data_Get_Struct(self, shoes_layout, lay);
 	shoes_canvas *canvas;
@@ -203,7 +206,7 @@ VALUE shoes_layout_finish(int argc, VALUE *argv, VALUE self) {
     Data_Get_Struct(canvas->layout_mgr, shoes_layout, ly);
     if (! NIL_P(ly->delegate)) {
       VALUE del = ly->delegate;
-      rb_funcall(del, s_finish, 0);
+      rb_funcall(del, s_finish, 1, arg);
       return Qtrue;
     }
   } 
