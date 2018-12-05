@@ -139,9 +139,10 @@ class CassowaryLayout
       @solver.remove_constraint(@rl_stay) if @ready
       @right_limit.value = canvas.width
       @rl_stay = @solver.add_stay(@right_limit, Strength::RequiredStrength)
-      @solver.remove_constraint(@hl_stay) if ready
+      @solver.remove_constraint(@hl_stay) if @ready
       @height_limit.value = canvas.height
       @solver.add_stay(@height_limit, Strength::RequiredStrength)
+      #@solver.solve
       self.move_widgets if @ready
     end
   end
@@ -170,6 +171,7 @@ class CassowaryLayout
   end
  
   def resize(w, h)
+    puts "resize called"
   end
   
   def clear()

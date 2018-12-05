@@ -28,6 +28,13 @@ Shoes.app width: 500, height: 400, resizeable: true do
         @lay.finish constraints 
      end
     }
+    flow do
+      button "+" do
+        @lay.style width: (@lay.width * 1.1).to_i
+      end
+      button "-" do
+        @lay.style width: (@lay.width * 0.9).to_i
+      end
+    end
  end
-  para "After layout"
 end
