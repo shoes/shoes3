@@ -46,24 +46,31 @@ CAIRO_CFLAGS = `pkg-config --cflags cairo`.strip
 CAIRO_LIB = `pkg-config --libs cairo`.strip
 PANGO_CFLAGS = `pkg-config --cflags pango`.strip
 PANGO_LIB = `pkg-config --libs pango`.strip
-GTK_FLAGS = "#{`pkg-config --cflags gtk+-3.0`.strip}"
-GTK_LIB = "#{`pkg-config --libs gtk+-3.0`.strip}"
+GTK_FLAGS = `pkg-config --cflags gtk+-3.0`.strip
+GTK_LIB = `pkg-config --libs gtk+-3.0`.strip
 
 MISC_LIB = " -lgif -ljpeg"
 
 # don't use pkg-config for librsvg-2.0 - a warning.
 MISC_CFLAGS = ' '
+DEBIAN = true
 if File.exist? '/usr/lib/arm-linux-gnueabihf'
   ularch = 'arm-linux-gnueabihf'
 elsif File.exist? '/usr/lib/x86_64-linux-gnu'
   ularch = 'x86_64-linux-gnu'
+elsif File.exist? '/usr/lib64'
+  DEBIAN = false
 elsif File.exist? '/usr/lib/i386-linux-gnu'
   ularch = 'i386-linux-gnu'
 else
   abort 'unknown architecture'
 end
 MISC_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
-MISC_LIB << " /usr/lib/#{ularch}/librsvg-2.so"
+if DEBIAN
+  MISC_LIB << " /usr/lib/#{ularch}/librsvg-2.so"
+else
+  MISC_LIB << " /usr/lib64/librsvg-2.so"
+end
 MISC_LIB << " -lyaml"
 # collect flags together
 LINUX_CFLAGS << " #{RUBY_CFLAGS} #{GTK_FLAGS} #{CAIRO_CFLAGS} #{PANGO_CFLAGS} #{MISC_CFLAGS}"
