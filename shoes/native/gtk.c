@@ -492,11 +492,20 @@ static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, g
         if (event->state & GDK_SHIFT_MASK)
           mods = mods | SHOES_MODIFY_SHIFT;
         if (event->state & GDK_CONTROL_MASK)
-        mods = mods | SHOES_MODIFY_CTRL;
-        if (app->have_menu) 
-          shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly - app->mb_height, mods);
-        else
-          shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly, mods);
+          mods = mods | SHOES_MODIFY_CTRL;
+        if (app->have_menu) {
+		  int new_x, new_y;
+		  gtk_widget_translate_coordinates(widget, app->os.shoes_window, event->x, event->y,
+			&new_x, &new_y);
+		  shoes_app_motion(app, new_x, new_y + canvas->slot->scrolly, mods);
+          //shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly - app->mb_height, mods);
+        } else {
+		  int new_x, new_y;
+		  gtk_widget_translate_coordinates(widget, app->slot->oscanvas , event->x, event->y,
+			&new_x, &new_y);
+		  shoes_app_motion(app, new_x, new_y + canvas->slot->scrolly, mods);
+          //shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly, mods);
+        }
     }
     return TRUE;
 }
@@ -541,14 +550,23 @@ static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, g
       fprintf(stderr, "meta\n");   
 */
     if (event->type == GDK_BUTTON_PRESS) {
-      if (app->have_menu)
-        shoes_app_click(app, event->button, event->x, event->y + canvas->slot->scrolly - app->mb_height, mods);
-      else
+      if (app->have_menu) {
+        //shoes_app_click(app, event->button, event->x, event->y + canvas->slot->scrolly - app->mb_height, mods);
+		// xlate coords for gtk 3.24 issue #420 
+		int new_x, new_y;
+		gtk_widget_translate_coordinates(widget, app->slot->oscanvas, event->x, event->y,
+			&new_x, &new_y);
+		shoes_app_click(app, event->button, new_x, new_y + canvas->slot->scrolly, mods);
+      } else
+        // TODO: not working gtk 3.24
         shoes_app_click(app, event->button, event->x, event->y + canvas->slot->scrolly, mods);
     } else if (event->type == GDK_BUTTON_RELEASE) {
-      if (app->have_menu)
-        shoes_app_release(app, event->button, event->x, event->y + canvas->slot->scrolly - app->mb_height, mods);
-      else
+      if (app->have_menu) {
+		int new_x, new_y;
+		gtk_widget_translate_coordinates(widget, app->slot->oscanvas, event->x, event->y,
+			&new_x, &new_y);
+        shoes_app_release(app, event->button, new_x, new_y + canvas->slot->scrolly, mods);
+      } else
         shoes_app_release(app, event->button, event->x, event->y + canvas->slot->scrolly, mods);
     }
     return TRUE;

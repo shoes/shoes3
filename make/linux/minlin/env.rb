@@ -30,19 +30,19 @@ EXT_RUBY = RbConfig::CONFIG['prefix']
 RUBY_CFLAGS = " #{`pkg-config --cflags #{EXT_RUBY}/lib/pkgconfig/ruby-#{rv}.pc`.strip}"
 # Ruby 2.1.2 with RVM has a bug. Workaround or wait for perfection?
 rlib = `pkg-config --libs #{EXT_RUBY}/lib/pkgconfig/ruby-#{rv}.pc`.strip
-puts "rlib: #{rlib}"
+#puts "rlib: #{rlib}"
 # 2.2.3 is missing  -L'$${ORIGIN}/../lib' in LIBRUBYARG_SHARED in .pc
 if !rlib[/\-L/]
   #puts "missing -L in #{rlib}" 
   rlib = "-L#{EXT_RUBY}/lib "+rlib
 end
-if rlib[/{ORIGIN/]
+if rlib[/{ORIGIN/]    # ubuntu does this
   #abort "Bug found #{rlib}"
   RUBY_LIB = rlib.gsub(/\$\\{ORIGIN\\}/, "#{EXT_RUBY}/lib")
   #RUBY_LIB = rlib
 elsif rlib[/\$\/..\/lib/] # fedora does this
   RUBY_LIB = rlib.gsub(/\$\/..\/lib/, "#{EXT_RUBY}/lib")
-  puts "fixed: #{RUBY_LIB}"
+  #puts "fixed: #{RUBY_LIB}"
 else
   RUBY_LIB = rlib
 end
@@ -57,20 +57,20 @@ MISC_LIB = " -lgif -ljpeg"
 
 # don't use pkg-config for librsvg-2.0 - a warning.
 MISC_CFLAGS = ' '
-DEBIAN = true
+isdebian = true
 if File.exist? '/usr/lib/arm-linux-gnueabihf'
   ularch = 'arm-linux-gnueabihf'
 elsif File.exist? '/usr/lib/x86_64-linux-gnu'
   ularch = 'x86_64-linux-gnu'
 elsif File.exist? '/usr/lib64'
-  DEBIAN = false
+  isdebian = false
 elsif File.exist? '/usr/lib/i386-linux-gnu'
   ularch = 'i386-linux-gnu'
 else
   abort 'unknown architecture'
 end
 MISC_CFLAGS << "-I/usr/include/librsvg-2.0/librsvg "
-if DEBIAN
+if isdebian
   MISC_LIB << " /usr/lib/#{ularch}/librsvg-2.so"
 else
   MISC_LIB << " /usr/lib64/librsvg-2.so"
