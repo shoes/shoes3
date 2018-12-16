@@ -501,7 +501,7 @@ static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, g
           //shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly - app->mb_height, mods);
         } else {
           // TODO: Do not Hardcode offsets. Windows? Different Theme?
-          if (gtk_get_minor_version() == 24) { // 3.24.x
+          if (gtk_get_minor_version() >= 24) { // 3.24.x
             new_y = max(0,new_y - 60);
             new_x = max(0, new_x - 29);
             //printf("mv: x: %d -> %d y: %d -> %d\n",(int)event->x, new_x, (int)event->y, new_y);
@@ -561,7 +561,7 @@ static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, g
         shoes_app_click(app, event->button, new_x, new_y + canvas->slot->scrolly, mods);
       } else {
         // TODO: Do not Hardcode offsets. Windows? Different Theme?
-        if (gtk_get_minor_version() == 24) { // 3.24.x
+        if (gtk_get_minor_version() >= 24) { // 3.24.x
           new_y = max(0,new_y - 60);
           new_x = max(0, new_x - 29);
           //printf("btn: x: %d -> %d y: %d -> %d\n",(int)event->x, new_x, (int)event->y, new_y);
@@ -606,10 +606,19 @@ static gboolean shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gp
       mods = mods | SHOES_MODIFY_SHIFT;
     if (event->state & GDK_CONTROL_MASK)
       mods = mods | SHOES_MODIFY_CTRL; 
+ 		int new_x, new_y;
+		gtk_widget_translate_coordinates(widget, app->slot->oscanvas, event->x, event->y,
+			&new_x, &new_y);
     if (app->have_menu) 
       shoes_app_wheel(app, wheel, event->x, event->y - app->mb_height, mods);
-    else
+    else {
+      if (gtk_get_minor_version() >= 24) { // 3.24.x
+        new_y = max(0,new_y - 60);
+        new_x = max(0, new_x - 29);
+        //printf("whl: x: %d -> %d y: %d -> %d\n",(int)event->x, new_x, (int)event->y, new_y);
+        }
       shoes_app_wheel(app, wheel, event->x, event->y, mods);
+    }
     return TRUE;
 }
 
