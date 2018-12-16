@@ -484,6 +484,8 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c) {
 static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
     GdkModifierType state;
     shoes_app *app = (shoes_app *)data;
+    char *current_desktop_session = getenv("XDG_SESSION_TYPE");
+
     if (!event->is_hint) {
         shoes_canvas *canvas;
         Data_Get_Struct(app->canvas, shoes_canvas, canvas);
@@ -501,7 +503,7 @@ static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, g
           //shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly - app->mb_height, mods);
         } else {
           // TODO: Do not Hardcode offsets. Windows? Different Theme?
-          if (gtk_get_minor_version() == 24) { // 3.24.x
+          if (gtk_get_minor_version() == 24 && strcmp(current_desktop_session, "wayland") == 0) { // 3.24.x
             new_y = max(0,new_y - 60);
             new_x = max(0, new_x - 29);
             //printf("mv: x: %d -> %d y: %d -> %d\n",(int)event->x, new_x, (int)event->y, new_y);
@@ -536,6 +538,7 @@ static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, g
     shoes_app *app = (shoes_app *)data;
     shoes_canvas *canvas;
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+    char *current_desktop_session = getenv("XDG_SESSION_TYPE");
     // process modifiers
     int mods = 0;
     if (event->state & GDK_SHIFT_MASK)
@@ -561,7 +564,7 @@ static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, g
         shoes_app_click(app, event->button, new_x, new_y + canvas->slot->scrolly, mods);
       } else {
         // TODO: Do not Hardcode offsets. Windows? Different Theme?
-        if (gtk_get_minor_version() == 24) { // 3.24.x
+        if (gtk_get_minor_version() == 24 && strcmp(current_desktop_session, "wayland") == 0) { // 3.24.x
           new_y = max(0,new_y - 60);
           new_x = max(0, new_x - 29);
           //printf("btn: x: %d -> %d y: %d -> %d\n",(int)event->x, new_x, (int)event->y, new_y);
