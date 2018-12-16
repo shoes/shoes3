@@ -72,8 +72,9 @@ int shoes_gtk_set_desktop() {
   char *current_desktop_session = getenv("XDG_SESSION_TYPE");
   if (gtk_get_minor_version() >= 24)
     shoes_gtk_desktop |= GTK_3_24;
-  if (strcmp(current_desktop_session, "wayland") == 0)
+  if (current_desktop_session && strcmp(current_desktop_session, "wayland") == 0)
     shoes_gtk_desktop |= WAYLAND;
+  printf("desktop: %d\n", shoes_gtk_desktop);
 }
 
 // ---------- fonts ------------
