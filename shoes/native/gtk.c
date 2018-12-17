@@ -59,24 +59,26 @@ static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, g
 /* 
  * Sigh. We need to accommodate Gnome Shells that "augment* the title bar
  * and/or provide a half baked global menu bar. Like Fedora 29 - but it's not
- * the only distro and it won't be the last. Not a global, yet.
+ * the only distro (Elementary) and it won't be the last. Not a global, yet.
 */
 enum {
   OLD_SCHOOL,
-  GTK_3_24,
   WAYLAND,
 };
-static int shoes_gtk_desktop = OLD_SCHOOL;
-
+static int shoes_gtk_backend = OLD_SCHOOL;
+/*
 int shoes_gtk_set_desktop() {
-  char *current_desktop_session = getenv("XDG_SESSION_TYPE");
-  if (gtk_get_minor_version() >= 24)
-    shoes_gtk_desktop |= GTK_3_24;
-  if (current_desktop_session && strcmp(current_desktop_session, "wayland") == 0)
+  char *session = getenv("XDG_SESSION_TYPE");
+  char *backend = getenv("GDK_BACKEND"); // not set normally.
+  //if (gtk_get_minor_version() >= 24)
+    //shoes_gtk_desktop |= GTK_3_24;
+  if (session && strcmp(session, "wayland") == 0)
     shoes_gtk_desktop |= WAYLAND;
-  printf("desktop: %d\n", shoes_gtk_desktop);
+  if (backend && strcmp(backend,"wayland") == 0)
+    shoes_gtk_desktop |= WAYLAND;
+  printf("desktop: %s %s %d\n", backend, session, shoes_gtk_desktop);
 }
-
+*/
 // ---------- fonts ------------
 
 static VALUE shoes_make_font_list(FcFontSet *fonts, VALUE ary) {
@@ -346,6 +348,26 @@ void shoes_native_init() {
     } else {
       sprintf(app_id, "%s%d", rdom, getpid()); // TODO: Windows?
     }
+    // set the gdk_backend 
+    if (st->backend != Qnil) {
+      char *backend = RSTRING_PTR(st->backend);
+      gdk_set_allowed_backends(backend);
+      if (strncmp(backend, "wayland", 7) == 0) {
+        printf("setting wayland backend\n");
+        shoes_gtk_backend = shoes_gtk_backend | WAYLAND;
+      }
+    } else {
+       // defaults to shoes_gtk_backend == OLD_SCHOOL
+#ifdef SHOES_GTK_WIN32
+      gdk_set_allowed_backends("win32,x11");
+#endif 
+#ifdef SHOES_QUARTZ
+      gdk_set_allowed_backends("quartz,x11");
+#endif 
+#ifdef SHOES_GTK
+      gdk_set_allowed_backends("x11,wayland,mir");
+#endif
+    }
     //fprintf(stderr,"launching %s\n", app_id);
     shoes_GtkApp = gtk_application_new (app_id, G_APPLICATION_HANDLES_COMMAND_LINE);
     // register with dbus
@@ -366,8 +388,7 @@ void shoes_native_init() {
     // Shoes < 3.3.6 way to init
     gtk_init(NULL, NULL);
 #endif
-    // check for funky desktop managers
-    shoes_gtk_set_desktop();   
+
 }
 /* end of GApplication init  */
 
@@ -525,8 +546,8 @@ static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, g
           shoes_app_motion(app, new_x, new_y + canvas->slot->scrolly, mods);
           //shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly - app->mb_height, mods);
         } else {
-          // TODO: Do not Hardcode offsets. Windows? Different Theme?
-          if (shoes_gtk_desktop & (GTK_3_24 | WAYLAND)) { // 3.24.x
+          // TODO: Do not Hardcode offsets. 
+          if (shoes_gtk_backend & WAYLAND) {
             new_y = max(0,new_y - 60);
             new_x = max(0, new_x - 29);
             //printf("mv: x: %d -> %d y: %d -> %d\n",(int)event->x, new_x, (int)event->y, new_y);
@@ -561,7 +582,6 @@ static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, g
     shoes_app *app = (shoes_app *)data;
     shoes_canvas *canvas;
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-    char *current_desktop_session = getenv("XDG_SESSION_TYPE");
     // process modifiers
     int mods = 0;
     if (event->state & GDK_SHIFT_MASK)
@@ -588,7 +608,7 @@ static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, g
       } else {
         // TODO: Do not Hardcode offsets. Windows? Different Theme?
         //if (gtk_get_minor_version() >= 24 && strcmp(current_desktop_session, "wayland") == 0) { // 3.24.x
-        if (shoes_gtk_desktop & (GTK_3_24 | WAYLAND)) { // 3.24.x
+        if (shoes_gtk_backend & WAYLAND) { 
           new_y = max(0,new_y - 60);
           new_x = max(0, new_x - 29);
           //printf("btn: x: %d -> %d y: %d -> %d\n",(int)event->x, new_x, (int)event->y, new_y);
@@ -640,7 +660,7 @@ static gboolean shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gp
     if (app->have_menu) 
       shoes_app_wheel(app, wheel, event->x, event->y - app->mb_height, mods);
     else {
-      if (shoes_gtk_desktop & (GTK_3_24 | WAYLAND)) { // 3.24.x
+      if (shoes_gtk_backend & WAYLAND) {
         new_y = max(0,new_y - 60);
         new_x = max(0, new_x - 29);
         //printf("whl: x: %d -> %d y: %d -> %d\n",(int)event->x, new_x, (int)event->y, new_y);

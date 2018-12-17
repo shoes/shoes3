@@ -20,6 +20,7 @@ typedef struct {
   VALUE rdomain;
   VALUE use_menus;
   VALUE dbus_name;
+  VALUE backend;
   VALUE extra1;
   VALUE extra2;
   VALUE osx_menutrim; 
@@ -45,6 +46,7 @@ VALUE shoes_settings_mdi(VALUE self);
 VALUE shoes_settings_menu(VALUE self);
 VALUE shoes_settings_rdomain(VALUE self);
 VALUE shoes_settings_set_rdomain(VALUE self, VALUE name);
+VALUE shoes_setting_backend(VALUE self);
 VALUE shoes_setting_extra1(VALUE self);
 VALUE shoes_setting_extra2(VALUE self);
 VALUE shoes_setting_get_wintmo(VALUE self);
