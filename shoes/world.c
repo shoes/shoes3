@@ -266,6 +266,7 @@ int shoes_init_load_yaml(char *path) {
     shoes_config_yaml->rdomain = "com.shoesrb.shoes";
     shoes_config_yaml->use_menus = "false";
     shoes_config_yaml->mdi = "false";
+    shoes_config_yaml->backend = NULL;
     shoes_config_yaml->extra1 = NULL;
     shoes_config_yaml->extra2 = NULL;
     shoes_config_yaml->osx_menutrim = "false";
@@ -321,7 +322,8 @@ int shoes_init_load_yaml(char *path) {
                           datap = &shoes_config_yaml->extra2;
                      } else if (!strcmp(tk,"OSX_Menu_Trim")) {
 						 datap = &shoes_config_yaml->osx_menutrim;
-                          
+                     } else if (!strcmp(tk,"Backend")) {
+						 datap = &shoes_config_yaml->backend; 
                      } else {
                           printf("Unrecognised key: %s\n", tk);
                           return 0;
