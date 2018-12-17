@@ -322,7 +322,7 @@ int shoes_init_load_yaml(char *path) {
                           datap = &shoes_config_yaml->extra2;
                      } else if (!strcmp(tk,"OSX_Menu_Trim")) {
 						 datap = &shoes_config_yaml->osx_menutrim;
-                     } else if (!strcmp(tk,"Backend")) {
+                     } else if (!strcmp(tk,"Display_Backend")) {
 						 datap = &shoes_config_yaml->backend; 
                      } else {
                           printf("Unrecognised key: %s\n", tk);

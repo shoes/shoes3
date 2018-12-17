@@ -359,12 +359,12 @@ void shoes_native_init() {
     } else {
        // defaults to shoes_gtk_backend == OLD_SCHOOL
 #ifdef SHOES_GTK_WIN32
-      gdk_set_allowed_backends("win32,x11");
+       gdk_set_allowed_backends("win32,x11");
 #endif 
 #ifdef SHOES_QUARTZ
       gdk_set_allowed_backends("quartz,x11");
 #endif 
-#ifdef SHOES_GTK
+#if defined(SHOES_GTK) && !defined(SHOES_GTK_WIN32)
       gdk_set_allowed_backends("x11,wayland,mir");
 #endif
     }
