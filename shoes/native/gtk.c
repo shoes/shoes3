@@ -66,14 +66,18 @@ enum {
   GTK_3_24,
   WAYLAND,
 };
+
 static int shoes_gtk_desktop = OLD_SCHOOL;
 
 int shoes_gtk_set_desktop() {
   char *current_desktop_session = getenv("XDG_SESSION_TYPE");
-  if (gtk_get_minor_version() >= 24)
-    shoes_gtk_desktop |= GTK_3_24;
+  
+  if (gtk_get_minor_version() == 24 && strcmp(current_desktop_session, "x11") == 0)
+    shoes_gtk_desktop |= GTK_3_24; 
+  
   if (current_desktop_session && strcmp(current_desktop_session, "wayland") == 0)
     shoes_gtk_desktop |= WAYLAND;
+  
   printf("desktop: %d\n", shoes_gtk_desktop);
 }
 
@@ -526,7 +530,7 @@ static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, g
           //shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly - app->mb_height, mods);
         } else {
           // TODO: Do not Hardcode offsets. Windows? Different Theme?
-          if (shoes_gtk_desktop & (GTK_3_24 | WAYLAND)) { // 3.24.x
+          if (shoes_gtk_desktop & WAYLAND) { // 3.24.x
             new_y = max(0,new_y - 60);
             new_x = max(0, new_x - 29);
             //printf("mv: x: %d -> %d y: %d -> %d\n",(int)event->x, new_x, (int)event->y, new_y);
@@ -588,7 +592,7 @@ static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, g
       } else {
         // TODO: Do not Hardcode offsets. Windows? Different Theme?
         //if (gtk_get_minor_version() >= 24 && strcmp(current_desktop_session, "wayland") == 0) { // 3.24.x
-        if (shoes_gtk_desktop & (GTK_3_24 | WAYLAND)) { // 3.24.x
+        if (shoes_gtk_desktop & WAYLAND) { // 3.24.x
           new_y = max(0,new_y - 60);
           new_x = max(0, new_x - 29);
           //printf("btn: x: %d -> %d y: %d -> %d\n",(int)event->x, new_x, (int)event->y, new_y);
