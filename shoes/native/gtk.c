@@ -72,7 +72,7 @@ static int shoes_gtk_desktop = OLD_SCHOOL;
 int shoes_gtk_set_desktop() {
   char *current_desktop_session = getenv("XDG_SESSION_TYPE");
   
-  if (gtk_get_minor_version() == 24 && strcmp(current_desktop_session, "x11") == 0)
+  if (gtk_get_minor_version() >= 24)
     shoes_gtk_desktop |= GTK_3_24; 
   
   if (current_desktop_session && strcmp(current_desktop_session, "wayland") == 0)
