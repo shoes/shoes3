@@ -1,5 +1,6 @@
 App_Name: Foobar
 #Icon_Path: static/shoes-icon-blue.png
 #Theme: XP 
+#Display_Backend: wayland
 Use_Menus: true
 Extra1: E:\exe-shoes\build-exe.rb

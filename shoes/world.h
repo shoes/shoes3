@@ -96,6 +96,7 @@ typedef struct _shoes_yaml_init {
     char* icon_path;
     char* theme_name;
     char* rdomain;
+    char* backend;
     char* use_menus;
     char* mdi;
     char* extra1;

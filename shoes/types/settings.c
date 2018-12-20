@@ -25,6 +25,7 @@ void shoes_settings_mark(shoes_settings *st) {
     rb_gc_mark_maybe(st->mdi);
     rb_gc_mark_maybe(st->use_menus);
     rb_gc_mark_maybe(st->dbus_name);
+    rb_gc_mark_maybe(st->backend);
     rb_gc_mark_maybe(st->extra1);
     rb_gc_mark_maybe(st->extra2);
     rb_gc_mark_maybe(st->osx_menutrim);
@@ -45,6 +46,7 @@ VALUE shoes_settings_alloc(VALUE klass) {
     st->theme_path = Qnil;
     st->mdi = Qnil;
     st->rdomain = Qnil;
+    st->backend = Qnil;
     st->use_menus = Qnil;
     st->dbus_name = Qnil;
     st->extra1 = Qnil;
@@ -76,6 +78,9 @@ VALUE shoes_settings_new(shoes_yaml_init *yml) {
     
   st->rdomain = rb_str_new2(yml->rdomain);
   
+  if (yml->backend) {
+	  st->backend = rb_str_new2(yml->backend);
+  }
   if (! strcmp(yml->mdi,"true")) 
     st->mdi = Qtrue;
   else
@@ -191,6 +196,12 @@ VALUE shoes_settings_set_rdomain(VALUE self, VALUE name) {
   Data_Get_Struct(self, shoes_settings, st);
   st->rdomain = name;
   return st->rdomain;
+}
+
+VALUE shoes_setting_display_backend(VALUE self) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  return st->backend;
 }
 
 // There is always one monitor
