@@ -198,6 +198,12 @@ VALUE shoes_settings_set_rdomain(VALUE self, VALUE name) {
   return st->rdomain;
 }
 
+VALUE shoes_setting_display_backend(VALUE self) {
+  shoes_settings *st;
+  Data_Get_Struct(self, shoes_settings, st);
+  return st->backend;
+}
+
 // There is always one monitor
 VALUE shoes_settings_monitor_count(VALUE self) {
   shoes_settings *st;

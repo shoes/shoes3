@@ -349,6 +349,8 @@ void shoes_native_init() {
       sprintf(app_id, "%s%d", rdom, getpid()); // TODO: Windows?
     }
     // set the gdk_backend 
+    char *csd = getenv("GTK_CSD");
+    printf("csd = %s\n", csd);
     if (st->backend != Qnil) {
       char *backend = RSTRING_PTR(st->backend);
       gdk_set_allowed_backends(backend);

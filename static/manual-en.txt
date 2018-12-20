@@ -5952,8 +5952,7 @@ a running Shoes app when the user double clicks on a file the desktop manager
 believes your application will handle. Linux uses the registered `dbus` name,
 See below.
 
-By not implemented, I mean that we don't get open requests. We do get a dbus
-name. 
+May not be implemented. 
 
 === settings.rdomain » string ===
 
@@ -5986,12 +5985,12 @@ Shoes.app do
 end
 }}}
 
-=== settings.wintmo » integer
+=== settings.wintmo » integer ===
 
 Only usable for Windows and only until the problem is fixed. See next paragraph.
 Returns the current setting.
 
-=== settings.wintmo = integer
+=== settings.wintmo = integer ===
 
 Only for Window. Integer is the number of milliseconds for the mainloop
 timeout (tmo). This controls how frequently time is given to backgound Ruby
@@ -6007,6 +6006,13 @@ a very silly thing to do, so don't do it. Don't pass in floating point numbers.
 
 Generally speaking, don't use this call. There is no setting in the startup.yaml
 file for this.
+
+=== settings.display_backend » string ===
+
+For Linux, this is the value from the startup.yaml `Display_Backend` field. It contains the
+names , comma separated, of the backends. 'x11' is the default. Unless you
+know better, this field should not be set and 'wayland' is the only value
+that works. If you have a wayland backend. 
 
 == Terminal ==
 
