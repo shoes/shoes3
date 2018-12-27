@@ -1,7 +1,7 @@
 # Build a 64 bit Linux Tight Shoes (from a 64 bit host)
 # Technically, this is a cross build using Unbuntu 16.04 dependencies.
 
-cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
+cf =(ENV['ENV_CUSTOM'] || "#{APP['VAGRANT']}#{TGT_ARCH}-custom.yaml")
 ignore_deprecations = true
 if File.exists? cf
   custmz = YAML.load_file(cf)
@@ -100,7 +100,11 @@ SOLOCS['libssl'] = "#{larch}/libssl.so.1.0.0"
 SOLOCS['libsqlite3'] = "#{ularch}/libsqlite3.so.0.8.6"
 SOLOCS['libffi'] = "#{ularch}/libffi.so.6.0.4"
 SOLOCS['librsvg-2'] = "#{ularch}/librsvg-2.so.2.40.13"
-SOLOCS['libcurl'] = "#{ularch}/libcurl.so.4.4.0"
+if APP['VAGRANT']
+  SOLOCS['libcurl-gnutls'] = ""
+else
+  SOLOCS['libcurl'] = "#{ularch}/libcurl.so.4.4.0"
+end
 
 # sigh, we need symlinks on some linux distros and curl is just difficult
 # every where. See setup.rb

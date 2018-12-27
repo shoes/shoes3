@@ -11,7 +11,9 @@
 *.log
 *.lib
 .byebug_history
+.vagrant
 Makefile
+shoesdeps
 VERSION.txt
 *-custom.yaml
 Shoes3.2.geany

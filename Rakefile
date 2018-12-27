@@ -17,8 +17,11 @@ build_os = case RUBY_PLATFORM
   when /bsd/
     :bsd
 end
-
 APP = YAML.load_file(File.join(ENV['APP'] || ".", "app.yaml"))
+# detect vagrant user with different custom files
+if ENV['USER'] == 'vagrant'
+  APP['VAGRANT'] = 'vagrant/' 
+end
 # APP['version'] = APP['major'] # for historical reasons
 # populate APP[] with uppercase names and string values
 APP['VERSION'] = "#{APP['major']}.#{APP['minor']}.#{APP['tiny']}"
