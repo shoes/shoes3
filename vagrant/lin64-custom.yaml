@@ -1,7 +1,7 @@
 Ruby: /usr/local
 Deps: 
-Gemloc: /vagrant/shoesdeps/gems/rb23
-Extloc: /vagrant/shoesdeps/gems/rb23
+Gemloc: /shoesdeps/gems/rb23
+Extloc: /shoesdeps/gems/rb23
 Exts:
 Gems:
 InclGems: 
