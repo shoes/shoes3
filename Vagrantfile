@@ -14,6 +14,7 @@ Vagrant.configure("2") do |config|
   # boxes at https://vagrantcloud.com/search.
   #config.vm.box = "ubuntu/xenial64"
   config.vm.box = "shoes3/ubuntu-16.04"
+  config.vm.box_version = "1.0.1"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
