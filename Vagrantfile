@@ -19,6 +19,9 @@ Vagrant.configure("2") do |config|
     win.vm.box = "shoes3/ubuntu-16.04"
     win.vm.box_version = "1.0.1"
   end
+  config.vm.define "rpi" do |rpi|
+    rpi.vm.box = "shoes3/raspberry"
+  end
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
