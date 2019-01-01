@@ -100,7 +100,7 @@ SOLOCS['libssl'] = "#{larch}/libssl.so.1.0.0"
 SOLOCS['libsqlite3'] = "#{ularch}/libsqlite3.so.0.8.6"
 SOLOCS['libffi'] = "#{ularch}/libffi.so.6.0.4"
 SOLOCS['librsvg-2'] = "#{ularch}/librsvg-2.so.2.40.13"
-if APP['VAGRANT']
+if nil #APP['VAGRANT']
   SOLOCS['libcurl-gnutls'] = ""
 else
   SOLOCS['libcurl'] = "#{ularch}/libcurl.so.4.4.0"

@@ -1,0 +1,34 @@
+Deps: /shoesdeps/10.10-3
+Ruby: /shoesdeps/darwin14/ruby238
+Gemloc: /shoesdeps/gems/rb23
+InclGems:
+  - chipmunk*
+  - sqlite3*
+  - nokogiri*
+  - mini_portile2*
+  - byebug*
+  - rb-readline*
+  - ffi*
+  # picky needs:
+  - activesupport*
+  - concurrent-ruby*
+  - i18n*
+  - multi_json*
+  - picky-4.31.3
+  - rack_fast_escape*
+  - thread_safe*
+  - tzinfo*
+  - url_escape*
+  - yajl-ruby*
+  # typhoeus
+  - ethon*
+  - typhoeus*
+Debug: true
+CFLAGS: -DNEW_RADIO
+Deprecations: true
+ToolPrefix: /shoesdeps/osxcross/target/bin/x86_64-apple-darwin14- 
+CC: clang
+RANLIB: ranlib
+STRIP: strip
+OTOOL: otool
+INTOOL: install_name_tool

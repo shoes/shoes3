@@ -1,9 +1,9 @@
 # Build a 32 bit Linux Tight Shoes FOR a pi3 
 #   Deps are in usr/lib/, usr/include/ lib/ - copied from Rasbian Stretch
 cf =(ENV['ENV_CUSTOM'] || "#{APP['VAGRANT']}#{TGT_ARCH}-custom.yaml")
-puts "Using #{cf}"
 ignore_deprecations = true
 if File.exists? cf
+  puts "custom file: #{cf}"
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']
   EXT_RUBY = custmz['Ruby']

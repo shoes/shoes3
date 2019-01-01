@@ -13,7 +13,7 @@
 .byebug_history
 .vagrant
 Makefile
-package.box
+*.box
 shoesdeps
 VERSION.txt
 *-custom.yaml
