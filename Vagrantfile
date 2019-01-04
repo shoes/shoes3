@@ -27,6 +27,8 @@ Vagrant.configure("2") do |config|
   config.vm.define "bsd" do |bsd|
     #bsd.vm.box = "generic/freebsd11"
     bsd.vm.box = "roboxes/freebsd11"
+    #bsd.vm.network "private_network", ip: "10.0.2.15"
+    #bsd.vm.synced_folder ".", "/vagrant", type: "nfs"
   end
 
   # Disable automatic box update checking. If you disable this, then
