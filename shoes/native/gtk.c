@@ -56,6 +56,9 @@ static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, g
 #define SGPOLL 
 #endif
 
+#ifdef SHOES_GTK_WIN32
+int shoes_win10_gtk3_22_check();  // forward declare
+#endif
 /* 
  * Sigh. We need to accommodate Gnome Shells that "augment* the title bar
  * and/or provide a half baked global menu bar. Like Fedora 29 - but it's not
@@ -349,8 +352,8 @@ void shoes_native_init() {
       sprintf(app_id, "%s%d", rdom, getpid()); // TODO: Windows?
     }
     // set the gdk_backend 
-    char *csd = getenv("GTK_CSD");
-    printf("csd = %s\n", csd);
+    //char *csd = getenv("GTK_CSD");
+    //printf("csd = %s\n", csd);
     if (st->backend != Qnil) {
       char *backend = RSTRING_PTR(st->backend);
       gdk_set_allowed_backends(backend);
@@ -362,6 +365,9 @@ void shoes_native_init() {
        // defaults to shoes_gtk_backend == OLD_SCHOOL
 #ifdef SHOES_GTK_WIN32
        gdk_set_allowed_backends("win32,x11");
+       // TODO: believe it or not - Gtk3.22.7 has a bug? on win10 
+       if (shoes_win10_gtk3_22_check())
+         shoes_gtk_backend = shoes_gtk_backend | WAYLAND;
 #endif 
 #ifdef SHOES_QUARTZ
       gdk_set_allowed_backends("quartz,x11");
@@ -1933,6 +1939,7 @@ VALUE shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self) {
 #include <io.h>
 #include <fcntl.h>
 
+
 // called from main.c(skel) on Windows - works fine
 static FILE* shoes_console_out = NULL;
 static FILE* shoes_console_in = NULL;
@@ -1978,6 +1985,28 @@ int shoes_native_terminal() {
         printf("failed dup2 of stdin\n");
     printf("created win32 console\n");
     return 1;
+}
+
+// For bug #428 
+int shoes_win10_gtk3_22_check() {
+    if (gtk_get_minor_version() < 22)
+      return 0;
+    // borrowed from
+    // https://stackoverflow.com/questions/32115255/c-how-to-detect-windows-10
+    int ret = 0;
+    NTSTATUS(WINAPI *RtlGetVersion)(LPOSVERSIONINFOEXW);
+    OSVERSIONINFOEXW osInfo;
+
+    *(FARPROC*)&RtlGetVersion = GetProcAddress(GetModuleHandleA("ntdll"), "RtlGetVersion");
+
+    if (NULL != RtlGetVersion)
+    {
+        osInfo.dwOSVersionInfoSize = sizeof(osInfo);
+        RtlGetVersion(&osInfo);
+        ret = osInfo.dwMajorVersion;
+    }
+    //printf("windows version %i\n", ret); // win 7 returns '6' go figure
+    return ret == 10;
 }
 #else
 /*

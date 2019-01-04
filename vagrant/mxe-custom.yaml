@@ -1,0 +1,34 @@
+Deps: /shoesdeps/mxe/usr/i686-w64-mingw32.shared
+Ruby: /shoesdeps/mxe/usr/i686-w64-mingw32.shared
+Gemloc: /shoesdeps/gems/rb23
+InclGems:
+  - chipmunk*
+  - sqlite3*
+  - nokogiri*
+  - mini_portile2*
+  - byebug*
+  - rb-readline*
+  - win32-shortcut*
+  - ffi*
+  # picky needs:
+  - activesupport*
+  - concurrent-ruby*
+  - i18n*
+  - multi_json*
+  - picky*
+  - rack_fast_escape*
+  - thread_safe*
+  - tzinfo*
+  - url_escape*
+  - yajl-ruby*
+  # typhoeus
+  - ethon*
+  - typhoeus*
+  # because
+  #- bloopsaphone-0.4
+MS-Theme: true 
+Debug: true
+Deprecations: true 
+Installer: nsis
+#InstallerLoc: /home/ccoupe/Projects/nsis/nsis3/bin/makensis
+InstallerLoc: /shoesdeps/mxe/usr/i686-w64-mingw32.shared/bin/makensis

@@ -2,7 +2,7 @@
 # In this case Unbuntu 14.04 to debian 7.2 in a chroot.
 # You should modify your custom.yaml
 ignore_deprecations = true
-cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
+cf =(ENV['ENV_CUSTOM'] || "#{APP['VAGRANT']}#{TGT_ARCH}-custom.yaml")
 if File.exists? cf
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']
@@ -83,14 +83,18 @@ SOLOCS = {}
 #SOLOCS['ungif'] = "#{uldir}/libungif.so.4.1.6"
 SOLOCS['libgif'] = "#{ularch}/libgif.so.7.0.0" 
 SOLOCS['libjpeg'] = "#{ularch}/libjpeg.so.8.0.2"
-SOLOCS['libyaml'] = "#{ularch}/libyaml-0.so.2.0.4"
+SOLOCS['libyaml-0'] = "#{ularch}/libyaml-0.so.2.0.4"
 SOLOCS['libpcre'] = "#{larch}/libpcre.so.3"  # TODO: is this needed? 
 SOLOCS['libcrypto'] = "#{larch}/libcrypto.so.1.0.0"
 SOLOCS['libssl'] = "#{larch}/libssl.so.1.0.0"
 SOLOCS['libsqlite3'] = "#{ularch}/libsqlite3.so.0.8.6"
 SOLOCS['libffi'] = "#{ularch}/libffi.so.6.0.4"
 SOLOCS['librsvg-2'] = "#{ularch}/librsvg-2.so.2.40.13"
-SOLOCS['libcurl'] = "#{ularch}/libcurl.so.4.4.0"
+if APP['VAGRANT']
+  SOLOCS['libcurl-gnutls'] = ""
+else
+  SOLOCS['libcurl'] = "#{ularch}/libcurl.so.4.4.0"
+end
 
 # sigh, we need symlinks on some linux distros and curl is just difficult
 # every where. See setup.rb
