@@ -1845,7 +1845,38 @@ VALUE shoes_dialog_color(VALUE self, VALUE title) {
 
 VALUE shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, const gchar *button, VALUE attr) {
     VALUE path = Qnil;
-    GTK_APP_VAR(app);
+#if 0
+  GTK_APP_VAR(app);
+#else
+  //VALUE clsv = rb_funcall2(self, rb_intern("inspect"), 0, Qnil);
+  //char *clsname = RSTRING_PTR(clsv);
+  //printf("self is %s - > ", clsname);
+  char * title_app = "Shoes"; 
+  GtkWindow *window_app = NULL; 
+  shoes_app *app = NULL; 
+  if ( rb_obj_is_kind_of(self,cApp)) {
+      // Normal 
+      Data_Get_Struct(self, shoes_app, app);
+      title_app = RSTRING_PTR(app->title); 
+      window_app = APP_WINDOW(app);
+  } else {
+    // Is it Shoes splash? 
+    if (RARRAY_LEN(shoes_world->apps) > 0) { 
+      VALUE actual_app = rb_ary_entry(shoes_world->apps, 0);
+      Data_Get_Struct(actual_app, shoes_app, app); 
+      title_app = RSTRING_PTR(app->title); 
+      window_app = APP_WINDOW(app);
+    } else {
+      // outside an app and not splash - no window. Gtk complains but runs. 
+      /*
+      VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); // this creates a window
+      Data_Get_Struct(actual_app, shoes_app, app); 
+      title_app = RSTRING_PTR(app->title); 
+      window_app = APP_WINDOW(app);
+      */
+    }
+  }
+#endif
     if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("title"))))
         title = strdup(RSTRING_PTR(shoes_hash_get(attr, rb_intern("title"))));
     GtkWidget *dialog = gtk_file_chooser_dialog_new(title, window_app, act,
