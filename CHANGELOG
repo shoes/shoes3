@@ -52,9 +52,13 @@
     user written installers.
   * Better cross build rakefiles: xrpi, xwin7 and xmsys2 targets.
   * Includes plugin for MXE to build all Windows dependencies
-    new target 'mxe' is not mainstream yet but will become the preferred
+    new target 'mxe' is the preferred target for Windows
     method of cross compiling for Windows.
     https://github.com/shoes/shoes3/wiki/MXE-Dependencies
+
+=== Known Bugs 
+   Resize Windows with menubars manually
+   https://github.com/shoes/shoes3/issues/430
   
 -------------- Shoes 3.3.6 -------------------------------
 

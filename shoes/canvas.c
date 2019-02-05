@@ -273,6 +273,7 @@ VALUE shoes_canvas_new(VALUE klass, shoes_app *app) {
 static void shoes_canvas_empty(shoes_canvas *canvas, int extras) {
     unsigned char stage = canvas->stage;
     canvas->stage = CANVAS_EMPTY;
+    
     shoes_ele_remove_all(canvas->contents);
     if (extras) shoes_extras_remove_all(canvas);
     canvas->stage = stage;
@@ -303,6 +304,8 @@ void shoes_canvas_clear(VALUE self) {
     canvas->endx = 0;
     canvas->topy = 0;
     canvas->fully = 0;
+    // #391 - Did we have radios in this slot (or it's children) ?
+    // canvas->app->groups = ??
     shoes_group_clear(&canvas->group);
 }
 

@@ -17,6 +17,7 @@ rv =  RUBY_VERSION[/\d.\d/]
 LINUX_CFLAGS << " -DRUBY_HTTP"
 LINUX_CFLAGS << " -DRUBY_1_9"
 LINUX_CFLAGS << " -DSZBUG"
+#LINUX_CFLAGS << " -DSHOES_FORCE_RADIO"
 LINUX_CFLAGS << " -DDEBUG" if ENV['DEBUG']
 LINUX_CFLAGS << " -DSHOES_GTK -fPIC -shared -Wno-unused-but-set-variable"
 # Following line may need handcrafting

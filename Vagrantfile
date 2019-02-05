@@ -25,10 +25,16 @@ Vagrant.configure("2") do |config|
     osx.vm.box = "shoes3/darwin14"
   end
   config.vm.define "bsd" do |bsd|
-    #bsd.vm.box = "generic/freebsd11"
     bsd.vm.box = "roboxes/freebsd11"
-    #bsd.vm.network "private_network", ip: "10.0.2.15"
+    #bsd.vm.network "private_network", ip: "192.168.1.2"
     #bsd.vm.synced_folder ".", "/vagrant", type: "nfs"
+    #bsd.vm.synced_folder "/Projects", "/vagrant", type: 'nfs'
+    bsd.vm.guest = :freebsd
+    #bsd.vm.box = "freebsd/FreeBSD-11.0-CURRENT"
+    bsd.ssh.shell = 'sh'
+    bsd.vm.base_mac = "080027D14C66"
+    #bsd.vm.synced_folder ".", "/vagrant", id: "vagrant-root", disabled: false, type: 'nfs', nfs_version: 4, nfs_udp: false
+    bsd.vm.provision :shell, path: "bsd-provision.sh"
   end
 
   # Disable automatic box update checking. If you disable this, then

@@ -20,60 +20,61 @@ void shoes_radio_init() {
 
 // ruby
 VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual) {
-    SETUP_CONTROL(0, 20, FALSE);
+  SETUP_CONTROL(0, 20, FALSE);
 
-    if (RTEST(actual)) {
-        if (self_t->ref == NULL) {
-            VALUE group = ATTR(self_t->attr, group);
-            if (NIL_P(group)) group = c;
+  if (RTEST(actual)) {
+    if (self_t->ref == NULL) {
+        VALUE group = ATTR(self_t->attr, group);
+        if (NIL_P(group))
+          group = c;
 
-            VALUE glist = shoes_hash_get(canvas->app->groups, group);
+        VALUE glist = shoes_hash_get(canvas->app->groups, group);
 #ifdef SHOES_FORCE_RADIO // aka OSX - create group before realizing widget
-            if (NIL_P(glist))
-                canvas->app->groups = shoes_hash_set(canvas->app->groups, group, (glist = rb_ary_new3(1, self)));
-            else
-                rb_ary_push(glist, self);
-            glist = shoes_hash_get(canvas->app->groups, group);
-            self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
+        if (NIL_P(glist))
+          canvas->app->groups = shoes_hash_set(canvas->app->groups, group, (glist = rb_ary_new3(1, self)));
+        else
+          rb_ary_push(glist, self);
+        glist = shoes_hash_get(canvas->app->groups, group);
+        self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
 #else
-            self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
+        self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
 
-            if (NIL_P(glist))
-                canvas->app->groups = shoes_hash_set(canvas->app->groups, group, (glist = rb_ary_new3(1, self)));
-            else
-                rb_ary_push(glist, self);
+        if (NIL_P(glist))
+            canvas->app->groups = shoes_hash_set(canvas->app->groups, group, (glist = rb_ary_new3(1, self)));
+        else
+            rb_ary_push(glist, self);
 #endif
-            if (RTEST(ATTR(self_t->attr, checked))) shoes_native_check_set(self_t->ref, Qtrue);
-            shoes_control_check_styles(self_t);
-            shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
-        } else
-            shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
-    }
+        if (RTEST(ATTR(self_t->attr, checked))) shoes_native_check_set(self_t->ref, Qtrue);
+        shoes_control_check_styles(self_t);
+        shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
+    } else
+          shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
+  }
 
-    FINISH();
+  FINISH();
 
-    return self;
+  return self;
 }
 
 VALUE shoes_check_set_checked_m(VALUE self, VALUE on) {
 #ifdef SHOES_FORCE_RADIO
-    if (RTEST(on)) {
-        VALUE glist = shoes_radio_group(self);
+  if (RTEST(on)) {
+      VALUE glist = shoes_radio_group(self);
 
-        if (!NIL_P(glist)) {
-            long i;
-            for (i = 0; i < RARRAY_LEN(glist); i++) {
-                VALUE ele = rb_ary_entry(glist, i);
-                shoes_check_set_checked(ele, ele == self ? Qtrue : Qfalse);
-            }
-        } else {
-            shoes_check_set_checked(self, on);
-        }
-        return on;
-    }
+      if (!NIL_P(glist)) {
+          long i;
+          for (i = 0; i < RARRAY_LEN(glist); i++) {
+              VALUE ele = rb_ary_entry(glist, i);
+              shoes_check_set_checked(ele, ele == self ? Qtrue : Qfalse);
+          }
+      } else {
+          shoes_check_set_checked(self, on);
+      }
+      return on;
+  }
 #endif
-    shoes_check_set_checked(self, on);
-    return on;
+  shoes_check_set_checked(self, on);
+  return on;
 }
 
 #ifdef SHOES_FORCE_RADIO
