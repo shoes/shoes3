@@ -257,7 +257,7 @@ typedef struct {
     char hover;
     struct _shoes_app *app;
     SHOES_SLOT_OS *slot;
-    SHOES_GROUP_OS group;     // #391 conflict with groups in shoes_app
+    SHOES_GROUP_OS group;     
 } shoes_canvas;
 
 VALUE shoes_app_main(int, VALUE *, VALUE);

@@ -29,7 +29,8 @@ VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual) {
           group = c;
 
         VALUE glist = shoes_hash_get(canvas->app->groups, group);
-#ifdef SHOES_FORCE_RADIO // aka OSX - create group before realizing widget
+//#ifdef SHOES_FORCE_RADIO // aka OSX - create group before realizing widget
+#if 1
         if (NIL_P(glist))
           canvas->app->groups = shoes_hash_set(canvas->app->groups, group, (glist = rb_ary_new3(1, self)));
         else
@@ -48,7 +49,8 @@ VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual) {
         shoes_control_check_styles(self_t);
         shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     } else
-          shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
+      // ref != null  (native widget exists)
+      shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
   }
 
   FINISH();
@@ -93,6 +95,37 @@ VALUE shoes_radio_group(VALUE self) {
         return shoes_hash_get(canvas->app->groups, group);
     }
     return Qnil;
+}
+
+/*
+ *  This is one twiddly bit of work - find the radio in the group(s)
+ *  and remove it from the group
+ *  Uses a callback for rb_hash_each
+ */
+static int shoes_radio_group_keys(VALUE key, VALUE val, VALUE arg) {
+  //called for each hash key, value is an Array of 'shoes_control'
+  if (RB_TYPE_P(val, T_ARRAY)) {
+    //printf("Array len: %d\n",  (int)RARRAY_LEN(val));
+    SHOES_CONTROL_REF ref = (SHOES_CONTROL_REF)arg;
+    for (int i = 0; i < RARRAY_LEN(val); i++) {
+      shoes_control *ctrl;
+      VALUE entry = rb_ary_entry(val, i);
+      Data_Get_Struct(entry, shoes_control, ctrl);
+      if ( ctrl->ref == ref) {
+        //printf("FOUND RADIO in group\n");
+        rb_ary_delete_at(val, i);
+        break;
+      }
+    }
+  }
+  
+  return ST_CONTINUE;
+}
+
+void shoes_radio_remove_group(SHOES_CONTROL_REF ref, VALUE grp_hash) {
+  if (!RB_TYPE_P(grp_hash, T_HASH))
+    fprintf(stderr, "radio_group not a hash\n");
+  rb_hash_foreach(grp_hash, shoes_radio_group_keys, (VALUE)ref);
 }
 
 // canvas

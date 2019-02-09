@@ -31,8 +31,9 @@ extern VALUE cTimer;
   if ((self = [super init]))
   {
     object = o;
-    [self setButtonType: NSPushOnPushOffButton];  // checkbox for now
-	// [self setShoesViewPosition: NSImageOnly]; 
+    //[self setButtonType: NSPushOnPushOffButton];  // checkbox for now
+    [self setButtonType:t];  
+	  //[self setShoesViewPosition: NSImageOnly]; 
     [self setBezelStyle: NSCircularBezelStyle];
     [self setTarget: self];
     [self setAction: @selector(handleClick:)];
@@ -65,7 +66,8 @@ shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
    else
  	  NSLog(@"group: %lx", group);
  	*/
- 	ShoesRadioButton *button = [[ShoesRadioButton alloc] initWithType: NSSwitchButton
+ 	//ShoesRadioButton *button = [[ShoesRadioButton alloc] initWithType: NSSwitchButton
+	ShoesRadioButton *button = [[ShoesRadioButton alloc] initWithType: NSRadioButton
  		   andObject: self];
  	RELEASE;
  	return (NSControl *)button;

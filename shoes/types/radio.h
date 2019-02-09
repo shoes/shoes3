@@ -30,6 +30,7 @@ VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual);
 VALUE shoes_check_set_checked_m(VALUE self, VALUE on);
 void shoes_radio_button_click(VALUE control);
 VALUE shoes_radio_group(VALUE self);
+void shoes_radio_remove_group(SHOES_CONTROL_REF ref, VALUE grp_hash);
 
 // reuse code from check type
 extern VALUE shoes_check_is_checked(VALUE self);

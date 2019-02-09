@@ -304,8 +304,6 @@ void shoes_canvas_clear(VALUE self) {
     canvas->endx = 0;
     canvas->topy = 0;
     canvas->fully = 0;
-    // #391 - Did we have radios in this slot (or it's children) ?
-    // canvas->app->groups = ??
     shoes_group_clear(&canvas->group);
 }
 
@@ -516,8 +514,8 @@ VALUE shoes_canvas_draw(VALUE self, VALUE c, VALUE actual) {
     Data_Get_Struct(self, shoes_canvas, self_t);
     Data_Get_Struct(c, shoes_canvas, canvas);
 #ifdef SHOES_GTK
-    if (!RTEST(actual))
-        canvas->group.radios = NULL;
+    //if (!RTEST(actual))
+    //    canvas->group.radios = NULL;
 #endif
 
     if (self_t->height > self_t->fully)
@@ -772,7 +770,7 @@ VALUE shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self) {
             VALUE group = ATTR(self_t->attr, group);
             if (NIL_P(group)) group = self_t->parent;
             // OSX clang compiler doesn't like that semicolon. it doesn't
-            // like the Qnill to boolean comparison either
+            // like the Qnil to boolean comparison either
             //if (!shoes_hash_get(canvas->app->groups, group) == Qnil);
             if (! NIL_P(shoes_hash_get(canvas->app->groups, group))) {
                 shoes_hash_set(canvas->app->groups, group, Qnil);

@@ -1485,8 +1485,8 @@ void shoes_cairo_destroy(shoes_canvas *canvas) {
 }
 
 void shoes_group_clear(SHOES_GROUP_OS *group) {
-    group->radios = NULL;
-    group->layout = NULL;
+    //group->radios = NULL;
+    //group->layout = NULL;
 }
 
 void shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc) {
