@@ -7,17 +7,18 @@
 #include "shoes/internal.h"
 #include "shoes/native/gtk/gtkradio.h"
 
+/* 
+ * This is called at 'draw' time (actual 
+ */
 SHOES_CONTROL_REF shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, VALUE group) {
     SHOES_CONTROL_REF ref;
     GSList *list = NULL;
     
     if (!NIL_P(group)) {
         shoes_control *lctrl;
-        if (TYPE(group) != T_ARRAY)
-          printf("Not a an array\n");
         VALUE leader = rb_ary_entry(group, 0);
         if (NIL_P(leader))
-          printf("No control in group hash");
+          fprintf(stderr,"No control in group hash");
         Data_Get_Struct(leader, shoes_control, lctrl);
 #if 1
         GtkWidget *first = (GtkWidget *)lctrl->ref;
@@ -32,6 +33,7 @@ SHOES_CONTROL_REF shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_pla
 #endif
     } else {
       // no group from shoes 
+      printf("no group specified\n");
       ref = gtk_radio_button_new(list);
     }
 
