@@ -9,6 +9,7 @@
 
 /* 
  * This is called at 'draw' time (actual 
+ * group is an Array of SHOES_CONTROL_REF's
  */
 SHOES_CONTROL_REF shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, VALUE group) {
     SHOES_CONTROL_REF ref;
@@ -32,7 +33,7 @@ SHOES_CONTROL_REF shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_pla
           printf("group len: %d\n", g_slist_length(list));
 #endif
     } else {
-      // no group from shoes 
+      // no group from shoes - not likely - see types/radio.c
       printf("no group specified\n");
       ref = gtk_radio_button_new(list);
     }

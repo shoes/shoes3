@@ -19,35 +19,47 @@ void shoes_radio_init() {
 }
 
 // ruby
+extern int shoes_app_serial_num;
+
 VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual) {
   SETUP_CONTROL(0, 20, FALSE);
 
   if (RTEST(actual)) {
     if (self_t->ref == NULL) {
-        VALUE group = ATTR(self_t->attr, group);
-        if (NIL_P(group))
-          group = c;
-
-        VALUE glist = shoes_hash_get(canvas->app->groups, group);
-//#ifdef SHOES_FORCE_RADIO // aka OSX - create group before realizing widget
-#if 1
-        if (NIL_P(glist))
-          canvas->app->groups = shoes_hash_set(canvas->app->groups, group, (glist = rb_ary_new3(1, self)));
-        else
+      VALUE group = ATTR(self_t->attr, group);
+      if (NIL_P(group)) {
+        shoes_canvas *canvas;
+        Data_Get_Struct(c, shoes_canvas, canvas);
+        ++shoes_app_serial_num;
+        char buf[20];
+        sprintf(buf, "grp%d", shoes_app_serial_num);
+        VALUE grpstr = rb_str_new2(buf);
+        group = rb_to_symbol(grpstr);
+      }
+      if (TYPE(canvas->app->groups) != T_HASH) {
+        fprintf(stderr, "Oops - not a hash\n");
+        canvas->app->groups = rb_hash_new();
+      }
+      VALUE glist = rb_hash_aref(canvas->app->groups, group);
+      if (NIL_P(glist)) {
+          rb_hash_aset(canvas->app->groups, group, rb_ary_new3(1, self));
+      } else {
           rb_ary_push(glist, self);
-        glist = shoes_hash_get(canvas->app->groups, group);
-        self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
-#else
-        self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
+      }
+      glist = rb_hash_aref(canvas->app->groups, group);
+      // debugging 
+      VALUE gstr = rb_sym_to_s(group); 
+      if (TYPE(glist) != T_ARRAY)
+        fprintf(stderr, "group is not array\n");
+      else
+        fprintf(stderr, "group %s has %d entries\n", RSTRING_PTR(gstr), RARRAY_LEN(glist));
+      
+      self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
 
-        if (NIL_P(glist))
-            canvas->app->groups = shoes_hash_set(canvas->app->groups, group, (glist = rb_ary_new3(1, self)));
-        else
-            rb_ary_push(glist, self);
-#endif
-        if (RTEST(ATTR(self_t->attr, checked))) shoes_native_check_set(self_t->ref, Qtrue);
-        shoes_control_check_styles(self_t);
-        shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
+      if (RTEST(ATTR(self_t->attr, checked)))
+          shoes_native_check_set(self_t->ref, Qtrue);
+      shoes_control_check_styles(self_t);
+      shoes_native_control_position(self_t->ref, &self_t->place, self, canvas, &place);
     } else
       // ref != null  (native widget exists)
       shoes_native_control_repaint(self_t->ref, &self_t->place, canvas, &place);
