@@ -71,7 +71,7 @@ VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual) {
 }
 
 VALUE shoes_check_set_checked_m(VALUE self, VALUE on) {
-#ifdef SHOES_FORCE_RADIO
+#ifdef 0
   if (RTEST(on)) {
       VALUE glist = shoes_radio_group(self);
 
@@ -92,6 +92,7 @@ VALUE shoes_check_set_checked_m(VALUE self, VALUE on) {
 }
 
 #ifdef SHOES_FORCE_RADIO
+// called by shoes 'radio.check = <bool> ?
 void shoes_radio_button_click(VALUE control) {
     shoes_check_set_checked_m(control, Qtrue);
 }
