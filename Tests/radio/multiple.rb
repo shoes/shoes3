@@ -8,10 +8,10 @@ Shoes.app do
       @r6 = radio; para "still more default"
     }
     flow {
-      @r1 = radio :group, checked: true
+      @r1 = radio :group
       para "one"
     }
-    flow {@r2 = radio :group; para "two"}
+    flow {@r2 = radio :group, checked:  true; para "two"}
     para "================"
     flow { # horizontal grouping
       @r3 = radio :newgrp; para "near"

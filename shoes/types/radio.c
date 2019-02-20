@@ -52,7 +52,7 @@ VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual) {
       if (TYPE(glist) != T_ARRAY)
         fprintf(stderr, "group is not array\n");
       else
-        fprintf(stderr, "group %s has %d entries\n", RSTRING_PTR(gstr), RARRAY_LEN(glist));
+        fprintf(stderr, "group %s has %d entries\n", RSTRING_PTR(gstr), (int)RARRAY_LEN(glist));
       
       self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
 
@@ -71,7 +71,7 @@ VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual) {
 }
 
 VALUE shoes_check_set_checked_m(VALUE self, VALUE on) {
-#ifdef 0
+#if 0
   if (RTEST(on)) {
       VALUE glist = shoes_radio_group(self);
 
@@ -165,5 +165,6 @@ VALUE shoes_canvas_radio(int argc, VALUE *argv, VALUE self) {
 
     radio = shoes_control_new(cRadio, attr, self);
     shoes_add_ele(canvas, radio);
+    
     return radio;
 }

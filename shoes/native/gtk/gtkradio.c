@@ -34,7 +34,7 @@ SHOES_CONTROL_REF shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_pla
 #endif
     } else {
       // no group from shoes - not likely - see types/radio.c
-      printf("no group specified\n");
+      fprintf(stderr, "error: no radio group specified\n");
       ref = gtk_radio_button_new(list);
     }
 

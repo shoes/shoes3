@@ -24,7 +24,8 @@ extern VALUE cTimer;
 
 // forward declares
 VALUE shoes_native_radio_clicked(VALUE self, VALUE group, VALUE state);
-
+NSString *shoes_native_radio_imgPath(char *file);
+void shoes_native_radio_set(VALUE ele, int on);
 
 // ---- Cocoa Object side ----
 
@@ -33,15 +34,21 @@ VALUE shoes_native_radio_clicked(VALUE self, VALUE group, VALUE state);
 // That make a visually clunkly apperance. 
 
 @implementation ShoesRadioButton
-- (id)initWithType: (NSButtonType)t andObject: (VALUE)o andGroup: (VALUE) group
+- (id)initWithType: (NSButtonType)t andObject: (VALUE)o andGroup: (VALUE)group
 {
   if ((self = [super init]))
   {
     object = o;
     groupArray = group;
-    //[self setButtonType: NSPushOnPushOffButton];  // checkbox for now
+    //[self setButtonType: NSPushOnPushOffButton]; 
     [self setButtonType: t];  
-	  //[self setShoesViewPosition: NSImageOnly]; 
+    [self setImagePosition: NSImageOnly];
+    NSString *onPath = shoes_native_radio_imgPath("/static/RadioButton-Selected.png");
+	  NSImage *onImg = [[NSImage alloc] initWithContentsOfFile: onPath];
+	  [self setAlternateImage: onImg];
+	  NSString *offPath = shoes_native_radio_imgPath("/static/RadioButton-Unselected.png");
+	  NSImage *offImg = [[NSImage alloc] initWithContentsOfFile: offPath];
+	  [self setImage: offImg];
     [self setBezelStyle: NSCircularBezelStyle];
     [self setTarget: self];
     [self setAction: @selector(handleClick:)];		
@@ -52,11 +59,9 @@ VALUE shoes_native_radio_clicked(VALUE self, VALUE group, VALUE state);
 {
   //NSLog(@"radio button handler called on %lx", object);
   //shoes_button_send_click(object);
-#ifdef SHOES_FORCE_RADIO
+
 	shoes_native_radio_clicked(object, groupArray, Qtrue);
-#else
-  shoes_check_set_checked_m(object, Qtrue);
-#endif
+  // was: shoes_check_set_checked_m(object, Qtrue);
 }
 @end
 
@@ -78,18 +83,17 @@ shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
    else
  	  NSLog(@"group: %lx", group);
 */
-#ifdef SHOES_FORCE_RADIO
- 	ShoesRadioButton *button = [[ShoesRadioButton alloc] initWithType: NSPushOnPushOffButton
+
+ 	ShoesRadioButton *button = [[ShoesRadioButton alloc] initWithType: NSToggleButton
  		   andObject: self andGroup: group];
-#else 
-	ShoesRadioButton *button = [[ShoesRadioButton alloc] initWithType: NSRadioButton
- 		   andObject: self andGroup: group];
-#endif
+
+	// was ShoesRadioButton *button = [[ShoesRadioButton alloc] initWithType: NSRadioButton
+ 	//	   andObject: self andGroup: group];
+
  	RELEASE;
  	return (NSControl *)button;
 }
 
-#ifdef SHOES_FORCE_RADIO
 void shoes_native_radio_set(VALUE ele, int on)
 {
 	shoes_control *ctl;
@@ -113,4 +117,15 @@ VALUE shoes_native_radio_clicked(VALUE self, VALUE group, VALUE state) {
   }
   return state;
 }
-#endif
+NSString *shoes_native_radio_imgPath(char *file) {
+  /* get the shoes/ruby DIR constant, convert to NSString, append argument */
+  VALUE dir = rb_eval_string("DIR");
+  char buf[256];
+  strcpy(buf,RSTRING_PTR(dir));
+  int pos = strlen(buf);
+  strcpy(buf+pos, file);
+  //fprintf(stderr, "path is %s\n", buf);
+  return [[NSString alloc] initWithUTF8String: buf];
+}
+
+
