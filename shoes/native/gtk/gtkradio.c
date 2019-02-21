@@ -8,7 +8,7 @@
 #include "shoes/native/gtk/gtkradio.h"
 
 /* 
- * This is called at 'draw' time (actual 
+ * This is called at 'draw' time.
  * group is an Array of SHOES_CONTROL_REF's
  */
 SHOES_CONTROL_REF shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE attr, VALUE group) {
@@ -37,7 +37,10 @@ SHOES_CONTROL_REF shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_pla
       fprintf(stderr, "error: no radio group specified\n");
       ref = gtk_radio_button_new(list);
     }
-
+    VALUE ck = shoes_hash_get(attr, rb_intern("checked"));
+    if (! NIL_P(ck)) {
+      shoes_native_check_set(ref, RTEST(ck));
+    }
     if (!NIL_P(shoes_hash_get(attr, rb_intern("tooltip")))) {
         gtk_widget_set_tooltip_text(GTK_WIDGET(ref), RSTRING_PTR(shoes_hash_get(attr, rb_intern("tooltip"))));
     }

@@ -89,7 +89,11 @@ shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
 
 	// was ShoesRadioButton *button = [[ShoesRadioButton alloc] initWithType: NSRadioButton
  	//	   andObject: self andGroup: group];
-
+  VALUE ck = shoes_hash_get(attr, rb_intern("checked"));
+  if (!NIL_P(ck)) {
+    fprintf(stderr, "CHECKED!\n");
+    [button setState: ((ck == Qtrue) ? NSOnState : NSOffState)];
+  }
  	RELEASE;
  	return (NSControl *)button;
 }

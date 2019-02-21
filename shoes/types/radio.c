@@ -32,12 +32,12 @@ VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual) {
         Data_Get_Struct(c, shoes_canvas, canvas);
         ++shoes_app_serial_num;
         char buf[20];
-        sprintf(buf, "grp%d", shoes_app_serial_num);
+        sprintf(buf, "grprad_%d", shoes_app_serial_num);
         VALUE grpstr = rb_str_new2(buf);
         group = rb_to_symbol(grpstr);
       }
       if (TYPE(canvas->app->groups) != T_HASH) {
-        fprintf(stderr, "Oops - not a hash\n");
+        //fprintf(stderr, "Oops - not a hash\n");
         canvas->app->groups = rb_hash_new();
       }
       VALUE glist = rb_hash_aref(canvas->app->groups, group);
@@ -51,9 +51,10 @@ VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual) {
       VALUE gstr = rb_sym_to_s(group); 
       if (TYPE(glist) != T_ARRAY)
         fprintf(stderr, "group is not array\n");
+      /*
       else
         fprintf(stderr, "group %s has %d entries\n", RSTRING_PTR(gstr), (int)RARRAY_LEN(glist));
-      
+      */
       self_t->ref = shoes_native_radio(self, canvas, &place, self_t->attr, glist);
 
       if (RTEST(ATTR(self_t->attr, checked)))
@@ -165,6 +166,5 @@ VALUE shoes_canvas_radio(int argc, VALUE *argv, VALUE self) {
 
     radio = shoes_control_new(cRadio, attr, self);
     shoes_add_ele(canvas, radio);
-    
     return radio;
 }
