@@ -91,9 +91,16 @@ shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
  	//	   andObject: self andGroup: group];
   VALUE ck = shoes_hash_get(attr, rb_intern("checked"));
   if (!NIL_P(ck)) {
-    fprintf(stderr, "CHECKED!\n");
+    //fprintf(stderr, "CHECKED!\n");
     [button setState: ((ck == Qtrue) ? NSOnState : NSOffState)];
   }
+  // Tooltip
+  VALUE vtip = shoes_hash_get(attr, rb_intern("tooltip"));
+  if (! NIL_P(vtip)) {
+    char *cstr = RSTRING_PTR(vtip);
+    NSString *tip = [NSString stringWithUTF8String: cstr];
+    [button setToolTip:tip];
+  } 
  	RELEASE;
  	return (NSControl *)button;
 }

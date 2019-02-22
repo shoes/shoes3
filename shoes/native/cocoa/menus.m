@@ -28,7 +28,7 @@ VALUE shoes_osx_menubar;
 // called at shoes_native_init time() - very early in startup
 
 void shoes_native_menu_root(NSMenu *main) {
-  //fprintf(stderr, "vreating global menubar\n");
+  //fprintf(stderr, "Creating global menubar\n");
   VALUE mbv = shoes_menubar_alloc(cShoesMenubar);
   shoes_menubar *mb;
   Data_Get_Struct(mbv, shoes_menubar, mb);

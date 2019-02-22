@@ -5,7 +5,7 @@ Shoes.app do
   stack do
     flow {
       @r5 = radio; para "default"
-      @r6 = radio; para "still more default"
+      @r6 = radio tooltip: "Useless radio - did you want a Checkbox"; para "still more default"
     }
     flow {
       @r1 = radio :group
