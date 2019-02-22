@@ -27,6 +27,10 @@ VALUE shoes_native_radio_clicked(VALUE self, VALUE group, VALUE state);
 NSString *shoes_native_radio_imgPath(char *file);
 void shoes_native_radio_set(VALUE ele, int on);
 
+// globals
+NSImage *onImg = NULL;
+NSImage *offImg = NULL;
+
 // ---- Cocoa Object side ----
 
 // Radios are pretty broken for Shoes purposes.
@@ -43,11 +47,15 @@ void shoes_native_radio_set(VALUE ele, int on);
     //[self setButtonType: NSPushOnPushOffButton]; 
     [self setButtonType: t];  
     [self setImagePosition: NSImageOnly];
-    NSString *onPath = shoes_native_radio_imgPath("/static/RadioButton-Selected.png");
-	  NSImage *onImg = [[NSImage alloc] initWithContentsOfFile: onPath];
+    if (onImg == NULL) {
+			NSString *onPath = shoes_native_radio_imgPath("/static/RadioButton-Selected.png");
+	    onImg = [[NSImage alloc] initWithContentsOfFile: onPath];
+	  }
 	  [self setAlternateImage: onImg];
-	  NSString *offPath = shoes_native_radio_imgPath("/static/RadioButton-Unselected.png");
-	  NSImage *offImg = [[NSImage alloc] initWithContentsOfFile: offPath];
+	  if (offImg == NULL) {
+			NSString *offPath = shoes_native_radio_imgPath("/static/RadioButton-Unselected.png");
+			offImg = [[NSImage alloc] initWithContentsOfFile: offPath];
+		}
 	  [self setImage: offImg];
     [self setBezelStyle: NSCircularBezelStyle];
     [self setTarget: self];
