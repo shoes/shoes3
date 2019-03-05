@@ -5987,7 +5987,7 @@ Returns the current setting.
 
 === settings.wintmo = integer ===
 
-Only for Window. Integer is the number of milliseconds for the mainloop
+Only for the Windows platform. Integer is the number of milliseconds for the mainloop
 timeout (tmo). This controls how frequently time is given to backgound Ruby
 threads. The default value is 10 which is a good balance of responsiveness for things
 like animating a progress bar with a download - download use threads. If you have a long
@@ -6008,6 +6008,21 @@ For Linux, this is the value from the startup.yaml `Display_Backend` field. It c
 names , comma separated, of the backends. 'x11' is the default. Unless you
 know better, this field should not be set and 'wayland' is the only value
 that works. If you have a wayland backend. 
+
+
+=== settings Image_Cache ===
+
+The Image_Cache: setting in startup.yaml does not have a Settings class method. You
+can use the app.methods to get or change the value. The only value is  `Image_Cache: false`
+to turn off the default.
+
+=== settings OSX_Menu_Trim ===
+
+This only exists in startup.yaml. There is no method to query the setting.
+`OSX_Menu_Trim: true` in startup.yaml will not display the Shoes entries of
+Open, Manual, Cobbler, Package and Profile" in the global menubar for OSX. This
+might be useful when your packaged app doesn't want to to show all that could be
+done.
 
 == Terminal ==
 

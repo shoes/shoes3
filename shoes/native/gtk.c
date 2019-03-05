@@ -86,13 +86,13 @@ int shoes_gtk_set_desktop() {
 
 static VALUE shoes_make_font_list(FcFontSet *fonts, VALUE ary) {
     int i = 0;
-    printf("fontconfig says %d fonts\n", fonts->nfont);
+    //printf("fontconfig says %d fonts\n", fonts->nfont);
     for (i = 0; i < fonts->nfont; i++) {
         FcValue val;
         FcPattern *p = fonts->fonts[i];
         if (FcPatternGet(p, FC_FAMILY, 0, &val) == FcResultMatch) {
             rb_ary_push(ary, rb_str_new2((char *)val.u.s));
-            printf("fc says %s\n", (char *)val.u.s);
+            //printf("fc says %s\n", (char *)val.u.s);
         }    
     }
     rb_funcall(ary, rb_intern("uniq!"), 0);
@@ -2217,8 +2217,8 @@ static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, g
 }
 
 
-/* TODO sort of fixes bug #349 depends on gtk 3.12 or higher (Boo Windows)
- * seems like overkill or incomplete 
+/* TODO: sort of fixes bug #349 depends on gtk 3.12 or higher (Boo Windows)
+ * seems like overkill or incomplete - it gets called a lot. 
 */
 gboolean shoes_app_gtk_configure_menu(GtkWidget *widget, GdkEvent *evt, gpointer data) {
   shoes_app *app = (shoes_app *)data;
@@ -2395,13 +2395,14 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
         gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
     } else if (app->minwidth < app->width || app->minheight < app->height + app->mb_height) {
         GdkGeometry hints;
-        hints.min_width = app->minwidth;
-        hints.min_height = app->minheight + app->mb_height;
+        hints.min_width = max(app->minwidth, 100);
+        hints.min_height = max(app->minheight + app->mb_height, 100);
 #ifdef SZBUG
         fprintf(stderr,"resize hints: %d, %d\n", hints.min_width, hints.min_height);
 #endif
         gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL,
                                       &hints, GDK_HINT_MIN_SIZE);
+        //gtk_window_set_resizable(GTK_WINDOW(window), TRUE); // no help with szbug
     }
     gtk_window_set_default_size(GTK_WINDOW(window), app->width, app->height + app->mb_height);
 
