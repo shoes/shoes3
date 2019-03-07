@@ -45,7 +45,7 @@
 
 
 === Developer Issues with 3.3.7
-  ** Vagrant boxes are available for ease of building **
+  * Vagrant boxes are available for ease of building 
     https://github.com/shoes/shoes3/wiki/Build-with-Vagrant
   * make/**/env.rb - link against distributed libyaml
   * Added lib/package/*  for merge packaging.
