@@ -238,7 +238,7 @@ typedef struct {
 } shoes_plot;
 
 //
-// not very temporary canvas (used internally for painting)
+// not very temporary canvas (used internally for painting and slots)
 //
 typedef struct {
     VALUE parent;

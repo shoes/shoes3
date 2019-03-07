@@ -32,6 +32,8 @@
   * Merge style packaging for OSX - must be done on OSX. 
   
 === Fixed with 3.3.7
+  * Major fixes to radio buttons. Possible backwards compatibilty issues.
+    https://github.com/shoes/shoes3/issues/391
   * Fewer complaints (none?) from Gkt 3.20+ systems
   * OSX: fullscreen incomplete
     https://github.com/shoes/shoes3/issues/408 
@@ -43,7 +45,7 @@
 
 
 === Developer Issues with 3.3.7
-  ** Vagrant boxes are available for ease of building **
+  * Vagrant boxes are available for ease of building 
     https://github.com/shoes/shoes3/wiki/Build-with-Vagrant
   * make/**/env.rb - link against distributed libyaml
   * Added lib/package/*  for merge packaging.
@@ -52,9 +54,13 @@
     user written installers.
   * Better cross build rakefiles: xrpi, xwin7 and xmsys2 targets.
   * Includes plugin for MXE to build all Windows dependencies
-    new target 'mxe' is not mainstream yet but will become the preferred
+    new target 'mxe' is the preferred target for Windows
     method of cross compiling for Windows.
     https://github.com/shoes/shoes3/wiki/MXE-Dependencies
+
+=== Known Bugs 
+   Resize Windows with menubars manually
+   https://github.com/shoes/shoes3/issues/430
   
 -------------- Shoes 3.3.6 -------------------------------
 

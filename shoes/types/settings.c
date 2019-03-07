@@ -52,6 +52,7 @@ VALUE shoes_settings_alloc(VALUE klass) {
     st->extra1 = Qnil;
     st->extra2 = Qnil;
     st->osx_menutrim = Qnil;
+    st->image_cache = Qtrue;
     return obj;
 }
 
@@ -60,7 +61,7 @@ VALUE shoes_settings_alloc(VALUE klass) {
  * Save in a global ruby object - not a Shoes GUI object. 
  * There is a one time, small bit of memory that is not free-ed. 
 */
-
+extern int shoes_cache_setting;
 VALUE shoes_settings_new(shoes_yaml_init *yml) {
   shoes_settings *st;
   Data_Get_Struct(shoes_world->settings, shoes_settings, st);
@@ -105,7 +106,11 @@ VALUE shoes_settings_new(shoes_yaml_init *yml) {
     st->osx_menutrim = Qtrue;
   else
     st->osx_menutrim = Qfalse;
-   
+    
+  if (! strcmp(yml->image_cache, "false")) {
+    st->image_cache = Qnil;
+    shoes_cache_setting = 0;
+  }
   //free(yml);
   return shoes_world->settings; 
 }

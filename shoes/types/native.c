@@ -146,6 +146,9 @@ VALUE shoes_control_remove(VALUE self) {
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
     if (self_t->ref != NULL) {
         SHOES_CONTROL_REF ref = self_t->ref;
+        if (rb_obj_is_kind_of(self, cRadio)) {
+          shoes_radio_remove_group(ref, canvas->app->groups);
+        }  
         self_t->ref = NULL;
         shoes_native_control_remove(ref, canvas);
     }

@@ -1,4 +1,6 @@
 ; Shoes definitions
+; Jan 12 2019: Modified to use AddToPath instead of EnvVarUpdate
+;  checks for overflowing PATH variable
 !define SHOES_NAME "#{APPNAME}"
 !define SHOES_VERSION "#{WINVERSION}"
 !define SHOES_PUBLISHER "shoesrb"
@@ -14,6 +16,7 @@ SetCompressor /SOLID lzma
 !include "FileFunc.nsh"
 !include "FileAssociation.nsh"
 !include "EnvVarUpdate.nsh"
+!include "EnvPath.nsh"
 
 Var StartMenuFolder
 Var UninstallerHasFinished
@@ -84,7 +87,10 @@ Section "MainSection" SEC01
    
    File /r /x nsis ..\*.*
    
-   ${EnvVarUpdate} $0 "PATH" "A" HKLM $INSTDIR
+   ;${EnvVarUpdate} $0 "PATH" "A" HKLM $INSTDIR
+   Push $INSTDIR
+   Call AddToPath
+
    ${registerExtension} "$INSTDIR\${SHOES_NAME}.exe" ".shy" "Shoes Application"
    DetailPrint "Building Icon cache, this may take a while..."
    ExecWait '"$INSTDIR\gtk-update-icon-cache.exe" "$INSTDIR\share\icons\Adwaita"'
@@ -124,7 +130,9 @@ Section Uninstall
    RMDir "$INSTDIR"
    
    ${unregisterExtension} ".shy" "Shoes Application"
-   ${un.EnvVarUpdate} $0 "PATH" "R" HKLM $INSTDIR
+   ;${un.EnvVarUpdate} $0 "PATH" "R" HKLM $INSTDIR
+   Push $INSTDIR
+   Call un.RemoveFromPath
 
    DeleteRegKey ${SHOES_UNINST_ROOT_KEY} "${SHOES_UNINST_KEY}"
    DeleteRegKey HKLM "${SHOES_INST_KEY}"

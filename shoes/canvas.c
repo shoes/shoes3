@@ -281,6 +281,7 @@ VALUE shoes_canvas_new(VALUE klass, shoes_app *app) {
 static void shoes_canvas_empty(shoes_canvas *canvas, int extras) {
     unsigned char stage = canvas->stage;
     canvas->stage = CANVAS_EMPTY;
+    
     shoes_ele_remove_all(canvas->contents);
     if (extras) shoes_extras_remove_all(canvas);
     if (! NIL_P(canvas->layout_mgr)) {
@@ -525,8 +526,8 @@ VALUE shoes_canvas_draw(VALUE self, VALUE c, VALUE actual) {
     Data_Get_Struct(self, shoes_canvas, self_t);
     Data_Get_Struct(c, shoes_canvas, canvas);
 #ifdef SHOES_GTK
-    if (!RTEST(actual))
-        canvas->group.radios = NULL;
+    //if (!RTEST(actual))
+    //    canvas->group.radios = NULL;
 #endif
 
     if (self_t->height > self_t->fully)
@@ -785,7 +786,7 @@ VALUE shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self) {
             VALUE group = ATTR(self_t->attr, group);
             if (NIL_P(group)) group = self_t->parent;
             // OSX clang compiler doesn't like that semicolon. it doesn't
-            // like the Qnill to boolean comparison either
+            // like the Qnil to boolean comparison either
             //if (!shoes_hash_get(canvas->app->groups, group) == Qnil);
             if (! NIL_P(shoes_hash_get(canvas->app->groups, group))) {
                 shoes_hash_set(canvas->app->groups, group, Qnil);

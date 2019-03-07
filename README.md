@@ -1,10 +1,12 @@
                     
     ((( |||_| ///\ [[[_ (((
      ))) || |  \\/  [[_  )))
-    an artsy any-platform app kit <https://github.com/Shoes3/shoes3>
+    an artsy any-platform app kit <https://github.com/shoes/shoes3>
     
-  The source described below is at <https://github.com/shoes3/shoes> and
+  The source described below is at <https://github.com/shoes/shoes3> and
   you can follow a blog at <https://walkabout.mvmanila.com>
+  
+  The wiki has articles you might find useful. https://github.com/shoes/shoes3/wiki
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -16,7 +18,7 @@ There is a Shoes 4 under development. For historical reasons (the
 color of the icon in Raisins), it's also called Red Shoes. Red Shoes is written
 in C (and some Objective C on the Mac). Shoes 4 is written in Java. 
 
-[Federales](https://github.com/Shoes3/shoes3/blob/master/README.federales)
+[Federales](https://github.com/Shoes/shoes3/blob/master/README.federales)
 was a maintenance release to keep Red Shoes current with modern 
 Linux, OSX, and Windows distributions and newer versions of Ruby and ruby gems.
 Federales didn't really add any new features to Shoes except that it works now.

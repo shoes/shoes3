@@ -86,13 +86,13 @@ int shoes_gtk_set_desktop() {
 
 static VALUE shoes_make_font_list(FcFontSet *fonts, VALUE ary) {
     int i = 0;
-    printf("fontconfig says %d fonts\n", fonts->nfont);
+    //printf("fontconfig says %d fonts\n", fonts->nfont);
     for (i = 0; i < fonts->nfont; i++) {
         FcValue val;
         FcPattern *p = fonts->fonts[i];
         if (FcPatternGet(p, FC_FAMILY, 0, &val) == FcResultMatch) {
             rb_ary_push(ary, rb_str_new2((char *)val.u.s));
-            printf("fc says %s\n", (char *)val.u.s);
+            //printf("fc says %s\n", (char *)val.u.s);
         }    
     }
     rb_funcall(ary, rb_intern("uniq!"), 0);
@@ -1485,8 +1485,8 @@ void shoes_cairo_destroy(shoes_canvas *canvas) {
 }
 
 void shoes_group_clear(SHOES_GROUP_OS *group) {
-    group->radios = NULL;
-    group->layout = NULL;
+    //group->radios = NULL;
+    //group->layout = NULL;
 }
 
 void shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc) {
@@ -1845,7 +1845,38 @@ VALUE shoes_dialog_color(VALUE self, VALUE title) {
 
 VALUE shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, const gchar *button, VALUE attr) {
     VALUE path = Qnil;
-    GTK_APP_VAR(app);
+#if 0
+  GTK_APP_VAR(app);
+#else
+  //VALUE clsv = rb_funcall2(self, rb_intern("inspect"), 0, Qnil);
+  //char *clsname = RSTRING_PTR(clsv);
+  //printf("self is %s - > ", clsname);
+  char * title_app = "Shoes"; 
+  GtkWindow *window_app = NULL; 
+  shoes_app *app = NULL; 
+  if ( rb_obj_is_kind_of(self,cApp)) {
+      // Normal 
+      Data_Get_Struct(self, shoes_app, app);
+      title_app = RSTRING_PTR(app->title); 
+      window_app = APP_WINDOW(app);
+  } else {
+    // Is it Shoes splash? 
+    if (RARRAY_LEN(shoes_world->apps) > 0) { 
+      VALUE actual_app = rb_ary_entry(shoes_world->apps, 0);
+      Data_Get_Struct(actual_app, shoes_app, app); 
+      title_app = RSTRING_PTR(app->title); 
+      window_app = APP_WINDOW(app);
+    } else {
+      // outside an app and not splash - no window. Gtk complains but runs. 
+      /*
+      VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); // this creates a window
+      Data_Get_Struct(actual_app, shoes_app, app); 
+      title_app = RSTRING_PTR(app->title); 
+      window_app = APP_WINDOW(app);
+      */
+    }
+  }
+#endif
     if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("title"))))
         title = strdup(RSTRING_PTR(shoes_hash_get(attr, rb_intern("title"))));
     GtkWidget *dialog = gtk_file_chooser_dialog_new(title, window_app, act,
@@ -2186,8 +2217,8 @@ static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, g
 }
 
 
-/* TODO sort of fixes bug #349 depends on gtk 3.12 or higher (Boo Windows)
- * seems like overkill or incomplete 
+/* TODO: sort of fixes bug #349 depends on gtk 3.12 or higher (Boo Windows)
+ * seems like overkill or incomplete - it gets called a lot. 
 */
 gboolean shoes_app_gtk_configure_menu(GtkWidget *widget, GdkEvent *evt, gpointer data) {
   shoes_app *app = (shoes_app *)data;
@@ -2364,13 +2395,14 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
         gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
     } else if (app->minwidth < app->width || app->minheight < app->height + app->mb_height) {
         GdkGeometry hints;
-        hints.min_width = app->minwidth;
-        hints.min_height = app->minheight + app->mb_height;
+        hints.min_width = max(app->minwidth, 100);
+        hints.min_height = max(app->minheight + app->mb_height, 100);
 #ifdef SZBUG
         fprintf(stderr,"resize hints: %d, %d\n", hints.min_width, hints.min_height);
 #endif
         gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL,
                                       &hints, GDK_HINT_MIN_SIZE);
+        //gtk_window_set_resizable(GTK_WINDOW(window), TRUE); // no help with szbug
     }
     gtk_window_set_default_size(GTK_WINDOW(window), app->width, app->height + app->mb_height);
 
