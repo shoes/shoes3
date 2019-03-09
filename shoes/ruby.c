@@ -550,25 +550,34 @@ void shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh,
 // shoes_basic routines
 //
 VALUE shoes_basic_remove(VALUE self) {
-    GET_STRUCT(basic, self_t);
-    shoes_canvas_remove_item(self_t->parent, self, 0, 0);
-    shoes_canvas_repaint_all(self_t->parent);
-    return self;
+  //GET_STRUCT(basic, self_t);
+  /* Temporary while fixing TypedData new API */
+  shoes_basic* self_t;
+  if (RTYPEDDATA_P(self))
+    self_t = (shoes_basic*)RTYPEDDATA_DATA(self);
+  else 
+    self_t = (shoes_basic*)rb_data_object_get(self);
+    
+  shoes_canvas_remove_item(self_t->parent, self, 0, 0);
+  shoes_canvas_repaint_all(self_t->parent);
+  return self;
 }
 
 unsigned char shoes_is_element_p(VALUE ele, unsigned char any) {
-    void *dmark;
-    if (TYPE(ele) != T_DATA)
-        return 0;
-    dmark = RDATA(ele)->dmark;
-    return (dmark == shoes_canvas_mark || dmark == shoes_shape_mark ||
-            dmark == shoes_image_mark || dmark == shoes_effect_mark ||
-            dmark == shoes_pattern_mark || dmark == shoes_textblock_mark ||
-            dmark == shoes_control_mark ||
-            (any && (dmark == shoes_http_mark || dmark == shoes_timer_mark ||
-                     dmark == shoes_color_mark || dmark == shoes_link_mark ||
-                     dmark == shoes_text_mark))
-           );
+  void *dmark;
+  if (TYPE(ele) != T_DATA)
+    return 0;
+  dmark = RDATA(ele)->dmark;
+  /* Temporary while fixing TypedData new API */
+  if (RTYPEDDATA_P(ele)) dmark = RTYPEDDATA_TYPE(ele)->function.dmark;
+  return (dmark == shoes_canvas_mark || dmark == shoes_shape_mark ||
+      dmark == shoes_image_mark || dmark == shoes_effect_mark ||
+      dmark == shoes_pattern_mark || dmark == shoes_textblock_mark ||
+      dmark == shoes_control_mark ||
+      (any && (dmark == shoes_http_mark || dmark == shoes_timer_mark ||
+              dmark == shoes_color_mark || dmark == shoes_link_mark ||
+              dmark == shoes_text_mark))
+    );
 }
 
 unsigned char shoes_is_element(VALUE ele) {
@@ -633,8 +642,8 @@ void shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, doubl
 
 VALUE shoes_app_method_missing(int argc, VALUE *argv, VALUE self) {
     VALUE cname, canvas;
-    GET_STRUCT(app, app);
-
+    // TODO: GET_STRUCT(app, app);
+    Get_TypedStruct(shoes_app, app);
     cname = argv[0];
     canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1);
     if (!NIL_P(canvas) && rb_respond_to(canvas, SYM2ID(cname)))

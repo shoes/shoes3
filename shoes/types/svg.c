@@ -120,6 +120,7 @@ VALUE shoes_svg_alloc(VALUE klass) {
     obj = Data_Wrap_Struct(klass, shoes_svg_mark, shoes_svg_free, svg);
     svg->svghandle = Qnil;
     svg->parent = Qnil;
+    svg->attr = Qnil;
     svg->st = NULL;
     return obj;
 }
@@ -633,9 +634,17 @@ void shoes_svghandle_mark(shoes_svghandle *handle) {
 static void shoes_svghandle_free(shoes_svghandle *handle) {
     if (handle->handle != NULL)
         g_object_unref(handle->handle);
+    /*
     if (handle->path) free(handle->path);
     if (handle->data) free(handle->data);
     if (handle->subid) free(handle->subid);
+    */
+    if (handle->path)
+      RUBY_CRITICAL(SHOE_FREE(handle->path));
+    if (handle->data) 
+      RUBY_CRITICAL(SHOE_FREE(handle->data));
+    if (handle->subid) 
+      RUBY_CRITICAL(SHOE_FREE(handle->subid));
     RUBY_CRITICAL(SHOE_FREE(handle));
 }
 
