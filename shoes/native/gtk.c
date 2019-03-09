@@ -227,7 +227,7 @@ VALUE shoes_load_font(const char *filename) {
 #endif // Windows or Not
 
 /*
- * Shoes 3.3.4+ may use gtk_application_new (aka GApplication) instead of gtk_init
+ * Shoes 3.3.8+ may use gtk_application_new (aka GApplication) instead of gtk_init
 */
 
 void
@@ -358,7 +358,7 @@ void shoes_native_init() {
       char *backend = RSTRING_PTR(st->backend);
       gdk_set_allowed_backends(backend);
       if (strncmp(backend, "wayland", 7) == 0) {
-        printf("setting wayland backend\n");
+        fprintf(stderr, "setting wayland backend\n");
         shoes_gtk_backend = shoes_gtk_backend | WAYLAND;
       }
     } else {
@@ -379,8 +379,10 @@ void shoes_native_init() {
     //fprintf(stderr,"launching %s\n", app_id);
     shoes_GtkApp = gtk_application_new (app_id, G_APPLICATION_HANDLES_COMMAND_LINE);
     // register with dbus
+    if (g_application_get_is_registered((GApplication *)shoes_GtkApp))
+      fprintf(stderr, "%s is already registered\n", app_id);
     if (g_application_register((GApplication *)shoes_GtkApp, NULL, NULL)) {
-      //fprintf(stderr,"%s is registered\n",app_id);
+      fprintf(stderr,"%s is registered\n",app_id);
       st->dbus_name = rb_str_new2(app_id);
     }
     g_signal_connect(shoes_GtkApp, "activate", G_CALLBACK (shoes_gtk_app_activate), NULL);
@@ -389,14 +391,12 @@ void shoes_native_init() {
 
     shoes_gtk_load_css(st);
 
+#ifndef ENABLE_MDI
     gtk_init(NULL,NULL); // This starts the gui w/o triggering signals - complains but works.
-    // g_application_run(G_APPLICATION(shoes_GtkApp), 0, NULL); // doesn't work but could?
-    
-#ifdef OLD_STARTUP_UNUSED
-    // Shoes < 3.3.6 way to init
-    gtk_init(NULL, NULL);
+#else
+    g_application_run(G_APPLICATION(shoes_GtkApp), 0, NULL); // doesn't work but could?
 #endif
-
+    
 }
 /* end of GApplication init  */
 
@@ -1306,7 +1306,7 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_s
     gtk_window_set_default_icon_from_file(icon_path, NULL);
 
     // The Good old way, menu-less
-#if 0
+#if 0 //#ifdef ENABLE_MDI
     // don't do this if gtk_init() is used.
     window = gtk_application_window_new(shoes_GtkApp);
 #else
@@ -2354,8 +2354,7 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
     
     menubar = gtk_menu_bar_new();
     gk->menubar = menubar;
-#if 0
-    // don't do this if gtk_init() is used.
+#if 0 //#ifdef ENABLE_MDI
     window = gtk_application_window_new(shoes_GtkApp);
 #else
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
