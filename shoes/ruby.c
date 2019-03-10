@@ -569,7 +569,8 @@ unsigned char shoes_is_element_p(VALUE ele, unsigned char any) {
     return 0;
   dmark = RDATA(ele)->dmark;
   /* Temporary while fixing TypedData new API */
-  if (RTYPEDDATA_P(ele)) dmark = RTYPEDDATA_TYPE(ele)->function.dmark;
+  if (RTYPEDDATA_P(ele)) 
+    dmark = RTYPEDDATA_TYPE(ele)->function.dmark;
   return (dmark == shoes_canvas_mark || dmark == shoes_shape_mark ||
       dmark == shoes_image_mark || dmark == shoes_effect_mark ||
       dmark == shoes_pattern_mark || dmark == shoes_textblock_mark ||
@@ -641,14 +642,20 @@ void shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, doubl
 }
 
 VALUE shoes_app_method_missing(int argc, VALUE *argv, VALUE self) {
-    VALUE cname, canvas;
-    // TODO: GET_STRUCT(app, app);
-    Get_TypedStruct(shoes_app, app);
-    cname = argv[0];
-    canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1);
-    if (!NIL_P(canvas) && rb_respond_to(canvas, SYM2ID(cname)))
-        return ts_funcall2(canvas, SYM2ID(cname), argc - 1, argv + 1);
-    return shoes_color_method_missing(argc, argv, self);
+  VALUE cname, canvas;
+  //GET_STRUCT(app, app);
+  /* TODO Temporary while fixing TypedData new API */
+  shoes_app* app;
+  if (RTYPEDDATA_P(self))
+    app = (shoes_app*)RTYPEDDATA_DATA(self);
+  else 
+    app = (shoes_app*)rb_data_object_get(self);
+
+  cname = argv[0];
+  canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1);
+  if (!NIL_P(canvas) && rb_respond_to(canvas, SYM2ID(cname)))
+      return ts_funcall2(canvas, SYM2ID(cname), argc - 1, argv + 1);
+  return shoes_color_method_missing(argc, argv, self);
 }
 
 PLACE_COMMON(canvas)

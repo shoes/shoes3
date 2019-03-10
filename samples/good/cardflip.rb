@@ -19,10 +19,10 @@ Shoes.app do
 
   def get_handle (idx)
     # create handle when needed
-    #puts "query #{idx}"
+    #$stderr.puts "query #{idx}"
     if @handles[idx] == nil
       str = @names[idx]
-      $stderr.puts "load: #{idx}:#{str}"
+      #$stderr.puts "load: #{idx}:#{str}"
       han = app.svghandle ( {content: @xmlstring, group: str} )
       @handles[idx] = han
     end
@@ -89,16 +89,13 @@ Shoes.app do
 
   @animation = nil
   flow do
-    $stderr.puts "Do stack 1"
     # display back of deck at startup
     stack width: 180, height: 270 do
       @backgrd = background orange, width: 181, height: 270, margin: 8, curve: 10
-      $stderr.puts "back of deck"
       han = get_handle(0) #back of deck
       @top_card = svg han, {width: 160, height: 250, margin: 10, aspect: false, click: proc { tap }  }
     end
-    $stderr.puts "Do stack 2"
-    stack width: 100 do
+     stack width: 100 do
       button "shuffle" do
         kill_anim
         temp_deck = []
