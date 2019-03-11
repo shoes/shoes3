@@ -24,15 +24,27 @@ typedef struct {
 #define SHOES_COLOR_LIGHT  (0xAA * 3)
 
 #define DEF_COLOR(name, r, g, b) rb_hash_aset(cColors, ID2SYM(rb_intern("" # name)), shoes_color_new(r, g, b, 255))
+
+#ifdef NEW_MACROS
 #define NEW_COLOR(v, o) \
   shoes_color *v; \
   VALUE o = shoes_color_alloc(cColor); \
+  TypedData_Get_Struct(o, shoes_color, &shoes_color_type, v);
+#else
+ #define NEW_COLOR(v, o) \
+  shoes_color *v; \
+  VALUE o = shoes_color_alloc(cColor); \
   Data_Get_Struct(o, shoes_color, v)
+#endif
 
 VALUE cColor, cColors;
 
 /* each widget should have its own init function */
 void shoes_color_init();
+#ifdef NEW_MACROS
+extern const rb_data_type_t shoes_color_type;
+#endif
+
 
 // ruby
 void shoes_color_mark(shoes_color *color);

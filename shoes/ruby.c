@@ -497,7 +497,12 @@ void shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh,
                 oy = canvas->cy;
                 if ((REL_COORDS(rel) & REL_STICKY) && shoes_is_element(stuck)) {
                     shoes_element *element;
-                    Data_Get_Struct(stuck, shoes_element, element);
+                    //Data_Get_Struct(stuck, shoes_element, element);
+                    /* Temporary while fixing TypedData new API */
+                    if (RTYPEDDATA_P(stuck))
+                      element = (shoes_element*)RTYPEDDATA_DATA(stuck);
+                    else
+                      element = (shoes_element*)rb_data_object_get(stuck);
                     ox = element->place.x;
                     oy = element->place.y;
                 }

@@ -27,6 +27,10 @@ typedef struct {
 /* each widget should have its own init function */
 void shoes_pattern_init();
 
+#ifdef NEW_MACROS
+extern const rb_data_type_t shoes_pattern_type;
+#endif
+
 // ruby
 void shoes_pattern_mark(shoes_pattern *pattern);
 void shoes_pattern_free(shoes_pattern *pattern);
@@ -45,7 +49,35 @@ VALUE shoes_subpattern_new(VALUE klass, VALUE pat, VALUE parent);
 // canvas
 VALUE shoes_canvas_background(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_border(int argc, VALUE *argv, VALUE self);
-
+#ifdef NEW_MACROS
+#define PATH_OUT(cr, attr, place, sw, cap, dash, pen, cfunc) \
+{ \
+  VALUE p = ATTR(attr, pen); \
+  if (!NIL_P(p)) \
+  { \
+    CAP_SET(cr, cap); \
+    DASH_SET(cr, dash); \
+    cairo_set_line_width(cr, sw); \
+    if (rb_obj_is_kind_of(p, cColor)) \
+    { \
+      Get_TypedStruct2(p, shoes_color, color); \
+      cairo_set_source_rgba(cr, color->r / 255., color->g / 255., color->b / 255., color->a / 255.); \
+      cfunc(cr); \
+    } \
+    else \
+    { \
+      if (!rb_obj_is_kind_of(p, cPattern)) \
+        ATTRSET(attr, pen, p = shoes_pattern_new(cPattern, p, Qnil, Qnil)); \
+      cairo_matrix_t matrix1, matrix2; \
+      Get_TypedStruct2(p, shoes_pattern, pattern); \
+      PATTERN_SCALE(pattern, (place), sw); \
+      cairo_set_source(cr, PATTERN(pattern)); \
+      cfunc(cr); \
+      PATTERN_RESET(pattern); \
+    } \
+  } \
+}
+#else
 #define PATH_OUT(cr, attr, place, sw, cap, dash, pen, cfunc) \
 { \
   VALUE p = ATTR(attr, pen); \
@@ -75,6 +107,7 @@ VALUE shoes_canvas_border(int argc, VALUE *argv, VALUE self);
     } \
   } \
 }
+#endif
 
 #define CAP_SET(cr, cap) \
   if (cap == s_project) \

@@ -2,6 +2,11 @@
  * svghandle -  experimental for 3.3.0
  * svg (the widget - two different Shoes/Ruby object
 */
+/* 
+ * Define NEW_MACROS to use ruby 2.4 compat interface
+ * This file only!!!! Do Not define in rake env.rb
+ */
+//#define NEW_MACROS
 
 #include <math.h>
 #include <cairo.h>
@@ -22,13 +27,21 @@
 // ruby
 VALUE cSvg, cSvgHandle;
 
+#ifdef NEW_MACROS
+FUNC_T("+svg", svg, -1);
+FUNC_T("+svghandle", svghandle, -1);
+
+CLASS_COMMON2_T(svg);
+TRANS_COMMON_T(svg, 1);
+#else
 FUNC_M("+svg", svg, -1);
-FUNC_M("+svghandle", svghandle, -1);
+FUNC_T("+svghandle", svghandle, -1);  // converted to new sytle macros
 
 CLASS_COMMON2(svg);
 TRANS_COMMON(svg, 1);
+#endif
 
-const rb_data_type_t shoes_svghandle_type; // for newer Ruby access macros
+const rb_data_type_t shoes_svghandle_type; // TODO: fix this properly
 
 void shoes_svg_init() {
     // svg is kind of like cImage with different methods
@@ -102,6 +115,7 @@ VALUE shoes_canvas_svghandle(int argc, VALUE *argv, VALUE self) {
 // forward declares in this file
 static int shoes_svg_draw_surface(cairo_t *, shoes_svg *, shoes_place *, int, int);
 
+
 // alloc some memory for a shoes_svg; We'll protect it from gc
 // out of caution. fingers crossed.
 void shoes_svg_mark(shoes_svg *svg) {
@@ -115,17 +129,27 @@ static void shoes_svg_free(shoes_svg *svg) {
     RUBY_CRITICAL(SHOE_FREE(svg));
 }
 
+#ifdef NEW_MACROS
+// creates struct shoes_svg_type
+TypedData_Type_New(shoes_svg);
+#endif
+
 VALUE shoes_svg_alloc(VALUE klass) {
     VALUE obj;
     shoes_svg *svg = SHOE_ALLOC(shoes_svg);
     SHOE_MEMZERO(svg, shoes_svg, 1);
+#ifdef NEW_MACROS
+    obj = TypedData_Wrap_Struct(klass, &shoes_svg_type, svg);
+#else
     obj = Data_Wrap_Struct(klass, shoes_svg_mark, shoes_svg_free, svg);
+#endif
     svg->svghandle = Qnil;
     svg->parent = Qnil;
     svg->attr = Qnil;
     svg->st = NULL;
     return obj;
 }
+
 
 void svg_aspect_ratio(int imw, int imh, shoes_svg *self_t, shoes_svghandle *svghan) {
     double outw = imw * 1.0; // width given to svg()
@@ -211,9 +235,12 @@ VALUE shoes_svg_new(int argc, VALUE *argv, VALUE parent) {
     ATTRSET(attr, height, heightObj);
 
     VALUE obj = shoes_svg_alloc(cSvg);
+#ifdef NEW_MACROS
+    Get_TypedStruct2(obj, shoes_svg, self_t);
+#else
     shoes_svg *self_t;
     Data_Get_Struct(obj, shoes_svg, self_t);
-
+#endif
     self_t->svghandle = svghanObj;
     self_t->place.w = NUM2INT(widthObj);
     self_t->place.h = NUM2INT(heightObj);
@@ -269,10 +296,14 @@ static int shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *p
 
 // This gets called very often by Shoes. May be slow for large SVG?
 VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual) {
-    shoes_svg *self_t;
     shoes_place place;
     shoes_canvas *canvas;
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t); 
+#else
+    shoes_svg *self_t;
     Data_Get_Struct(self, shoes_svg, self_t);
+#endif
     Data_Get_Struct(c, shoes_canvas, canvas);
     if (ATTR(self_t->attr, hidden) == Qtrue) return self;
     int rel =(REL_CANVAS | REL_SCALE);
@@ -296,20 +327,27 @@ VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual) {
 }
 
 VALUE shoes_svg_get_handle(VALUE self) {
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
     shoes_svg *self_t;
     Data_Get_Struct(self, shoes_svg, self_t);
+#endif
     return self_t->svghandle;
 }
 
 VALUE shoes_svg_set_handle(VALUE self, VALUE han) {
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
     shoes_svg *self_t;
     Data_Get_Struct(self, shoes_svg, self_t);
+#endif
 
     if ( !NIL_P(han) && (rb_obj_is_kind_of(han, cSvgHandle)) ) {
         self_t->svghandle = han;
         // force a garbage collection, cSvgHandles could pile up if set at a fast rate
         rb_gc();
-
         //shoes_svghandle *svghan;
         //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
         Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
@@ -344,8 +382,12 @@ VALUE shoes_svg_set_handle(VALUE self, VALUE han) {
 }
 
 VALUE shoes_svg_get_dpi(VALUE self) {
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
     shoes_svg *self_t;
     Data_Get_Struct(self, shoes_svg, self_t);
+#endif    
     //shoes_svghandle *svghan;
     //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
     Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
@@ -357,8 +399,12 @@ VALUE shoes_svg_get_dpi(VALUE self) {
 }
 
 VALUE shoes_svg_set_dpi(VALUE self, VALUE dpi) {
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
     shoes_svg *self_t;
     Data_Get_Struct(self, shoes_svg, self_t);
+#endif  
     //shoes_svghandle *svghan;
     //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
     Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
@@ -384,8 +430,12 @@ static cairo_surface_function_t *get_vector_surface(char *format) {
 }
 
 static cairo_surface_t *buid_surface(VALUE self, VALUE docanvas, double scale, int *result, char *filename, char *format) {
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
     shoes_svg *self_t;
     Data_Get_Struct(self, shoes_svg, self_t);
+#endif
     shoes_canvas *canvas;
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
     shoes_place place = self_t->place;
@@ -475,12 +525,22 @@ VALUE shoes_svg_save(VALUE self, VALUE attr) {
  *  than other widgets [parent, left, top, width, height ruby methods]
  */
 VALUE shoes_svg_get_parent(VALUE self) {
-    GET_STRUCT(svg, self_t);
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
+    shoes_svg *self_t;
+    Data_Get_Struct(self, shoes_svg, self_t);
+#endif
     return self_t->parent;
 }
 
 VALUE shoes_svg_get_actual_width(VALUE self) {
-    GET_STRUCT(svg, self_t);
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
+    shoes_svg *self_t;
+    Data_Get_Struct(self, shoes_svg, self_t);
+#endif
     //shoes_svghandle *svghan;
     //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
     Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
@@ -488,7 +548,12 @@ VALUE shoes_svg_get_actual_width(VALUE self) {
 }
 
 VALUE shoes_svg_get_actual_height(VALUE self) {
-    GET_STRUCT(svg, self_t);
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
+    shoes_svg *self_t;
+    Data_Get_Struct(self, shoes_svg, self_t);
+#endif
     //shoes_svghandle *svghan;
     //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
     Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
@@ -496,18 +561,33 @@ VALUE shoes_svg_get_actual_height(VALUE self) {
 }
 
 VALUE shoes_svg_get_actual_left(VALUE self) {
-    GET_STRUCT(svg, self_t);
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
+    shoes_svg *self_t;
+    Data_Get_Struct(self, shoes_svg, self_t);
+#endif
     return INT2NUM(self_t->place.ix + self_t->place.dx);
 }
 
 VALUE shoes_svg_get_actual_top(VALUE self) {
-    GET_STRUCT(svg, self_t);
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
+    shoes_svg *self_t;
+    Data_Get_Struct(self, shoes_svg, self_t);
+#endif
     return INT2NUM(self_t->place.iy + self_t->place.dy);
 }
 
 VALUE shoes_svg_preferred_width(VALUE self) {
     int w;
-    GET_STRUCT(svg, self_t);
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
+    shoes_svg *self_t;
+    Data_Get_Struct(self, shoes_svg, self_t);
+#endif
     //shoes_svghandle *svghan;
     //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
     Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
@@ -517,7 +597,12 @@ VALUE shoes_svg_preferred_width(VALUE self) {
 
 VALUE shoes_svg_preferred_height(VALUE self) {
     int h;
-    GET_STRUCT(svg, self_t);
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
+    shoes_svg *self_t;
+    Data_Get_Struct(self, shoes_svg, self_t);
+#endif
     //shoes_svghandle *svghan;
     //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
     Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
@@ -526,7 +611,12 @@ VALUE shoes_svg_preferred_height(VALUE self) {
 }
 
 VALUE shoes_svg_get_offsetX(VALUE self) {
-    GET_STRUCT(svg, self_t);
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
+    shoes_svg *self_t;
+    Data_Get_Struct(self, shoes_svg, self_t);
+#endif
     //shoes_svghandle *svghan;
     //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
     Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
@@ -534,7 +624,12 @@ VALUE shoes_svg_get_offsetX(VALUE self) {
 }
 
 VALUE shoes_svg_get_offsetY(VALUE self) {
-    GET_STRUCT(svg, self_t);
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
+    shoes_svg *self_t;
+    Data_Get_Struct(self, shoes_svg, self_t);
+#endif
     //shoes_svghandle *svghan;
     //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
     Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
@@ -542,10 +637,14 @@ VALUE shoes_svg_get_offsetY(VALUE self) {
 }
 
 VALUE shoes_svg_has_group(VALUE self, VALUE group) {
-    shoes_svg *self_t;
-    //shoes_svghandle *handle;
     int result = 0;
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
+    shoes_svg *self_t;
     Data_Get_Struct(self, shoes_svg, self_t);
+#endif
+    //shoes_svghandle *handle;
     //Data_Get_Struct(self_t->svghandle, shoes_svghandle, handle);
     Get_TypedStruct2(self_t->svghandle, shoes_svghandle, handle);
     if (!NIL_P(group) && (TYPE(group) == T_STRING)) {
@@ -559,9 +658,13 @@ VALUE shoes_svg_has_group(VALUE self, VALUE group) {
 
 VALUE shoes_svg_remove(VALUE self) {
     //printf("remove\n");
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
     shoes_svg *self_t;
-    shoes_canvas *canvas;
     Data_Get_Struct(self, shoes_svg, self_t);
+#endif
+    shoes_canvas *canvas;
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
 
     rb_ary_delete(canvas->contents, self);    // shoes_basic_remove does it this way
@@ -579,8 +682,12 @@ VALUE shoes_svg_remove(VALUE self) {
 VALUE shoes_svg_motion(VALUE self, int x, int y, char *touch) {
     char h = 0;
     VALUE click;
-    GET_STRUCT(svg, self_t);
-
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
+    shoes_svg *self_t;
+    Data_Get_Struct(self, shoes_svg, self_t);
+#endif
     click = ATTR(self_t->attr, click);
 
     if (IS_INSIDE(self_t, x, y)) {
@@ -610,7 +717,12 @@ VALUE shoes_svg_send_click(VALUE self, int button, int x, int y) {
     VALUE v = Qnil;
 
     if (button > 0) {
-        GET_STRUCT(svg, self_t);
+#ifdef NEW_MACROS
+        Get_TypedStruct(shoes_svg, self_t);
+#else
+        shoes_svg *self_t;
+        Data_Get_Struct(self, shoes_svg, self_t);
+#endif
         v = shoes_svg_motion(self, x, y, NULL);
         if (self_t->hover & HOVER_MOTION)             // ok, cursor is over the element, proceed
             self_t->hover = HOVER_MOTION | HOVER_CLICK; // we have been clicked, but not yet released
@@ -623,7 +735,12 @@ VALUE shoes_svg_send_click(VALUE self, int button, int x, int y) {
 
 // called by shoes_canvas_send_release
 void shoes_svg_send_release(VALUE self, int button, int x, int y) {
-    GET_STRUCT(svg, self_t);
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
+    shoes_svg *self_t;
+    Data_Get_Struct(self, shoes_svg, self_t);
+#endif
     if (button > 0 && (self_t->hover & HOVER_CLICK)) {
         VALUE proc = ATTR(self_t->attr, release);
         self_t->hover ^= HOVER_CLICK; // we have been clicked and released
@@ -632,36 +749,41 @@ void shoes_svg_send_release(VALUE self, int button, int x, int y) {
     }
 }
 VALUE shoes_svg_event_is_here(VALUE self, int x, int y) {
-  shoes_svg *svg;
-  Data_Get_Struct(self, shoes_svg, svg);
-  if (IS_INSIDE(svg, x, y)) 
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_svg, self_t);
+#else
+    shoes_svg *self_t;
+    Data_Get_Struct(self, shoes_svg, self_t);
+#endif
+  if (IS_INSIDE(self_t, x, y)) 
     return Qtrue;
   else 
     return Qnil;
 }
 
+
+
 // svghandle
 
-
 void shoes_svghandle_mark(shoes_svghandle *handle) {
-    // we don't have any Ruby objects to mark.
+  // we don't have any Ruby objects to mark.
 }
 
 static void shoes_svghandle_free(shoes_svghandle *handle) {
-    if (handle->handle != NULL)
-        g_object_unref(handle->handle);
-    /*
-    if (handle->path) free(handle->path);
-    if (handle->data) free(handle->data);
-    if (handle->subid) free(handle->subid);
-    */
-    if (handle->path)
-      RUBY_CRITICAL(SHOE_FREE(handle->path));
-    if (handle->data) 
-      RUBY_CRITICAL(SHOE_FREE(handle->data));
-    if (handle->subid) 
-      RUBY_CRITICAL(SHOE_FREE(handle->subid));
-    RUBY_CRITICAL(SHOE_FREE(handle));
+  if (handle->handle != NULL)
+      g_object_unref(handle->handle);
+  /*
+  if (handle->path) free(handle->path);
+  if (handle->data) free(handle->data);
+  if (handle->subid) free(handle->subid);
+  */
+  if (handle->path)
+    RUBY_CRITICAL(SHOE_FREE(handle->path));
+  if (handle->data) 
+    RUBY_CRITICAL(SHOE_FREE(handle->data));
+  if (handle->subid) 
+    RUBY_CRITICAL(SHOE_FREE(handle->subid));
+  RUBY_CRITICAL(SHOE_FREE(handle));
 }
 
 // creates struct shoes_svghandle_type

@@ -1,6 +1,7 @@
 #include "shoes/types/color.h"
 #include "shoes/types/pattern.h"
 
+
 // ruby
 VALUE cPattern, cBorder, cBackground;
 
@@ -36,6 +37,10 @@ void shoes_pattern_init() {
     RUBY_M("+border", border, -1);
 }
 
+#ifdef NEW_MACROS
+//#undef Data_Get_Struct
+#undef GET_STRUCT
+#endif
 // ruby
 
 void shoes_pattern_mark(shoes_pattern *pattern) {
@@ -48,6 +53,41 @@ void shoes_pattern_free(shoes_pattern *pattern) {
     if (pattern->pattern != NULL)
         cairo_pattern_destroy(pattern->pattern);
     RUBY_CRITICAL(free(pattern));
+}
+
+#ifdef NEW_MACROS
+// creates struct shoes_pattern_type
+TypedData_Type_New(shoes_pattern);
+#endif
+
+VALUE shoes_pattern_alloc(VALUE klass) {
+    VALUE obj;
+    shoes_pattern *pattern = SHOE_ALLOC(shoes_pattern);
+    SHOE_MEMZERO(pattern, shoes_pattern, 1);
+#ifdef NEW_MACROS
+    obj = TypedData_Wrap_Struct(klass, &shoes_pattern_type, pattern);
+#else
+    obj = Data_Wrap_Struct(klass, shoes_pattern_mark, shoes_pattern_free, pattern);
+#endif
+    pattern->source = Qnil;
+    pattern->attr = Qnil;
+    pattern->parent = Qnil;
+    return obj;
+}
+
+VALUE shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent) {
+    VALUE obj = shoes_pattern_alloc(klass);
+#ifdef NEW_MACROS
+    Get_TypedStruct2(obj, shoes_pattern, pattern);
+#else
+    shoes_pattern *pattern;
+    Data_Get_Struct(obj, shoes_pattern, pattern);
+#endif
+    pattern->source = Qnil;
+    pattern->attr = attr;
+    pattern->parent = parent;
+    shoes_pattern_set_fill(obj, source);
+    return obj;
 }
 
 void shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE attr) {
@@ -76,9 +116,12 @@ void shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE at
 }
 
 VALUE shoes_pattern_set_fill(VALUE self, VALUE source) {
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_pattern, pattern);
+#else
     shoes_pattern *pattern;
     Data_Get_Struct(self, shoes_pattern, pattern);
-
+#endif
     if (pattern->pattern != NULL)
         cairo_pattern_destroy(pattern->pattern);
     pattern->pattern = NULL;
@@ -109,8 +152,12 @@ VALUE shoes_pattern_set_fill(VALUE self, VALUE source) {
 }
 
 VALUE shoes_pattern_get_fill(VALUE self) {
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_pattern, pattern);
+#else
     shoes_pattern *pattern;
     Data_Get_Struct(self, shoes_pattern, pattern);
+#endif
     return pattern->source;
 }
 
@@ -125,36 +172,15 @@ VALUE shoes_pattern_args(int argc, VALUE *argv, VALUE self) {
     return shoes_pattern_new(cPattern, source, attr, Qnil);
 }
 
-VALUE shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent) {
-    shoes_pattern *pattern;
-    VALUE obj = shoes_pattern_alloc(klass);
-    Data_Get_Struct(obj, shoes_pattern, pattern);
-    pattern->source = Qnil;
-    pattern->attr = attr;
-    pattern->parent = parent;
-    shoes_pattern_set_fill(obj, source);
-    return obj;
-}
-
 VALUE shoes_pattern_method(VALUE klass, VALUE source) {
     return shoes_pattern_new(cPattern, source, Qnil, Qnil);
 }
 
-VALUE shoes_pattern_alloc(VALUE klass) {
-    VALUE obj;
-    shoes_pattern *pattern = SHOE_ALLOC(shoes_pattern);
-    SHOE_MEMZERO(pattern, shoes_pattern, 1);
-    obj = Data_Wrap_Struct(klass, shoes_pattern_mark, shoes_pattern_free, pattern);
-    pattern->source = Qnil;
-    pattern->attr = Qnil;
-    pattern->parent = Qnil;
-    return obj;
-}
 
   
 // This crawls up the parent tree at draw time to learn if there is
 // an active scroll bar 'above'. Returns the width of the gutter
-// TODO: Breaks manual (help.rb) so it's not used.
+// TODO: is this needed?
 int is_slot_scrolled(shoes_canvas *canvas) {
    int gutterw = 0;
    shoes_canvas *cvs = canvas;
@@ -248,10 +274,15 @@ VALUE shoes_border_draw(VALUE self, VALUE c, VALUE actual) {
 }
 
 VALUE shoes_subpattern_new(VALUE klass, VALUE pat, VALUE parent) {
-    shoes_pattern *back, *pattern;
     VALUE obj = shoes_pattern_alloc(klass);
+#ifdef NEW_MACROS
+    Get_TypedStruct2(obj, shoes_pattern, back);
+    Get_TypedStruct2(pat, shoes_pattern, pattern);
+#else
+    shoes_pattern *back, *pattern;
     Data_Get_Struct(obj, shoes_pattern, back);
     Data_Get_Struct(pat, shoes_pattern, pattern);
+#endif
     back->source = pattern->source;
     back->cached = pattern->cached;
     back->pattern = pattern->pattern;

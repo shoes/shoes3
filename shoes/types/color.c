@@ -1,6 +1,10 @@
 #include "shoes/types/pattern.h"
 #include "shoes/types/color.h"
 
+#ifdef NEW_MACROS
+#undef Data_Get_Struct
+#undef GET_STRUCT
+#endif
 // ruby
 VALUE cColor, cColors;
 
@@ -192,24 +196,37 @@ void shoes_color_free(shoes_color *color) {
     RUBY_CRITICAL(free(color));
 }
 
-VALUE shoes_color_new(int r, int g, int b, int a) {
-    shoes_color *color;
-    VALUE obj = shoes_color_alloc(cColor);
-    Data_Get_Struct(obj, shoes_color, color);
-    color->r = r;
-    color->g = g;
-    color->b = b;
-    color->a = a;
-    return obj;
-}
+#ifdef NEW_MACROS
+// creates struct shoes_color_type
+TypedData_Type_New(shoes_color);
+#endif
 
 VALUE shoes_color_alloc(VALUE klass) {
     VALUE obj;
     shoes_color *color = SHOE_ALLOC(shoes_color);
     SHOE_MEMZERO(color, shoes_color, 1);
+#ifdef NEW_MACROS
+    obj = TypedData_Wrap_Struct(klass, &shoes_color_type, color);
+#else
     obj = Data_Wrap_Struct(klass, shoes_color_mark, shoes_color_free, color);
+#endif
     color->a = SHOES_COLOR_OPAQUE;
     color->on = TRUE;
+    return obj;
+}
+
+VALUE shoes_color_new(int r, int g, int b, int a) {
+    VALUE obj = shoes_color_alloc(cColor);
+#ifdef NEW_MACROS
+    Get_TypedStruct2(obj, shoes_color, color);
+#else
+    shoes_color *color;
+    Data_Get_Struct(obj, shoes_color, color);
+#endif
+    color->r = r;
+    color->g = g;
+    color->b = b;
+    color->a = a;
     return obj;
 }
 
@@ -224,14 +241,18 @@ VALUE shoes_color_rgb(int argc, VALUE *argv, VALUE self) {
 }
 
 VALUE shoes_color_gradient(int argc, VALUE *argv, VALUE self) {
-    shoes_pattern *pattern;
     VALUE obj, r1, r2;
     VALUE attr = Qnil;
     rb_scan_args(argc, argv, "21", &r1, &r2, &attr);
     CHECK_HASH(attr);
 
     obj = shoes_pattern_alloc(cPattern);
+#ifdef NEW_MACROS
+    Get_TypedStruct2(obj, shoes_pattern, pattern);
+#else
+    shoes_pattern *pattern;
     Data_Get_Struct(obj, shoes_pattern, pattern);
+#endif
     pattern->source = Qnil;
     shoes_pattern_gradient(pattern, r1, r2, attr);
     return obj;
@@ -250,7 +271,11 @@ VALUE shoes_color_gray(int argc, VALUE *argv, VALUE self) {
 }
 
 cairo_pattern_t *shoes_color_pattern(VALUE self) {
+#ifdef NEW_MACROS
+    Get_TypedStruct(shoes_color, color);
+#else
     GET_STRUCT(color, color);
+#endif
     if (color->a == 255)
         return cairo_pattern_create_rgb(color->r / 255., color->g / 255., color->b / 255.);
     else
@@ -258,7 +283,11 @@ cairo_pattern_t *shoes_color_pattern(VALUE self) {
 }
 
 void shoes_color_grad_stop(cairo_pattern_t *pattern, double stop, VALUE self) {
+#ifndef NEW_MACRO
     GET_STRUCT(color, color);
+#else
+    Get_TypedStruct(shoes_color, color);
+#endif
     if (color->a == 255)
         return cairo_pattern_add_color_stop_rgb(pattern, stop, color->r / 255., color->g / 255., color->b / 255.);
     else
@@ -341,10 +370,16 @@ VALUE shoes_color_parse(VALUE self, VALUE source) {
 
 VALUE shoes_color_spaceship(VALUE self, VALUE c2) {
     int v1, v2;
+#ifndef NEW_MACROS
     shoes_color *color2;
     GET_STRUCT(color, color);
     if (!rb_obj_is_kind_of(c2, cColor)) return Qnil;
     Data_Get_Struct(c2, shoes_color, color2);
+#else
+    Get_TypedStruct(shoes_color, color);
+    if (!rb_obj_is_kind_of(c2, cColor)) return Qnil;
+    Get_TypedStruct2(c2, shoes_color, color2);
+#endif
     v1 = color->r + color->g + color->b;
     v2 = color2->r + color2->g + color2->b;
     if (v1 == v2) return INT2FIX(0);
@@ -353,88 +388,140 @@ VALUE shoes_color_spaceship(VALUE self, VALUE c2) {
 }
 
 VALUE shoes_color_equal(VALUE self, VALUE c2) {
-    if (!rb_obj_is_kind_of(c2, cColor)) return Qnil;
-
+    if (!rb_obj_is_kind_of(c2, cColor)) return Qnil;  //TODO Is this correct?
+#ifndef NEW_MACROS
     GET_STRUCT(color, color);
     shoes_color *color2;
     Data_Get_Struct(c2, shoes_color, color2);
+#else
+    Get_TypedStruct(shoes_color, color);
+    Get_TypedStruct2(c2, shoes_color, color2);
+#endif
     if (color->r == color2->r && color->g == color2->g &&
             color->b == color2->b && color->a == color2->a ) {
-        return Qtrue;
-    } else return Qfalse;
+      return Qtrue;
+    } else 
+      return Qfalse;
 }
 
 VALUE shoes_color_get_red(VALUE self) {
-    GET_STRUCT(color, color);
-    return INT2NUM(color->r);
+#ifdef NEW_MACROS
+  Get_TypedStruct(shoes_color, color);
+#else
+  GET_STRUCT(color, color);
+#endif
+  return INT2NUM(color->r);
 }
 
 VALUE shoes_color_get_green(VALUE self) {
-    GET_STRUCT(color, color);
-    return INT2NUM(color->g);
+#ifdef NEW_MACROS
+  Get_TypedStruct(shoes_color, color);
+#else
+  GET_STRUCT(color, color);
+#endif
+  return INT2NUM(color->g);
 }
 
 VALUE shoes_color_get_blue(VALUE self) {
-    GET_STRUCT(color, color);
-    return INT2NUM(color->b);
+#ifdef NEW_MACROS
+  Get_TypedStruct(shoes_color, color);
+#else
+  GET_STRUCT(color, color);
+#endif
+  return INT2NUM(color->b);
 }
 
 VALUE shoes_color_get_alpha(VALUE self) {
-    GET_STRUCT(color, color);
-    return INT2NUM(color->a);
+#ifdef NEW_MACROS
+  Get_TypedStruct(shoes_color, color);
+#else
+  GET_STRUCT(color, color);
+#endif
+  return INT2NUM(color->a);
 }
 
 VALUE shoes_color_is_black(VALUE self) {
-    GET_STRUCT(color, color);
-    return (color->r + color->g + color->b == 0) ? Qtrue : Qfalse;
+#ifdef NEW_MACROS
+  Get_TypedStruct(shoes_color, color);
+#else
+  GET_STRUCT(color, color);
+#endif
+  return (color->r + color->g + color->b == 0) ? Qtrue : Qfalse;
 }
 
 VALUE shoes_color_is_dark(VALUE self) {
-    GET_STRUCT(color, color);
-    return ((int)color->r + (int)color->g + (int)color->b < SHOES_COLOR_DARK) ? Qtrue : Qfalse;
+#ifdef NEW_MACROS
+  Get_TypedStruct(shoes_color, color);
+#else
+  GET_STRUCT(color, color);
+#endif
+  return ((int)color->r + (int)color->g + (int)color->b < SHOES_COLOR_DARK) ? Qtrue : Qfalse;
 }
 
 VALUE shoes_color_is_light(VALUE self) {
-    GET_STRUCT(color, color);
-    return ((int)color->r + (int)color->g + (int)color->b > SHOES_COLOR_LIGHT) ? Qtrue : Qfalse;
+#ifdef NEW_MACROS
+  Get_TypedStruct(shoes_color, color);
+#else
+  GET_STRUCT(color, color);
+#endif
+  return ((int)color->r + (int)color->g + (int)color->b > SHOES_COLOR_LIGHT) ? Qtrue : Qfalse;
 }
 
 VALUE shoes_color_is_opaque(VALUE self) {
-    GET_STRUCT(color, color);
-    return (color->a == SHOES_COLOR_OPAQUE) ? Qtrue : Qfalse;
+#ifdef NEW_MACROS
+  Get_TypedStruct(shoes_color, color);
+#else
+  GET_STRUCT(color, color);
+#endif
+  return (color->a == SHOES_COLOR_OPAQUE) ? Qtrue : Qfalse;
 }
 
 VALUE shoes_color_is_transparent(VALUE self) {
-    GET_STRUCT(color, color);
-    return (color->a == SHOES_COLOR_TRANSPARENT) ? Qtrue : Qfalse;
+#ifdef NEW_MACROS
+  Get_TypedStruct(shoes_color, color);
+#else
+  GET_STRUCT(color, color);
+#endif
+  return (color->a == SHOES_COLOR_TRANSPARENT) ? Qtrue : Qfalse;
 }
 
 VALUE shoes_color_is_white(VALUE self) {
-    GET_STRUCT(color, color);
-    return (color->r + color->g + color->b == 765) ? Qtrue : Qfalse;
+#ifdef NEW_MACROS
+  Get_TypedStruct(shoes_color, color);
+#else
+  GET_STRUCT(color, color);
+#endif
+  return (color->r + color->g + color->b == 765) ? Qtrue : Qfalse;
 }
 
 VALUE shoes_color_invert(VALUE self) {
-    GET_STRUCT(color, color);
-    NEW_COLOR(color2, obj);
-    color2->r = 255 - color->r;
-    color2->g = 255 - color->g;
-    color2->b = 255 - color->b;
-    color2->a = color->a;
-    return obj;
+#ifdef NEW_MACROS
+  Get_TypedStruct(shoes_color, color);
+#else
+  GET_STRUCT(color, color);
+#endif
+  NEW_COLOR(color2, obj);
+  color2->r = 255 - color->r;
+  color2->g = 255 - color->g;
+  color2->b = 255 - color->b;
+  color2->a = color->a;
+  return obj;
 }
 
 VALUE shoes_color_to_s(VALUE self) {
-    GET_STRUCT(color, color);
+#ifdef NEW_MACROS
+  Get_TypedStruct(shoes_color, color);
+#else
+  GET_STRUCT(color, color);
+#endif
+  VALUE ary = rb_ary_new3(4,
+                INT2NUM(color->r), INT2NUM(color->g), INT2NUM(color->b),
+                rb_float_new((color->a * 1.) / 255.));
 
-    VALUE ary = rb_ary_new3(4,
-                            INT2NUM(color->r), INT2NUM(color->g), INT2NUM(color->b),
-                            rb_float_new((color->a * 1.) / 255.));
-
-    if (color->a == 255)
-        return rb_funcall(rb_str_new2("rgb(%d, %d, %d)"), s_perc, 1, ary);
-    else
-        return rb_funcall(rb_str_new2("rgb(%d, %d, %d, %0.1f)"), s_perc, 1, ary);
+  if (color->a == 255)
+    return rb_funcall(rb_str_new2("rgb(%d, %d, %d)"), s_perc, 1, ary);
+  else
+    return rb_funcall(rb_str_new2("rgb(%d, %d, %d, %0.1f)"), s_perc, 1, ary);
 }
 
 // TODO: deprecated code remove after 2017-10
@@ -443,23 +530,27 @@ VALUE shoes_color_to_pattern(VALUE self) {
 }
 
 VALUE shoes_color_method_missing(int argc, VALUE *argv, VALUE self) {
-    VALUE alpha;
-    VALUE cname = argv[0];
-    VALUE c = Qnil;
-    if (rb_obj_is_kind_of(cColors, rb_cHash))
-        c = rb_hash_aref(cColors, cname);
-    if (NIL_P(c)) {
-        self = rb_inspect(self);
-        rb_raise(rb_eNoMethodError, "undefined method `%s' for %s",
-                 rb_id2name(SYM2ID(cname)), RSTRING_PTR(self));
-    }
+  VALUE alpha;
+  VALUE cname = argv[0];
+  VALUE c = Qnil;
+  if (rb_obj_is_kind_of(cColors, rb_cHash))
+    c = rb_hash_aref(cColors, cname);
+  if (NIL_P(c)) {
+    self = rb_inspect(self);
+    rb_raise(rb_eNoMethodError, "undefined method `%s' for %s",
+        rb_id2name(SYM2ID(cname)), RSTRING_PTR(self));
+  }
 
-    rb_scan_args(argc, argv, "11", &cname, &alpha);
-    if (!NIL_P(alpha)) {
-        shoes_color *color;
-        Data_Get_Struct(c, shoes_color, color);
-        c = shoes_color_new(color->r, color->g, color->b, NUM2RGBINT(alpha));
-    }
+  rb_scan_args(argc, argv, "11", &cname, &alpha);
+  if (!NIL_P(alpha)) {
+#ifdef NEW_MACROS
+    Get_TypedStruct2(c, shoes_color, color);
+#else
+    shoes_color *color;
+    Data_Get_Struct(c, shoes_color, color);
+#endif
+    c = shoes_color_new(color->r, color->g, color->b, NUM2RGBINT(alpha));
+  }
 
-    return c;
+  return c;
 }

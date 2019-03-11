@@ -22,7 +22,7 @@ Shoes.app width: 500, height: 610, title: "SVG Viewer" do
     @display_panel.clear do
       @current_svg = svg @xml, width: @widget_sizeW, height: @widget_sizeH, aspect: true
       if @current_svg.is_a? Array
-        #puts "Converting array"
+        #$stderr.puts "Converting array"
         @current_svg = @current_svg[0]
       end
     end
