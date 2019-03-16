@@ -33,8 +33,12 @@ SHOES_CONTROL_REF shoes_native_surface_new(VALUE attr, VALUE video) {
     // DONE: (better with GtkStyleProvider)
 #if 1
     if (! NIL_P(uc)) {
+#ifdef NEW_MACRO_COLOR
+        Get_TypedStruct2(uc, shoes_color, col);
+#else
         shoes_color *col;
         Data_Get_Struct(uc, shoes_color, col);
+#endif
         GtkCssProvider *provider;
         GtkStyleContext *context;
         char new_css[100]; 
@@ -55,8 +59,12 @@ SHOES_CONTROL_REF shoes_native_surface_new(VALUE attr, VALUE video) {
 #else
     GdkRGBA color = {.0, .0, .0, 1.0};
     if (!NIL_P(uc)) {
+#ifdef NEW_MACRO_COLOR
+        Get_TypedStruct2(uc, shoes_color, col);
+#else
         shoes_color *col;
         Data_Get_Struct(uc, shoes_color, col);
+#endif
         color.red = col->r/255.0;
         color.green = col->g/255.0;
         color.blue = col->b/255.0;

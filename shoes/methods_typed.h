@@ -30,12 +30,16 @@ const rb_data_type_t wrapped##_type = { \
 // unwraps a ruby object (rbObject), "returns" the wrapped struct
 #define Get_TypedStruct3(rbObject, wrapped) \
   (wrapped*)rb_check_typeddata((rbObject), (&wrapped##_type))
+  
+
 
 //
 // Defines a redirecting function which applies the element or transformation
 // to the currently active canvas.  This is used in place of the old instance_eval
 // and ensures that you have access to the App's instance variables while
 // assembling elements in a layout.
+//
+// TODO: these need to change when canvas and app are converted to new macros
 //
 #define FUNC_T(name, func, argn) \
   VALUE \
@@ -71,6 +75,7 @@ const rb_data_type_t wrapped##_type = { \
     return shoes_canvas_c_##func(argc, argv, canvas); \
   }
 
+// TODO - change this when control and/or canvas is converted to new macros
 #define SETUP_CONTROL_T(dh, dw, flex) \
   char *msg = ""; \
   int len = dw ? dw : 200; \
@@ -90,6 +95,7 @@ const rb_data_type_t wrapped##_type = { \
 
 //
 // Macros for setting up drawing
+// TODO change when canvas is converted
 //
 #define SETUP_DRAWING_T(self_type, rel, dw, dh) \
   shoes_place place; \
@@ -104,7 +110,7 @@ const rb_data_type_t wrapped##_type = { \
   shoes_##ele##_##sym(int argc, VALUE *argv, VALUE self) \
   { \
     VALUE str = Qnil, blk = Qnil; \
-    GET_STRUCT(est, self_t); \
+    Get_TypedStruct(shoes_##est, self_t); \
   \
     rb_scan_args(argc, argv, "01&", &str, &blk); \
     if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new(); \
@@ -117,7 +123,7 @@ const rb_data_type_t wrapped##_type = { \
   shoes_##ele##_style(int argc, VALUE *argv, VALUE self) \
   { \
     rb_arg_list args; \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     switch (rb_parse_args(argc, argv, "h,", &args)) { \
       case 1: \
         if (NIL_P(self_t->attr)) self_t->attr = rb_hash_new(); \
@@ -132,7 +138,7 @@ const rb_data_type_t wrapped##_type = { \
   VALUE \
   shoes_##ele##_displace(VALUE self, VALUE x, VALUE y) \
   { \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     ATTRSET(self_t->attr, displace_left, x); \
     ATTRSET(self_t->attr, displace_top, y); \
     shoes_canvas_repaint_all(self_t->parent); \
@@ -142,7 +148,7 @@ const rb_data_type_t wrapped##_type = { \
   VALUE \
   shoes_##ele##_move(VALUE self, VALUE x, VALUE y) \
   { \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     ATTRSET(self_t->attr, left, x); \
     ATTRSET(self_t->attr, top, y); \
     shoes_canvas_repaint_all(self_t->parent); \
@@ -153,7 +159,7 @@ const rb_data_type_t wrapped##_type = { \
   VALUE \
   shoes_##ele##_hide(VALUE self) \
   { \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     ATTRSET(self_t->attr, hidden, Qtrue); \
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
@@ -162,7 +168,7 @@ const rb_data_type_t wrapped##_type = { \
   VALUE \
   shoes_##ele##_show(VALUE self) \
   { \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     ATTRSET(self_t->attr, hidden, Qfalse); \
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
@@ -171,7 +177,7 @@ const rb_data_type_t wrapped##_type = { \
   VALUE \
   shoes_##ele##_toggle(VALUE self) \
   { \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     ATTRSET(self_t->attr, hidden, ATTR(self_t->attr, hidden) == Qtrue ? Qfalse : Qtrue); \
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
@@ -180,7 +186,7 @@ const rb_data_type_t wrapped##_type = { \
   VALUE \
   shoes_##ele##_is_hidden(VALUE self) \
   { \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     if (RTEST(ATTR(self_t->attr, hidden))) \
       return ATTR(self_t->attr, hidden); \
     else return Qfalse; \
@@ -192,11 +198,12 @@ const rb_data_type_t wrapped##_type = { \
   EVENT_COMMON_T(ele, ele, hover); \
   EVENT_COMMON_T(ele, ele, leave);
   
+// TODO: change when canvas and control is converted to new macros
 #define PLACE_COMMON_T(ele) \
   VALUE \
   shoes_##ele##_get_parent(VALUE self) \
   { \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     return self_t->parent; \
   } \
   \
@@ -204,7 +211,7 @@ const rb_data_type_t wrapped##_type = { \
   shoes_##ele##_get_left(VALUE self) \
   { \
     shoes_canvas *canvas = NULL; \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     if (!NIL_P(self_t->parent)) { \
       Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
     } else { \
@@ -217,7 +224,7 @@ const rb_data_type_t wrapped##_type = { \
   shoes_##ele##_get_top(VALUE self) \
   { \
     shoes_canvas *canvas = NULL; \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     if (!NIL_P(self_t->parent)) { \
       Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
     } else { \
@@ -229,17 +236,18 @@ const rb_data_type_t wrapped##_type = { \
   VALUE \
   shoes_##ele##_get_height(VALUE self) \
   { \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     return INT2NUM(self_t->place.h); \
   } \
   \
   VALUE \
   shoes_##ele##_get_width(VALUE self) \
   { \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     return INT2NUM(self_t->place.w); \
   }
-  
+
+// TODO update for new macros - types/text.c, types/textblock.c
 #define REPLACE_COMMON_T(ele) \
   VALUE \
   shoes_##ele##_replace(int argc, VALUE *argv, VALUE self) \
@@ -273,7 +281,7 @@ const rb_data_type_t wrapped##_type = { \
   VALUE \
   shoes_##ele##_transform(VALUE self, VALUE _m) \
   { \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     ID m = SYM2ID(_m); \
     if (m == s_center || m == s_corner) \
     { \
@@ -290,7 +298,7 @@ const rb_data_type_t wrapped##_type = { \
   shoes_##ele##_translate(VALUE self, VALUE _x, VALUE _y) \
   { \
     double x, y; \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     x = NUM2DBL(_x); \
     y = NUM2DBL(_y); \
     self_t->st = shoes_transform_detach(self_t->st); \
@@ -301,7 +309,7 @@ const rb_data_type_t wrapped##_type = { \
   shoes_##ele##_rotate(VALUE self, VALUE _deg) \
   { \
     double rad; \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     rad = NUM2DBL(_deg) * SHOES_RAD2PI; \
     self_t->st = shoes_transform_detach(self_t->st); \
     cairo_matrix_rotate(&self_t->st->tf, -rad); \
@@ -313,7 +321,7 @@ const rb_data_type_t wrapped##_type = { \
   { \
     VALUE _sx, _sy; \
     double sx, sy; \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     rb_scan_args(argc, argv, "11", &_sx, &_sy); \
     sx = NUM2DBL(_sx); \
     if (NIL_P(_sy)) sy = sx; \
@@ -329,7 +337,7 @@ const rb_data_type_t wrapped##_type = { \
     cairo_matrix_t matrix; \
     VALUE _sx, _sy; \
     double sx, sy; \
-    GET_STRUCT(ele, self_t); \
+    Get_TypedStruct(shoes_##ele, self_t); \
     rb_scan_args(argc, argv, "11", &_sx, &_sy); \
     sx = NUM2DBL(_sx) * SHOES_RAD2PI; \
     sy = 0.0; \

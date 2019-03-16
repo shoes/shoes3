@@ -22,8 +22,12 @@ void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot) {
         VALUE rbminv = cs->minv;
         double minimum = NUM2DBL(rbminv);
         int strokew = NUM2INT(cs->strokes);
+#ifdef NEW_MACRO_COLOR
+        Get_TypedStruct2(cs->color, shoes_color, color);
+#else
         shoes_color *color;
         Data_Get_Struct(cs->color, shoes_color, color);
+#endif
         /*
         VALUE rbvalues = rb_ary_entry(plot->values, i);
         VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);

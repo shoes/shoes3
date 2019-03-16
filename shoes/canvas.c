@@ -15,6 +15,7 @@
 #include "shoes/types/shape.h"
 #include "shoes/types/textblock.h"
 #include "shoes/types/layout.h"
+#include "shoes/types/svg.h"
 #include "shoes/http.h"
 
 const double SHOES_PIM2   = 6.28318530717958647693;
@@ -256,6 +257,8 @@ static void shoes_canvas_free(shoes_canvas *canvas) {
     shoes_canvas_reset_transform(canvas);
     RUBY_CRITICAL(free(canvas));
 }
+
+TypedData_Type_New(shoes_canvas);
 
 VALUE shoes_canvas_alloc(VALUE klass) {
     shoes_canvas *canvas = SHOE_ALLOC(shoes_canvas);
@@ -518,6 +521,7 @@ static void shoes_canvas_place(shoes_canvas *self_t) {
     shoes_native_canvas_place(self_t, pc);
 }
 
+
 VALUE shoes_canvas_draw(VALUE self, VALUE c, VALUE actual) {
     long i;
     shoes_canvas *self_t;
@@ -565,8 +569,16 @@ VALUE shoes_canvas_draw(VALUE self, VALUE c, VALUE actual) {
         for (i = 0; i < RARRAY_LEN(self_t->contents); i++) {
             shoes_canvas *c1;
             VALUE ele = rb_ary_entry(self_t->contents, i);
-            Data_Get_Struct(ele, shoes_canvas, c1);
-
+            if (RTYPEDDATA_P(ele)) {
+              /* This a nasty trick. The original blindly assumes that
+               * Data_Get_Struct can unwrap anything into a shoes_canvas.
+               * shoes_element would be a better choice but they both fail
+               * for TypedData objects
+              */
+              c1 = (shoes_canvas *)RTYPEDDATA_DATA(ele);
+            } else {
+              Data_Get_Struct(ele, shoes_canvas, c1);
+            }
             if (shoes_canvas_inherits(ele, self_t)) {
                 if (!NIL_P(masks) && RTEST(actual)) {
                     if (rb_obj_class(ele) == cMask)

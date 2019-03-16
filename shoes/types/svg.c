@@ -2,11 +2,6 @@
  * svghandle -  experimental for 3.3.0
  * svg (the widget - two different Shoes/Ruby object
 */
-/* 
- * Define NEW_MACROS to use ruby 2.4 compat interface
- * This file only!!!! Do Not define in rake env.rb
- */
-//#define NEW_MACROS
 
 #include <math.h>
 #include <cairo.h>
@@ -27,87 +22,83 @@
 // ruby
 VALUE cSvg, cSvgHandle;
 
-#ifdef NEW_MACROS
-FUNC_T("+svg", svg, -1);
-FUNC_T("+svghandle", svghandle, -1);
-
-CLASS_COMMON2_T(svg);
-TRANS_COMMON_T(svg, 1);
-#else
 FUNC_M("+svg", svg, -1);
-FUNC_T("+svghandle", svghandle, -1);  // converted to new sytle macros
+FUNC_M("+svghandle", svghandle, -1);
 
 CLASS_COMMON2(svg);
 TRANS_COMMON(svg, 1);
-#endif
 
-const rb_data_type_t shoes_svghandle_type; // TODO: fix this properly
+
 
 void shoes_svg_init() {
-    // svg is kind of like cImage with different methods
-    // do not call draw from Shoes scripts - just don't do it!
-    cSvg   = rb_define_class_under(cTypes, "Svg", rb_cObject);
-    rb_define_alloc_func(cSvg, shoes_svg_alloc);
-    rb_define_method(cSvg, "draw", CASTHOOK(shoes_svg_draw), 2);
-    rb_define_method(cSvg, "preferred_width", CASTHOOK(shoes_svg_preferred_width), 0);
-    rb_define_method(cSvg, "preferred_height", CASTHOOK(shoes_svg_preferred_height),0);
-    rb_define_method(cSvg, "offset_x", CASTHOOK(shoes_svg_get_offsetX),0);
-    rb_define_method(cSvg, "offset_y", CASTHOOK(shoes_svg_get_offsetY),0);
-    rb_define_method(cSvg, "remove", CASTHOOK(shoes_svg_remove), 0);
-    rb_define_method(cSvg, "export", CASTHOOK(shoes_svg_export), 1);
-    rb_define_method(cSvg, "save", CASTHOOK(shoes_svg_save), 1);
-    rb_define_method(cSvg, "handle", CASTHOOK(shoes_svg_get_handle), 0);
-    rb_define_method(cSvg, "handle=", CASTHOOK(shoes_svg_set_handle), 1);
-    rb_define_method(cSvg, "dpi", CASTHOOK(shoes_svg_get_dpi), 0);
-    rb_define_method(cSvg, "dpi=", CASTHOOK(shoes_svg_set_dpi), 1);
-    rb_define_method(cSvg, "style", CASTHOOK(shoes_svg_style), -1);
-    rb_define_method(cSvg, "move", CASTHOOK(shoes_svg_move), 2);
-    rb_define_method(cSvg, "displace", CASTHOOK(shoes_svg_displace), 2);
-    rb_define_method(cSvg, "hide", CASTHOOK(shoes_svg_hide), 0);
-    rb_define_method(cSvg, "show", CASTHOOK(shoes_svg_show), 0);
-    rb_define_method(cSvg, "toggle", CASTHOOK(shoes_svg_toggle), 0);
-    rb_define_method(cSvg, "hidden?", CASTHOOK(shoes_svg_is_hidden), 0);
-    rb_define_method(cSvg, "click", CASTHOOK(shoes_svg_click), -1);
-    rb_define_method(cSvg, "release", CASTHOOK(shoes_svg_release), -1);
-    rb_define_method(cSvg, "hover", CASTHOOK(shoes_svg_hover), -1);
-    rb_define_method(cSvg, "leave", CASTHOOK(shoes_svg_leave), -1);
-    rb_define_method(cSvg, "parent", CASTHOOK(shoes_svg_get_parent), 0);
-    rb_define_method(cSvg, "top", CASTHOOK(shoes_svg_get_actual_top), 0);
-    rb_define_method(cSvg, "left", CASTHOOK(shoes_svg_get_actual_left), 0);
-    rb_define_method(cSvg, "width", CASTHOOK(shoes_svg_get_actual_width), 0);
-    rb_define_method(cSvg, "height", CASTHOOK(shoes_svg_get_actual_height), 0);
-    rb_define_method(cSvg, "group?", CASTHOOK(shoes_svg_has_group), 1);
-    rb_define_method(cSvg, "transform", CASTHOOK(shoes_svg_transform), 1);
-    rb_define_method(cSvg, "translate", CASTHOOK(shoes_svg_translate), 2);
-    rb_define_method(cSvg, "rotate", CASTHOOK(shoes_svg_rotate), 1);
-    rb_define_method(cSvg, "scale", CASTHOOK(shoes_svg_scale), -1);
-    rb_define_method(cSvg, "skew", CASTHOOK(shoes_svg_skew), -1);
+  // svg is kind of like cImage with different methods
+  // do not call draw from Shoes scripts - just don't do it!
+  
+  //cSvg   = rb_define_class_under(cTypes, "Svg", rb_cObject);
+  //rb_define_alloc_func(cSvg, shoes_svg_alloc);
 
-    RUBY_M("+svg", svg, -1);
+  cSvg   = rb_define_class_under(cTypes, "Svg", rb_cData);
+  //rb_define_alloc_func(cSvg, shoes_svg_alloc);
+  rb_define_method(cSvg, "draw", CASTHOOK(shoes_svg_draw), 2);
+  rb_define_method(cSvg, "preferred_width", CASTHOOK(shoes_svg_preferred_width), 0);
+  rb_define_method(cSvg, "preferred_height", CASTHOOK(shoes_svg_preferred_height),0);
+  rb_define_method(cSvg, "offset_x", CASTHOOK(shoes_svg_get_offsetX),0);
+  rb_define_method(cSvg, "offset_y", CASTHOOK(shoes_svg_get_offsetY),0);
+  rb_define_method(cSvg, "remove", CASTHOOK(shoes_svg_remove), 0);
+  rb_define_method(cSvg, "export", CASTHOOK(shoes_svg_export), 1);
+  rb_define_method(cSvg, "save", CASTHOOK(shoes_svg_save), 1);
+  rb_define_method(cSvg, "handle", CASTHOOK(shoes_svg_get_handle), 0);
+  rb_define_method(cSvg, "handle=", CASTHOOK(shoes_svg_set_handle), 1);
+  rb_define_method(cSvg, "dpi", CASTHOOK(shoes_svg_get_dpi), 0);
+  rb_define_method(cSvg, "dpi=", CASTHOOK(shoes_svg_set_dpi), 1);
+  rb_define_method(cSvg, "style", CASTHOOK(shoes_svg_style), -1);
+  rb_define_method(cSvg, "move", CASTHOOK(shoes_svg_move), 2);
+  rb_define_method(cSvg, "displace", CASTHOOK(shoes_svg_displace), 2);
+  rb_define_method(cSvg, "hide", CASTHOOK(shoes_svg_hide), 0);
+  rb_define_method(cSvg, "show", CASTHOOK(shoes_svg_show), 0);
+  rb_define_method(cSvg, "toggle", CASTHOOK(shoes_svg_toggle), 0);
+  rb_define_method(cSvg, "hidden?", CASTHOOK(shoes_svg_is_hidden), 0);
+  rb_define_method(cSvg, "click", CASTHOOK(shoes_svg_click), -1);
+  rb_define_method(cSvg, "release", CASTHOOK(shoes_svg_release), -1);
+  rb_define_method(cSvg, "hover", CASTHOOK(shoes_svg_hover), -1);
+  rb_define_method(cSvg, "leave", CASTHOOK(shoes_svg_leave), -1);
+  rb_define_method(cSvg, "parent", CASTHOOK(shoes_svg_get_parent), 0);
+  rb_define_method(cSvg, "top", CASTHOOK(shoes_svg_get_actual_top), 0);
+  rb_define_method(cSvg, "left", CASTHOOK(shoes_svg_get_actual_left), 0);
+  rb_define_method(cSvg, "width", CASTHOOK(shoes_svg_get_actual_width), 0);
+  rb_define_method(cSvg, "height", CASTHOOK(shoes_svg_get_actual_height), 0);
+  rb_define_method(cSvg, "group?", CASTHOOK(shoes_svg_has_group), 1);
+  rb_define_method(cSvg, "transform", CASTHOOK(shoes_svg_transform), 1);
+  rb_define_method(cSvg, "translate", CASTHOOK(shoes_svg_translate), 2);
+  rb_define_method(cSvg, "rotate", CASTHOOK(shoes_svg_rotate), 1);
+  rb_define_method(cSvg, "scale", CASTHOOK(shoes_svg_scale), -1);
+  rb_define_method(cSvg, "skew", CASTHOOK(shoes_svg_skew), -1);
 
-    cSvgHandle = rb_define_class_under(cTypes, "SvgHandle", rb_cObject); // new with 3.3.0
-    rb_define_alloc_func(cSvgHandle, shoes_svghandle_alloc);
-    rb_define_method(cSvgHandle, "width", CASTHOOK(shoes_svghandle_get_width), 0);
-    rb_define_method(cSvgHandle, "height", CASTHOOK(shoes_svghandle_get_height), 0);
-    rb_define_method(cSvgHandle, "group?", CASTHOOK(shoes_svghandle_has_group), 1);
+  RUBY_M("+svg", svg, -1);
 
-    RUBY_M("+svghandle", svghandle, -1);
+  cSvgHandle = rb_define_class_under(cTypes, "SvgHandle", rb_cObject); // new with 3.3.0
+  rb_define_alloc_func(cSvgHandle, shoes_svghandle_alloc);
+  rb_define_method(cSvgHandle, "width", CASTHOOK(shoes_svghandle_get_width), 0);
+  rb_define_method(cSvgHandle, "height", CASTHOOK(shoes_svghandle_get_height), 0);
+  rb_define_method(cSvgHandle, "group?", CASTHOOK(shoes_svghandle_has_group), 1);
+
+  RUBY_M("+svghandle", svghandle, -1);
 }
 
 // canvas
 VALUE shoes_canvas_svg(int argc, VALUE *argv, VALUE self) {
-    VALUE widget;
-    SETUP_CANVAS();
-    widget = shoes_svg_new(argc, argv, self);
-    shoes_add_ele(canvas, widget);
-    return widget;
+  VALUE widget;
+  SETUP_CANVAS();
+  widget = shoes_svg_new(argc, argv, self);
+  shoes_add_ele(canvas, widget);
+  return widget;
 }
 
 VALUE shoes_canvas_svghandle(int argc, VALUE *argv, VALUE self) {
-    VALUE han;
-    SETUP_CANVAS();
-    han = shoes_svghandle_new(argc, argv, self);
-    return han;
+  VALUE han;
+  SETUP_CANVAS();
+  han = shoes_svghandle_new(argc, argv, self);
+  return han;
 }
 
 // svg
@@ -119,649 +110,685 @@ static int shoes_svg_draw_surface(cairo_t *, shoes_svg *, shoes_place *, int, in
 // alloc some memory for a shoes_svg; We'll protect it from gc
 // out of caution. fingers crossed.
 void shoes_svg_mark(shoes_svg *svg) {
-    rb_gc_mark_maybe(svg->parent);
-    rb_gc_mark_maybe(svg->attr);
-    rb_gc_mark_maybe(svg->svghandle);
+  rb_gc_mark_maybe(svg->parent);
+  rb_gc_mark_maybe(svg->attr);
+  rb_gc_mark_maybe(svg->svghandle);
 }
 
 static void shoes_svg_free(shoes_svg *svg) {
-    shoes_transform_release(svg->st);
-    RUBY_CRITICAL(SHOE_FREE(svg));
+  shoes_transform_release(svg->st);
+  RUBY_CRITICAL(SHOE_FREE(svg));
 }
 
-#ifdef NEW_MACROS
+#ifdef NEW_MACRO_SVG
 // creates struct shoes_svg_type
 TypedData_Type_New(shoes_svg);
 #endif
 
 VALUE shoes_svg_alloc(VALUE klass) {
-    VALUE obj;
-    shoes_svg *svg = SHOE_ALLOC(shoes_svg);
-    SHOE_MEMZERO(svg, shoes_svg, 1);
-#ifdef NEW_MACROS
-    obj = TypedData_Wrap_Struct(klass, &shoes_svg_type, svg);
+  VALUE obj;
+  shoes_svg *svg = SHOE_ALLOC(shoes_svg);
+  SHOE_MEMZERO(svg, shoes_svg, 1);
+#ifdef NEW_MACRO_SVG
+  obj = TypedData_Wrap_Struct(klass, &shoes_svg_type, svg);
 #else
-    obj = Data_Wrap_Struct(klass, shoes_svg_mark, shoes_svg_free, svg);
+  obj = Data_Wrap_Struct(klass, shoes_svg_mark, shoes_svg_free, svg);
 #endif
-    svg->svghandle = Qnil;
-    svg->parent = Qnil;
-    svg->attr = Qnil;
-    svg->st = NULL;
-    return obj;
+  svg->svghandle = Qnil;
+  svg->parent = Qnil;
+  svg->attr = Qnil;
+  svg->st = NULL;
+  return obj;
 }
 
-
-void svg_aspect_ratio(int imw, int imh, shoes_svg *self_t, shoes_svghandle *svghan) {
-    double outw = imw * 1.0; // width given to svg()
-    double outh = imh * 1.0; // height given to svg()
-
-    self_t->scalew = outw / svghan->svghdim.width;   // don't keep aspect ratio, Fill provided or deduced dimensions
-    self_t->scaleh = outh / svghan->svghdim.height;  //
-
-    if (svghan->aspect == 0.0) {                    // keep aspect ratio
-        self_t->scalew = self_t->scaleh = MIN(outw / svghan->svghdim.width, outh / svghan->svghdim.height);
-
-    } else if (svghan->aspect > 0.0) {              // don't keep aspect ratio, User aspect ratio
-        double new_svgdim_height = svghan->svghdim.width / svghan->aspect;
-        double new_svgdim_width = svghan->svghdim.height * svghan->aspect;
-
-        if (outw / new_svgdim_width < outh / new_svgdim_height)
-            self_t->scaleh = self_t->scalew * new_svgdim_height / svghan->svghdim.height;
-        else
-            self_t->scalew = self_t->scaleh * new_svgdim_width / svghan->svghdim.width;
-    }
-}
 
 VALUE shoes_svg_new(int argc, VALUE *argv, VALUE parent) {
-    VALUE attr = Qnil, widthObj, heightObj, svg_string = Qnil;
-    VALUE svghanObj = Qnil;
-    shoes_canvas *canvas;
-    Data_Get_Struct(parent, shoes_canvas, canvas);
+  VALUE attr = Qnil, widthObj, heightObj, svg_string = Qnil;
+  VALUE svghanObj = Qnil;
+  shoes_canvas *canvas;
+  Data_Get_Struct(parent, shoes_canvas, canvas);
 
-    rb_arg_list args;
+  rb_arg_list args;
 //  switch (rb_parse_args(argc, argv, "s|h", &args))
-    switch (rb_parse_args(argc, argv, "s|h,o|h", &args)) {
-        case 1:
-            svg_string = args.a[0];
-            attr = args.a[1];
-            break;
-        case 2:
-            //  if first arg is an svghandle
-            if (rb_obj_is_kind_of(args.a[0], cSvgHandle)) {
-                svghanObj = args.a[0];
-                attr = args.a[1];
-            } else
-                rb_raise(rb_eArgError, "bad argument, expecting a String or a Shoes::SvgHandle \n");
-            break;
-    }
-    if (NIL_P(attr)) attr = rb_hash_new();
+  switch (rb_parse_args(argc, argv, "s|h,o|h", &args)) {
+    case 1:
+      svg_string = args.a[0];
+      attr = args.a[1];
+      break;
+    case 2:
+      //  if first arg is an svghandle
+      if (rb_obj_is_kind_of(args.a[0], cSvgHandle)) {
+        svghanObj = args.a[0];
+        attr = args.a[1];
+      } else
+        rb_raise(rb_eArgError, "bad argument, expecting a String or a Shoes::SvgHandle \n");
+      break;
+  }
+  if (NIL_P(attr)) attr = rb_hash_new();
 
-    // get width and height out of hash/attr arg
-    if (RTEST(ATTR(attr, width))) {
-        widthObj = ATTR(attr, width);
-    } else
-        widthObj = RTEST(ATTR(canvas->attr, width)) ? ATTR(canvas->attr, width) : Qnil;
+  // get width and height out of hash/attr arg
+  if (RTEST(ATTR(attr, width))) {
+    widthObj = ATTR(attr, width);
+  } else
+    widthObj = RTEST(ATTR(canvas->attr, width)) ? ATTR(canvas->attr, width) : Qnil;
 
-    if ( RTEST(ATTR(attr, height))) {
-        heightObj = ATTR(attr, height);
-    } else
-        heightObj = RTEST(ATTR(canvas->attr, height)) ? ATTR(canvas->attr, height) : Qnil;
+  if ( RTEST(ATTR(attr, height))) {
+    heightObj = ATTR(attr, height);
+  } else
+    heightObj = RTEST(ATTR(canvas->attr, height)) ? ATTR(canvas->attr, height) : Qnil;
 
-    if (NIL_P(svghanObj)) {  // likely case
-        if (strstr(RSTRING_PTR(svg_string), "</svg>") != NULL) //TODO
-            shoes_hash_set(attr, rb_intern("content"), svg_string);
-        else
-            shoes_hash_set(attr, rb_intern("filename"), svg_string);
-        svghanObj = shoes_svghandle_new(1, &attr, parent);
-    }
-
-    //shoes_svghandle *shandle;
-    //Data_Get_Struct(svghanObj, shoes_svghandle, shandle);
-    Get_TypedStruct2(svghanObj, shoes_svghandle, shandle);
-    
-    // we couldn't find the width/height of the parent canvas, now that we have a rsvg handle,
-    // fallback to original size as defined in the svg file but no more than Shoes.app size
-    if (widthObj == Qnil) {
-        widthObj = INT2NUM(shandle->svghdim.width);
-        widthObj = (shandle->svghdim.width >= canvas->app->width) ?
-                   INT2NUM(canvas->app->width) : widthObj;
-    }
-    if (heightObj == Qnil) {
-        heightObj = INT2NUM(shandle->svghdim.height);
-        heightObj = (shandle->svghdim.height >= canvas->app->height) ?
-                    INT2NUM(canvas->app->height) : heightObj;
-    }
-    ATTRSET(attr, width, widthObj);
-    ATTRSET(attr, height, heightObj);
-
-    VALUE obj = shoes_svg_alloc(cSvg);
-#ifdef NEW_MACROS
-    Get_TypedStruct2(obj, shoes_svg, self_t);
+  if (NIL_P(svghanObj)) {  // likely case
+    if (strstr(RSTRING_PTR(svg_string), "</svg>") != NULL) //TODO
+      shoes_hash_set(attr, rb_intern("content"), svg_string);
+    else
+      shoes_hash_set(attr, rb_intern("filename"), svg_string);
+    svghanObj = shoes_svghandle_new(1, &attr, parent);
+  }
+#ifdef NEW_MACRO_SVGHANDLE
+  Get_TypedStruct2(svghanObj, shoes_svghandle, shandle);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(obj, shoes_svg, self_t);
+  shoes_svghandle *shandle;
+  Data_Get_Struct(svghanObj, shoes_svghandle, shandle);
 #endif
-    self_t->svghandle = svghanObj;
-    self_t->place.w = NUM2INT(widthObj);
-    self_t->place.h = NUM2INT(heightObj);
-    self_t->parent = parent;
-    self_t->scalew = 0.0;
-    self_t->scaleh = 0.0;
-    self_t->attr = attr;
-    // initialize cairo matrice used in transform methods (rotate, scale, skew, translate)
-    self_t->st = shoes_transform_touch(canvas->st);
+  // if we couldn't find the width/height of the parent canvas, now that we have a rsvg handle,
+  // fallback to original size as defined in the svg file but no more than Shoes.app size
+  if (widthObj == Qnil) {
+    widthObj = INT2NUM(shandle->svghdim.width);
+    widthObj = (shandle->svghdim.width >= canvas->app->width) ?
+                INT2NUM(canvas->app->width) : widthObj;
+  }
+  if (heightObj == Qnil) {
+    heightObj = INT2NUM(shandle->svghdim.height);
+    heightObj = (shandle->svghdim.height >= canvas->app->height) ?
+                  INT2NUM(canvas->app->height) : heightObj;
+  }
+  ATTRSET(attr, width, widthObj);
+  ATTRSET(attr, height, heightObj);
 
-    // useless !!?? needs to be confirmed
-//  shoes_place place;
-//  shoes_place_exact(&place, self_t->attr, 0, 0);
-//  if (place.iw < 1) place.w = place.iw;
-//  if (place.ih < 1) place.h = place.ih;
-//
-//  shoes_svg_draw_surface(self_t->cr, self_t, &place, place.w, place.h);
+  VALUE obj = shoes_svg_alloc(cSvg);
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct2(obj, shoes_svg, self_t);
+#else
+  shoes_svg *self_t;
+  Data_Get_Struct(obj, shoes_svg, self_t);
+#endif
+  self_t->svghandle = svghanObj;
+  self_t->place.w = NUM2INT(widthObj);
+  self_t->place.h = NUM2INT(heightObj);
+  self_t->parent = parent;
+  self_t->scalew = 0.0;
+  self_t->scaleh = 0.0;
+  self_t->attr = attr;
+  // initialize cairo matrice used in transform methods (rotate, scale, skew, translate)
+  self_t->st = shoes_transform_touch(canvas->st);
 
-    return obj;
+  // useless !!?? needs to be confirmed
+  //  shoes_place place;
+  //  shoes_place_exact(&place, self_t->attr, 0, 0);
+  //  if (place.iw < 1) place.w = place.iw;
+  //  if (place.ih < 1) place.h = place.ih;
+  //
+  //  shoes_svg_draw_surface(self_t->cr, self_t, &place, place.w, place.h);
+  if (rb_obj_is_kind_of(obj, cSvg))
+    fprintf(stderr, "svg object is a cSvg\n");
+  if (RTYPEDDATA_P(obj))  {
+    fprintf(stderr, "svg object is typed!\n");
+  }
+  return obj;
+}
+
+void svg_aspect_ratio(int imw, int imh, shoes_svg *self_t, shoes_svghandle *svghan) {
+  double outw = imw * 1.0; // width given to svg()
+  double outh = imh * 1.0; // height given to svg()
+
+  self_t->scalew = outw / svghan->svghdim.width;   // don't keep aspect ratio, Fill provided or deduced dimensions
+  self_t->scaleh = outh / svghan->svghdim.height;  //
+
+  if (svghan->aspect == 0.0) {                    // keep aspect ratio
+    self_t->scalew = self_t->scaleh = MIN(outw / svghan->svghdim.width, outh / svghan->svghdim.height);
+
+  } else if (svghan->aspect > 0.0) {              // don't keep aspect ratio, User aspect ratio
+    double new_svgdim_height = svghan->svghdim.width / svghan->aspect;
+    double new_svgdim_width = svghan->svghdim.height * svghan->aspect;
+
+    if (outw / new_svgdim_width < outh / new_svgdim_height)
+      self_t->scaleh = self_t->scalew * new_svgdim_height / svghan->svghdim.height;
+    else
+      self_t->scalew = self_t->scaleh * new_svgdim_width / svghan->svghdim.width;
+  }
 }
 
 static int shoes_svg_draw_surface(cairo_t *cr, shoes_svg *self_t, shoes_place *place, int imw, int imh) {
-    //shoes_svghandle *svghan;
-    //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-    Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
+#ifdef NEW_MACRO_SVGHANDLE
+  Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
+#else
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+#endif
+  // calculate aspect ratio only once at initialization
+  if (self_t->scalew == 0.0 && self_t->scaleh == 0.0) {
+    svg_aspect_ratio(imw, imh, self_t, svghan);
+  }
 
-    // calculate aspect ratio only once at initialization
-    if (self_t->scalew == 0.0 && self_t->scaleh == 0.0) {
-        svg_aspect_ratio(imw, imh, self_t, svghan);
-    }
+  /* drawing on svg parent's (canvas) surface */
+  // applying any transform : translate, rotate, scale, skew
+  shoes_apply_transformation(cr, self_t->st, place, 0);  // cairo_save(cr) inside
 
-    /* drawing on svg parent's (canvas) surface */
-    // applying any transform : translate, rotate, scale, skew
-    shoes_apply_transformation(cr, self_t->st, place, 0);  // cairo_save(cr) inside
+  cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
 
-    cairo_translate(cr, place->ix + place->dx, place->iy + place->dy);
+  if (svghan->subid == NULL) {
+    cairo_scale(cr, self_t->scalew, self_t->scaleh);
+  } else {
+    cairo_scale(cr, self_t->scalew, self_t->scaleh);          // order of scaling + translate matters !!!
+    cairo_translate(cr, -svghan->svghpos.x, -svghan->svghpos.y);
+  }
 
-    if (svghan->subid == NULL) {
-        cairo_scale(cr, self_t->scalew, self_t->scaleh);
-    } else {
-        cairo_scale(cr, self_t->scalew, self_t->scaleh);          // order of scaling + translate matters !!!
-        cairo_translate(cr, -svghan->svghpos.x, -svghan->svghpos.y);
-    }
+  int result = rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
 
-    int result = rsvg_handle_render_cairo_sub(svghan->handle, cr, svghan->subid);
+  shoes_undo_transformation(cr, self_t->st, place, 0); // doing cairo_restore(cr)
 
-    shoes_undo_transformation(cr, self_t->st, place, 0); // doing cairo_restore(cr)
+  self_t->place = *place;
 
-    self_t->place = *place;
-
-    return result;
+  return result;
 }
 
 // This gets called very often by Shoes. May be slow for large SVG?
 VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual) {
-    shoes_place place;
-    shoes_canvas *canvas;
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t); 
+  shoes_place place;
+  shoes_canvas *canvas;
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t); 
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    Data_Get_Struct(c, shoes_canvas, canvas);
-    if (ATTR(self_t->attr, hidden) == Qtrue) return self;
-    int rel =(REL_CANVAS | REL_SCALE);
-    shoes_place_decide(&place, c, self_t->attr, self_t->place.w, self_t->place.h, rel, REL_COORDS(rel) == REL_CANVAS);
+  Data_Get_Struct(c, shoes_canvas, canvas);
+  if (ATTR(self_t->attr, hidden) == Qtrue) return self;
+  int rel =(REL_CANVAS | REL_SCALE);
+  shoes_place_decide(&place, c, self_t->attr, self_t->place.w, self_t->place.h, rel, REL_COORDS(rel) == REL_CANVAS);
 
-    if (RTEST(actual))
-        shoes_svg_draw_surface( CCR(canvas), self_t, &place, place.w, place.h);
+  if (RTEST(actual))
+    shoes_svg_draw_surface( CCR(canvas), self_t, &place, place.w, place.h);
 
-    if (!ABSY(place)) {
-        canvas->cx += place.w;
-        canvas->cy = place.y;
-        canvas->endx = canvas->cx;
-        canvas->endy = max(canvas->endy, place.y + place.h);
-    }
-    if(rb_obj_class(c) == cStack) {
-        canvas->cx = CPX(canvas);
-        canvas->cy = canvas->endy;
-    }
-    //printf("svg draw\n");
-    return self;
+  if (!ABSY(place)) {
+    canvas->cx += place.w;
+    canvas->cy = place.y;
+    canvas->endx = canvas->cx;
+    canvas->endy = max(canvas->endy, place.y + place.h);
+  }
+  if(rb_obj_class(c) == cStack) {
+    canvas->cx = CPX(canvas);
+    canvas->cy = canvas->endy;
+  }
+  //fprintf(stderr,"svg draw\n");
+  return self;
 }
 
 VALUE shoes_svg_get_handle(VALUE self) {
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    return self_t->svghandle;
+  return self_t->svghandle;
 }
 
 VALUE shoes_svg_set_handle(VALUE self, VALUE han) {
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
 
-    if ( !NIL_P(han) && (rb_obj_is_kind_of(han, cSvgHandle)) ) {
-        self_t->svghandle = han;
-        // force a garbage collection, cSvgHandles could pile up if set at a fast rate
-        rb_gc();
-        //shoes_svghandle *svghan;
-        //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-        Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
-        svg_aspect_ratio(ATTR(self_t->attr, width), ATTR(self_t->attr, height), self_t, svghan);
-        self_t->scalew = self_t->scalew/2;
-        self_t->scaleh = self_t->scaleh/2;
+  if ( !NIL_P(han) && (rb_obj_is_kind_of(han, cSvgHandle)) ) {
+    self_t->svghandle = han;
+    // force a garbage collection, cSvgHandles could pile up if set at a fast rate
+    //rb_gc();
+#ifdef NEW_MACRO_SVGHANDLE
+    Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
+#else
+    shoes_svghandle *svghan;
+    Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+#endif
+    svg_aspect_ratio(ATTR(self_t->attr, width), ATTR(self_t->attr, height), self_t, svghan);
+    self_t->scalew = self_t->scalew/2;
+    self_t->scaleh = self_t->scaleh/2;
 
-        // updating cSvg attributes
-        shoes_hash_set(self_t->attr, rb_intern("filename"),
-                       svghan->path ? rb_str_new_cstr(svghan->path) : Qnil);
+    // updating cSvg attributes
+    shoes_hash_set(self_t->attr, rb_intern("filename"),
+                   svghan->path ? rb_str_new_cstr(svghan->path) : Qnil);
 
-        shoes_hash_set(self_t->attr, rb_intern("content"),
-                       svghan->data ? rb_str_new_cstr(svghan->data) : Qnil);
+    shoes_hash_set(self_t->attr, rb_intern("content"),
+                   svghan->data ? rb_str_new_cstr(svghan->data) : Qnil);
 
-        shoes_hash_set(self_t->attr, rb_intern("group"),
-                       svghan->subid ? rb_str_new_cstr(svghan->subid) : Qnil);
+    shoes_hash_set(self_t->attr, rb_intern("group"),
+                   svghan->subid ? rb_str_new_cstr(svghan->subid) : Qnil);
 
-        if (svghan->aspect == -1.0)
-            shoes_hash_set(self_t->attr, rb_intern("aspect"), Qfalse);
-        else if (svghan->aspect == 0.0 || svghan->aspect == 1.0)
-            shoes_hash_set(self_t->attr, rb_intern("aspect"), Qtrue);
-        else
-            shoes_hash_set(self_t->attr, rb_intern("aspect"), DBL2NUM(svghan->aspect));
+    if (svghan->aspect == -1.0)
+      shoes_hash_set(self_t->attr, rb_intern("aspect"), Qfalse);
+    else if (svghan->aspect == 0.0 || svghan->aspect == 1.0)
+      shoes_hash_set(self_t->attr, rb_intern("aspect"), Qtrue);
+    else
+      shoes_hash_set(self_t->attr, rb_intern("aspect"), DBL2NUM(svghan->aspect));
 
-        shoes_canvas_repaint_all(self_t->parent);
+    shoes_canvas_repaint_all(self_t->parent);
 
-    } else {
-        rb_raise(rb_eArgError, "bad argument, expecting a Shoes::SvgHandle \n");
-    }
+  } else {
+      rb_raise(rb_eArgError, "bad argument, expecting a Shoes::SvgHandle \n");
+  }
 
-    return han;
+  return han;
 }
 
 VALUE shoes_svg_get_dpi(VALUE self) {
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif    
-    //shoes_svghandle *svghan;
-    //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-    Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
-    double dpix, dpiy;
-    g_object_get(svghan->handle, "dpi-x", &dpix, NULL);
-    g_object_get(svghan->handle, "dpi-y", &dpiy, NULL);
+#ifdef NEW_MACRO_SVGHANDLE
+  Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
+#else
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+#endif
+  double dpix, dpiy;
+  g_object_get(svghan->handle, "dpi-x", &dpix, NULL);
+  g_object_get(svghan->handle, "dpi-y", &dpiy, NULL);
 
-    return DBL2NUM(dpix); //TODO dpi-x, dpi-y ?
+  return DBL2NUM(dpix); //TODO dpi-x, dpi-y ?
 }
 
 VALUE shoes_svg_set_dpi(VALUE self, VALUE dpi) {
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif  
-    //shoes_svghandle *svghan;
-    //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-    Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
+#ifdef NEW_MACRO_SVGHANDLE
+  Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
+#else
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+#endif
 
-    /* We have to handle the change in dpi ourselves as nothing in Shoes has a clue of what actually a dpi is
-     * Default is 90 as per rsvg specification, so if dpi is set to 180 we have to
-     * provide twice the number of pixels in x, twice in y,
-     * IF at any moment it has a meaning inside the Shoes environment !!!
-     */
-    rsvg_handle_set_dpi(svghan->handle, NUM2DBL(dpi));
-    //shoes_canvas_repaint_all(self_t->parent); // no meaning at the moment !
-
-    return Qnil;
+  /* We have to handle the change in dpi ourselves as nothing in Shoes has a clue of what actually a dpi is
+   * Default is 90 as per rsvg specification, so if dpi is set to 180 we have to
+   * provide twice the number of pixels in x, twice in y,
+   * IF at any moment it has a meaning inside the Shoes environment !!!
+   */
+  rsvg_handle_set_dpi(svghan->handle, NUM2DBL(dpi));
+  //shoes_canvas_repaint_all(self_t->parent); // no meaning at the moment !
+  
+  return Qnil;
 }
 
 typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
 
 static cairo_surface_function_t *get_vector_surface(char *format) {
-    if (strstr(format, "pdf") != NULL) return & cairo_pdf_surface_create;
-    if (strstr(format, "ps") != NULL)  return & cairo_ps_surface_create;
-    if (strstr(format, "svg") != NULL) return & cairo_svg_surface_create;
-    return NULL;
+  if (strstr(format, "pdf") != NULL) return & cairo_pdf_surface_create;
+  if (strstr(format, "ps") != NULL)  return & cairo_ps_surface_create;
+  if (strstr(format, "svg") != NULL) return & cairo_svg_surface_create;
+  return NULL;
 }
 
 static cairo_surface_t *buid_surface(VALUE self, VALUE docanvas, double scale, int *result, char *filename, char *format) {
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    shoes_canvas *canvas;
-    Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-    shoes_place place = self_t->place;
-    cairo_surface_t *surf;
-    cairo_t *cr;
+  shoes_canvas *canvas;
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+  shoes_place place = self_t->place;
+  cairo_surface_t *surf;
+  cairo_t *cr;
 
-    if (docanvas == Qtrue) {
-        if (format != NULL)
-            surf = get_vector_surface(format)(filename, canvas->width*scale, canvas->height*scale);
-        else
-            surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)(canvas->width*scale), (int)(canvas->height*scale));
-        cr = cairo_create(surf);
+  if (docanvas == Qtrue) {
+    if (format != NULL)
+        surf = get_vector_surface(format)(filename, canvas->width*scale, canvas->height*scale);
+    else
+        surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)(canvas->width*scale), (int)(canvas->height*scale));
+    cr = cairo_create(surf);
 
-        if (scale != 1.0) cairo_scale(cr, scale, scale);
-//    *result = shoes_svg_draw_surface(cr, self_t, &place, (int)(place.w*scale), (int)(place.h*scale));
-        place.w = (int)(place.w*scale);
-        place.h = (int)(place.h*scale);
-        cairo_t *waz_cr = canvas->cr;
-        canvas->cr = cr;
-        shoes_canvas_draw(self_t->parent, self_t->parent, Qtrue);
-        canvas->cr = waz_cr;
-        *result = 1; //TODO
-    } else {
-        int w = (int)(NUM2INT(shoes_svg_get_actual_width(self))*scale);
-        int h = (int)(NUM2INT(shoes_svg_get_actual_height(self))*scale);
-        if (format != NULL)
-            surf = get_vector_surface(format)(filename, w, h);
-        else
-            surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
-        cr = cairo_create(surf);
+    if (scale != 1.0) cairo_scale(cr, scale, scale);
+    // *result = shoes_svg_draw_surface(cr, self_t, &place, (int)(place.w*scale), (int)(place.h*scale));
+    place.w = (int)(place.w*scale);
+    place.h = (int)(place.h*scale);
+    cairo_t *waz_cr = canvas->cr;
+    canvas->cr = cr;
+    shoes_canvas_draw(self_t->parent, self_t->parent, Qtrue);
+    canvas->cr = waz_cr;
+    *result = 1; //TODO
+  } else {
+    int w = (int)(NUM2INT(shoes_svg_get_actual_width(self))*scale);
+    int h = (int)(NUM2INT(shoes_svg_get_actual_height(self))*scale);
+    if (format != NULL)
+        surf = get_vector_surface(format)(filename, w, h);
+    else
+        surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
+    cr = cairo_create(surf);
 
-        if (scale != 1.0) cairo_scale(cr, scale, scale);
-        cairo_translate(cr, -(place.ix + place.dx), -(place.iy + place.dy));
-        *result = shoes_svg_draw_surface(cr, self_t, &place, w, h);
-    }
-    if (format != NULL) cairo_show_page(cr);
-    cairo_destroy(cr);
+    if (scale != 1.0) cairo_scale(cr, scale, scale);
+    cairo_translate(cr, -(place.ix + place.dx), -(place.iy + place.dy));
+    *result = shoes_svg_draw_surface(cr, self_t, &place, w, h);
+  }
+  if (format != NULL) cairo_show_page(cr);
+  cairo_destroy(cr);
 
-    return surf;
+  return surf;
 }
 
 VALUE shoes_svg_export(VALUE self, VALUE attr) {
-    VALUE _filename, _dpi, _docanvas;
-    _filename = shoes_hash_get(attr, rb_intern("filename"));
-    _dpi = shoes_hash_get(attr, rb_intern("dpi"));
-    _docanvas = shoes_hash_get(attr, rb_intern("canvas"));
-    double scale = 1.0;
-    int result;
+  VALUE _filename, _dpi, _docanvas;
+  _filename = shoes_hash_get(attr, rb_intern("filename"));
+  _dpi = shoes_hash_get(attr, rb_intern("dpi"));
+  _docanvas = shoes_hash_get(attr, rb_intern("canvas"));
+  double scale = 1.0;
+  int result;
 
-    if (NIL_P(_filename)) {
-        rb_raise(rb_eArgError, "wrong arguments for svg export ({:filename=>'...', "
-                 "[:dpi=>90, :canvas=>true|false] })\n:filename is mandatory\n");
-    }
+  if (NIL_P(_filename)) {
+      rb_raise(rb_eArgError, "wrong arguments for svg export ({:filename=>'...', "
+               "[:dpi=>90, :canvas=>true|false] })\n:filename is mandatory\n");
+  }
 
-    if (!NIL_P(_dpi)) scale = NUM2INT(_dpi)/90.0;
+  if (!NIL_P(_dpi)) scale = NUM2INT(_dpi)/90.0;
 
-    cairo_surface_t *surf = buid_surface(self, _docanvas, scale, &result, NULL, NULL);
+  cairo_surface_t *surf = buid_surface(self, _docanvas, scale, &result, NULL, NULL);
 
-    cairo_status_t r = cairo_surface_write_to_png(surf, RSTRING_PTR(_filename));
-    cairo_surface_destroy(surf);
+  cairo_status_t r = cairo_surface_write_to_png(surf, RSTRING_PTR(_filename));
+  cairo_surface_destroy(surf);
 
-    return r == CAIRO_STATUS_SUCCESS ? Qtrue : Qfalse;
+  return r == CAIRO_STATUS_SUCCESS ? Qtrue : Qfalse;
 }
 
 VALUE shoes_svg_save(VALUE self, VALUE attr) {
-    VALUE _filename, _format, _docanvas;
-    _filename = shoes_hash_get(attr, rb_intern("filename"));
-    _format = shoes_hash_get(attr, rb_intern("format"));
-    _docanvas = shoes_hash_get(attr, rb_intern("canvas"));
-    int result;
+  VALUE _filename, _format, _docanvas;
+  _filename = shoes_hash_get(attr, rb_intern("filename"));
+  _format = shoes_hash_get(attr, rb_intern("format"));
+  _docanvas = shoes_hash_get(attr, rb_intern("canvas"));
+  int result;
 
-    if (NIL_P(_filename) || NIL_P(_format)) {
-        rb_raise(rb_eArgError, "wrong arguments for svg save ({:filename=>'...', "
-                 ":format=>'pdf'|'ps'|'svg' [, :canvas=>true|false] })\n:filename and :format are mandatory");
-    }
+  if (NIL_P(_filename) || NIL_P(_format)) {
+      rb_raise(rb_eArgError, "wrong arguments for svg save ({:filename=>'...', "
+               ":format=>'pdf'|'ps'|'svg' [, :canvas=>true|false] })\n:filename and :format are mandatory");
+  }
 
-    char *filename = RSTRING_PTR(_filename);
-    char *format = RSTRING_PTR(_format);
+  char *filename = RSTRING_PTR(_filename);
+  char *format = RSTRING_PTR(_format);
 
-    cairo_surface_t *surf = buid_surface(self, _docanvas, 1.0, &result, filename, format);
-    cairo_surface_destroy(surf);
+  cairo_surface_t *surf = buid_surface(self, _docanvas, 1.0, &result, filename, format);
+  cairo_surface_destroy(surf);
 
-    return result == 0 ? Qfalse : Qtrue;
+  return result == 0 ? Qfalse : Qtrue;
 }
 
 /*  Not using PLACE_COMMMON Macro in ruby.c, as we do the svg rendering a bit differently
  *  than other widgets [parent, left, top, width, height ruby methods]
  */
 VALUE shoes_svg_get_parent(VALUE self) {
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    return self_t->parent;
+  return self_t->parent;
 }
 
 VALUE shoes_svg_get_actual_width(VALUE self) {
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    //shoes_svghandle *svghan;
-    //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-    Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
-    return INT2NUM((int)floor(svghan->svghdim.width*self_t->scalew));
+#ifdef NEW_MACRO_SVGHANDLE
+  Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
+#else
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+#endif
+  return INT2NUM((int)floor(svghan->svghdim.width*self_t->scalew));
 }
 
 VALUE shoes_svg_get_actual_height(VALUE self) {
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    //shoes_svghandle *svghan;
-    //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-    Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
-    return INT2NUM((int)floor(svghan->svghdim.height*self_t->scaleh));
+#ifdef NEW_MACRO_SVGHANDLE
+  Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
+#else
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+#endif
+  return INT2NUM((int)floor(svghan->svghdim.height*self_t->scaleh));
 }
 
 VALUE shoes_svg_get_actual_left(VALUE self) {
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    return INT2NUM(self_t->place.ix + self_t->place.dx);
+  return INT2NUM(self_t->place.ix + self_t->place.dx);
 }
 
 VALUE shoes_svg_get_actual_top(VALUE self) {
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    return INT2NUM(self_t->place.iy + self_t->place.dy);
+  return INT2NUM(self_t->place.iy + self_t->place.dy);
 }
 
 VALUE shoes_svg_preferred_width(VALUE self) {
-    int w;
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+  int w;
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    //shoes_svghandle *svghan;
-    //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-    Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
-    w = svghan->svghdim.width;
-    return INT2NUM(w);
+#ifdef NEW_MACRO_SVGHANDLE
+  Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
+#else
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+#endif
+  w = svghan->svghdim.width;
+  return INT2NUM(w);
 }
 
 VALUE shoes_svg_preferred_height(VALUE self) {
-    int h;
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+  int h;
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    //shoes_svghandle *svghan;
-    //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-    Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
-    h = svghan->svghdim.height;
-    return INT2NUM(h);
+#ifdef NEW_MACRO_SVGHANDLE
+  Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
+#else
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+#endif
+  h = svghan->svghdim.height;
+  return INT2NUM(h);
 }
 
 VALUE shoes_svg_get_offsetX(VALUE self) {
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    //shoes_svghandle *svghan;
-    //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-    Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
-    return INT2NUM(svghan->svghpos.x);
+#ifdef NEW_MACRO_SVGHANDLE
+  Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
+#else
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+#endif
+  return INT2NUM(svghan->svghpos.x);
 }
 
 VALUE shoes_svg_get_offsetY(VALUE self) {
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    //shoes_svghandle *svghan;
-    //Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
-    Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
-    return INT2NUM(svghan->svghpos.y);
+#ifdef NEW_MACRO_SVGHANDLE
+  Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
+#else
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+#endif
+  return INT2NUM(svghan->svghpos.y);
 }
 
 VALUE shoes_svg_has_group(VALUE self, VALUE group) {
-    int result = 0;
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+  int result = 0;
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    //shoes_svghandle *handle;
-    //Data_Get_Struct(self_t->svghandle, shoes_svghandle, handle);
-    Get_TypedStruct2(self_t->svghandle, shoes_svghandle, handle);
-    if (!NIL_P(group) && (TYPE(group) == T_STRING)) {
-        char *grp = RSTRING_PTR(group);
-        result = rsvg_handle_has_sub(handle->handle, grp);
-    } else {
-        rb_raise(rb_eArgError, "bad argument, expecting a String \n");
-    }
-    return (result ? Qtrue : Qnil);
+#ifdef NEW_MACRO_SVGHANDLE
+  Get_TypedStruct2(self_t->svghandle, shoes_svghandle, svghan);
+#else
+  shoes_svghandle *svghan;
+  Data_Get_Struct(self_t->svghandle, shoes_svghandle, svghan);
+#endif
+  if (!NIL_P(group) && (TYPE(group) == T_STRING)) {
+    char *grp = RSTRING_PTR(group);
+    result = rsvg_handle_has_sub(svghan->handle, grp);
+  } else {
+    rb_raise(rb_eArgError, "bad argument, expecting a String \n");
+  }
+  return (result ? Qtrue : Qnil);
 }
 
 VALUE shoes_svg_remove(VALUE self) {
-    //printf("remove\n");
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+  //printf("remove\n");
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    shoes_canvas *canvas;
-    Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+  shoes_canvas *canvas;
+  Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
 
-    rb_ary_delete(canvas->contents, self);    // shoes_basic_remove does it this way
-    shoes_canvas_repaint_all(self_t->parent); //
+  rb_ary_delete(canvas->contents, self);    // shoes_basic_remove does it this way
+  shoes_canvas_repaint_all(self_t->parent); //
 
-    // let ruby gc collect handle (it may be shared) just remove this ref
-    self_t->svghandle = Qnil;
-    self_t = NULL;
-    self = Qnil;
+  // let ruby gc collect handle (it may be shared) just remove this ref
+  self_t->svghandle = Qnil;
+  self_t = NULL;
+  self = Qnil;
 
-    return Qtrue;
+  return Qtrue;
 }
 
 //called by shoes_svg_send_click and shoes_canvas_send_motion
 VALUE shoes_svg_motion(VALUE self, int x, int y, char *touch) {
-    char h = 0;
-    VALUE click;
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+  char h = 0;
+  VALUE click;
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    click = ATTR(self_t->attr, click);
+  click = ATTR(self_t->attr, click);
 
-    if (IS_INSIDE(self_t, x, y)) {
-        if (!NIL_P(click)) {
-            shoes_canvas *canvas;
-            Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-            shoes_app_cursor(canvas->app, s_link);
-        }
-        h = 1;
+  if (IS_INSIDE(self_t, x, y)) {
+    if (!NIL_P(click)) {
+      shoes_canvas *canvas;
+      Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+      shoes_app_cursor(canvas->app, s_link);
     }
+    h = 1;
+  }
 
-    /* Checks if element is hovered, clicked, released, leaved
-     * and eventually calls hover and/or leave callbacks
-     *   if hovered:  self_t->hover == 1
-     *   if leaved:   self_t->hover == 0
-     *   if clicked and not yet released:
-     *     if hovered + clicked: self_t->hover == 3
-     *     if leaved + clicked:  self_t->hover == 2
-     */
-    CHECK_HOVER(self_t, h, touch);
+  /* Checks if element is hovered, clicked, released, leaved
+   * and eventually calls hover and/or leave callbacks
+   *   if hovered:  self_t->hover == 1
+   *   if leaved:   self_t->hover == 0
+   *   if clicked and not yet released:
+   *     if hovered + clicked: self_t->hover == 3
+   *     if leaved + clicked:  self_t->hover == 2
+   */
+  CHECK_HOVER(self_t, h, touch);
 
-    return h ? click : Qnil;
+  return h ? click : Qnil;
 }
 
 // called by shoes_canvas_send_click --> shoes_canvas_send_click2
 VALUE shoes_svg_send_click(VALUE self, int button, int x, int y) {
-    VALUE v = Qnil;
+  VALUE v = Qnil;
 
-    if (button > 0) {
-#ifdef NEW_MACROS
-        Get_TypedStruct(shoes_svg, self_t);
+  if (button > 0) {
+#ifdef NEW_MACRO_SVG
+    Get_TypedStruct(shoes_svg, self_t);
 #else
-        shoes_svg *self_t;
-        Data_Get_Struct(self, shoes_svg, self_t);
+    shoes_svg *self_t;
+    Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-        v = shoes_svg_motion(self, x, y, NULL);
-        if (self_t->hover & HOVER_MOTION)             // ok, cursor is over the element, proceed
-            self_t->hover = HOVER_MOTION | HOVER_CLICK; // we have been clicked, but not yet released
-    }
+    v = shoes_svg_motion(self, x, y, NULL);
+    if (self_t->hover & HOVER_MOTION)             // ok, cursor is over the element, proceed
+        self_t->hover = HOVER_MOTION | HOVER_CLICK; // we have been clicked, but not yet released
+  }
 
-    // if we found a click callback send it back to shoes_canvas_send_click method
-    // where it will be processed
-    return v;
+  // if we found a click callback send it back to shoes_canvas_send_click method
+  // where it will be processed
+  return v;
 }
 
 // called by shoes_canvas_send_release
 void shoes_svg_send_release(VALUE self, int button, int x, int y) {
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
-    if (button > 0 && (self_t->hover & HOVER_CLICK)) {
-        VALUE proc = ATTR(self_t->attr, release);
-        self_t->hover ^= HOVER_CLICK; // we have been clicked and released
-        if (!NIL_P(proc))
-            shoes_safe_block(self, proc, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
-    }
+  if (button > 0 && (self_t->hover & HOVER_CLICK)) {
+    VALUE proc = ATTR(self_t->attr, release);
+    self_t->hover ^= HOVER_CLICK; // we have been clicked and released
+    if (!NIL_P(proc))
+      shoes_safe_block(self, proc, rb_ary_new3(3, INT2NUM(button), INT2NUM(x), INT2NUM(y)));
+  }
 }
+
 VALUE shoes_svg_event_is_here(VALUE self, int x, int y) {
-#ifdef NEW_MACROS
-    Get_TypedStruct(shoes_svg, self_t);
+#ifdef NEW_MACRO_SVG
+  Get_TypedStruct(shoes_svg, self_t);
 #else
-    shoes_svg *self_t;
-    Data_Get_Struct(self, shoes_svg, self_t);
+  shoes_svg *self_t;
+  Data_Get_Struct(self, shoes_svg, self_t);
 #endif
   if (IS_INSIDE(self_t, x, y)) 
     return Qtrue;
   else 
     return Qnil;
 }
-
-
 
 // svghandle
 
@@ -772,12 +799,7 @@ void shoes_svghandle_mark(shoes_svghandle *handle) {
 static void shoes_svghandle_free(shoes_svghandle *handle) {
   if (handle->handle != NULL)
       g_object_unref(handle->handle);
-  /*
-  if (handle->path) free(handle->path);
-  if (handle->data) free(handle->data);
-  if (handle->subid) free(handle->subid);
-  */
-  if (handle->path)
+   if (handle->path)
     RUBY_CRITICAL(SHOE_FREE(handle->path));
   if (handle->data) 
     RUBY_CRITICAL(SHOE_FREE(handle->data));
@@ -785,16 +807,20 @@ static void shoes_svghandle_free(shoes_svghandle *handle) {
     RUBY_CRITICAL(SHOE_FREE(handle->subid));
   RUBY_CRITICAL(SHOE_FREE(handle));
 }
-
+#ifdef NEW_MACRO_SVGHANDLE
 // creates struct shoes_svghandle_type
 TypedData_Type_New(shoes_svghandle);
+#endif
 
 VALUE shoes_svghandle_alloc(VALUE klass) {
   VALUE obj;
   shoes_svghandle *handle = SHOE_ALLOC(shoes_svghandle);
   SHOE_MEMZERO(handle, shoes_svghandle, 1);
-  //obj = Data_Wrap_Struct(klass, NULL, shoes_svghandle_free, handle);
+#ifdef NEW_MACRO_SVGHANDLE
   obj = TypedData_Wrap_Struct(klass, &shoes_svghandle_type, handle);
+#else
+  obj = Data_Wrap_Struct(klass, NULL, shoes_svghandle_free, handle);
+#endif
   handle->handle = NULL;
   handle->subid = NULL;
   return obj;
@@ -809,65 +835,68 @@ VALUE shoes_svghandle_new(int argc, VALUE *argv, VALUE parent) {
   VALUE aspectObj = shoes_hash_get(argv[0], rb_intern("aspect"));
 
   VALUE obj = shoes_svghandle_alloc(cSvgHandle);
-  //shoes_svghandle *self_t;
-  //Data_Get_Struct(obj, shoes_svghandle, self_t);
+#ifdef NEW_MACRO_SVGHANDLE
   Get_TypedStruct2(obj, shoes_svghandle, self_t);
-
+#else
+  shoes_svghandle *self_t;
+  Data_Get_Struct(obj, shoes_svghandle, self_t);
+#endif
   GError *gerror = NULL;
   if (!NIL_P(filename)) {
-      // load it from a file
-      char *path = RSTRING_PTR(filename);
-      self_t->handle = rsvg_handle_new_from_file (path, &gerror);
-      if (self_t->handle == NULL) {
-          self_t->path = NULL;
-          printf("Failed SVG: %s\n", gerror->message);
-      } else self_t->path = strdup(RSTRING_PTR(filename));
+    // load it from a file
+    char *path = RSTRING_PTR(filename);
+    self_t->handle = rsvg_handle_new_from_file (path, &gerror);
+    if (self_t->handle == NULL) {
+        self_t->path = NULL;
+        fprintf(stderr, "Failed SVG: %s\n", gerror->message);
+    } else
+      self_t->path = strdup(RSTRING_PTR(filename));
 
   } else if (!NIL_P(fromstring)) {
-      // load it from a string
-      char *data = RSTRING_PTR(fromstring);
-      int len = RSTRING_LEN(fromstring);
-      // being Ruby, those are UTF-8, may not be what rsvg wants (const guint8 *)
-      // Problem for OSX ?
-      self_t->handle = rsvg_handle_new_from_data ((const unsigned char *)data, len, &gerror);
-      if (self_t->handle == NULL) {
-          self_t->data = NULL;
-          printf("Failed SVG: %s\n", gerror->message);
-      } //else self_t->data = strdup(RSTRING_PTR(fromstring));
+    // load it from a string
+    char *data = RSTRING_PTR(fromstring);
+    int len = RSTRING_LEN(fromstring);
+    // being Ruby, those are UTF-8, may not be what rsvg wants (const guint8 *)
+    // Problem for OSX ?
+    self_t->handle = rsvg_handle_new_from_data ((const unsigned char *)data, len, &gerror);
+    if (self_t->handle == NULL) {
+      self_t->data = NULL;
+      fprintf(stderr, "Failed SVG: %s\n", gerror->message);
+    } //else self_t->data = strdup(RSTRING_PTR(fromstring));
 
   } else {
-      // never reached, handled by shoes_svg_new
+    // never reached, handled by shoes_svg_new
   }
 
   if (!NIL_P(subidObj) && (RSTRING_LEN(subidObj) > 0)) {
-      if (rsvg_handle_has_sub(self_t->handle, RSTRING_PTR(subidObj))) {
-          self_t->subid = strdup(RSTRING_PTR(subidObj));
-          if (!rsvg_handle_get_dimensions_sub(self_t->handle, &self_t->svghdim, self_t->subid))
-              printf("no dim for %s\n", self_t->subid);
-          if (!rsvg_handle_get_position_sub(self_t->handle, &self_t->svghpos, self_t->subid))
-              printf("no pos for %s\n",self_t->subid);
-      } else {
-          printf("not a valid id %s\n",self_t->subid);
-          self_t->subid = NULL;
-      }
-  } else {
-      rsvg_handle_get_dimensions(self_t->handle, &self_t->svghdim);
-      self_t->svghpos.x = self_t->svghpos.y = 0;
+    if (rsvg_handle_has_sub(self_t->handle, RSTRING_PTR(subidObj))) {
+      self_t->subid = strdup(RSTRING_PTR(subidObj));
+      if (!rsvg_handle_get_dimensions_sub(self_t->handle, &self_t->svghdim, self_t->subid))
+        fprintf(stderr,"no dim for %s\n", self_t->subid);
+      if (!rsvg_handle_get_position_sub(self_t->handle, &self_t->svghpos, self_t->subid))
+        fprintf(stderr, "no pos for %s\n",self_t->subid);
+    } else {
+      fprintf(stderr, "not a valid id %s\n",self_t->subid);
       self_t->subid = NULL;
+    }
+  } else {
+    rsvg_handle_get_dimensions(self_t->handle, &self_t->svghdim);
+    self_t->svghpos.x = self_t->svghpos.y = 0;
+    self_t->subid = NULL;
   }
 
   if (NIL_P(aspectObj) || (aspectObj == Qtrue)) {
-      // :aspect => true or not specified, Keep aspect ratio
-      self_t->aspect = 0.0;
+    // :aspect => true or not specified, Keep aspect ratio
+    self_t->aspect = 0.0;
   } else if (aspectObj == Qfalse) {
-      // :aspect => false, Don't keep aspect ratio
-      self_t->aspect = -1.0;
+    // :aspect => false, Don't keep aspect ratio
+    self_t->aspect = -1.0;
   } else if (TYPE(aspectObj) == T_FLOAT) {
-      // :aspect => a double (ie 1.33), Don't keep aspect ratio
-      self_t->aspect = NUM2DBL(aspectObj);
+    // :aspect => a double (ie 1.33), Don't keep aspect ratio
+    self_t->aspect = NUM2DBL(aspectObj);
   } else {
-      // fallback on keep aspect ratio
-      self_t->aspect = 0.0;
+    // fallback on keep aspect ratio
+    self_t->aspect = 0.0;
   }
   /*
     printf("sub x: %i, y: %i, w: %i, h: %i)\n",
@@ -878,30 +907,39 @@ VALUE shoes_svghandle_new(int argc, VALUE *argv, VALUE parent) {
 }
 
 VALUE shoes_svghandle_get_width(VALUE self) {
-  //GET_STRUCT(svghandle, self_t);
+#ifdef NEW_MACRO_SVGHANDLE
   Get_TypedStruct(shoes_svghandle, self_t);
+#else
+  GET_STRUCT(svghandle, self_t);
+#endif
   return INT2NUM(self_t->svghdim.width);
 }
 
 VALUE shoes_svghandle_get_height(VALUE self) {
-  //GET_STRUCT(svghandle, self_t);
+#ifdef NEW_MACRO_SVGHANDLE
   Get_TypedStruct(shoes_svghandle, self_t);
+#else
+  GET_STRUCT(svghandle, self_t);
+#endif
   return INT2NUM(self_t->svghdim.height);
 }
 
 /* Needed for some odd situations -samples/good-flip.rb */
 VALUE shoes_svghandle_has_group(VALUE self, VALUE group) {
-  //shoes_svghandle *handle;
-  //Data_Get_Struct(self, shoes_svghandle, handle);
+#ifdef NEW_MACRO_SVGHANDLE
   Get_TypedStruct(shoes_svghandle, handle);
+#else
+  shoes_svghandle *handle;
+  Data_Get_Struct(self, shoes_svghandle, handle);
+#endif
   if (!NIL_P(group) && (TYPE(group) == T_STRING)) {
-      char *grp = RSTRING_PTR(group);
-      int has = rsvg_handle_has_sub(handle->handle, grp);
-      if (has)
-          return Qtrue;
-      else
-          return Qnil;
+    char *grp = RSTRING_PTR(group);
+    int has = rsvg_handle_has_sub(handle->handle, grp);
+    if (has)
+      return Qtrue;
+    else
+      return Qnil;
   } else {
-      rb_raise(rb_eArgError, "bad argument, expecting a String \n");
+    rb_raise(rb_eArgError, "bad argument, expecting a String \n");
   }
 }

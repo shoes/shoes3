@@ -85,9 +85,12 @@ void shoes_css_apply(GtkWidget *widget, VALUE attr, char *css_template)
     if (RTEST(ATTR(attr, stroke))) {
       vclr = (ATTR(attr, stroke));
       // That's a Shoes color turn it into a css rgba
-
+#ifdef NEW_MACRO_COLOR
+      Get_TypedStruct2(vclr, shoes_color, scolor); 
+#else
       shoes_color *scolor; 
       Data_Get_Struct(vclr, shoes_color, scolor); 
+#endif
       sprintf(color, "rgba(%d,%d,%d,%d)", scolor->r, scolor->g, scolor->b,
           scolor->a);        
       do_sub = 1;

@@ -166,8 +166,12 @@ GtkWidget *gtk_combo_box_text_alt_new(VALUE attribs, int bottom_margin) {
       if (TYPE(fgclr) == T_STRING) 
           fgclr = shoes_color_parse(cColor, fgclr);  // convert string to cColor
       if (rb_obj_is_kind_of(fgclr, cColor)) { 
+#ifdef NEW_MACRO_COLOR
+          Get_TypedStruct2(fgclr, shoes_color, color);
+#else
           shoes_color *color; 
-          Data_Get_Struct(fgclr, shoes_color, color); 
+          Data_Get_Struct(fgclr, shoes_color, color);
+#endif
           GdkRGBA gclr; 
           gclr.red = color->r / 255.0;
           gclr.green = color->g / 255.0; 

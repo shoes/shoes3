@@ -128,8 +128,12 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot) {
         shoes_chart_series *cs;
         VALUE rbcs = rb_ary_entry(plot->series, i);
         Data_Get_Struct(rbcs, shoes_chart_series, cs);
+#ifdef NEW_MACRO_COLOR
+        Get_TypedStruct2(cs->color, shoes_color, color);
+#else
         shoes_color *color;
         Data_Get_Struct(cs->color, shoes_color, color);
+#endif
         int strokew = NUM2INT(cs->strokes);
         cairo_set_source_rgba(cr, color->r / 255.0,color->g / 255.0,
                               color->b / 255.0, color->a / 255.0);

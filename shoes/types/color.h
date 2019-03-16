@@ -8,6 +8,8 @@
 #ifndef SHOES_COLOR_TYPE_H
 #define SHOES_COLOR_TYPE_H
 
+#define NEW_MACRO_COLOR   // use ruby 2.4 macros
+
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
@@ -25,26 +27,26 @@ typedef struct {
 
 #define DEF_COLOR(name, r, g, b) rb_hash_aset(cColors, ID2SYM(rb_intern("" # name)), shoes_color_new(r, g, b, 255))
 
-#ifdef NEW_MACROS
-#define NEW_COLOR(v, o) \
+
+#define NEW_COLOR_T(v, o) \
   shoes_color *v; \
   VALUE o = shoes_color_alloc(cColor); \
   TypedData_Get_Struct(o, shoes_color, &shoes_color_type, v);
-#else
- #define NEW_COLOR(v, o) \
+
+#define NEW_COLOR(v, o) \
   shoes_color *v; \
   VALUE o = shoes_color_alloc(cColor); \
   Data_Get_Struct(o, shoes_color, v)
-#endif
+
 
 VALUE cColor, cColors;
 
 /* each widget should have its own init function */
 void shoes_color_init();
-#ifdef NEW_MACROS
+
+#ifdef NEW_MACRO_COLOR
 extern const rb_data_type_t shoes_color_type;
 #endif
-
 
 // ruby
 void shoes_color_mark(shoes_color *color);

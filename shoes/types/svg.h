@@ -8,6 +8,9 @@
 #ifndef SHOES_SVG_TYPE_H
 #define SHOES_SVG_TYPE_H
 
+#define NEW_MACRO_SVG       // uncomment to use new macros for shoes_svg
+#define NEW_MACRO_SVGHANDLE // uncomment to use new macros for shoes_svghandle
+
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
@@ -40,6 +43,15 @@ typedef struct {
 
 /* each widget should have its own init function */
 void shoes_svg_init();
+
+// these types need to be available to all who want to upwrap this object
+// created by ruby 2.4+ 
+#ifdef NEW_MACRO_SVGHANDLE
+extern const rb_data_type_t shoes_svghandle_type;
+#endif
+#ifdef NEW_MACRO_SVG
+extern const rb_data_type_t shoes_svg_type;
+#endif
 
 // ruby (svg)
 VALUE shoes_svg_new(int, VALUE *, VALUE);

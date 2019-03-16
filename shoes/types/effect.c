@@ -256,12 +256,20 @@ static void shoes_layer_blur_filter(cairo_t *cr, VALUE attr, shoes_place *place,
     if (NIL_P(fill))
         cairo_set_source_rgb(cr2, 0., 0., 0.);
     else if (rb_obj_is_kind_of(fill, cColor)) {
+#ifdef NEW_MACRO_COLOR
+        Get_TypedStruct2(fill, shoes_color, color);
+#else
         shoes_color *color;
         Data_Get_Struct(fill, shoes_color, color);
+#endif
         cairo_set_source_rgba(cr2, color->r / 255., color->g / 255., color->b / 255., color->a / 255.);
     } else {
+#ifdef NEW_MACRO_PATTERN
+        Get_TypedStruct2(fill, shoes_pattern, pattern);
+#else
         shoes_pattern *pattern;
         Data_Get_Struct(fill, shoes_pattern, pattern);
+#endif
         cairo_set_source(cr2, PATTERN(pattern));
     }
     cairo_rectangle(cr2, 0, 0, width, height);

@@ -196,10 +196,11 @@ VALUE call_cfunc(HOOK func, VALUE recv, int len, int argc, VALUE *argv);
   }
 
 //
-// Common methods - we need both sets during transition.
+// Common methods - we need mixed set during transition.
 //
-#include "shoes/methods_typed.h"
-#include "shoes/methods_old.h"
+#include "shoes/methods_mixed.h"
+//#include "shoes/methods_typed.h"
+//#include "shoes/methods_old.h"
 
 
 int shoes_px(VALUE, int, int, int);

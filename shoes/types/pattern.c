@@ -1,14 +1,21 @@
 #include "shoes/types/color.h"
 #include "shoes/types/pattern.h"
 
+#ifdef NEW_MACRO_PATTERN // from pattern.h
+#define NEW_MACROS
+#endif
 
 // ruby
 VALUE cPattern, cBorder, cBackground;
 
 CLASS_COMMON2(pattern);
-
+#ifdef NEW_MACROS
+FUNC_T("+background", background, -1);
+FUNC_T("+border", border, -1);
+#else
 FUNC_M("+background", background, -1);
 FUNC_M("+border", border, -1);
+#endif
 
 void shoes_pattern_init() {
     cPattern = rb_define_class_under(cTypes, "Pattern", rb_cObject);
@@ -37,10 +44,7 @@ void shoes_pattern_init() {
     RUBY_M("+border", border, -1);
 }
 
-#ifdef NEW_MACROS
-//#undef Data_Get_Struct
-#undef GET_STRUCT
-#endif
+
 // ruby
 
 void shoes_pattern_mark(shoes_pattern *pattern) {
@@ -55,7 +59,7 @@ void shoes_pattern_free(shoes_pattern *pattern) {
     RUBY_CRITICAL(free(pattern));
 }
 
-#ifdef NEW_MACROS
+#ifdef NEW_MACRO_PATTERN
 // creates struct shoes_pattern_type
 TypedData_Type_New(shoes_pattern);
 #endif
@@ -64,7 +68,7 @@ VALUE shoes_pattern_alloc(VALUE klass) {
     VALUE obj;
     shoes_pattern *pattern = SHOE_ALLOC(shoes_pattern);
     SHOE_MEMZERO(pattern, shoes_pattern, 1);
-#ifdef NEW_MACROS
+#ifdef NEW_MACRO_PATTERN
     obj = TypedData_Wrap_Struct(klass, &shoes_pattern_type, pattern);
 #else
     obj = Data_Wrap_Struct(klass, shoes_pattern_mark, shoes_pattern_free, pattern);
@@ -77,7 +81,7 @@ VALUE shoes_pattern_alloc(VALUE klass) {
 
 VALUE shoes_pattern_new(VALUE klass, VALUE source, VALUE attr, VALUE parent) {
     VALUE obj = shoes_pattern_alloc(klass);
-#ifdef NEW_MACROS
+#ifdef NEW_MACRO_PATTERN
     Get_TypedStruct2(obj, shoes_pattern, pattern);
 #else
     shoes_pattern *pattern;
@@ -116,7 +120,7 @@ void shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE at
 }
 
 VALUE shoes_pattern_set_fill(VALUE self, VALUE source) {
-#ifdef NEW_MACROS
+#ifdef NEW_MACRO_PATTERN
     Get_TypedStruct(shoes_pattern, pattern);
 #else
     shoes_pattern *pattern;
@@ -152,7 +156,7 @@ VALUE shoes_pattern_set_fill(VALUE self, VALUE source) {
 }
 
 VALUE shoes_pattern_get_fill(VALUE self) {
-#ifdef NEW_MACROS
+#ifdef NEW_MACRO_PATTERN
     Get_TypedStruct(shoes_pattern, pattern);
 #else
     shoes_pattern *pattern;
@@ -198,7 +202,11 @@ VALUE shoes_background_draw(VALUE self, VALUE c, VALUE actual) {
     cairo_matrix_t matrix1, matrix2;
     double r = 0., sw = 1.;
     int expand = 0;
+#ifdef NEW_MACRO_PATTERN
+    SETUP_DRAWING_T(shoes_pattern, REL_TILE, PATTERN_DIM(self_t, width), PATTERN_DIM(self_t, height));
+#else
     SETUP_DRAWING(shoes_pattern, REL_TILE, PATTERN_DIM(self_t, width), PATTERN_DIM(self_t, height));
+#endif 
     r = ATTR2(dbl, self_t->attr, curve, 0.); 
     VALUE ev = shoes_hash_get(self_t->attr, s_scroll);
     if (!NIL_P(ev) && (ev == Qtrue))
@@ -240,7 +248,11 @@ VALUE shoes_border_draw(VALUE self, VALUE c, VALUE actual) {
     ID cap = s_rect;
     ID dash = s_nodot;
     double r = 0., sw = 1.;
+#ifdef NEW_MACRO_PATTERN
+    SETUP_DRAWING_T(shoes_pattern, REL_TILE, PATTERN_DIM(self_t, width), PATTERN_DIM(self_t, height));
+#else
     SETUP_DRAWING(shoes_pattern, REL_TILE, PATTERN_DIM(self_t, width), PATTERN_DIM(self_t, height));
+#endif
     r = ATTR2(dbl, self_t->attr, curve, 0.);
     sw = ATTR2(dbl, self_t->attr, strokewidth, 1.);
     if (!NIL_P(ATTR(self_t->attr, cap))) cap = SYM2ID(ATTR(self_t->attr, cap));
@@ -275,7 +287,7 @@ VALUE shoes_border_draw(VALUE self, VALUE c, VALUE actual) {
 
 VALUE shoes_subpattern_new(VALUE klass, VALUE pat, VALUE parent) {
     VALUE obj = shoes_pattern_alloc(klass);
-#ifdef NEW_MACROS
+#ifdef NEW_MACRO_PATTERN
     Get_TypedStruct2(obj, shoes_pattern, back);
     Get_TypedStruct2(pat, shoes_pattern, pattern);
 #else

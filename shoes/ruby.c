@@ -663,6 +663,7 @@ VALUE shoes_app_method_missing(int argc, VALUE *argv, VALUE self) {
   return shoes_color_method_missing(argc, argv, self);
 }
 
+// TODO: can these be moved to canvas.c ? 
 PLACE_COMMON(canvas)
 TRANS_COMMON(canvas, 0);
 

@@ -256,8 +256,12 @@ VALUE shoes_image_set_pixel(VALUE self, VALUE _x, VALUE _y, VALUE col) {
         if (TYPE(col) == T_STRING)
             col = shoes_color_parse(cColor, col);
         if (rb_obj_is_kind_of(col, cColor)) {
+#ifdef NEW_MACRO_COLOR
+            Get_TypedStruct2(col, shoes_color, color);
+#else
             shoes_color *color;
             Data_Get_Struct(col, shoes_color, color);
+#endif
             pixels[0] = color->b;
             pixels[1] = color->g;
             pixels[2] = color->r;

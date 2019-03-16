@@ -84,6 +84,21 @@ VALUE shoes_canvas_inscription(int argc, VALUE *argv, VALUE self);
     attr = NULL; \
   }
 
+#ifdef NEW_MACRO_COLOR
+#define APPLY_STYLE_COLOR(name, func) \
+  GET_STYLE(name); \
+  if (!NIL_P(str)) \
+  { \
+    if (TYPE(str) == T_STRING) \
+      str = shoes_color_parse(cColor, str); \
+    if (rb_obj_is_kind_of(str, cColor)) \
+    { \
+      Get_TypedStruct2(str, shoes_color, color); \
+      attr = pango_attr_##func##_new(color->r * 255, color->g * 255, color-> b * 255); \
+    } \
+    APPLY_ATTR(); \
+  }
+#else
 #define APPLY_STYLE_COLOR(name, func) \
   GET_STYLE(name); \
   if (!NIL_P(str)) \
@@ -98,5 +113,6 @@ VALUE shoes_canvas_inscription(int argc, VALUE *argv, VALUE self);
     } \
     APPLY_ATTR(); \
   }
+#endif
 
 #endif
