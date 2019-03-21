@@ -46,11 +46,21 @@ void shoes_plot_free(shoes_plot *self_t) {
     RUBY_CRITICAL(SHOE_FREE(self_t));
 }
 
+#ifdef NEW_MACRO_PLOT
+// creates struct shoes_plot_type
+TypedData_Type_New(shoes_plot);
+#endif
+
+
 VALUE shoes_plot_alloc(VALUE klass) {
     VALUE obj;
     shoes_plot *plot = SHOE_ALLOC(shoes_plot);
     SHOE_MEMZERO(plot, shoes_plot, 1);
+#ifdef NEW_MACRO_PLOT
+    obj = TypedData_Wrap_Struct(klass, &shoes_plot_type, plot);
+#else
     obj = Data_Wrap_Struct(klass, shoes_plot_mark, shoes_plot_free, plot);
+#endif
     plot->parent = Qnil;
     plot->column_opts = Qnil;
     plot->series = rb_ary_new();
@@ -108,9 +118,12 @@ VALUE shoes_plot_new(int argc, VALUE *argv, VALUE parent) {
     }
 
     VALUE obj = shoes_plot_alloc(cPlot);
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(obj, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(obj, shoes_plot, self_t);
-
+#endif
     self_t->place.w = NUM2INT(widthObj);
     self_t->place.h = NUM2INT(heightObj);
 
@@ -308,10 +321,14 @@ VALUE shoes_plot_new(int argc, VALUE *argv, VALUE parent) {
 
 // This gets called very often by Shoes. May be slow for large plots?
 VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual) {
-    shoes_plot *self_t;
     shoes_place place;
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
+    shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     Data_Get_Struct(c, shoes_canvas, canvas);
     if (ATTR(self_t->attr, hidden) == Qtrue) return self;
     int rel =(REL_CANVAS | REL_SCALE);
@@ -365,11 +382,12 @@ void shoes_plot_draw_everything(cairo_t *cr, shoes_place *place, shoes_plot *sel
 }
 
 VALUE shoes_plot_add(VALUE self, VALUE theseries) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
-    //VALUE rbsz, rbvals, rbobs, rbmin, rbmax, rbshname, rblgname, rbcolor;
-    //VALUE rbstroke, rbnubs, rbnubtype  = Qnil;
-    //VALUE color_wrapped = Qnil;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     int i = self_t->seriescnt; // track number of series to plot.
     VALUE newseries = theseries;
     if (i >= 6) {
@@ -381,8 +399,12 @@ VALUE shoes_plot_add(VALUE self, VALUE theseries) {
     }
 
     if (rb_obj_is_kind_of(newseries, cChartSeries)) {
+#ifdef NEW_MACRO_CHARTSERIES
+        Get_TypedStruct2(newseries, shoes_chart_series, cs);
+#else
         shoes_chart_series *cs;
         Data_Get_Struct(newseries, shoes_chart_series, cs);
+#endif
         int nobs = RARRAY_LEN(cs->values);
         self_t->beg_idx = 0;
         self_t->end_idx = nobs;
@@ -408,8 +430,12 @@ VALUE shoes_plot_add(VALUE self, VALUE theseries) {
 }
 
 VALUE shoes_plot_delete(VALUE self, VALUE series) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     if (TYPE(series) != T_FIXNUM)
         rb_raise(rb_eArgError, "plot.delete arg not integer");
     int idx = NUM2INT(series);
@@ -425,8 +451,12 @@ VALUE shoes_plot_delete(VALUE self, VALUE series) {
 
 // odds are high that this may flash or crash if called too frequently
 VALUE shoes_plot_redraw_to(VALUE self, VALUE to_here) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     // restrict to timeseries chart and line chart
     if ((self_t->chart_type != TIMESERIES_CHART) &&
             (self_t->chart_type != LINE_CHART))
@@ -443,16 +473,24 @@ VALUE shoes_plot_redraw_to(VALUE self, VALUE to_here) {
 
 // id method
 VALUE shoes_plot_find_name(VALUE self, VALUE name) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     if (TYPE(name) != T_STRING) rb_raise(rb_eArgError, "plot.find arg is not a string");
     char *search = RSTRING_PTR(name);
     int i;
     for (i = 0; i <self_t->seriescnt; i++) {
         VALUE rbser = rb_ary_entry(self_t->series, i);
         //VALUE rbstr = rb_ary_entry(self_t->names, i);
+#ifdef NEW_MACRO_CHARTSERIES
+        Get_TypedStruct2(rbser, shoes_chart_series, cs);
+#else
         shoes_chart_series *cs;
         Data_Get_Struct(rbser, shoes_chart_series, cs);
+#endif
         VALUE rbstr = cs->name;
         char *entry = RSTRING_PTR(rbstr);
         if (strcmp(search, entry) == 0) {
@@ -463,8 +501,12 @@ VALUE shoes_plot_find_name(VALUE self, VALUE name) {
 }
 
 VALUE shoes_plot_zoom(VALUE self, VALUE beg, VALUE end) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     // restrict to timeseries chart
     if (self_t->chart_type != TIMESERIES_CHART)
         return Qnil;
@@ -472,8 +514,12 @@ VALUE shoes_plot_zoom(VALUE self, VALUE beg, VALUE end) {
         return Qnil;
     //int maxe = RARRAY_LEN(rb_ary_entry(self_t->values, 0));
     VALUE rbser = rb_ary_entry(self_t->series, 0);
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(rbser, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(rbser, shoes_chart_series, cs);
+#endif
     int maxe = RARRAY_LEN(cs->values);
     int b = NUM2INT(beg);
     int e = NUM2INT(end);
@@ -491,20 +537,32 @@ VALUE shoes_plot_zoom(VALUE self, VALUE beg, VALUE end) {
 }
 
 VALUE shoes_plot_get_count(VALUE self) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     return INT2NUM(self_t->seriescnt);
 }
 
 VALUE shoes_plot_get_first(VALUE self) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     return INT2NUM(self_t->beg_idx);
 }
 
 VALUE shoes_plot_set_first(VALUE self, VALUE idx) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     if (self_t->chart_type != TIMESERIES_CHART)
         return Qnil;
     if (TYPE(idx) != T_FIXNUM) rb_raise(rb_eArgError, "plot.set_first arg is not an integer");
@@ -514,13 +572,22 @@ VALUE shoes_plot_set_first(VALUE self, VALUE idx) {
 }
 
 VALUE shoes_plot_get_last(VALUE self) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     return INT2NUM(self_t->end_idx);
 }
+
 VALUE shoes_plot_set_last(VALUE self, VALUE idx) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     if (self_t->chart_type != TIMESERIES_CHART)
         return Qnil;
     if (TYPE(idx) != T_FIXNUM) rb_raise(rb_eArgError, "plot.set_last arg is not an integer");
@@ -531,26 +598,42 @@ VALUE shoes_plot_set_last(VALUE self, VALUE idx) {
 
 // ------ widget methods for style and save/export ------
 VALUE shoes_plot_get_actual_width(VALUE self) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     return INT2NUM(self_t->place.w);
 }
 
 VALUE shoes_plot_get_actual_height(VALUE self) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     return INT2NUM(self_t->place.h);
 }
 
 VALUE shoes_plot_get_actual_left(VALUE self) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     return INT2NUM(self_t->place.ix + self_t->place.dx);
 }
 
 VALUE shoes_plot_get_actual_top(VALUE self) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     return INT2NUM(self_t->place.iy + self_t->place.dy);
 }
 
@@ -565,8 +648,12 @@ cairo_surface_function_t *get_vector_surface(char *format) {
 }
 
 cairo_surface_t *build_surface(VALUE self, double scale, int *result, char *filename, char *format) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     shoes_canvas *canvas;
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
     shoes_place place = self_t->place;
@@ -646,14 +733,23 @@ VALUE shoes_plot_save_as(int argc, VALUE *argv, VALUE self) {
  *  than other widgets [parent, left, top, width, height ruby methods]
  */
 VALUE shoes_plot_get_parent(VALUE self) {
-    GET_STRUCT(plot, self_t);
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
+    shoes_plot *self_t;
+    Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     return self_t->parent;
 }
 
 VALUE shoes_plot_remove(VALUE self) {
-    shoes_plot *self_t;
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
+    shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
 
     rb_ary_delete(canvas->contents, self);    // shoes_basic_remove does it this way
@@ -678,8 +774,12 @@ VALUE shoes_plot_remove(VALUE self) {
  *
  */
 VALUE shoes_plot_near(VALUE self, VALUE xpos) {
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     int x = NUM2INT(xpos);
     int left,right;
     left = self_t->graph_x;
@@ -714,7 +814,12 @@ int shoes_plot_inside(shoes_plot *self_t, int x, int y) {
 VALUE shoes_plot_motion(VALUE self, int x, int y, char *touch) {
     char h = 0;
     VALUE click;
-    GET_STRUCT(plot, self_t);
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
+    shoes_plot *self_t;
+    Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     if (self_t->chart_type != TIMESERIES_CHART)
         return Qnil;
     click = ATTR(self_t->attr, click);
@@ -746,7 +851,12 @@ VALUE shoes_plot_motion(VALUE self, int x, int y, char *touch) {
 VALUE shoes_plot_send_click(VALUE self, int button, int x, int y) {
     VALUE v = Qnil;
     if (button >  0) {
-        GET_STRUCT(plot, self_t);
+#ifdef NEW_MACRO_PLOT
+        Get_TypedStruct2(self, shoes_plot, self_t);
+#else
+    shoes_plot *self_t;
+        Data_Get_Struct(self, shoes_plot, self_t);
+#endif
         v = shoes_plot_motion(self, x, y, NULL);
         if (self_t->hover & HOVER_MOTION)             // ok, cursor is over the element, proceed
             self_t->hover = HOVER_MOTION | HOVER_CLICK; // we have been clicked, but not yet released
@@ -758,9 +868,13 @@ VALUE shoes_plot_send_click(VALUE self, int button, int x, int y) {
 }
 
 VALUE shoes_plot_event_is_here(VALUE self, int x, int y) {
-  shoes_plot *plot;
-  Data_Get_Struct(self, shoes_plot, plot);
-  if (IS_INSIDE(plot, x, y)) 
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
+    shoes_plot *self_t;
+    Data_Get_Struct(self, shoes_plot, self_t);
+#endif
+  if (IS_INSIDE(self_t, x, y)) 
     return Qtrue;
   else 
     return Qnil;
@@ -768,7 +882,12 @@ VALUE shoes_plot_event_is_here(VALUE self, int x, int y) {
 
 // called by shoes_canvas_send_release
 void shoes_plot_send_release(VALUE self, int button, int x, int y) {
-    GET_STRUCT(plot, self_t);
+#ifdef NEW_MACRO_PLOT
+    Get_TypedStruct2(self, shoes_plot, self_t);
+#else
+    shoes_plot *self_t;
+    Data_Get_Struct(self, shoes_plot, self_t);
+#endif
     if (button > 0 && (self_t->hover & HOVER_CLICK)) {
         VALUE proc = ATTR(self_t->attr, release);
         self_t->hover ^= HOVER_CLICK; // we have been clicked and released

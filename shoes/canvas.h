@@ -61,9 +61,22 @@ typedef struct {
     unsigned char flags;
 } shoes_place;
 
+// TODO Transition to new macros. - remove if after transistion
+
+#define SETUP_BASIC() \
+  shoes_basic *basic; \
+  if (RTYPEDDATA_P(self)) { \
+    basic = (shoes_basic *)RTYPEDDATA_DATA(self); \
+  } else { \
+    Data_Get_Struct(self, shoes_basic, basic); \
+  }
+    
+/* TODO: delete after macro transition
 #define SETUP_BASIC() \
   shoes_basic *basic; \
   Data_Get_Struct(self, shoes_basic, basic);
+*/
+
 #define COPY_PENS(attr1, attr2) \
   if (NIL_P(ATTR(attr1, stroke))) ATTRSET(attr1, stroke, ATTR(attr2, stroke)); \
   if (NIL_P(ATTR(attr1, fill)))   ATTRSET(attr1, fill, ATTR(attr2, fill)); \
@@ -75,6 +88,8 @@ typedef struct {
     blk; \
     rb_ary_pop(app->nesting); \
   }
+
+
 #define ABSX(place)   ((place).flags & FLAG_ABSX)
 #define ABSY(place)   ((place).flags & FLAG_ABSY)
 #define POS(place)    ((place).flags & FLAG_POSITION)
@@ -92,6 +107,7 @@ typedef struct {
    cairo_t *cr; \
    Data_Get_Struct(self, shoes_canvas, canvas); \
    cr = CCR(canvas)
+   
 #define SETUP_IMAGE() \
   shoes_place place; \
   GET_STRUCT(image, image); \

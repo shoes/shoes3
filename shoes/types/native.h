@@ -8,9 +8,11 @@
 #ifndef SHOES_NATIVE_TYPE_H
 #define SHOES_NATIVE_TYPE_H
 
+#define NEW_MACRO_CONTROL
+
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
-extern shoes_app _shoes_app;
+//extern shoes_app _shoes_app;
 
 VALUE cNative;
 
@@ -28,6 +30,9 @@ typedef struct {
 /* each widget should have its own init function */
 void shoes_0_native_type_init();
 
+#ifdef NEW_MACRO_CONTROL
+extern const rb_data_type_t shoes_control_type;
+#endif
 // ruby
 void shoes_control_mark(shoes_control *control);
 void shoes_control_free(shoes_control *control);

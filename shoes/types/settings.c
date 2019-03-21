@@ -35,11 +35,22 @@ static void shoes_settings_free(shoes_settings *st) {
     RUBY_CRITICAL(SHOE_FREE(st));
 }
 
+#ifdef NEW_MACRO_SETTINGS
+// creates struct shoes_effect_type
+TypedData_Type_New(shoes_settings);
+#undef Data_Get_Struct
+#endif
+
+
 VALUE shoes_settings_alloc(VALUE klass) {
     VALUE obj;
     shoes_settings *st = SHOE_ALLOC(shoes_settings);
     SHOE_MEMZERO(st, shoes_settings, 1);
+#ifdef NEW_MACRO_SETTINGS
+    obj = TypedData_Wrap_Struct(klass, &shoes_settings_type, st);
+#else
     obj = Data_Wrap_Struct(klass, shoes_settings_mark, shoes_settings_free, st);
+#endif
     st->app_name = Qnil;
     st->icon_path = Qnil;
     st->theme = Qnil;
@@ -63,8 +74,12 @@ VALUE shoes_settings_alloc(VALUE klass) {
 */
 extern int shoes_cache_setting;
 VALUE shoes_settings_new(shoes_yaml_init *yml) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
   Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   if (yml->app_name) {
     st->app_name = rb_str_new2(yml->app_name);
   }
@@ -120,8 +135,12 @@ VALUE shoes_settings_new(shoes_yaml_init *yml) {
  * Only useful on Linux
 */
 VALUE shoes_settings_dbus(VALUE self) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   return st->dbus_name;
 }
 
@@ -130,27 +149,43 @@ VALUE shoes_settings_dbus(VALUE self) {
  * shoes.yaml or (app.set_window_title ?)
 */
 VALUE shoes_settings_app_name(VALUE self) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   return st->app_name;  
 }
 
 VALUE shoes_settings_set_app_name(VALUE self, VALUE name) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   st->app_name = name;
   return name;
 }
 
 VALUE shoes_settings_app_icon(VALUE self) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   return st->icon_path;
 }
 
 VALUE shoes_settings_set_app_icon(VALUE self, VALUE path) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   st->icon_path = path;
   return path;  
 }
@@ -161,14 +196,22 @@ VALUE shoes_settings_set_app_icon(VALUE self, VALUE path) {
  * Not useable in OSX/cocoa.
 */
 VALUE shoes_settings_get_theme(VALUE self) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   return st->theme;
 }
 
 VALUE shoes_settings_set_theme(VALUE self, VALUE theme) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   st->theme = theme;
   // TODO: Trigger gtk to do something?
   return st->theme;
@@ -177,50 +220,78 @@ VALUE shoes_settings_set_theme(VALUE self, VALUE theme) {
 // get mdi status - not useful, IMO
 // TODO: use integer not VALUE
 VALUE shoes_settings_mdi(VALUE self) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   return st->mdi == Qtrue ? Qtrue: Qfalse;
 }
 
 // Return menu status (it's global once set for any Shoes.app window
 // TODO: use integer instead of VALUE
 VALUE shoes_settings_menu(VALUE self) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   return st->use_menus == Qtrue ? Qtrue : Qfalse;
 }
 
 VALUE shoes_settings_rdomain(VALUE self) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   return st->rdomain;
 }
 
 VALUE shoes_settings_set_rdomain(VALUE self, VALUE name) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   st->rdomain = name;
   return st->rdomain;
 }
 
 VALUE shoes_setting_display_backend(VALUE self) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   return st->backend;
 }
 
 // There is always one monitor
 VALUE shoes_settings_monitor_count(VALUE self) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   int cnt = shoes_native_monitor_count(); 
   return INT2NUM(cnt);
 }
 
 
 VALUE shoes_settings_monitor_geometry(VALUE self, VALUE idx) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   shoes_monitor_t rect;
   shoes_native_monitor_geometry(NUM2INT(idx), &rect);
   VALUE ary = rb_ary_new3(4, INT2NUM(rect.x), INT2NUM(rect.y), 
@@ -229,22 +300,34 @@ VALUE shoes_settings_monitor_geometry(VALUE self, VALUE idx) {
 }
 
 VALUE shoes_settings_monitor_default(VALUE self) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   int mon;
   mon = shoes_native_monitor_default();
   return INT2NUM(mon);  
 }
 
 VALUE shoes_setting_extra1(VALUE self) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   return st->extra1;
 }
 
 VALUE shoes_setting_extra2(VALUE self) {
+#ifdef NEW_MACRO_SETTINGS
+  Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
   shoes_settings *st;
-  Data_Get_Struct(self, shoes_settings, st);
+  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
   return st->extra2;
 }
 

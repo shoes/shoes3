@@ -115,8 +115,12 @@ shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
 
 void shoes_native_radio_set(VALUE ele, int on)
 {
+#ifdef NEW_MACRO_CONTROL
+  Get_TypedStruct2(ele, shoes_control, ctl);
+#else
 	shoes_control *ctl;
   Data_Get_Struct(ele, shoes_control, ctl);
+#endif
   ATTRSET(ctl->attr, checked, on);
   COCOA_DO([(ShoesRadioButton *)ctl->ref setState: on ? NSOnState : NSOffState]);
 }

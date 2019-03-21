@@ -72,8 +72,12 @@ void shoes_native_build_menus(shoes_app *app,VALUE mbv) {
       
       // Shoes menu
       //VALUE shoestext = rb_str_new2("Shoes");
+#ifdef NEW_MACRO_SETTINGS
+      Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
       shoes_settings *st;
       Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
       VALUE shoestext = st->app_name;
       VALUE shoesmenu = shoes_menu_new(shoestext);
       int flags = MENUITEM_ENABLE;

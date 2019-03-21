@@ -342,8 +342,12 @@ void shoes_native_init() {
 #endif
 
     int status;
+#ifdef NEW_MACRO_SETTINGS
+    Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
     shoes_settings *st;
     Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
     char app_id[100];
     char *rdom = RSTRING_PTR(st->rdomain);
     if (st->mdi == Qtrue) {
@@ -1856,14 +1860,22 @@ VALUE shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, co
   shoes_app *app = NULL; 
   if ( rb_obj_is_kind_of(self,cApp)) {
       // Normal 
+#ifdef NEW_MACRO_APP
+      app = Get_TypedStruct3(self, shoes_app);
+#else
       Data_Get_Struct(self, shoes_app, app);
+#endif
       title_app = RSTRING_PTR(app->title); 
       window_app = APP_WINDOW(app);
   } else {
     // Is it Shoes splash? 
     if (RARRAY_LEN(shoes_world->apps) > 0) { 
       VALUE actual_app = rb_ary_entry(shoes_world->apps, 0);
-      Data_Get_Struct(actual_app, shoes_app, app); 
+#ifdef NEW_MACRO_APP
+      app = Get_TypedStruct3(self, shoes_app);
+#else
+      Data_Get_Struct(self, shoes_app, app);
+#endif
       title_app = RSTRING_PTR(app->title); 
       window_app = APP_WINDOW(app);
     } else {

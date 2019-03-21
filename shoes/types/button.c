@@ -17,7 +17,11 @@ void shoes_button_init() {
 }
 
 VALUE shoes_button_draw(VALUE self, VALUE c, VALUE actual) {
+#ifdef NEW_MACRO_CONTROL
+    SETUP_CONTROL_T(2, 0, TRUE);
+#else
     SETUP_CONTROL(2, 0, TRUE);
+#endif
 
 #ifdef SHOES_QUARTZ
     place.h += 8;

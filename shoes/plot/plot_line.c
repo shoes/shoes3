@@ -14,8 +14,12 @@ void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot) {
     bottom = plot->graph_h;
     for (i = 0; i < plot->seriescnt; i++) {
         VALUE rbser = rb_ary_entry(plot->series, i);
+#ifdef NEW_MACRO_CHARTSERIES
+        Get_TypedStruct2(rbser, shoes_chart_series, cs);
+#else
         shoes_chart_series *cs;
         Data_Get_Struct(rbser, shoes_chart_series, cs);
+#endif
         VALUE rbvalues = cs->values;
         VALUE rbmaxv = cs->maxv;
         double maximum = NUM2DBL(rbmaxv);

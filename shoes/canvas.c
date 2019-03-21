@@ -565,7 +565,10 @@ VALUE shoes_canvas_draw(VALUE self, VALUE c, VALUE actual) {
         }
 
         self_t->topy = canvas->cy;
-
+        
+        fprintf(stderr, "Widgets: %d, draw: %s\n", RARRAY_LEN(self_t->contents),
+            (actual == Qtrue)? "true" : "false");
+            
         for (i = 0; i < RARRAY_LEN(self_t->contents); i++) {
             shoes_canvas *c1;
             VALUE ele = rb_ary_entry(self_t->contents, i);
@@ -792,9 +795,12 @@ VALUE shoes_canvas_clear_contents(int argc, VALUE *argv, VALUE self) {
     for (i = 0; i < RARRAY_LEN(canvas->contents); i++) {
         VALUE ele = rb_ary_entry(canvas->contents, i);
         if (rb_obj_class(ele) == cRadio) {
+#ifdef NEW_MACRO_CONTROL
+            Get_TypedStruct2(ele, shoes_control, self_t);
+#else
             shoes_control *self_t;
             Data_Get_Struct(ele, shoes_control, self_t);
-
+#endif
             VALUE group = ATTR(self_t->attr, group);
             if (NIL_P(group)) group = self_t->parent;
             // OSX clang compiler doesn't like that semicolon. it doesn't

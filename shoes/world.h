@@ -10,6 +10,7 @@
 #include "shoes/config.h"
 #include "shoes/ruby.h"
 #include "shoes/code.h"
+#include "shoes/app.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,6 +32,33 @@ SHOES_EXTERN typedef struct _shoes_world_t {
 
 extern SHOES_EXTERN shoes_world_t *shoes_world;
 
+#ifdef NEW_MACRO_APP
+#define GLOBAL_APP(appvar) \
+  shoes_app *appvar = NULL; \
+  if (RARRAY_LEN(shoes_world->apps) > 0) \
+    appvar = Get_TypedStruct3(rb_ary_entry(shoes_world->apps, 0), shoes_app)\
+
+// gtk uses this for mKernel methods - app is optional
+// defines 3 variables that callers need to know about. Ick!
+#define GTK_APP_VAR(appvar) \
+  char * title_##appvar = "Shoes"; \
+  GtkWindow *window_##appvar = NULL; \
+  if (RARRAY_LEN(shoes_world->apps) > 0) { \
+    VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); \
+    Get_TypedStruct2(actual_app, shoes_app, appvar); \
+    title_##appvar = RSTRING_PTR(app->title); \
+    window_##appvar = APP_WINDOW(app);\
+  }\
+
+#define OSX_APP_VAR(appvar) \
+  char * title_##appvar = "Shoes"; \
+  if (RARRAY_LEN(shoes_world->apps) > 0) { \
+    VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); \
+    Get_TypedStruct2(actual_app, shoes_app, appvar); \
+    title_##appvar = RSTRING_PTR(app->title); \
+  }\
+  
+#else
 // rarely used ? but needed
 #define GLOBAL_APP(appvar) \
   shoes_app *appvar = NULL; \
@@ -59,13 +87,7 @@ extern SHOES_EXTERN shoes_world_t *shoes_world;
     title_##appvar = RSTRING_PTR(app->title); \
   }\
 
-
-// no longer used - TODO: remove after testing.
-#define ACTUAL_APP_NOPE(appvar) \
-  shoes_app *appvar = NULL; \
-  VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); \
-  Data_Get_Struct(actual_app, shoes_app, appvar);
-
+#endif
 #define ROUND(x) ((x) >= 0 ? (int)round((x)+0.5) : (int)round((x)-0.5))
 
 //

@@ -20,8 +20,11 @@ void shoes_check_init() {
 
 // ruby
 VALUE shoes_check_draw(VALUE self, VALUE c, VALUE actual) {
-    SETUP_CONTROL(0, 20, FALSE);
-
+#ifdef NEW_MACRO_CONTROL
+    SETUP_CONTROL_T(0, 0, FALSE);
+#else
+    SETUP_CONTROL(0, 0, FALSE);
+#endif
     if (RTEST(actual)) {
         if (self_t->ref == NULL) {
             self_t->ref = shoes_native_check(self, canvas, &place, self_t->attr, msg);
@@ -38,12 +41,20 @@ VALUE shoes_check_draw(VALUE self, VALUE c, VALUE actual) {
 }
 
 VALUE shoes_check_is_checked(VALUE self) {
+#ifdef NEW_MACRO_CONTROL
+    Get_TypedStruct2(self, shoes_control, self_t);
+#else
     GET_STRUCT(control, self_t);
+#endif
     return shoes_native_check_get(self_t->ref);
 }
 
 VALUE shoes_check_set_checked(VALUE self, VALUE on) {
+#ifdef NEW_MACRO_CONTROL
+    Get_TypedStruct2(self, shoes_control, self_t);
+#else
     GET_STRUCT(control, self_t);
+#endif
     ATTRSET(self_t->attr, checked, on);
     if (self_t->ref != NULL)
         shoes_native_check_set(self_t->ref, RTEST(on));

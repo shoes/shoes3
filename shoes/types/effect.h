@@ -9,6 +9,8 @@
 #ifndef SHOES_EFFECT_TYPE_H
 #define SHOES_EFFECT_TYPE_H
 
+#define NEW_MACRO_EFFECT
+
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
@@ -75,6 +77,10 @@ typedef struct {
 
 /* each widget should have its own init function */
 void shoes_effect_init();
+
+#ifdef NEW_MACRO_EFFECT
+extern const rb_data_type_t shoes_effect_type;
+#endif
 
 // ruby
 VALUE shoes_effect_new(ID name, VALUE attr, VALUE parent);

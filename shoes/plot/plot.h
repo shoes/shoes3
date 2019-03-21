@@ -15,6 +15,20 @@
 #include "shoes/http.h"
 #include <math.h>
 
+// shoes_plot and shoes_chart_series structs are defined in canvas.h
+
+#define NEW_MACRO_CHARTSERIES
+#define NEW_MACRO_PLOT
+
+#ifdef NEW_MACRO_CHARTSERIES
+extern const rb_data_type_t shoes_chart_series_type;
+#endif
+
+#ifdef NEW_MACRO_PLOT
+extern const rb_data_type_t shoes_plot_type;
+#endif
+
+
 /*
  * NOTE: functions that changes the cairo state (aka ontext, cairo_t) for
  * color or line width and the like should call shoes_plot_set_cairo_default()

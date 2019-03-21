@@ -206,8 +206,12 @@ void shoes_osx_create_apple_menu(VALUE mbv) {
     NSMenu *menuApp = [[NSMenu alloc] initWithTitle: @"MyApp"];
     [menuApp setAutoenablesItems: NO]; // Beware
 
+#ifdef NEW_MACRO_SETTINGS
+    Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+#else
     shoes_settings *st;
     Data_Get_Struct(shoes_world->settings, shoes_settings, st);
+#endif
     VALUE shoestext = st->app_name;
     VALUE shoesmenu = shoes_menu_alloc(cShoesMenu);
     shoes_menu *mn;

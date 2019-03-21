@@ -5,6 +5,37 @@
 #define GET_STRUCT(ele, var) \
   shoes_##ele *var; \
   Data_Get_Struct(self, shoes_##ele, var)
+  
+/*
+ * New Extension API 
+ */
+// creates the rb_data_type_t part of underlaying C foundation of a becoming ruby object
+#define TypedData_Type_New(wrapped) \
+const rb_data_type_t wrapped##_type = { \
+    #wrapped "_type", \
+    { \
+      (void (*)(void *))wrapped##_mark, \
+      (void (*)(void *))wrapped##_free, \
+      (size_t (*)(const void *))sizeof(wrapped), \
+    }, \
+    0, 0, \
+    RUBY_TYPED_FREE_IMMEDIATELY, \
+}
+
+// unwraps a ruby object (implicit self), declare var of type wrapped
+#define Get_TypedStruct(wrapped, var) \
+  wrapped *var; \
+  TypedData_Get_Struct(self, wrapped, &wrapped##_type, var)
+
+// unwraps a ruby object (rbObject), declare var of type wrapped
+#define Get_TypedStruct2(rbObject, wrapped, var) \
+  wrapped *var; \
+  TypedData_Get_Struct(rbObject, wrapped, &wrapped##_type, var)
+
+// unwraps a ruby object (rbObject), "returns" the wrapped struct
+#define Get_TypedStruct3(rbObject, wrapped) \
+  (wrapped*)rb_check_typeddata((rbObject), (&wrapped##_type))
+  
 
 #define FUNC_M(name, func, argn) \
   VALUE \
@@ -39,7 +70,26 @@
       return ts_funcall2(canvas, rb_intern(n + 1), argc, argv); \
     return shoes_canvas_c_##func(argc, argv, canvas); \
   }
+  
+// TODO another change needed when canvas changes.
+// TODO: hardcoded quess of width based on string length
 
+#define SETUP_CONTROL_T(dh, dw, flex) \
+  char *msg = ""; \
+  int len = dw ? dw : 200; \
+  shoes_canvas *canvas; \
+  shoes_place place; \
+  VALUE text = Qnil, ck = rb_obj_class(c); \
+  Get_TypedStruct2(self, shoes_control, self_t); \
+  Data_Get_Struct(c, shoes_canvas, canvas); \
+  text = ATTR(self_t->attr, text); \
+  if (!NIL_P(text)) { \
+    text = shoes_native_to_s(text); \
+    msg = RSTRING_PTR(text); \
+    if (flex) len = ((int)RSTRING_LEN(text) * 8) + 32; \
+  } \
+  shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS, TRUE)
+  
 #define SETUP_CONTROL(dh, dw, flex) \
   char *msg = ""; \
   int len = dw ? dw : 200; \
@@ -56,7 +106,7 @@
     if (flex) len = ((int)RSTRING_LEN(text) * 8) + 32; \
   } \
   shoes_place_decide(&place, c, self_t->attr, len, 28 + dh, REL_CANVAS, TRUE)
-  
+
 //
 // Macros for setting up drawing
 //
@@ -68,39 +118,6 @@
   Data_Get_Struct(c, shoes_canvas, canvas); \
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
   shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, REL_COORDS(rel) == REL_CANVAS)
-
-
-/*
- * New Extension API 
- */
-// creates the rb_data_type_t part of underlaying C foundation of a becoming ruby object
-#define TypedData_Type_New(wrapped) \
-const rb_data_type_t wrapped##_type = { \
-    #wrapped "_type", \
-    { \
-      (void (*)(void *))wrapped##_mark, \
-      (void (*)(void *))wrapped##_free, \
-      (size_t (*)(const void *))sizeof(wrapped), \
-    }, \
-    0, 0, \
-    RUBY_TYPED_FREE_IMMEDIATELY, \
-}
-
-// unwraps a ruby object (implicit self), declare var of type wrapped
-#define Get_TypedStruct(wrapped, var) \
-  wrapped *var; \
-  TypedData_Get_Struct(self, wrapped, &wrapped##_type, var)
-
-// unwraps a ruby object (rbObject), declare var of type wrapped
-#define Get_TypedStruct2(rbObject, wrapped, var) \
-  wrapped *var; \
-  TypedData_Get_Struct(rbObject, wrapped, &wrapped##_type, var)
-
-// unwraps a ruby object (rbObject), "returns" the wrapped struct
-#define Get_TypedStruct3(rbObject, wrapped) \
-  (wrapped*)rb_check_typeddata((rbObject), (&wrapped##_type))
-  
-
 
 //
 // Defines a redirecting function which applies the element or transformation

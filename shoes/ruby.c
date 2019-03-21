@@ -646,17 +646,27 @@ void shoes_cairo_rect(cairo_t *cr, double x, double y, double w, double h, doubl
     cairo_close_path(cr);
 }
 
+
 VALUE shoes_app_method_missing(int argc, VALUE *argv, VALUE self) {
   VALUE cname, canvas;
   //GET_STRUCT(app, app);
   /* TODO Temporary while fixing TypedData new API */
+#ifdef NEW_MACRO_APP
+  Get_TypedStruct2(self, shoes_app, app);
+#else
   shoes_app* app;
   if (RTYPEDDATA_P(self))
     app = (shoes_app*)RTYPEDDATA_DATA(self);
   else 
     app = (shoes_app*)rb_data_object_get(self);
-
+#endif
   cname = argv[0];
+  /*
+  if (TYPE(cname) == T_SYMBOL) {
+    ID id = SYM2ID(cname);
+    fprintf(stderr, "app missing method: %s\n", rb_id2name(id));
+  }
+  */
   canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1);
   if (!NIL_P(canvas) && rb_respond_to(canvas, SYM2ID(cname)))
       return ts_funcall2(canvas, SYM2ID(cname), argc - 1, argv + 1);
@@ -803,9 +813,13 @@ void shoes_ruby_init() {
     rb_const_set(cTypes, rb_intern("TWO_PI"), rb_float_new(SHOES_PIM2));
     rb_const_set(cTypes, rb_intern("HALF_PI"), rb_float_new(SHOES_HALFPI));
     rb_const_set(cTypes, rb_intern("PI"), rb_float_new(SHOES_PI));
-
+    
+#ifdef NEW_MACRO_APP
+    cApp = rb_define_class_under(cTypes, "App", rb_cData);
+#else
     cApp = rb_define_class_under(cTypes, "App", rb_cObject);
     rb_define_alloc_func(cApp, shoes_app_alloc);
+#endif
     rb_define_method(cApp, "fullscreen", CASTHOOK(shoes_app_get_fullscreen), 0);
     rb_define_method(cApp, "fullscreen=", CASTHOOK(shoes_app_set_fullscreen), 1);
     rb_define_method(cApp, "name", CASTHOOK(shoes_app_get_title), 0);

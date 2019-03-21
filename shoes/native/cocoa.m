@@ -121,8 +121,12 @@ int win_current_tmo = 10; // unused in OSX
     VALUE appv = rb_ary_entry(shoes_world->apps, 0);
     // Do we have an app (window?) - use it's context
     if (!NIL_P(appv)) {
+#ifdef NEW_MACRO_APP
+      Get_TypedStruct2(appv, shoes_app, app);
+#else
 			shoes_app *app;
 			Data_Get_Struct(appv, shoes_app, app);
+#endif
 			mi->context = app->canvas;
 		}
   }
@@ -147,7 +151,6 @@ int win_current_tmo = 10; // unused in OSX
 }
 - (void)sendMotion: (NSEvent *)e ofType: (ID)type withButton: (int)b
 {
-  shoes_app *a;
   shoes_canvas *canvas;
   int modify = 0;
   if ([e modifierFlags] & NSShiftKeyMask)
@@ -161,7 +164,12 @@ int win_current_tmo = 10; // unused in OSX
     key = 1;   
   */ 
   NSPoint p = [e locationInWindow];
+#ifdef NEW_MACRO_APP
+  Get_TypedStruct2(app, shoes_app, a);
+#else
+  shoes_app *a;
   Data_Get_Struct(app, shoes_app, a);
+#endif
   Data_Get_Struct(a->canvas, shoes_canvas, canvas);
   if (type == s_motion)
     shoes_app_motion(a, ROUND(p.x), (canvas->height - ROUND(p.y)) + canvas->slot->scrolly, modify);
@@ -215,7 +223,6 @@ int win_current_tmo = 10; // unused in OSX
   ID wheel;
   CGFloat dy = [e deltaY];
   NSPoint p = [e locationInWindow];
-  shoes_app *a;
 
   if (dy == 0)
     return;
@@ -231,20 +238,28 @@ int win_current_tmo = 10; // unused in OSX
     modify = modify | SHOES_MODIFY_SHIFT;
   if ([e modifierFlags] & NSControlKeyMask)
     modify = modify | SHOES_MODIFY_CTRL;
+#ifdef NEW_MACRO_APP
+  Get_TypedStruct2(app, shoes_app, a);
+#else
+  shoes_app *a;
   Data_Get_Struct(app, shoes_app, a);
+#endif
   for (; dy > 0.; dy--)
     shoes_app_wheel(a, wheel, ROUND(p.x), ROUND(p.y), modify);
 }
 
 - (void)keyDown: (NSEvent *)e
 {
-  shoes_app *a;
   VALUE v = Qnil;
   NSUInteger modifier = [e modifierFlags];
   unsigned short key = [e keyCode];
   INIT;
-
+#ifdef NEW_MACRO_APP
+  Get_TypedStruct2(app, shoes_app, a);
+#else
+  shoes_app *a;
   Data_Get_Struct(app, shoes_app, a);
+#endif
   KEY_SYM(ESCAPE, escape)
   KEY_SYM(INSERT, insert)
   KEY_SYM(DELETE, delete)
@@ -314,8 +329,12 @@ int win_current_tmo = 10; // unused in OSX
 - (void)windowWillClose: (NSNotification *)n
 {
   if (!NIL_P(app)) {
+#ifdef NEW_MACRO_APP
+    Get_TypedStruct2(app, shoes_app, a);
+#else
     shoes_app *a;
     Data_Get_Struct(app, shoes_app, a);
+#endif
     shoes_app_remove(a);
   }
 }
@@ -1556,7 +1575,7 @@ NSMutableDictionary *shoes_attr_dict(VALUE attr) {
       if (rb_obj_is_kind_of(fgclr, cColor)) 
       {
 #ifdef NEW_MACRO_COLOR
-        Get_TypedStruct2(gclr, shoes_color, color);
+        Get_TypedStruct2(fgclr, shoes_color, color);
 #else
         shoes_color *color; 
         Data_Get_Struct(fgclr, shoes_color, color); 

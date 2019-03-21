@@ -43,8 +43,12 @@ void shoes_plot_draw_columns(cairo_t *cr, shoes_plot *plot) {
     // load local var arrays
     for (i = 0; i < plot->seriescnt; i++) {
         VALUE rbser = rb_ary_entry(plot->series, i);
+#ifdef NEW_MACRO_CHARTSERIES
+        Get_TypedStruct2(rbser, shoes_chart_series, cs);
+#else
         shoes_chart_series *cs;
         Data_Get_Struct(rbser, shoes_chart_series, cs);
+#endif
         values[i] = cs->values;
         labels[i] = cs->labels;
         maximums[i] = NUM2DBL(cs->maxv);

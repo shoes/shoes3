@@ -27,8 +27,12 @@ void shoes_plot_radar_init(shoes_plot *plot) {
     radar_chart_t *rdrchart;
 
     VALUE cs = rb_ary_entry(plot->series, plot->seriescnt -1);
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(cs, shoes_chart_series, ser);
+#else
     shoes_chart_series *ser;
     Data_Get_Struct(cs, shoes_chart_series, ser);
+#endif
     int numcols = RARRAY_LEN(plot->column_opts);
     int i;
     if (plot->seriescnt == 1) {
@@ -125,9 +129,13 @@ void shoes_plot_draw_radar_chart(cairo_t *cr, shoes_plot *plot) {
     // draw the data points -
     for (i = 0; i < plot->seriescnt; i++) {
         // for each row (aka chart_series)
-        shoes_chart_series *cs;
         VALUE rbcs = rb_ary_entry(plot->series, i);
+#ifdef NEW_MACRO_CHARTSERIES
+        Get_TypedStruct2(rbcs, shoes_chart_series, cs);
+#else
+        shoes_chart_series *cs;
         Data_Get_Struct(rbcs, shoes_chart_series, cs);
+#endif
 #ifdef NEW_MACRO_COLOR
         Get_TypedStruct2(cs->color, shoes_color, color);
 #else

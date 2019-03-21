@@ -10,6 +10,8 @@
 #ifndef SHOES_APP_H
 #define SHOES_APP_H
 
+//#define NEW_MACRO_APP
+
 #include <cairo.h>
 #include <ruby.h>
 
@@ -56,6 +58,9 @@ typedef struct _shoes_app {
     int id;         // from global serial number
 } shoes_app;
 
+#ifdef NEW_MACRO_APP
+extern const rb_data_type_t shoes_app_type;
+#endif
 //
 // function signatures
 //

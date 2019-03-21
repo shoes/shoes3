@@ -8,6 +8,8 @@
 #ifndef SHOES_SHAPE_TYPE_H
 #define SHOES_SHAPE_TYPE_H
 
+#define NEW_MACRO_SHAPE
+
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
@@ -30,6 +32,11 @@ typedef struct {
 
 /* each widget should have its own init function */
 void shoes_shape_init();
+
+#ifdef NEW_MACRO_PATTERN
+extern const rb_data_type_t shoes_shape_type;
+#endif
+
 
 // ruby
 VALUE shoes_shape_draw(VALUE self, VALUE c, VALUE actual);

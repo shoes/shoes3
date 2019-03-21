@@ -80,9 +80,13 @@ void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot) {
     // in the array -- TODO: allow a proc to be called to create the string. at 'i'
     int i;
     VALUE rbxser;
-    shoes_chart_series *serx;
     rbxser = rb_ary_entry(plot->series, 0);
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(rbxser, shoes_chart_series, serx);
+#else
+    shoes_chart_series *serx;
     Data_Get_Struct(rbxser, shoes_chart_series, serx);
+#endif
     VALUE xobs = serx->labels;
     if (NIL_P(xobs) || TYPE(xobs) != T_ARRAY) rb_raise (rb_eArgError, "xobs must be an array");
 
@@ -108,8 +112,12 @@ void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot) {
     int j;
     for (j = 0; j < min(2, plot->seriescnt); j++) {
         VALUE rbser = rb_ary_entry(plot->series, j);
+#ifdef  NEW_MACRO_CHARTSERIES
+        Get_TypedStruct2(rbser, shoes_chart_series, cs);
+#else
         shoes_chart_series *cs;
         Data_Get_Struct(rbser, shoes_chart_series, cs);
+#endif
         double maximum = NUM2DBL(cs->maxv);
         double minimum = NUM2DBL(cs->minv);
         double v_scale = height / (maximum - minimum);
@@ -168,8 +176,12 @@ void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot) {
             legend_width += white_space;
         }
         VALUE cs = rb_ary_entry(plot->series, i);
+#ifdef NEW_MACRO_CHARTSERIES
+        Get_TypedStruct2(cs, shoes_chart_series, ser);
+#else
         shoes_chart_series *ser;
         Data_Get_Struct(cs, shoes_chart_series, ser);
+#endif
         //rbstr = rb_ary_entry(plot->long_names, i);
         strary[i] = RSTRING_PTR(ser->desc);
         layouts[i] = pango_cairo_create_layout (cr);
@@ -192,8 +204,12 @@ void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot) {
     cairo_move_to(cr, x, baseline);
     for (i = 0; i < plot->seriescnt; i++) {
         VALUE cs = rb_ary_entry(plot->series, i);
+#ifdef NEW_MACRO_CHARTSERIES
+        Get_TypedStruct2(cs, shoes_chart_series, ser);
+#else
         shoes_chart_series *ser;
         Data_Get_Struct(cs, shoes_chart_series, ser);
+#endif
         VALUE rbcolor = ser->color;
 #ifdef NEW_MACRO_COLOR
         Get_TypedStruct2(rbcolor, shoes_color, color);

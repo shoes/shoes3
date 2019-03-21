@@ -19,8 +19,11 @@ void shoes_slider_init() {
 }
 
 VALUE shoes_slider_draw(VALUE self, VALUE c, VALUE actual) {
+#ifdef NEW_MACRO_CONTROL
+    SETUP_CONTROL_T(0, 0, FALSE);
+#else
     SETUP_CONTROL(0, 0, FALSE);
-
+#endif
     if (RTEST(actual)) {
         if (self_t->ref == NULL) {
             self_t->ref = shoes_native_slider(self, canvas, &place, self_t->attr, msg);
@@ -38,7 +41,11 @@ VALUE shoes_slider_draw(VALUE self, VALUE c, VALUE actual) {
 
 VALUE shoes_slider_get_fraction(VALUE self) {
     double perc = 0.;
+#ifdef NEW_MACRO_CONTROL
+    Get_TypedStruct2(self, shoes_control, self_t);
+#else
     GET_STRUCT(control, self_t);
+#endif
     if (self_t->ref != NULL)
         perc = shoes_native_slider_get_fraction(self_t->ref);
 
@@ -47,8 +54,11 @@ VALUE shoes_slider_get_fraction(VALUE self) {
 
 VALUE shoes_slider_set_fraction(VALUE self, VALUE _perc) {
     double perc = min(max(NUM2DBL(_perc), 0.0), 1.0);
-
+#ifdef NEW_MACRO_CONTROL
+    Get_TypedStruct2(self, shoes_control, self_t);
+#else
     GET_STRUCT(control, self_t);
+#endif
     if (self_t->ref != NULL)
         shoes_native_slider_set_fraction(self_t->ref, perc);
 

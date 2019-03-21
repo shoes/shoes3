@@ -31,8 +31,11 @@ void shoes_text_view_init() {
 
 // ruby
 VALUE shoes_text_view_draw(VALUE self, VALUE c, VALUE actual) {
+#ifdef NEW_MACRO_CONTROL
+    SETUP_CONTROL_T(80, 0, FALSE);
+#else
     SETUP_CONTROL(80, 0, FALSE);
-
+#endif
     if (RTEST(actual)) {
         if (self_t->ref == NULL) {
             self_t->ref = shoes_native_text_view(self, canvas, &place, self_t->attr, msg);
@@ -49,14 +52,22 @@ VALUE shoes_text_view_draw(VALUE self, VALUE c, VALUE actual) {
 }
 
 VALUE shoes_text_view_get_text(VALUE self) {
+#ifdef NEW_MACRO_CONTROL
+    Get_TypedStruct2(self, shoes_control, self_t);
+#else
     GET_STRUCT(control, self_t);
+#endif
     if (self_t->ref == NULL) return Qnil;
     return shoes_native_text_view_get_text(self_t->ref);
 }
 
 VALUE shoes_text_view_set_text(VALUE self, VALUE text) {
     char *msg = "";
+#ifdef NEW_MACRO_CONTROL
+    Get_TypedStruct2(self, shoes_control, self_t);
+#else
     GET_STRUCT(control, self_t);
+#endif
     if (!NIL_P(text)) {
         text = shoes_native_to_s(text);
         ATTRSET(self_t->attr, text, text);
@@ -69,7 +80,11 @@ VALUE shoes_text_view_set_text(VALUE self, VALUE text) {
 VALUE shoes_text_view_append (VALUE self, VALUE text) {
     char *msg = "";
     VALUE ret;
+#ifdef NEW_MACRO_CONTROL
+    Get_TypedStruct2(self, shoes_control, self_t);
+#else
     GET_STRUCT(control, self_t);
+#endif
     if (!NIL_P(text)) {
         text = shoes_native_to_s(text);
         ATTRSET(self_t->attr, text, text);

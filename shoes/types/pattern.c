@@ -1,21 +1,14 @@
 #include "shoes/types/color.h"
 #include "shoes/types/pattern.h"
 
-#ifdef NEW_MACRO_PATTERN // from pattern.h
-#define NEW_MACROS
-#endif
-
 // ruby
 VALUE cPattern, cBorder, cBackground;
 
 CLASS_COMMON2(pattern);
-#ifdef NEW_MACROS
-FUNC_T("+background", background, -1);
-FUNC_T("+border", border, -1);
-#else
+
 FUNC_M("+background", background, -1);
 FUNC_M("+border", border, -1);
-#endif
+
 
 void shoes_pattern_init() {
     cPattern = rb_define_class_under(cTypes, "Pattern", rb_cObject);
@@ -121,7 +114,7 @@ void shoes_pattern_gradient(shoes_pattern *pattern, VALUE r1, VALUE r2, VALUE at
 
 VALUE shoes_pattern_set_fill(VALUE self, VALUE source) {
 #ifdef NEW_MACRO_PATTERN
-    Get_TypedStruct(shoes_pattern, pattern);
+    Get_TypedStruct2(self, shoes_pattern, pattern);
 #else
     shoes_pattern *pattern;
     Data_Get_Struct(self, shoes_pattern, pattern);
@@ -157,7 +150,7 @@ VALUE shoes_pattern_set_fill(VALUE self, VALUE source) {
 
 VALUE shoes_pattern_get_fill(VALUE self) {
 #ifdef NEW_MACRO_PATTERN
-    Get_TypedStruct(shoes_pattern, pattern);
+    Get_TypedStruct2(self, shoes_pattern, pattern);
 #else
     shoes_pattern *pattern;
     Data_Get_Struct(self, shoes_pattern, pattern);

@@ -15,6 +15,53 @@ void shoes_effect_init() {
 }
 
 // ruby
+
+void shoes_effect_mark(shoes_effect *fx) {
+    rb_gc_mark_maybe(fx->parent);
+    rb_gc_mark_maybe(fx->attr);
+}
+
+void shoes_effect_free(shoes_effect *fx) {
+    RUBY_CRITICAL(free(fx));
+}
+
+#ifdef NEW_MACRO_EFFECT
+// creates struct shoes_effect_type
+TypedData_Type_New(shoes_effect);
+#endif
+
+VALUE shoes_effect_alloc(VALUE klass) {
+    VALUE obj;
+    shoes_effect *fx = SHOE_ALLOC(shoes_effect);
+    SHOE_MEMZERO(fx, shoes_effect, 1);
+#ifdef NEW_MACRO_EFFECT
+    obj = TypedData_Wrap_Struct(klass, &shoes_effect_type, fx);
+#else
+    obj = Data_Wrap_Struct(klass, shoes_effect_mark, shoes_effect_free, fx);
+#endif
+    fx->attr = Qnil;
+    fx->parent = Qnil;
+
+    return obj;
+}
+
+VALUE shoes_effect_new(ID name, VALUE attr, VALUE parent) {
+    VALUE obj = shoes_effect_alloc(cEffect);
+#ifdef NEW_MACRO_EFFECT
+    Get_TypedStruct2(obj, shoes_effect, fx);
+#else
+    shoes_effect *fx;
+    Data_Get_Struct(obj, shoes_effect, fx);
+#endif
+    shoes_canvas *canvas;
+    Data_Get_Struct(parent, shoes_canvas, canvas);
+    fx->parent = parent;
+    fx->attr = attr;
+    fx->filter = shoes_effect_for_type(name);
+
+    return obj;
+}
+
 VALUE shoes_effect_draw(VALUE self, VALUE c, VALUE actual) {
     SETUP_DRAWING(shoes_effect, REL_TILE, canvas->width, canvas->height);
 
@@ -25,40 +72,7 @@ VALUE shoes_effect_draw(VALUE self, VALUE c, VALUE actual) {
     return self;
 }
 
-VALUE shoes_effect_new(ID name, VALUE attr, VALUE parent) {
-    shoes_effect *fx;
-    shoes_canvas *canvas;
-    VALUE obj = shoes_effect_alloc(cEffect);
 
-    Data_Get_Struct(obj, shoes_effect, fx);
-    Data_Get_Struct(parent, shoes_canvas, canvas);
-    fx->parent = parent;
-    fx->attr = attr;
-    fx->filter = shoes_effect_for_type(name);
-
-    return obj;
-}
-
-VALUE shoes_effect_alloc(VALUE klass) {
-    VALUE obj;
-    shoes_effect *fx = SHOE_ALLOC(shoes_effect);
-
-    SHOE_MEMZERO(fx, shoes_effect, 1);
-    obj = Data_Wrap_Struct(klass, shoes_effect_mark, shoes_effect_free, fx);
-    fx->attr = Qnil;
-    fx->parent = Qnil;
-
-    return obj;
-}
-
-void shoes_effect_mark(shoes_effect *fx) {
-    rb_gc_mark_maybe(fx->parent);
-    rb_gc_mark_maybe(fx->attr);
-}
-
-void shoes_effect_free(shoes_effect *fx) {
-    RUBY_CRITICAL(free(fx));
-}
 
 shoes_effect_filter shoes_effect_for_type(ID name) {
     if (name == s_blur)

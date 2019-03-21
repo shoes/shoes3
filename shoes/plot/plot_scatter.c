@@ -15,12 +15,16 @@ void shoes_plot_draw_scatter_pts(cairo_t *cr, shoes_plot *plot) {
     int height = bottom - top;
     int width = right - left;
     VALUE rbxser, rbyser;
-    shoes_chart_series *serx, *sery;
     rbxser = rb_ary_entry(plot->series, 0);
-    Data_Get_Struct(rbxser, shoes_chart_series, serx);
     rbyser = rb_ary_entry(plot->series, 1);
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(rbxser, shoes_chart_series, serx);
+    Get_TypedStruct2(rbyser, shoes_chart_series, sery);
+#else
+    shoes_chart_series *serx, *sery;
+    Data_Get_Struct(rbxser, shoes_chart_series, serx);
     Data_Get_Struct(rbyser, shoes_chart_series, sery);
-
+#endif
     double xmax = NUM2DBL(serx->maxv);
     double ymax = NUM2DBL(sery->maxv);
     double xmin = NUM2DBL(serx->minv);
@@ -83,11 +87,16 @@ static void shoes_plot_scatter_ticks_and_labels(cairo_t *cr, shoes_plot *plot) {
     v_padding = height / plot->y_ticks;
 
     VALUE rbserx, rbsery;
-    shoes_chart_series *serx, *sery;
     rbserx = rb_ary_entry(plot->series, 0);
     rbsery = rb_ary_entry(plot->series, 1);
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(rbserx, shoes_chart_series, serx);
+    Get_TypedStruct2(rbsery, shoes_chart_series, sery);
+#else
+    shoes_chart_series *serx, *sery;
     Data_Get_Struct(rbserx, shoes_chart_series, serx);
     Data_Get_Struct(rbsery, shoes_chart_series, sery);
+#endif
     double xmax = NUM2DBL(serx->maxv);
     double ymax = NUM2DBL(sery->maxv);
     double xmin = NUM2DBL(serx->minv);
@@ -160,11 +169,16 @@ void shoes_plot_scatter_legend(cairo_t *cr, shoes_plot *plot) {
     // scatter has only two series - center the x string [0]
     // try to draw the y string [1] vertically. -fun or groan?
     VALUE rbserx, rbsery;
-    shoes_chart_series *serx, *sery;
     rbserx = rb_ary_entry(plot->series, 0);
     rbsery = rb_ary_entry(plot->series, 1);
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(rbserx, shoes_chart_series, serx);
+    Get_TypedStruct2(rbsery, shoes_chart_series, sery);
+#else
+    shoes_chart_series *serx, *sery;
     Data_Get_Struct(rbserx, shoes_chart_series, serx);
     Data_Get_Struct(rbsery, shoes_chart_series, sery);
+#endif
     int legend_width = 0;
     int x, y;
 

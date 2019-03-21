@@ -8,6 +8,8 @@
 #ifndef SHOES_SETTINGS_TYPE_H
 #define SHOES_SETTINGS_TYPE_H
 
+#define NEW_MACRO_SETTINGS
+
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget, cShoesMenubar;
 
@@ -33,6 +35,11 @@ typedef struct {
   int width;
   int height;
 } shoes_monitor_t;
+
+#ifdef NEW_MACRO_SETTINGS
+extern const rb_data_type_t shoes_settings_type;
+#endif
+
 
 VALUE shoes_settings_alloc(VALUE klass);
 VALUE shoes_settings_new(shoes_yaml_init *);
