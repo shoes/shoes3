@@ -234,8 +234,12 @@ void shoes_control_send(VALUE self, ID event) {
         // use 
         VALUE evt = shoes_event_new_widget(cShoesEvent, s_btn_activate, self, 1, x, y, w, h, Qnil, Qnil);
         shoes_safe_block(app->canvas, evtproc, rb_ary_new3(1, evt));
+#ifdef NEW_MACRO_EVENT
+        Get_TypedStruct2(evt, shoes_event, tevent);
+#else
         shoes_event *tevent;
         Data_Get_Struct(evt, shoes_event, tevent);
+#endif
         sendevt = shoes_event_contrain_TF(tevent->accept);
       } else
         fprintf(stderr, "shoes_control_send: doesn't have event - but it should\n");

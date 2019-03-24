@@ -1,10 +1,15 @@
 #include "shoes/types/native.h"
 #include "shoes/types/edit_box.h"
+#include "shoes/app.h"
 
 // ruby
 VALUE cEditBox;
 
+#ifdef NEW_MACRO_APP
+FUNC_T("+edit_box", edit_box, -1);
+#else
 FUNC_M("+edit_box", edit_box, -1);
+#endif
 
 void shoes_edit_box_init() {
     cEditBox  = rb_define_class_under(cTypes, "EditBox", cNative);

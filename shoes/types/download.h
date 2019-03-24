@@ -9,6 +9,8 @@
 #ifndef SHOES_DOWNLOAD_TYPE_H
 #define SHOES_DOWNLOAD_TYPE_H
 
+#define NEW_MACRO_HTTP
+
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
@@ -18,12 +20,18 @@ typedef struct {
     VALUE download;
 } shoes_doth_data;
 
+// TODO shoes_http_klass is defined in canvas.h - move here?
+
+#ifdef NEW_MACRO_HTTP
+extern const rb_data_type_t shoes_http_klass_type;
+#endif
+
 /* each widget should have its own init function */
 void shoes_download_init();
 
 // ruby (download)
-void shoes_http_mark(shoes_http_klass *dl);
-void shoes_http_free(shoes_http_klass *dl);
+void shoes_http_klass_mark(shoes_http_klass *dl);
+void shoes_http_klass_free(shoes_http_klass *dl);
 VALUE shoes_http_new(VALUE klass, VALUE parent, VALUE attr);
 VALUE shoes_http_alloc(VALUE klass);
 VALUE shoes_http_remove(VALUE self);

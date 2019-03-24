@@ -1,6 +1,7 @@
 #ifndef SHOES_LAYOUT_TYPE_H
 #define SHOES_LAYOUT_TYPE_H
 
+#define NEW_MACRO_LAYOUT
 // C level layouts. Not all are implemented. 
 typedef enum {
   Layout_None,
@@ -31,6 +32,11 @@ typedef struct {
 } shoes_abstract;
 
 extern VALUE cLayout;
+
+#ifdef NEW_MACRO_LAYOUT
+extern const rb_data_type_t shoes_layout_type;
+#endif
+
 void shoes_layout_init();
 VALUE shoes_layout_new(VALUE attr, VALUE parent);
 // user visible, slot like methods:

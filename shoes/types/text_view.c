@@ -1,5 +1,6 @@
 #include "shoes/types/native.h"
 #include "shoes/types/text_view.h"
+#include "shoes/app.h"
 
 // text_edit_box is new with 3.2.25
 // text_edit_box has been renamed text_view with 3.3.4
@@ -7,7 +8,11 @@
 // ruby
 VALUE cTextView;
 
+#ifdef NEW_MACRO_APP
 FUNC_M("+text_view", text_view, -1);
+#else
+FUNC_M("+text_view", text_view, -1);
+#endif
 
 void shoes_text_view_init() {
     cTextView  = rb_define_class_under(cTypes, "TextView", cNative);

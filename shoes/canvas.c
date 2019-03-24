@@ -26,9 +26,51 @@ const double SHOES_RAD2PI = 0.01745329251994329577;
 //const char *dialog_title = USTR("Shoes asks:");
 //const char *dialog_title_says = USTR("Shoes says:");
 
+// Forward declares
 static void shoes_canvas_send_start(VALUE);
+static void shoes_canvas_reset_transform(shoes_canvas *canvas);
+
 // made it public to hook to an app quit event
 //static void shoes_canvas_send_finish(VALUE);
+
+void shoes_canvas_mark(shoes_canvas *canvas) {
+    shoes_native_slot_mark(canvas->slot);
+    rb_gc_mark_maybe(canvas->contents);
+    rb_gc_mark_maybe(canvas->attr);
+    rb_gc_mark_maybe(canvas->layout_mgr);
+    rb_gc_mark_maybe(canvas->parent);
+}
+
+static void shoes_canvas_free(shoes_canvas *canvas) {
+    if (canvas->slot != NULL && canvas->slot->owner == canvas)
+        SHOE_FREE(canvas->slot);
+    shoes_canvas_reset_transform(canvas);
+    RUBY_CRITICAL(free(canvas));
+}
+#ifdef NEW_MACRO_CANVAS
+TypedData_Type_New(shoes_canvas);
+#endif
+
+VALUE shoes_canvas_alloc(VALUE klass) {
+    shoes_canvas *canvas = SHOE_ALLOC(shoes_canvas);
+    SHOE_MEMZERO(canvas, shoes_canvas, 1);
+    canvas->app = NULL;
+    canvas->stage = CANVAS_NADA;
+    canvas->contents = Qnil;
+    canvas->shape = NULL;
+    canvas->insertion = -2;
+    canvas->layout_mgr = Qnil;
+    VALUE obj = Data_Wrap_Struct(klass, shoes_canvas_mark, shoes_canvas_free, canvas);
+    return obj;
+}
+
+VALUE shoes_canvas_new(VALUE klass, shoes_app *app) {
+    shoes_canvas *canvas;
+    VALUE self = shoes_canvas_alloc(klass);
+    Data_Get_Struct(self, shoes_canvas, canvas);
+    canvas->app = app;
+    return self;
+}
 
 shoes_transform *shoes_transform_new(shoes_transform *o) {
     shoes_transform *n = SHOE_ALLOC(shoes_transform);
@@ -70,7 +112,9 @@ VALUE shoes_canvas_close(VALUE self) {
 }
 
 VALUE shoes_canvas_get_scroll_top(VALUE self) {
-    GET_STRUCT(canvas, canvas);
+    //GET_STRUCT(canvas, canvas);
+    shoes_canvas *canvas;
+    Data_Get_Struct(self, shoes_canvas, canvas);
     return INT2NUM(canvas->slot->scrolly);
 }
 
@@ -92,7 +136,9 @@ VALUE shoes_canvas_get_scroll_height(VALUE self) {
 
 VALUE shoes_canvas_get_gutter_width(VALUE self) {
     int scrollwidth = 0;
-    GET_STRUCT(canvas, canvas);
+    //GET_STRUCT(canvas, canvas);
+    shoes_canvas *canvas;
+    Data_Get_Struct(self, shoes_canvas, canvas);
     scrollwidth = shoes_native_slot_gutter(canvas->slot);
     return INT2NUM(scrollwidth);
 }
@@ -226,13 +272,6 @@ VALUE shoes_add_ele(shoes_canvas *canvas, VALUE ele) {
     return ele;
 }
 
-void shoes_canvas_mark(shoes_canvas *canvas) {
-    shoes_native_slot_mark(canvas->slot);
-    rb_gc_mark_maybe(canvas->contents);
-    rb_gc_mark_maybe(canvas->attr);
-    rb_gc_mark_maybe(canvas->layout_mgr);
-    rb_gc_mark_maybe(canvas->parent);
-}
 
 static void shoes_canvas_reset_transform(shoes_canvas *canvas) {
     if (canvas->sts != NULL) {
@@ -249,36 +288,6 @@ static void shoes_canvas_reset_transform(shoes_canvas *canvas) {
         shoes_transform_release(canvas->st);
         canvas->st = NULL;
     }
-}
-
-static void shoes_canvas_free(shoes_canvas *canvas) {
-    if (canvas->slot != NULL && canvas->slot->owner == canvas)
-        SHOE_FREE(canvas->slot);
-    shoes_canvas_reset_transform(canvas);
-    RUBY_CRITICAL(free(canvas));
-}
-
-TypedData_Type_New(shoes_canvas);
-
-VALUE shoes_canvas_alloc(VALUE klass) {
-    shoes_canvas *canvas = SHOE_ALLOC(shoes_canvas);
-    SHOE_MEMZERO(canvas, shoes_canvas, 1);
-    canvas->app = NULL;
-    canvas->stage = CANVAS_NADA;
-    canvas->contents = Qnil;
-    canvas->shape = NULL;
-    canvas->insertion = -2;
-    canvas->layout_mgr = Qnil;
-    VALUE rb_canvas = Data_Wrap_Struct(klass, shoes_canvas_mark, shoes_canvas_free, canvas);
-    return rb_canvas;
-}
-
-VALUE shoes_canvas_new(VALUE klass, shoes_app *app) {
-    shoes_canvas *canvas;
-    VALUE self = shoes_canvas_alloc(klass);
-    Data_Get_Struct(self, shoes_canvas, canvas);
-    canvas->app = app;
-    return self;
 }
 
 static void shoes_canvas_empty(shoes_canvas *canvas, int extras) {
@@ -434,12 +443,16 @@ VALUE shoes_canvas_reset(VALUE self) {
 }
 
 VALUE shoes_canvas_contents(VALUE self) {
-    GET_STRUCT(canvas, self_t);
+    //GET_STRUCT(canvas, self_t);
+    shoes_canvas *self_t;
+    Data_Get_Struct(self, shoes_canvas, self_t);
     return self_t->contents;
 }
 
 VALUE shoes_canvas_children(VALUE self) {
-    GET_STRUCT(canvas, self_t);
+    //GET_STRUCT(canvas, self_t);
+    shoes_canvas *self_t;
+    Data_Get_Struct(self, shoes_canvas, self_t);
     return self_t->contents;
 }
 
@@ -891,8 +904,12 @@ VALUE shoes_canvas_layout(int argc, VALUE *argv, VALUE self) {
 
     rb_parse_args(argc, argv, "|h&", &args);
     layout_obj = shoes_layout_new(args.a[0], self);
+#ifdef NEW_MACRO_LAYOUT
+    Get_TypedStruct2(layout_obj, shoes_layout, lay);
+#else
     shoes_layout *lay;
     Data_Get_Struct(layout_obj, shoes_layout, lay);
+#endif
     layout_canvas = lay->canvas; 
     if (!NIL_P(args.a[1])) {
       /* expand macro by hand
@@ -918,9 +935,11 @@ void shoes_canvas_size(VALUE self, int w, int h) {
     shoes_native_canvas_resize(canvas);
 }
 
+// TODO: cleanup after macro transition
 VALUE shoes_find_canvas(VALUE self) {
     while (!NIL_P(self) && !rb_obj_is_kind_of(self, cCanvas)) {
-        SETUP_BASIC();
+        //SETUP_BASIC();
+        SETUP_BASIC_T(self);
         self = basic->parent;
     }
     return self;
@@ -973,9 +992,13 @@ void shoes_canvas_ccall(VALUE self, ccallfunc func, ccallfunc2 func2, unsigned c
     if (!NIL_P(self_t->contents)) {
         long i;
         for (i = 0; i < RARRAY_LEN(self_t->contents); i++) {
-            shoes_basic *basic;
             VALUE ele = rb_ary_entry(self_t->contents, i);
+#ifdef OLD_MACROS // TODO: fix after macro transition
+            shoes_basic *basic;
             Data_Get_Struct(ele, shoes_basic, basic);
+#else
+            SETUP_BASIC_T(ele)
+#endif
             if (!RTEST(ATTR(basic->attr, hidden))) {
                 if (rb_obj_is_kind_of(ele, cNative))
                     func(ele);

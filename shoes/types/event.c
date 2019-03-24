@@ -1,15 +1,19 @@
-
 #include "shoes/types/event.h"
 #include "shoes/types/svg.h"
+#include "shoes/app.h"
 
 VALUE cShoesEvent; 
 
+#ifdef NEW_MACRO_APP
+FUNC_T("+shoesevent", shoesevent, -1);
+#else
 FUNC_M("+shoesevent", shoesevent, -1);
+#endif
 
 void shoes_shoesevent_init() {
     cShoesEvent = rb_define_class_under(cTypes, "ShoesEvent", cNative); 
     rb_define_alloc_func(cShoesEvent, shoes_event_alloc);
-    rb_define_method(cShoesEvent, "type", CASTHOOK(shoes_event_type), 0);
+    rb_define_method(cShoesEvent, "type", CASTHOOK(shoes_event_kind), 0);
     rb_define_method(cShoesEvent, "object", CASTHOOK(shoes_event_object), 0);
     rb_define_method(cShoesEvent, "accept", CASTHOOK(shoes_event_get_accept),0);
     rb_define_method(cShoesEvent, "accept=", CASTHOOK(shoes_event_set_accept),1);
@@ -37,12 +41,35 @@ void shoes_event_free(shoes_event *event) {
     RUBY_CRITICAL(free(event));
 }
 
+#ifdef NEW_MACRO_EVENT
+TypedData_Type_New(shoes_event);
+#endif
+
+VALUE shoes_event_alloc(VALUE klass) {
+    VALUE obj;
+    shoes_event *event = SHOE_ALLOC(shoes_event);
+    SHOE_MEMZERO(event, shoes_event, 1);
+#ifdef NEW_MACRO_EVENT
+    obj = TypedData_Wrap_Struct(klass, &shoes_event_type, event);
+#else
+    obj = Data_Wrap_Struct(klass, shoes_event_mark, shoes_event_free, event);
+#endif
+    event->type = Qnil;
+    event->object = Qnil;
+ 
+    return obj;
+}
+
 // users should not create events but something has to be visible. 
 // click calls here.
 VALUE shoes_event_new(VALUE klass, ID type, VALUE widget, int x, int y, int btn, VALUE mods, VALUE key) {
-    shoes_event *event;
     VALUE obj = shoes_event_alloc(klass);
+#ifdef NEW_MACRO_EVENT
+    Get_TypedStruct2(obj, shoes_event, event);
+#else
+    shoes_event *event;
     Data_Get_Struct(obj, shoes_event, event);
+#endif
     event->accept = Qtrue;
     event->type = type;
     event->object = widget;
@@ -57,9 +84,13 @@ VALUE shoes_event_new(VALUE klass, ID type, VALUE widget, int x, int y, int btn,
 // Or here 
 VALUE shoes_event_new_widget(VALUE klass, ID type, VALUE widget, int btn, int x,
         int y, int w, int h, VALUE modifiers, VALUE key) {
-    shoes_event *event;
     VALUE obj = shoes_event_alloc(klass);
+#ifdef NEW_MACRO_EVENT
+    Get_TypedStruct2(obj, shoes_event, event);
+#else
+    shoes_event *event;
     Data_Get_Struct(obj, shoes_event, event);
+#endif
     event->accept = Qtrue;
     event->type = type;
     event->object = widget;
@@ -74,9 +105,13 @@ VALUE shoes_event_new_widget(VALUE klass, ID type, VALUE widget, int btn, int x,
 }
 
 VALUE shoes_event_new_key(VALUE klass, ID type, VALUE key) {
-    shoes_event *event;
     VALUE obj = shoes_event_alloc(klass);
+#ifdef NEW_MACRO_EVENT
+    Get_TypedStruct2(obj, shoes_event, event);
+#else
+    shoes_event *event;
     Data_Get_Struct(obj, shoes_event, event);
+#endif
     event->accept = Qtrue;
     event->type = type;
     event->object = Qnil;
@@ -87,17 +122,6 @@ VALUE shoes_event_new_key(VALUE klass, ID type, VALUE key) {
     event->height = 0;
     event->key = key;
     event->modifiers = Qnil;
-    return obj;
-}
-
-VALUE shoes_event_alloc(VALUE klass) {
-    VALUE obj;
-    shoes_event *event = SHOE_ALLOC(shoes_event);
-    SHOE_MEMZERO(event, shoes_event, 1);
-    obj = Data_Wrap_Struct(klass, shoes_event_mark, shoes_event_free, event);
-    event->type = Qnil;
-    event->object = Qnil;
- 
     return obj;
 }
 
@@ -263,70 +287,123 @@ VALUE shoes_event_find_native (VALUE self, int x, int y, VALUE *hitobj) {
 }
 
 
-VALUE shoes_event_type(VALUE self) {
+VALUE shoes_event_kind(VALUE self) {
+#ifdef NEW_MACRO_EVENT
+    Get_TypedStruct2(self, shoes_event, event);
+#else
     shoes_event *event;
     Data_Get_Struct(self, shoes_event, event);
+#endif
     return ID2SYM(event->type);
 }
 
 VALUE shoes_event_object(VALUE self) {
+#ifdef NEW_MACRO_EVENT
+    Get_TypedStruct2(self, shoes_event, event);
+#else
     shoes_event *event;
     Data_Get_Struct(self, shoes_event, event);
+#endif
     return event->object;
 }
 
 VALUE shoes_event_get_accept(VALUE self) {
+#ifdef NEW_MACRO_EVENT
+    Get_TypedStruct2(self, shoes_event, event);
+#else
     shoes_event *event;
     Data_Get_Struct(self, shoes_event, event);
+#endif
     return event->accept;
 }
 
 VALUE shoes_event_set_accept(VALUE self, VALUE tf) {
+#ifdef NEW_MACRO_EVENT
+    Get_TypedStruct2(self, shoes_event, event);
+#else
     shoes_event *event;
     Data_Get_Struct(self, shoes_event, event);
+#endif
     event->accept = tf;
     return tf;
 }
+
 VALUE shoes_event_button(VALUE self) {
+#ifdef NEW_MACRO_EVENT
+    Get_TypedStruct2(self, shoes_event, event);
+#else
     shoes_event *event;
     Data_Get_Struct(self, shoes_event, event);
+#endif
     return INT2NUM(event->btn);
 }
+
 VALUE shoes_event_x(VALUE self) {
+#ifdef NEW_MACRO_EVENT
+    Get_TypedStruct2(self, shoes_event, event);
+#else
     shoes_event *event;
     Data_Get_Struct(self, shoes_event, event);
+#endif
     return INT2NUM(event->x);
 }
+
 VALUE shoes_event_y(VALUE self) {
+#ifdef NEW_MACRO_EVENT
+    Get_TypedStruct2(self, shoes_event, event);
+#else
     shoes_event *event;
     Data_Get_Struct(self, shoes_event, event);
+#endif
     return INT2NUM(event->y);
 }
 
 VALUE shoes_event_height(VALUE self) {
+#ifdef NEW_MACRO_EVENT
+    Get_TypedStruct2(self, shoes_event, event);
+#else
     shoes_event *event;
     Data_Get_Struct(self, shoes_event, event);
+#endif
     return INT2NUM(event->height);
 }
+
 VALUE shoes_event_width(VALUE self) {
+#ifdef NEW_MACRO_EVENT
+    Get_TypedStruct2(self, shoes_event, event);
+#else
     shoes_event *event;
     Data_Get_Struct(self, shoes_event, event);
+#endif
     return INT2NUM(event->width);
 }
 
 VALUE shoes_event_key(VALUE self) {
+#ifdef NEW_MACRO_EVENT
+    Get_TypedStruct2(self, shoes_event, event);
+#else
     shoes_event *event;
     Data_Get_Struct(self, shoes_event, event);
+#endif
     return event->key;
 }
+
 VALUE shoes_event_set_key(VALUE self, VALUE key) {
+#ifdef NEW_MACRO_EVENT
+    Get_TypedStruct2(self, shoes_event, event);
+#else
     shoes_event *event;
-    Data_Get_Struct(self, shoes_event, event);  
+    Data_Get_Struct(self, shoes_event, event);
+#endif
     return INT2NUM(event->key);
 }
 VALUE shoes_event_modifiers(VALUE self) {
+#ifdef NEW_MACRO_EVENT
+    Get_TypedStruct2(self, shoes_event, event);
+#else
     shoes_event *event;
-    Data_Get_Struct(self, shoes_event, event);  
+    Data_Get_Struct(self, shoes_event, event);
+#endif
     return event->modifiers;
 }
  

@@ -8,6 +8,8 @@
 #ifndef SHOES_SYSTRAY_TYPE_H
 #define SHOES_SYSTRAY_TYPE_H
 
+//#define NEW_MACRO_SYSTRAY
+
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
@@ -19,6 +21,9 @@ typedef struct _systray {
     char *message;
 } shoes_systray;
 
+#ifdef NEW_MACRO_SYSTRAY
+extern const rb_data_type_t shoes_systray_type;
+#endif
 
 // ruby (systray)
 VALUE shoes_systray_new(int argc, VALUE *argv, VALUE self);

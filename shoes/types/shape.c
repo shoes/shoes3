@@ -2,11 +2,16 @@
 #include "shoes/types/image.h"
 #include "shoes/types/pattern.h"
 #include "shoes/types/shape.h"
+#include "shoes/app.h"
 
 // ruby
 VALUE cShape;
 
+#ifdef NEW_MACRO_APP
+FUNC_T("+shape", shape, -1);
+#else
 FUNC_M("+shape", shape, -1);
+#endif
 
 PLACE_COMMON(shape);
 CLASS_COMMON2(shape);
@@ -16,6 +21,7 @@ void shoes_shape_init() {
 #ifdef NEW_MACRO_SHAPE
     cShape    = rb_define_class_under(cTypes, "Shape", rb_cData);    
 #else
+    cShape    = rb_define_class_under(cTypes, "Shape", rb_cObject);    
     rb_define_alloc_func(cShape, shoes_shape_alloc);
 #endif    
     rb_define_method(cShape, "app", CASTHOOK(shoes_canvas_get_app), 0);

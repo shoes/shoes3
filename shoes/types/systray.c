@@ -3,25 +3,28 @@
 */
 #include "shoes/types/native.h"
 #include "shoes/types/systray.h"
+#include "shoes/app.h"
 
 // ruby
 VALUE cSystray;
-    
+
+#ifdef NEW_MACRO_APP
+FUNC_T("+systray", systray, -1);
+#else
 FUNC_M("+systray", systray, -1);
+#endif
 
 void shoes_systray_init() {
+#ifdef NEW_MACRO_SYSTRAY
+    cSystray = rb_define_class_under(cTypes, "Systray", rb_cData); 
+#else
     cSystray = rb_define_class_under(cTypes, "Systray", cNative); 
     rb_define_alloc_func(cSystray, shoes_systray_alloc);
+#endif
     // no methods 
     RUBY_M("+systray", systray, -1);
 }
 
-// canvas 
-VALUE shoes_canvas_systray(int argc, VALUE *argv, VALUE self) {
-    VALUE han;
-    han = shoes_systray_new(argc, argv, self);
-    return han;
-}
 
 void shoes_systray_mark(shoes_systray *handle) {
     // we don't have any Ruby objects to mark.
@@ -34,11 +37,19 @@ static void shoes_systray_free(shoes_systray *handle) {
     RUBY_CRITICAL(SHOE_FREE(handle));
 }
 
+#ifdef NEW_MACRO_SYSTRAY
+TypedData_Type_New(shoes_systray);
+#endif
+
 VALUE shoes_systray_alloc(VALUE klass) {
     VALUE obj;
     shoes_systray *handle = SHOE_ALLOC(shoes_systray);
     SHOE_MEMZERO(handle, shoes_systray, 1);
+#ifdef NEW_MACRO_SYSTRAY
+    obj = TypedData_Wrap_Struct(klass, &shoes_systray_type, handle);
+#else
     obj = Data_Wrap_Struct(klass, NULL, shoes_systray_free, handle);
+#endif
     handle->icon_path = NULL;
     handle->title = NULL;
     handle->message = NULL;
@@ -67,8 +78,12 @@ VALUE shoes_systray_new(int argc, VALUE *argv, VALUE parent) {
      * out of our process memory into the Desktop's space. 
     */
     VALUE obj = shoes_systray_alloc(cSystray);
+#ifdef NEW_MACRO_SYSTRAY
+    Get_TypedStruct2(obj, shoes_systray, self_t);
+#else
     shoes_systray *self_t;
     Data_Get_Struct(obj, shoes_systray, self_t);
+#endif
     Check_Type(rbtitle, T_STRING);
     if ((!NIL_P(rbtitle)) && (RSTRING_LEN(rbtitle) > 0)) {
       title = self_t->title = strdup(RSTRING_PTR(rbtitle));
@@ -88,3 +103,12 @@ VALUE shoes_systray_new(int argc, VALUE *argv, VALUE parent) {
     shoes_native_systray(title, message, path); 
     return Qnil;
 }
+
+// canvas 
+
+VALUE shoes_canvas_systray(int argc, VALUE *argv, VALUE self) {
+    VALUE han;
+    han = shoes_systray_new(argc, argv, self);
+    return han;
+}
+

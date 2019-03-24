@@ -9,6 +9,8 @@
 #ifndef SHOES_MENUBAR_TYPE_H
 #define SHOES_MENUBAR_TYPE_H
 
+#define NEW_MACRO_MENUBAR
+
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget, cShoesMenubar;
 extern shoes_app _shoes_app;
@@ -20,6 +22,11 @@ typedef struct {
     VALUE context;    // a canvas 
     VALUE menus;      // ruby array of shoes_menu Objects 
 } shoes_menubar;
+
+#ifdef NEW_MACRO_MENUBAR
+extern const rb_data_type_t shoes_menubar_type;
+#endif
+
 
 void shoes_menubar_init();
 VALUE shoes_menubar_alloc(VALUE klass);

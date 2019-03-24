@@ -8,6 +8,8 @@
 #ifndef SHOES_TEXTBLOCK_TYPE_H
 #define SHOES_TEXTBLOCK_TYPE_H
 
+#define NEW_MACRO_TEXTBLOCK
+
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
@@ -32,6 +34,10 @@ typedef struct {
     char cached, hover;
     shoes_transform *st;
 } shoes_textblock;
+
+#ifdef NEW_MACRO_TEXTBLOCK
+extern const rb_data_type_t shoes_textblock_type;
+#endif
 
 /* each widget should have its own init function */
 void shoes_textblock_init();

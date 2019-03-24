@@ -1,10 +1,15 @@
 #include "shoes/types/native.h"
 #include "shoes/types/check.h"
+#include "shoes/app.h"
 
 // ruby
 VALUE cCheck;
 
+#ifdef NEW_MACRO_APP
+FUNC_T("+check", check, -1);
+#else
 FUNC_M("+check", check, -1);
+#endif
 
 void shoes_check_init() {
     cCheck  = rb_define_class_under(cTypes, "Check", cNative);
@@ -21,9 +26,9 @@ void shoes_check_init() {
 // ruby
 VALUE shoes_check_draw(VALUE self, VALUE c, VALUE actual) {
 #ifdef NEW_MACRO_CONTROL
-    SETUP_CONTROL_T(0, 0, FALSE);
+    SETUP_CONTROL_T(0, 20, FALSE);
 #else
-    SETUP_CONTROL(0, 0, FALSE);
+    SETUP_CONTROL(0, 20, FALSE);
 #endif
     if (RTEST(actual)) {
         if (self_t->ref == NULL) {

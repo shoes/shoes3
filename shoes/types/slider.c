@@ -1,10 +1,15 @@
 #include "shoes/types/native.h"
 #include "shoes/types/slider.h"
+#include "shoes/app.h"
 
 // ruby
 VALUE cSlider;
 
+#ifdef NEW_MACRO_APP
+FUNC_T("+slider", slider, -1);
+#else
 FUNC_M("+slider", slider, -1);
+#endif
 
 void shoes_slider_init() {
     cSlider  = rb_define_class_under(cTypes, "Slider", cNative);

@@ -125,7 +125,7 @@ const rb_data_type_t wrapped##_type = { \
 // and ensures that you have access to the App's instance variables while
 // assembling elements in a layout.
 //
-// TODO: these need to change when canvas and app are converted to new macros
+// TODO: these need to change when canvas is converted to new macros
 //
 #define FUNC_T(name, func, argn) \
   VALUE \
@@ -151,7 +151,7 @@ const rb_data_type_t wrapped##_type = { \
   { \
     VALUE canvas; \
     char *n = name; \
-    GET_STRUCT(app, app); \
+    Get_TypedStruct2(self, shoes_app, app); \
     if (RARRAY_LEN(app->nesting) > 0) \
       canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
     else \
@@ -259,6 +259,35 @@ const rb_data_type_t wrapped##_type = { \
     self_t->st = shoes_transform_detach(self_t->st); \
     cairo_matrix_multiply(&self_t->st->tf, &self_t->st->tf, &matrix); \
     if (repaint) shoes_canvas_repaint_all(self_t->parent); \
+    return self; \
+  }
+
+#define REPLACE_COMMON_T(ele) \
+  VALUE \
+  shoes_##ele##_replace(int argc, VALUE *argv, VALUE self) \
+  { \
+    shoes_##ele *self_t; \
+    if (RTYPEDDATA_P(self)) \
+      TypedData_Get_Struct(self, shoes_##ele, RTYPEDDATA_TYPE(self), self_t); \
+    else \
+      Data_Get_Struct(self, shoes_##ele, self_t); \
+    long i; \
+    VALUE texts, attr, block; \
+    attr = Qnil; \
+    texts = rb_ary_new(); \
+    for (i = 0; i < argc; i++) \
+    { \
+      if (rb_obj_is_kind_of(argv[i], rb_cHash)) \
+        attr = argv[i]; \
+      else \
+        rb_ary_push(texts, argv[i]); \
+    } \
+    self_t->texts = texts; \
+    if (!NIL_P(attr)) self_t->attr = attr; \
+    block = shoes_find_textblock(self); \
+    Get_TypedStruct2(block, shoes_textblock, block_t); \
+    shoes_textblock_uncache(block_t, TRUE); \
+    shoes_canvas_repaint_all(self_t->parent); \
     return self; \
   }
 

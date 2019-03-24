@@ -11,8 +11,12 @@
 
 void surface_on_realize(SHOES_CONTROL_REF ref, gpointer data) {
     VALUE rbvideo = (VALUE)data;
+#ifdef NEW_MACRO_VIDEO
+    Get_TypedStruct2(rbvideo, shoes_video, video);
+#else
     shoes_video *video;
     Data_Get_Struct(rbvideo, shoes_video, video);
+#endif
     video->realized = 1;
 }
 

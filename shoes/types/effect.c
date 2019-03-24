@@ -8,8 +8,12 @@
 VALUE cEffect;
 
 void shoes_effect_init() {
+#ifdef NEW_MACRO_EFFECT
+    cEffect   = rb_define_class_under(cTypes, "Effect", rb_cData);
+#else
     cEffect   = rb_define_class_under(cTypes, "Effect", rb_cObject);
     rb_define_alloc_func(cEffect, shoes_effect_alloc);
+#endif
     rb_define_method(cEffect, "draw", CASTHOOK(shoes_effect_draw), 2);
     rb_define_method(cEffect, "remove", CASTHOOK(shoes_basic_remove), 0);
 }

@@ -9,8 +9,12 @@
 
 static gboolean shoes_gtk_animate(gpointer data) {
     VALUE timer = (VALUE)data;
+#ifdef NEW_MACRO_TIMER
+    Get_TypedStruct2(timer, shoes_timer, self_t);
+#else
     shoes_timer *self_t;
     Data_Get_Struct(timer, shoes_timer, self_t);
+#endif
     if (self_t->started == ANIM_STARTED)
         shoes_timer_call(timer);
     return self_t->started == ANIM_STARTED;

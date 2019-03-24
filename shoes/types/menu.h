@@ -8,6 +8,8 @@
 #ifndef SHOES_MENU_TYPE_H
 #define SHOES_MENU_TYPE_H
 
+#define NEW_MACRO_MENU
+
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cShoesMenu;
 extern shoes_app _shoes_app;
@@ -21,6 +23,10 @@ typedef struct {
     char *title;  // C string utf8
     VALUE items;  // ruby array of menuitem Objects
 } shoes_menu;
+
+#ifdef NEW_MACRO_MENU
+extern const rb_data_type_t shoes_menu_type;
+#endif
 
 extern void shoes_menu_init();
 VALUE shoes_menu_alloc(VALUE klass);

@@ -1,20 +1,27 @@
 #include "shoes/types/color.h"
 #include "shoes/types/pattern.h"
+#include "shoes/app.h"
 
 // ruby
 VALUE cPattern, cBorder, cBackground;
 
 CLASS_COMMON2(pattern);
-
+#ifdef NEW_MACRO_APP
+FUNC_T("+background", background, -1);
+FUNC_T("+border", border, -1);
+#else
 FUNC_M("+background", background, -1);
 FUNC_M("+border", border, -1);
+#endif
 
 
 void shoes_pattern_init() {
+#ifdef NEW_MACRO_PATTERN
+    cPattern = rb_define_class_under(cTypes, "Pattern", rb_cData);
+#else
     cPattern = rb_define_class_under(cTypes, "Pattern", rb_cObject);
-
     rb_define_alloc_func(cPattern, shoes_pattern_alloc);
-
+#endif
     rb_define_method(cPattern, "displace", CASTHOOK(shoes_pattern_displace), 2);
     rb_define_method(cPattern, "move", CASTHOOK(shoes_pattern_move), 2);
     rb_define_method(cPattern, "remove", CASTHOOK(shoes_basic_remove), 0);

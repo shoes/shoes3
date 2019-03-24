@@ -28,6 +28,61 @@ extern const rb_data_type_t shoes_chart_series_type;
 extern const rb_data_type_t shoes_plot_type;
 #endif
 
+// ChartSeries struct
+typedef struct {
+    VALUE maxv;
+    VALUE minv;
+    VALUE values;
+    VALUE name;
+    VALUE desc;
+    VALUE labels;
+    VALUE strokes;
+    VALUE point_type;
+    VALUE color;
+} shoes_chart_series;
+
+//
+// Plot struct - It's HUGE!
+//
+typedef struct {
+    VALUE parent;
+    VALUE attr;
+    shoes_place place;
+    int chart_type;
+    int seriescnt;
+    VALUE series;
+    int auto_grid;
+    int boundbox;
+    int missing;   // repurposed in pie_charts so beware
+    VALUE background;
+    VALUE title;
+    VALUE legend;
+    VALUE caption;
+    VALUE default_colors;
+    VALUE column_opts;
+    void *c_things;
+    int x_ticks;   // number of x_axis (which means a vertical grid line draw)
+    int y_ticks;   // number of (left side) y axis horizontial grid lines)
+    double radar_label_mult; // radius multipler (1.1 ex)
+    char  *fontname; // not a Shoes name, cairo "toy" name - might be the same
+    int beg_idx;  //used for zooming in
+    int end_idx;  // and zooming out
+    int title_h;
+    PangoFontDescription *title_pfd;
+    int caption_h;
+    PangoFontDescription *caption_pfd;
+    int legend_h;
+    PangoFontDescription *legend_pfd;
+    PangoFontDescription *label_pfd;
+    PangoFontDescription *tiny_pfd;
+    int yaxis_offset; // don't like
+    int graph_h;  // to where the dots are drawn
+    int graph_w;
+    int graph_x;
+    int graph_y;
+    char hover;
+    shoes_transform *st;
+} shoes_plot;
 
 /*
  * NOTE: functions that changes the cairo state (aka ontext, cairo_t) for

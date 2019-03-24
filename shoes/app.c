@@ -771,8 +771,12 @@ shoes_code shoes_app_motion(shoes_app *app, int x, int y, int mods) {
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
+#ifdef NEW_MACRO_EVENT
+        Get_TypedStruct2(evt, shoes_event, tevent);
+#else
         shoes_event *tevent;
         Data_Get_Struct(evt, shoes_event, tevent);
+#endif
         sendevt = shoes_event_contrain_TF(tevent->accept);
       } else {
         fprintf(stderr, "click: don't have event - but should - dump hash\n");
@@ -805,8 +809,12 @@ shoes_code shoes_app_click(shoes_app *app, int button, int x, int y, int mods) {
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
+#ifdef NEW_MACRO_EVENT
+        Get_TypedStruct2(evt, shoes_event, tevent);
+#else
         shoes_event *tevent;
         Data_Get_Struct(evt, shoes_event, tevent);
+#endif
         sendevt = shoes_event_contrain_TF(tevent->accept);
       } else {
         fprintf(stderr, "click: don't have event - but should - dump hash\n");
@@ -838,8 +846,12 @@ shoes_code shoes_app_release(shoes_app *app, int button, int x, int y, int mods)
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
+#ifdef NEW_MACRO_EVENT
+        Get_TypedStruct2(evt, shoes_event, tevent);
+#else
         shoes_event *tevent;
         Data_Get_Struct(evt, shoes_event, tevent);
+#endif
         sendevt = shoes_event_contrain_TF(tevent->accept);
       } else {
         fprintf(stderr, "release: doen't have event - but should - dump hash\n");
@@ -873,8 +885,12 @@ shoes_code shoes_app_wheel(shoes_app *app, ID dir, int x, int y, int mods) {
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
+#ifdef NEW_MACRO_EVENT
+        Get_TypedStruct2(evt, shoes_event, tevent);
+#else
         shoes_event *tevent;
         Data_Get_Struct(evt, shoes_event, tevent);
+#endif
         sendevt = shoes_event_contrain_TF(tevent->accept);
       } else {
         fprintf(stderr, "wheel: doen't have event - but should - dump hash\n");
@@ -906,8 +922,12 @@ shoes_code shoes_app_keypress(shoes_app *app, VALUE key) {
         VALUE event = ATTR(canvas->attr, event);  
         if (! NIL_P(event)) {
           shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
+#ifdef NEW_MACRO_EVENT
+          Get_TypedStruct2(evt, shoes_event, tevent);
+#else
           shoes_event *tevent;
           Data_Get_Struct(evt, shoes_event, tevent);
+#endif
           sendevt = shoes_event_contrain_TF(tevent->accept);
         } else {
           fprintf(stderr, "keypress: doen't have event - but should - dump hash\n");
@@ -931,8 +951,12 @@ shoes_code shoes_app_keydown(shoes_app *app, VALUE key) {
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
+#ifdef NEW_MACRO_EVENT
+        Get_TypedStruct2(evt, shoes_event, tevent);
+#else
         shoes_event *tevent;
         Data_Get_Struct(evt, shoes_event, tevent);
+#endif
         sendevt = shoes_event_contrain_TF(tevent->accept);
       } else {
         fprintf(stderr, "keydown: doen't have event - but should - dump hash\n");
@@ -957,8 +981,12 @@ shoes_code shoes_app_keyup(shoes_app *app, VALUE key) {
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
+#ifdef NEW_MACRO_EVENT
+        Get_TypedStruct2(evt, shoes_event, tevent);
+#else
         shoes_event *tevent;
         Data_Get_Struct(evt, shoes_event, tevent);
+#endif
         sendevt = shoes_event_contrain_TF(tevent->accept);
       } else {
         fprintf(stderr, "keyup: doen't have event - but should - dump hash\n");

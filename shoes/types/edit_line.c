@@ -1,10 +1,14 @@
 #include "shoes/types/native.h"
 #include "shoes/types/edit_line.h"
-
+#include "shoes/app.h"
 // ruby
 VALUE cEditLine;
 
+#ifdef NEW_MACRO_APP
+FUNC_T("+edit_line", edit_line, -1);
+#else
 FUNC_M("+edit_line", edit_line, -1);
+#endif
 
 void shoes_edit_line_init() {
     cEditLine  = rb_define_class_under(cTypes, "EditLine", cNative);

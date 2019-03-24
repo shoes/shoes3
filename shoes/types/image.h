@@ -8,6 +8,8 @@
 #ifndef SHOES_IMAGE_TYPE_H
 #define SHOES_IMAGE_TYPE_H
 
+#define NEW_MACRO_IMAGE
+
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
@@ -19,6 +21,10 @@ extern shoes_app _shoes_app;
 // extern gboolean shoes_native_spinner_started(SHOES_CONTROL_REF ref);
 
 VALUE cImage;
+
+#ifdef NEW_MACRO_IMAGE
+extern const rb_data_type_t shoes_image_type;
+#endif
 
 /* each widget should have its own init function */
 void shoes_image_init();

@@ -8,6 +8,8 @@
 #ifndef SHOES_EVENT_TYPE_H
 #define SHOES_EVENT_TYPE_H
 
+#define NEW_MACRO_EVENT
+
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern VALUE cShoesEvent;
@@ -33,9 +35,12 @@ typedef struct {
     VALUE modifiers; //  modifiers if we can get them.
 } shoes_event;
 
+#ifdef NEW_MACRO_EVENT
+extern const rb_data_type_t shoes_event_type;
+#endif
 
 // ruby getters and setters
-VALUE shoes_event_type(VALUE self);
+VALUE shoes_event_kind(VALUE self);
 VALUE shoes_event_object(VALUE self);
 VALUE shoes_event_get_accept(VALUE self);
 VALUE shoes_event_set_accept(VALUE self, VALUE tf);

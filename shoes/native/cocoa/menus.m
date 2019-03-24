@@ -30,8 +30,12 @@ VALUE shoes_osx_menubar;
 void shoes_native_menu_root(NSMenu *main) {
   //fprintf(stderr, "Creating global menubar\n");
   VALUE mbv = shoes_menubar_alloc(cShoesMenubar);
+#ifdef NEW_MACRO_MENUBAR
+  Get_TypedStruct2(mbv, shoes_menubar, mb);
+#else
   shoes_menubar *mb;
   Data_Get_Struct(mbv, shoes_menubar, mb);
+#endif
   mb->native = (void *)main;
   shoes_osx_menubar = mbv;
   rb_gc_register_address(&shoes_osx_menubar);
@@ -198,8 +202,12 @@ add_to_menubar(NSMenu *main, NSMenu *menu)
 
 void shoes_osx_create_apple_menu(VALUE mbv) {
 	// Setup menubar and Shoes menu
-	shoes_menubar *mb;
-	Data_Get_Struct(mbv, shoes_menubar, mb);
+#ifdef NEW_MACRO_MENUBAR
+    Get_TypedStruct2(mbv, shoes_menubar, mb);
+#else
+    shoes_menubar *mb;
+    Data_Get_Struct(mbv, shoes_menubar, mb);
+#endif
     NSMenu *main = (NSMenu *)mb->native; 
     // Create the Native application (Apple) menu.
    // NSMenu *menuApp = [[NSMenu alloc] initWithTitle: @"Apple Menu"];
@@ -214,8 +222,12 @@ void shoes_osx_create_apple_menu(VALUE mbv) {
 #endif
     VALUE shoestext = st->app_name;
     VALUE shoesmenu = shoes_menu_alloc(cShoesMenu);
+#ifdef NEW_MACRO_MENU
+    Get_TypedStruct2(shoesmenu, shoes_menu, mn);
+#else
     shoes_menu *mn;
     Data_Get_Struct(shoesmenu, shoes_menu, mn);
+#endif
     mn->title = strdup(RSTRING_PTR(shoestext));
     // set Shoes Menu in Shoes menubar
     rb_ary_store(mb->menus, 0, shoesmenu);
@@ -281,8 +293,12 @@ void shoes_osx_create_apple_menu(VALUE mbv) {
     
     VALUE srvtext = rb_str_new2("Services");
     VALUE srvitem = shoes_menuitem_new(srvtext, flags | NO_NATIVE, "", Qnil, Qnil);
+#ifdef NEW_MACRO_MENUITEM
+    Get_TypedStruct2(srvitem, shoes_menuitem, srvmi);
+#else
     shoes_menuitem *srvmi;
     Data_Get_Struct(srvitem, shoes_menuitem, srvmi);
+#endif
     menuitem = [[NSMenuItem alloc] initWithTitle: @"Services"
         action:nil keyEquivalent:@""];
     [menuitem setSubmenu:menuServices];
@@ -298,8 +314,12 @@ void shoes_osx_create_apple_menu(VALUE mbv) {
     
     VALUE hdtext = rb_str_new2("Hide");
     VALUE hditem = shoes_menuitem_new(hdtext, flags | NO_NATIVE, "", Qnil, Qnil);
+#ifdef NEW_MACRO_MENUITEM
+    Get_TypedStruct2(hditem, shoes_menuitem, hdmi);
+#else
     shoes_menuitem *hdmi;
     Data_Get_Struct(hditem, shoes_menuitem, hdmi);
+#endif
     menuitem = [[NSMenuItem alloc] initWithTitle:@"Hide"
         action:@selector(hide:) keyEquivalent:@""];
     [menuitem setTarget: NSApp];
@@ -310,8 +330,12 @@ void shoes_osx_create_apple_menu(VALUE mbv) {
     
     VALUE hotext = rb_str_new2("Hide Others");
     VALUE hoitem = shoes_menuitem_new(hotext, flags | NO_NATIVE, "", Qnil, Qnil);
+#ifdef NEW_MACRO_MENUITEM
+    Get_TypedStruct2(hoitem, shoes_menuitem, homi);
+#else
     shoes_menuitem *homi;
     Data_Get_Struct(hoitem, shoes_menuitem, homi);
+#endif
     menuitem = [[NSMenuItem alloc] initWithTitle:@"Hide Others"
         action:@selector(hideOtherApplications:) keyEquivalent:@""];
     [menuitem setTarget: NSApp];
@@ -322,8 +346,12 @@ void shoes_osx_create_apple_menu(VALUE mbv) {
     
     VALUE satext = rb_str_new2("Show All");
     VALUE saitem = shoes_menuitem_new(satext, flags | NO_NATIVE, "", Qnil, Qnil);
+#ifdef NEW_MACRO_MENUITEM
+    Get_TypedStruct2(saitem, shoes_menuitem, sami);
+#else
     shoes_menuitem *sami;
     Data_Get_Struct(saitem, shoes_menuitem, sami);
+#endif
     menuitem = [[NSMenuItem alloc] initWithTitle:@"Show All"
         action:@selector(unhideAllApplications:) keyEquivalent:@""];
     [menuitem setTarget: NSApp];

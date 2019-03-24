@@ -14,6 +14,8 @@
 #ifndef SHOES_TEXT_LINK_TYPE_H
 #define SHOES_TEXT_LINK_TYPE_H
 
+#define NEW_MACRO_LINK
+
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget, cTextClass;
 extern shoes_app _shoes_app;
@@ -27,6 +29,11 @@ typedef struct {
     int end;
     VALUE ele;
 } shoes_link;
+
+#ifdef NEW_MACRO_LINK
+extern const rb_data_type_t shoes_link_type;
+#endif
+
 
 /* each widget should have its own init function */
 void shoes_text_link_init();

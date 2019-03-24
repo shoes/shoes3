@@ -8,6 +8,8 @@
 #ifndef SHOES_TIMERBASE_TYPE_H
 #define SHOES_TIMERBASE_TYPE_H
 
+#define NEW_MACRO_TIMER
+
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
 extern shoes_app _shoes_app;
@@ -28,6 +30,10 @@ typedef struct {
     char started;
     SHOES_TIMER_REF ref;
 } shoes_timer;
+
+#ifdef NEW_MACRO_TIMER
+extern const rb_data_type_t shoes_timer_type;
+#endif
 
 /* each widget should have its own init function */
 void shoes_timerbase_init();

@@ -1,11 +1,16 @@
 #include "shoes/types/native.h"
 #include "shoes/types/radio.h"
 #include "shoes/types/button.h"
+#include "shoes/app.h"
 
 // ruby
 VALUE cButton;
 
+#ifdef NEW_MACRO_APP
+FUNC_T("+button", button, -1);
+#else
 FUNC_M("+button", button, -1);
+#endif
 
 void shoes_button_init() {
     cButton  = rb_define_class_under(cTypes, "Button", cNative);

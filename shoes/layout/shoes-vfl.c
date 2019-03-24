@@ -96,10 +96,18 @@ void shoes_vfl_setup(shoes_layout *lay, shoes_canvas *canvas, VALUE attr) {
 }
 
 void shoes_vfl_add_ele(shoes_canvas *canvas, VALUE ele) {
+#ifdef NEW_MACRO_LAYOUT
+  Get_TypedStruct2(canvas->layout_mgr, shoes_layout, lay);
+#else
   shoes_layout *lay;
   Data_Get_Struct(canvas->layout_mgr, shoes_layout, lay);
+#endif
   shoes_abstract *widget;
-	Data_Get_Struct(ele, shoes_abstract, widget);
+  if (RTYPEDDATA_P(ele))
+    widget = (shoes_abstract*)RTYPEDDATA_DATA(ele);
+  else
+    widget = (shoes_abstract*)rb_data_object_get(ele);
+	// Data_Get_Struct(ele, shoes_abstract, widget); // TODO after macro transition
   VALUE name = ATTR(widget->attr, name);
   if (NIL_P(name)) 
     rb_raise(rb_eArgError, "please supply a name: ");
@@ -413,7 +421,11 @@ gboolean shoes_vfl_is_element(GshoesEle *p) {
     return false;
   shoes_abstract *ab;
   gpointer gp = gshoes_ele_get_element(p);
-  Data_Get_Struct((VALUE)gp, shoes_abstract, ab);
+  if (RTYPEDDATA_P((VALUE)gp))
+    ab = (shoes_abstract*)RTYPEDDATA_DATA((VALUE)gp);
+  else
+    ab = (shoes_abstract*)rb_data_object_get((VALUE)gp);
+  // Data_Get_Struct((VALUE)gp, shoes_abstract, ab); // TODO after macro transition
   shoes_canvas *canvas;
   Data_Get_Struct(ab->parent, shoes_canvas, canvas);
   if (NIL_P(canvas->layout_mgr))
@@ -474,7 +486,11 @@ VALUE shoes_vfl_hash_emeus(EmeusConstraint *c) {
     val = Qnil;
   else {
     gpointer gp = gshoes_ele_get_element(p);
-    Data_Get_Struct((VALUE)gp, shoes_abstract, ab);
+    if (RTYPEDDATA_P((VALUE)gp))
+      ab = (shoes_abstract*)RTYPEDDATA_DATA((VALUE)gp);
+    else 
+      ab = (shoes_abstract*)rb_data_object_get((VALUE)gp);
+    //Data_Get_Struct((VALUE)gp, shoes_abstract, ab); TODO: macro transition cleanup
     VALUE obj = ATTR(ab->attr, name);
     if (NIL_P(obj))
       val = Qnil;
@@ -495,19 +511,23 @@ VALUE shoes_vfl_hash_emeus(EmeusConstraint *c) {
   
   if (target_attr != EMEUS_CONSTRAINT_ATTRIBUTE_INVALID) {
     key = ID2SYM(rb_intern("source_object"));
-     p = emeus_constraint_get_source_object(c);
-      shoes_abstract *ab;
-      if (! GSHOES_IS_ELE(p))
-        val = rb_str_new2("parent");
-      else {
-        gpointer gp = gshoes_ele_get_element(p);
-        Data_Get_Struct((VALUE)gp, shoes_abstract, ab);
-        VALUE obj = ATTR(ab->attr, name);
-        if (NIL_P(obj))
-          val = Qnil;
-        else
-          val = obj;
-      }
+    p = emeus_constraint_get_source_object(c);
+    shoes_abstract *ab;
+    if (! GSHOES_IS_ELE(p))
+      val = rb_str_new2("parent");
+    else {
+      gpointer gp = gshoes_ele_get_element(p);
+      if (RTYPEDDATA_P((VALUE)gp))
+        ab = (shoes_abstract*)RTYPEDDATA_DATA((VALUE)gp);
+      else 
+        ab = (shoes_abstract*)rb_data_object_get((VALUE)gp);
+      // Data_Get_Struct((VALUE)gp, shoes_abstract, ab); //TODO macro transition
+      VALUE obj = ATTR(ab->attr, name);
+      if (NIL_P(obj))
+        val = Qnil;
+      else
+        val = obj;
+    }
     rb_hash_aset(hsh, key, val);
     key = ID2SYM(rb_intern("source_attr"));
     source_attr = emeus_constraint_get_source_attribute(c);
@@ -553,7 +573,11 @@ VALUE shoes_vfl_wrap_emeus(EmeusConstraint *c) {
     val = Qnil;
   else {
     gpointer gp = gshoes_ele_get_element(p);
-    Data_Get_Struct((VALUE)gp, shoes_abstract, ab);
+    if (RTYPEDDATA_P((VALUE)gp))
+      ab = (shoes_abstract*)RTYPEDDATA_DATA((VALUE)gp);
+    else 
+      ab = (shoes_abstract*)rb_data_object_get((VALUE)gp);
+    //Data_Get_Struct((VALUE)gp, shoes_abstract, ab);
     VALUE obj = ATTR(ab->attr, name);
     if (NIL_P(obj))
       val = Qnil;
@@ -577,7 +601,11 @@ VALUE shoes_vfl_wrap_emeus(EmeusConstraint *c) {
         val = rb_str_new2("parent");
       else {
         gpointer gp = gshoes_ele_get_element(p);
-        Data_Get_Struct((VALUE)gp, shoes_abstract, ab);
+        if (RTYPEDDATA_P((VALUE)gp))
+          ab = (shoes_abstract*)RTYPEDDATA_DATA((VALUE)gp);
+        else 
+          ab = (shoes_abstract*)rb_data_object_get((VALUE)gp);
+        //Data_Get_Struct((VALUE)gp, shoes_abstract, ab);
         VALUE obj = ATTR(ab->attr, name);
         if (NIL_P(obj))
           val = Qnil;
@@ -656,7 +684,11 @@ void shoes_vfl_change_pos(GshoesEle *gs, int x, int y, int width, int height)
 {
   shoes_abstract *ab;
   gpointer gp = gshoes_ele_get_element(gs);
-  Data_Get_Struct((VALUE)gp, shoes_abstract, ab);
+  if (RTYPEDDATA_P((VALUE)gp))
+    ab = (shoes_abstract*)RTYPEDDATA_DATA((VALUE)gp);
+  else 
+    ab = (shoes_abstract*)rb_data_object_get((VALUE)gp);
+  //Data_Get_Struct((VALUE)gp, shoes_abstract, ab); // TODO macro transition cleanup
   //if (x != ab->place.x || y != ab->place.y) {
     fprintf(stderr, "move from %d,%d to %d,%d\n", ab->place.x, ab->place.y, x, y);
     fprintf(stderr, "size from %d, %d to %d %d\n", ab->place.w, ab->place.h, width, height);
@@ -672,13 +704,17 @@ void shoes_vfl_child_size(EmeusConstraintLayoutChild *self) {
     return;
   shoes_abstract *ab;
   VALUE abv = (VALUE)gshoes_ele_get_element(self->widget);
-  Data_Get_Struct(abv, shoes_abstract, ab);
+  if (RTYPEDDATA_P(abv))
+    ab = (shoes_abstract*)RTYPEDDATA_DATA(abv);
+  else 
+    ab = (shoes_abstract*)rb_data_object_get(abv);
+  //Data_Get_Struct(abv, shoes_abstract, ab); // TODO: macro transition cleanup
   top = get_child_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_TOP);
   left = get_child_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_LEFT);
   width = get_child_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_WIDTH);
   height = get_child_attribute (self, EMEUS_CONSTRAINT_ATTRIBUTE_HEIGHT);
   
-  Data_Get_Struct(abv, shoes_abstract, ab);
+  //Data_Get_Struct(abv, shoes_abstract, ab); // TODO: macro transition cleanup
   //variable_set_value(top, ab->place.y);
   //variable_set_value(left, ab->place.x);
   variable_set_value(width, ab->place.w);

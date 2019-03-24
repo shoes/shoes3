@@ -1,10 +1,15 @@
 #include "shoes/types/native.h"
 #include "shoes/types/spinner.h"
+#include "shoes/app.h"
 
 // ruby
 VALUE cSpinner;
 
+#ifdef NEW_MACRO_APP
+FUNC_T("+spinner", spinner, -1);
+#else
 FUNC_M("+spinner", spinner, -1);
+#endif
 
 void shoes_spinner_init() {
     cSpinner  = rb_define_class_under(cTypes, "Spinner", cNative);

@@ -26,11 +26,21 @@ void shoes_chart_series_free(shoes_chart_series *self_t) {
     RUBY_CRITICAL(SHOE_FREE(self_t));
 }
 
+#ifdef NEW_MACRO_CHARTSERIES
+// creates struct shoes_chart_series_type
+TypedData_Type_New(shoes_chart_series);
+#undef Data_Get_Struct
+#endif
+
 VALUE shoes_chart_series_alloc(VALUE klass) {
     VALUE obj;
     shoes_chart_series *ser = SHOE_ALLOC(shoes_chart_series);
     SHOE_MEMZERO(ser, shoes_chart_series, 1);
+#ifdef NEW_MACRO_CHARTSERIES
+    obj = TypedData_Wrap_Struct(klass, &shoes_chart_series_type, ser);
+#else
     obj = Data_Wrap_Struct(klass, shoes_chart_series_mark, shoes_chart_series_free, ser);
+#endif
     ser->values = rb_ary_new();
     ser->labels = rb_ary_new();
     ser->minv = Qnil;
@@ -64,7 +74,6 @@ void shoes_chart_series_Cinit(shoes_chart_series *self_t, VALUE rbvals, VALUE rb
 
 // This is not a visible Shoes widget but it is a Shoes class.
 VALUE shoes_chart_series_new(int argc, VALUE *argv, VALUE self) {
-    shoes_chart_series *self_t;
     VALUE newseries = Qnil;
     VALUE rbsz, rbvals, rblabels, rbmin, rbmax, rbname, rbdesc, rbcolor;
     VALUE rbstroke, rbpoint, rbpoint_type  = Qnil;
@@ -165,7 +174,12 @@ VALUE shoes_chart_series_new(int argc, VALUE *argv, VALUE self) {
         rb_raise(rb_eArgError, "misssing something in plot.add \n");
     }
     VALUE obj = shoes_chart_series_alloc(cChartSeries);
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(obj, shoes_chart_series, self_t);
+#else
+    shoes_chart_series *self_t;
     Data_Get_Struct(obj, shoes_chart_series, self_t);
+#endif
     shoes_chart_series_Cinit(self_t, rbvals, rblabels, rbmax, rbmin, rbname, rbdesc,
                              rbstroke, rbpoint_type, color_wrapped);
     return obj;
@@ -237,96 +251,156 @@ VALUE shoes_plot_parse_column_settings(VALUE opts) {
 
 // Simple getter/setter  methods
 VALUE shoes_chart_series_values(VALUE self) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     return cs->values;
 }
 
 VALUE shoes_chart_series_labels(VALUE self) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     return cs->labels;
 }
 
 VALUE shoes_chart_series_min(VALUE self) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     return cs->minv;
 }
 
 VALUE shoes_chart_series_min_set(VALUE self, VALUE val) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     cs->minv = val;
     return cs->minv;
 }
 
 VALUE shoes_chart_series_max(VALUE self) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     return cs->maxv;
 }
 
 VALUE shoes_chart_series_max_set(VALUE self, VALUE val) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     cs->maxv = val;
     return cs->maxv;
 }
 
 VALUE shoes_chart_series_name(VALUE self) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     return cs->name;
 }
 
 VALUE shoes_chart_series_desc(VALUE self) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     return cs->desc;
 }
 
 VALUE shoes_chart_series_desc_set(VALUE self, VALUE str) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     cs->desc = str;
     return cs->desc;
 }
 VALUE shoes_chart_series_color(VALUE self) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     return cs->color;
 }
 
 VALUE shoes_chart_series_color_set(VALUE self, VALUE clr) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     cs->color = clr;
     return cs->color;
 }
 
 VALUE shoes_chart_series_strokewidth(VALUE self) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     return cs->strokes;
 }
 
 VALUE shoes_chart_series_strokewidth_set(VALUE self, VALUE wid) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     cs->strokes = wid;
     return cs->strokes;
 }
 
 VALUE shoes_chart_series_points(VALUE self) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     return cs->point_type;
 }
 
 VALUE shoes_chart_series_points_set(VALUE self, VALUE pt) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     if (TYPE(pt) == T_FIXNUM)
         cs->point_type = pt;
     else
@@ -338,8 +412,12 @@ VALUE shoes_chart_series_points_set(VALUE self, VALUE pt) {
 
 // Returns and an array[label, value] at idx
 VALUE shoes_chart_series_get(VALUE self, VALUE idx) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     VALUE nary = Qnil;
     if (TYPE(idx) == T_FIXNUM) {
         nary = rb_ary_new_capa(2);
@@ -352,8 +430,12 @@ VALUE shoes_chart_series_get(VALUE self, VALUE idx) {
 
 // Sets labels[idx] and values[idx]
 VALUE shoes_chart_series_set(VALUE self, VALUE idx, VALUE ary) {
+#ifdef NEW_MACRO_CHARTSERIES
+    Get_TypedStruct2(self, shoes_chart_series, cs);
+#else
     shoes_chart_series *cs;
     Data_Get_Struct(self, shoes_chart_series, cs);
+#endif
     if ((TYPE(idx) == T_FIXNUM) && (TYPE(ary) == T_ARRAY) && (RARRAY_LEN(ary) == 2)) {
         long i  = NUM2INT(idx);
         rb_ary_store(cs->labels, i, rb_ary_entry(ary, 0));

@@ -6,6 +6,8 @@
 #ifndef SHOES_VIDEO_TYPE_H
 #define SHOES_VIDEO_TYPE_H
 
+#define NEW_MACRO_VIDEO
+
 #define SHOES_VIDEO 1
 
 /* extern variables necessary to communicate with other parts of Shoes */
@@ -33,6 +35,9 @@ extern void shoes_native_surface_remove(SHOES_SURFACE_REF);
 
 /* each widget should have its own init function */
 void shoes_video_init();
+#ifdef NEW_MACRO_VIDEO
+extern const rb_data_type_t shoes_video_type;
+#endif
 
 // ruby
 VALUE shoes_video_alloc(VALUE);

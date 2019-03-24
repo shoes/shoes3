@@ -33,6 +33,7 @@ SHOES_EXTERN typedef struct _shoes_world_t {
 extern SHOES_EXTERN shoes_world_t *shoes_world;
 
 #ifdef NEW_MACRO_APP
+// Dialogs use these macros
 #define GLOBAL_APP(appvar) \
   shoes_app *appvar = NULL; \
   if (RARRAY_LEN(shoes_world->apps) > 0) \

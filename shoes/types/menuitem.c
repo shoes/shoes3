@@ -1,15 +1,24 @@
 #include "shoes/types/native.h"
 #include "shoes/types/menuitem.h"
+#include "shoes/app.h"
 /*
  * A top Level menu in menubar  -File, Edit, Help...
  */ 
 // ruby
 VALUE cShoesMenuitem;
 
+#ifdef NEW_MACRO_APP
+FUNC_T("+menuitem", menuitem, -1);
+#else
 FUNC_M("+menuitem", menuitem, -1);
+#endif
 
 void shoes_menuitem_init() {
+#ifdef NEW_MACRO_MENUITEM
+    cShoesMenuitem  = rb_define_class_under(cTypes, "Menuitem", rb_cData);
+#else
     cShoesMenuitem  = rb_define_class_under(cTypes, "Menuitem", rb_cObject);
+#endif
     rb_define_method(cShoesMenuitem, "title", CASTHOOK(shoes_menuitem_gettitle), 0);
     rb_define_method(cShoesMenuitem, "title=", CASTHOOK(shoes_menuitem_settitle), 1);
     rb_define_method(cShoesMenuitem, "key", CASTHOOK(shoes_menuitem_getkey), 0);
@@ -32,11 +41,21 @@ static void shoes_menuitem_free(shoes_menuitem *mi) {
   RUBY_CRITICAL(SHOE_FREE(mi));
 }
 
+#ifdef NEW_MACRO_MENUITEM
+// creates struct shoes_app_type
+TypedData_Type_New(shoes_menuitem);
+#endif
+
+
 VALUE shoes_menuitem_alloc(VALUE klass) {
     VALUE obj;
     shoes_menuitem *mi = SHOE_ALLOC(shoes_menuitem);
     SHOE_MEMZERO(mi, shoes_menuitem, 1);
+#ifdef NEW_MACRO_MENUITEM
+    obj = TypedData_Wrap_Struct(klass, &shoes_menuitem_type, mi);
+#else
     obj = Data_Wrap_Struct(klass, shoes_menuitem_mark, shoes_menuitem_free, mi);
+#endif
     mi->native = NULL;
     mi->title = NULL;
     mi->state = 0;
@@ -49,8 +68,12 @@ VALUE shoes_menuitem_alloc(VALUE klass) {
 
 VALUE shoes_menuitem_new(VALUE text, int flags, char *key, VALUE blk, VALUE canvas) {
   VALUE obj= shoes_menuitem_alloc(cShoesMenuitem);
+#ifdef NEW_MACRO_MENUITEM
+  Get_TypedStruct2(obj, shoes_menuitem, mi);
+#else
   shoes_menuitem *mi;
   Data_Get_Struct(obj, shoes_menuitem, mi);
+#endif
   //shoes_canvas *cvs;
   //Data_Get_Struct(canvas, shoes_canvas, cvs);
   //shoes_app *app = cvs->app;  
@@ -73,8 +96,12 @@ VALUE shoes_menuitem_new(VALUE text, int flags, char *key, VALUE blk, VALUE canv
 
 
 VALUE shoes_menuitem_gettitle(VALUE self) {
+#ifdef NEW_MACRO_MENUITEM
+  Get_TypedStruct2(self, shoes_menuitem, mi);
+#else
   shoes_menuitem *mi;
   Data_Get_Struct(self, shoes_menuitem, mi);
+#endif
   if (mi->title == 0)
     return rb_str_new2("---");
   else
@@ -82,8 +109,12 @@ VALUE shoes_menuitem_gettitle(VALUE self) {
 }
 
 VALUE shoes_menuitem_settitle(VALUE self, VALUE text) {
+#ifdef NEW_MACRO_MENUITEM
+  Get_TypedStruct2(self, shoes_menuitem, mi);
+#else
   shoes_menuitem *mi;
-  Data_Get_Struct(self,shoes_menuitem, mi);
+  Data_Get_Struct(self, shoes_menuitem, mi);
+#endif
   if (mi->title)
     free(mi->title);
   mi->title = strdup(RSTRING_PTR(text));
@@ -93,8 +124,12 @@ VALUE shoes_menuitem_settitle(VALUE self, VALUE text) {
 
 
 VALUE shoes_menuitem_getkey(VALUE self) {
+#ifdef NEW_MACRO_MENUITEM
+  Get_TypedStruct2(self, shoes_menuitem, mi);
+#else
   shoes_menuitem *mi;
   Data_Get_Struct(self, shoes_menuitem, mi);
+#endif
   int flags = mi->state;
   VALUE outstr = rb_str_new2("");
   if (flags & MENUITEM_CONTROL)
@@ -108,8 +143,12 @@ VALUE shoes_menuitem_getkey(VALUE self) {
 }
 
 VALUE shoes_menuitem_setkey(VALUE self, VALUE keystr) {
+#ifdef NEW_MACRO_MENUITEM
+  Get_TypedStruct2(self, shoes_menuitem, mi);
+#else
   shoes_menuitem *mi;
   Data_Get_Struct(self, shoes_menuitem, mi);
+#endif
   int enable = mi->state & MENUITEM_ENABLE;
   char outkey[4];
   int flags = shoes_menuitem_parse_key(keystr, outkey);
@@ -121,8 +160,12 @@ VALUE shoes_menuitem_setkey(VALUE self, VALUE keystr) {
 VALUE shoes_menuitem_setblk(VALUE self, VALUE block) {
   // TODO: may not be possible, all platforms? 
   if (rb_obj_is_kind_of(block, rb_cProc)) {
+#ifdef NEW_MACRO_MENUITEM
+    Get_TypedStruct2(self, shoes_menuitem, mi);
+#else
     shoes_menuitem *mi;
     Data_Get_Struct(self, shoes_menuitem, mi);
+#endif
     mi->block = block;
   } else 
     rb_raise(rb_eArgError, "not a proc");
@@ -140,8 +183,12 @@ VALUE shoes_menuitem_setenable(VALUE self, VALUE state) {
     ns = 0;
   else
     rb_raise(rb_eArgError, "menuitem enable must be boolean");
+#ifdef NEW_MACRO_MENUITEM
+  Get_TypedStruct2(self, shoes_menuitem, mi);
+#else
   shoes_menuitem *mi;
   Data_Get_Struct(self, shoes_menuitem, mi);
+#endif
   shoes_native_menuitem_enable(mi, ns);
   mi->state = ns;
   return Qnil;

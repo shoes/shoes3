@@ -580,7 +580,7 @@ unsigned char shoes_is_element_p(VALUE ele, unsigned char any) {
       dmark == shoes_image_mark || dmark == shoes_effect_mark ||
       dmark == shoes_pattern_mark || dmark == shoes_textblock_mark ||
       dmark == shoes_control_mark ||
-      (any && (dmark == shoes_http_mark || dmark == shoes_timer_mark ||
+      (any && (dmark == shoes_http_klass_mark || dmark == shoes_timer_mark ||
               dmark == shoes_color_mark || dmark == shoes_link_mark ||
               dmark == shoes_text_mark))
     );
@@ -594,15 +594,17 @@ unsigned char shoes_is_any(VALUE ele) {
     return shoes_is_element_p(ele, 1);
 }
 
+// TODO: cleanup after macro transition
 void shoes_extras_remove_all(shoes_canvas *canvas) {
     int i;
-    shoes_basic *basic;
+    //shoes_basic *basic;
     shoes_canvas *parent;
     if (canvas->app == NULL) return;
     for (i = (int)RARRAY_LEN(canvas->app->extras) - 1; i >= 0; i--) {
         VALUE ele = rb_ary_entry(canvas->app->extras, i);
         if (!NIL_P(ele)) {
-            Data_Get_Struct(ele, shoes_basic, basic);
+            //Data_Get_Struct(ele, shoes_basic, basic);
+            SETUP_BASIC_T(ele);
             Data_Get_Struct(basic->parent, shoes_canvas, parent);
             if (parent == canvas) {
                 rb_funcall(ele, s_remove, 0);
@@ -814,7 +816,7 @@ void shoes_ruby_init() {
     rb_const_set(cTypes, rb_intern("HALF_PI"), rb_float_new(SHOES_HALFPI));
     rb_const_set(cTypes, rb_intern("PI"), rb_float_new(SHOES_PI));
     
-#ifdef NEW_MACRO_APP
+#ifdef NEW_MACRO_APP  
     cApp = rb_define_class_under(cTypes, "App", rb_cData);
 #else
     cApp = rb_define_class_under(cTypes, "App", rb_cObject);

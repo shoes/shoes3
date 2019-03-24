@@ -1,10 +1,15 @@
 #include "shoes/types/native.h"
 #include "shoes/types/list_box.h"
+#include "shoes/app.h"
 
 // ruby
 VALUE cListBox;
 
+#ifdef NEW_MACRO_APP
+FUNC_T("+list_box", list_box, -1);
+#else
 FUNC_M("+list_box", list_box, -1);
+#endif 
 
 void shoes_list_box_init() {
     cListBox  = rb_define_class_under(cTypes, "ListBox", cNative);

@@ -57,8 +57,12 @@ VALUE shoes_native_menubar_setup(shoes_app *app, void *gtkmb) {
       // use the platform neutral calls to build Shoes menu
       // we can't do that for the menubar so we'll build it ourself
       VALUE mbv = shoes_menubar_alloc(cShoesMenubar);
+#ifdef NEW_MACRO_MENUBAR
+      Get_TypedStruct2(mbv, shoes_menubar, mb);
+#else
       shoes_menubar *mb;
       Data_Get_Struct(mbv, shoes_menubar, mb);
+#endif
       mb->context = app->canvas;
       mb->native = (void *)menubar;
       
@@ -163,9 +167,13 @@ void shoes_native_menubar_append(shoes_menubar *mb, shoes_menu *mn) {
 }
 
 void shoes_native_menubar_remove(shoes_menubar *mb, int pos) {
-  shoes_menu *mn;
   VALUE mnv = rb_ary_entry(mb->menus, pos);
+#ifdef NEW_MACRO_MENU
+  Get_TypedStruct2(mnv, shoes_menu, mn);
+#else
+  shoes_menu *mn;
   Data_Get_Struct(mnv, shoes_menu, mn);
+#endif
   //fprintf(stderr, "mbar: remove %s at %d\n", mn->title, pos);
   gtk_container_remove(GTK_CONTAINER(mb->native), GTK_WIDGET(mn->native));
 }
@@ -279,9 +287,13 @@ void shoes_native_menu_insert(shoes_menu *mn, shoes_menuitem *mi, int pos) {
 }
 
 void shoes_native_menu_remove(shoes_menu *mn, int pos) {
-  shoes_menuitem *mi;
   VALUE miv = rb_ary_entry(mn->items, pos);
+#ifdef NEW_MACRO_MENUITEM
+  Get_TypedStruct2(miv, shoes_menuitem, mi);
+#else
+  shoes_menuitem *mi;
   Data_Get_Struct(miv, shoes_menuitem, mi);
+#endif
  // fprintf(stderr, "Menu %s, delete %s\n", mn->title, mi->title);
   gtk_container_remove(GTK_CONTAINER(mn->extra), GTK_WIDGET(mi->native));
 }
