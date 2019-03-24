@@ -1676,7 +1676,8 @@ VALUE shoes_native_dialog_color(shoes_app *app) {
 
 VALUE shoes_dialog_alert(int argc, VALUE *argv, VALUE self) {
     GTK_APP_VAR(app);
-    char atitle[50];
+    //char atitle[50]; // bug432 
+    char atitle[192];
     g_sprintf(atitle, "%s says", title_app);
     rb_arg_list args;
     rb_parse_args(argc, argv, "S|h", &args);
@@ -1708,7 +1709,7 @@ VALUE shoes_dialog_alert(int argc, VALUE *argv, VALUE self) {
 }
 
 VALUE shoes_dialog_ask(int argc, VALUE *argv, VALUE self) {
-    char atitle[50];
+    char atitle[192];
     GTK_APP_VAR(app);
 
     VALUE answer = Qnil;
@@ -1766,7 +1767,7 @@ VALUE shoes_dialog_ask(int argc, VALUE *argv, VALUE self) {
 
 VALUE shoes_dialog_confirm(int argc, VALUE *argv, VALUE self) {
     VALUE answer = Qfalse;
-    char atitle[50];
+    char atitle[192];
     GTK_APP_VAR(app);
     //char *apptitle = RSTRING_PTR(app->title);
     rb_arg_list args;
