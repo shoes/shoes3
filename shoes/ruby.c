@@ -777,9 +777,12 @@ void shoes_ruby_init() {
 
     cShoesWindow = rb_define_class_under(cTypes, "Window", rb_cObject);
     cMouse = rb_define_class_under(cTypes, "Mouse", rb_cObject);
-
+#ifdef NEW_MACRO_CANVAS
+    cCanvas = rb_define_class_under(cTypes, "Canvas", rb_cData);
+#else
     cCanvas = rb_define_class_under(cTypes, "Canvas", rb_cObject);
     rb_define_alloc_func(cCanvas, shoes_canvas_alloc);
+#endif
     rb_define_method(cCanvas, "top", CASTHOOK(shoes_canvas_get_top), 0);
     rb_define_method(cCanvas, "left", CASTHOOK(shoes_canvas_get_left), 0);
     rb_define_method(cCanvas, "width", CASTHOOK(shoes_canvas_get_width), 0);
@@ -854,8 +857,11 @@ void shoes_ruby_init() {
     rb_define_method(cApp, "id", CASTHOOK(shoes_app_id), 0);
     
     /* Settings holds global values, not per app values. Part of shoes_world_t */
+#ifdef NEW_MACRO_SETTINGS
+#else
     cSettings  = rb_define_class_under(cTypes, "Settings", rb_cObject);
     rb_define_alloc_func(cSettings, shoes_settings_alloc);
+#endif
     rb_define_method(cSettings, "dbus", CASTHOOK(shoes_settings_dbus),0);
     rb_define_method(cSettings, "app_name", CASTHOOK(shoes_settings_app_name),0);
     rb_define_method(cSettings, "app_name=", CASTHOOK(shoes_settings_set_app_name),1);
