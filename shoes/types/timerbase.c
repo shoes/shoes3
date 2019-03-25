@@ -91,7 +91,8 @@ VALUE shoes_timer_draw(VALUE self, VALUE c, VALUE actual) {
 #ifdef NEW_MACRO_TIMER
     Get_TypedStruct2(self, shoes_timer, self_t);
 #else
-    GET_STRUCT(timer, self_t);
+    shoes_timer *self_t;
+    Data_Get_Struct(self, shoes_timer, self_t);
 #endif
     shoes_canvas *canvas;
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
@@ -106,7 +107,8 @@ void shoes_timer_call(VALUE self) {
 #ifdef NEW_MACRO_TIMER
     Get_TypedStruct2(self, shoes_timer, timer);
 #else
-    GET_STRUCT(timer, timer);
+    shoes_timer *timer;
+    Data_Get_Struct(self, shoes_timer, timer);
 #endif
     shoes_safe_block(timer->parent, timer->block, rb_ary_new3(1, INT2NUM(timer->frame)));
     timer->frame++;
@@ -122,7 +124,8 @@ VALUE shoes_timer_remove(VALUE self) {
 #ifdef NEW_MACRO_TIMER
     Get_TypedStruct2(self, shoes_timer, self_t);
 #else
-    GET_STRUCT(timer, self_t);
+    shoes_timer *self_t;
+    Data_Get_Struct(self, shoes_timer, self_t);
 #endif
     shoes_timer_stop(self);
     shoes_canvas_remove_item(self_t->parent, self, 0, 1);
@@ -133,7 +136,8 @@ VALUE shoes_timer_stop(VALUE self) {
 #ifdef NEW_MACRO_TIMER
     Get_TypedStruct2(self, shoes_timer, self_t);
 #else
-    GET_STRUCT(timer, self_t);
+    shoes_timer *self_t;
+    Data_Get_Struct(self, shoes_timer, self_t);
 #endif
     if (self_t->started == ANIM_STARTED) {
         shoes_canvas *canvas;
@@ -148,7 +152,8 @@ VALUE shoes_timer_start(VALUE self) {
 #ifdef NEW_MACRO_TIMER
     Get_TypedStruct2(self, shoes_timer, self_t);
 #else
-    GET_STRUCT(timer, self_t);
+    shoes_timer *self_t;
+    Data_Get_Struct(self, shoes_timer, self_t);
 #endif
     unsigned int interval = self_t->rate;
     if (self_t->started != ANIM_STARTED) {
@@ -164,7 +169,8 @@ VALUE shoes_timer_toggle(VALUE self) {
 #ifdef NEW_MACRO_TIMER
     Get_TypedStruct2(self, shoes_timer, self_t);
 #else
-    GET_STRUCT(timer, self_t);
+    shoes_timer *self_t;
+    Data_Get_Struct(self, shoes_timer, self_t);
 #endif
     return self_t->started == ANIM_STARTED ? shoes_timer_stop(self) : shoes_timer_start(self);
 }

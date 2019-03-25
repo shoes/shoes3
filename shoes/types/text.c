@@ -143,18 +143,29 @@ VALUE shoes_text_to_s(VALUE self) {
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-    GET_STRUCT(textblock, self_t);
+    shoes_textblock *self_t;
+    Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
     return rb_funcall(self_t->texts, s_to_s, 0);
 }
 
 
 VALUE shoes_text_parent(VALUE self) {
-    GET_STRUCT(text, text);
+#ifdef NEW_MACRO_TEXTBLOCK
+    Get_TypedStruct2(self, shoes_textblock, text);
+#else
+    shoes_textblock *text;
+    Data_Get_Struct(self, shoes_textblock, text);
+#endif
     return text->parent;
 }
 
 VALUE shoes_text_children(VALUE self) {
-    GET_STRUCT(text, text);
+#ifdef NEW_MACRO_TEXTBLOCK
+    Get_TypedStruct2(self, shoes_textblock, text);
+#else
+    shoes_textblock *text;
+    Data_Get_Struct(self, shoes_textblock, text);
+#endif
     return text->texts;
 }

@@ -8,7 +8,7 @@
 #ifndef SHOES_TIMERBASE_TYPE_H
 #define SHOES_TIMERBASE_TYPE_H
 
-#define NEW_MACRO_TIMER
+//#define NEW_MACRO_TIMER
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;

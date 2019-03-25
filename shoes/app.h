@@ -10,7 +10,7 @@
 #ifndef SHOES_APP_H
 #define SHOES_APP_H
 
-#define NEW_MACRO_APP
+//#define NEW_MACRO_APP
 
 #include <cairo.h>
 #include <ruby.h>

@@ -8,7 +8,7 @@
 #ifndef SHOES_MENU_TYPE_H
 #define SHOES_MENU_TYPE_H
 
-#define NEW_MACRO_MENU
+//#define NEW_MACRO_MENU
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cShoesMenu;

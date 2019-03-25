@@ -2,9 +2,9 @@
 #define SHOES_METHODS_M_H
 
 /* Deprecated Extension API TODO: Find these (canvas.*?) and replace */
-#define GET_STRUCT(ele, var) \
-  shoes_##ele *var; \
-  Data_Get_Struct(self, shoes_##ele, var)
+//#define GET_STRUCT(ele, var) \
+//  shoes_##ele *var; \
+//  Data_Get_Struct(self, shoes_##ele, var)
   
 /*
  * New Extension API 
@@ -42,7 +42,8 @@ const rb_data_type_t wrapped##_type = { \
   shoes_canvas_c_##func(int argc, VALUE *argv, VALUE self) \
   { \
     VALUE canvas, obj; \
-    GET_STRUCT(canvas, self_t); \
+    shoes_canvas *self_t; \
+    Data_Get_Struct(self, shoes_canvas, self_t); \
     char *n = name; \
     if (rb_ary_entry(self_t->app->nesting, 0) == self || \
          ((rb_obj_is_kind_of(self, cWidget) || self == self_t->app->nestslot) && \
@@ -61,7 +62,8 @@ const rb_data_type_t wrapped##_type = { \
   { \
     VALUE canvas; \
     char *n = name; \
-    GET_STRUCT(app, app); \
+    shoes_app *app; \
+    Data_Get_Struct(self, shoes_app, app); \
     if (RARRAY_LEN(app->nesting) > 0) \
       canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
     else \
@@ -132,7 +134,8 @@ const rb_data_type_t wrapped##_type = { \
   shoes_canvas_c_##func(int argc, VALUE *argv, VALUE self) \
   { \
     VALUE canvas, obj; \
-    GET_STRUCT(canvas, self_t); \
+    shoes_canvas *self_t; \
+    Data_Get_Struct(self, shoes_canvas, self_t); \
     char *n = name; \
     if (rb_ary_entry(self_t->app->nesting, 0) == self || \
          ((rb_obj_is_kind_of(self, cWidget) || self == self_t->app->nestslot) && \

@@ -6,9 +6,9 @@
 #ifndef SHOES_VIDEO_TYPE_H
 #define SHOES_VIDEO_TYPE_H
 
-#define NEW_MACRO_VIDEO
+//#define NEW_MACRO_VIDEO
 
-#define SHOES_VIDEO 1
+//#define SHOES_VIDEO 1
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;

@@ -53,7 +53,14 @@ VALUE shoes_native_edit_line_cursor_to_end(SHOES_CONTROL_REF ref) {
 
 void shoes_native_enterkey(GtkWidget *ref, gpointer data) {
     VALUE self = (VALUE)data;
-    GET_STRUCT(control, self_t);
+#ifdef NEW_MACRO_CONTROL
+    shoes_control *self_t;
+    TypedData_Get_Struct(self, shoes_control, &shoes_control_type, self_t);
+#else
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
+    //GET_STRUCT(control, self_t);
+#endif
     VALUE click = ATTR(self_t->attr, donekey);
     if (!NIL_P(click)) {
         shoes_safe_block(self_t->parent, click, rb_ary_new3(1, self));

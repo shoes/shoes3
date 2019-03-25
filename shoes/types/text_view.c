@@ -9,7 +9,7 @@
 VALUE cTextView;
 
 #ifdef NEW_MACRO_APP
-FUNC_M("+text_view", text_view, -1);
+FUNC_T("+text_view", text_view, -1);
 #else
 FUNC_M("+text_view", text_view, -1);
 #endif
@@ -60,7 +60,8 @@ VALUE shoes_text_view_get_text(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     if (self_t->ref == NULL) return Qnil;
     return shoes_native_text_view_get_text(self_t->ref);
@@ -71,7 +72,8 @@ VALUE shoes_text_view_set_text(VALUE self, VALUE text) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     if (!NIL_P(text)) {
         text = shoes_native_to_s(text);
@@ -88,7 +90,8 @@ VALUE shoes_text_view_append (VALUE self, VALUE text) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     if (!NIL_P(text)) {
         text = shoes_native_to_s(text);

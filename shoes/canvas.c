@@ -47,6 +47,7 @@ static void shoes_canvas_free(shoes_canvas *canvas) {
     shoes_canvas_reset_transform(canvas);
     RUBY_CRITICAL(free(canvas));
 }
+
 #ifdef NEW_MACRO_CANVAS
 TypedData_Type_New(shoes_canvas);
 #endif
@@ -60,7 +61,11 @@ VALUE shoes_canvas_alloc(VALUE klass) {
     canvas->shape = NULL;
     canvas->insertion = -2;
     canvas->layout_mgr = Qnil;
+#ifdef NEW_MACRO_CANVAS
+    VALUE obj = TypedData_Wrap_Struct(klass, &shoes_canvas_type, app);
+#else
     VALUE obj = Data_Wrap_Struct(klass, shoes_canvas_mark, shoes_canvas_free, canvas);
+#endif
     return obj;
 }
 
@@ -112,7 +117,6 @@ VALUE shoes_canvas_close(VALUE self) {
 }
 
 VALUE shoes_canvas_get_scroll_top(VALUE self) {
-    //GET_STRUCT(canvas, canvas);
     shoes_canvas *canvas;
     Data_Get_Struct(self, shoes_canvas, canvas);
     return INT2NUM(canvas->slot->scrolly);
@@ -136,7 +140,6 @@ VALUE shoes_canvas_get_scroll_height(VALUE self) {
 
 VALUE shoes_canvas_get_gutter_width(VALUE self) {
     int scrollwidth = 0;
-    //GET_STRUCT(canvas, canvas);
     shoes_canvas *canvas;
     Data_Get_Struct(self, shoes_canvas, canvas);
     scrollwidth = shoes_native_slot_gutter(canvas->slot);
@@ -443,14 +446,12 @@ VALUE shoes_canvas_reset(VALUE self) {
 }
 
 VALUE shoes_canvas_contents(VALUE self) {
-    //GET_STRUCT(canvas, self_t);
     shoes_canvas *self_t;
     Data_Get_Struct(self, shoes_canvas, self_t);
     return self_t->contents;
 }
 
 VALUE shoes_canvas_children(VALUE self) {
-    //GET_STRUCT(canvas, self_t);
     shoes_canvas *self_t;
     Data_Get_Struct(self, shoes_canvas, self_t);
     return self_t->contents;

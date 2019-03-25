@@ -125,7 +125,6 @@ void shoes_textblock_free(shoes_textblock *text) {
 #ifdef NEW_MACRO_TEXT
 // creates struct shoes_textblock_type
 TypedData_Type_New(shoes_textblock);
-#undef GET_STRUCT
 #endif
 
 VALUE shoes_textblock_alloc(VALUE klass) {
@@ -175,7 +174,8 @@ VALUE shoes_textblock_draw(VALUE self, VALUE c, VALUE actual) {
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-    GET_STRUCT(textblock, self_t);
+    shoes_textblock *self_t;
+    Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
     Data_Get_Struct(c, shoes_canvas, canvas);
     cr = CCR(canvas);
@@ -499,7 +499,8 @@ VALUE shoes_textblock_string(VALUE self) {
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-    GET_STRUCT(textblock, self_t);
+    shoes_textblock *self_t;
+    Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
     if (!self_t->cached || self_t->pattr == NULL)
@@ -615,7 +616,8 @@ VALUE shoes_textblock_style_m(int argc, VALUE *argv, VALUE self) {
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-    GET_STRUCT(textblock, self_t);
+    shoes_textblock *self_t;
+    Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
     VALUE obj = shoes_textblock_style(argc, argv, self);
     shoes_textblock_uncache(self_t, FALSE);
@@ -642,7 +644,8 @@ VALUE shoes_textblock_children(VALUE self) {
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, text);
 #else
-    GET_STRUCT(textblock, text);
+    shoes_textblock *text;
+    Data_Get_Struct(self, shoes_textblock, text);
 #endif
     return text->texts;
 }
@@ -655,7 +658,8 @@ VALUE shoes_textblock_set_cursor(VALUE self, VALUE pos) {
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-    GET_STRUCT(textblock, self_t);
+    shoes_textblock *self_t;
+    Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
     if (self_t->cursor == NULL) {
         if (NIL_P(pos)) return Qnil;
@@ -678,7 +682,8 @@ VALUE shoes_textblock_get_cursor(VALUE self) {
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-    GET_STRUCT(textblock, self_t);
+    shoes_textblock *self_t;
+    Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
     if (self_t->cursor == NULL || self_t->cursor->pos == INT_MAX) return Qnil;
     return INT2NUM(self_t->cursor->pos);
@@ -688,7 +693,8 @@ VALUE shoes_textblock_cursorx(VALUE self) {
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-    GET_STRUCT(textblock, self_t);
+    shoes_textblock *self_t;
+    Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
     if (self_t->cursor == NULL || self_t->cursor->x == INT_MAX) return Qnil;
     return INT2NUM(self_t->cursor->x);
@@ -698,7 +704,8 @@ VALUE shoes_textblock_cursory(VALUE self) {
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-    GET_STRUCT(textblock, self_t);
+    shoes_textblock *self_t;
+    Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
     if (self_t->cursor == NULL || self_t->cursor->y == INT_MAX) return Qnil;
     return INT2NUM(self_t->cursor->y);
@@ -708,7 +715,8 @@ VALUE shoes_textblock_set_marker(VALUE self, VALUE pos) {
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-    GET_STRUCT(textblock, self_t);
+    shoes_textblock *self_t;
+    Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
     if (self_t->cursor == NULL) {
         if (NIL_P(pos)) return Qnil;
@@ -726,7 +734,8 @@ VALUE shoes_textblock_get_marker(VALUE self) {
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-    GET_STRUCT(textblock, self_t);
+    shoes_textblock *self_t;
+    Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
     if (self_t->cursor == NULL || self_t->cursor->hi == INT_MAX) return Qnil;
     return INT2NUM(self_t->cursor->hi);
@@ -737,7 +746,8 @@ VALUE shoes_textblock_get_highlight(VALUE self) {
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-    GET_STRUCT(textblock, self_t);
+    shoes_textblock *self_t;
+    Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
     if (self_t->cursor == NULL || self_t->cursor->pos == INT_MAX) return Qnil;
     marker = self_t->cursor->hi;
@@ -750,8 +760,11 @@ VALUE shoes_textblock_get_highlight(VALUE self) {
 // TODO macro transition cleanup
 VALUE shoes_find_textblock(VALUE self) {
     while (!NIL_P(self) && !rb_obj_is_kind_of(self, cTextBlock)) {
-        //SETUP_BASIC();
+#ifdef NEW_MACRO_TEXTBLOCK
         SETUP_BASIC_T(self);
+#else
+        SETUP_BASIC();
+#endif
         self = basic->parent;
     }
     return self;
@@ -763,7 +776,8 @@ VALUE shoes_textblock_send_hover(VALUE self, int x, int y, VALUE *clicked, char 
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-    GET_STRUCT(textblock, self_t);
+    shoes_textblock *self_t;
+    Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
     if (self_t->layout == NULL || NIL_P(self_t->links)) return Qnil;
     if (!NIL_P(self_t->attr) && ATTR(self_t->attr, hidden) == Qtrue) return Qnil;
@@ -790,7 +804,8 @@ VALUE shoes_textblock_motion(VALUE self, int x, int y, char *t) {
 #ifdef NEW_MACRO_TEXTBLOCK
         Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-        GET_STRUCT(textblock, self_t);
+        shoes_textblock *self_t;
+        Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
         Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
         shoes_app_cursor(canvas->app, s_link);
@@ -803,7 +818,8 @@ VALUE shoes_textblock_hit(VALUE self, VALUE _x, VALUE _y) {
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-    GET_STRUCT(textblock, self_t);
+    shoes_textblock *self_t;
+    Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
     x -= self_t->place.ix + self_t->place.dx;
     y -= self_t->place.iy + self_t->place.dy;
@@ -820,7 +836,8 @@ VALUE shoes_textblock_send_click(VALUE self, int button, int x, int y, VALUE *cl
 #ifdef NEW_MACRO_TEXTBLOCK
         Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-        GET_STRUCT(textblock, self_t);
+        shoes_textblock *self_t;
+        Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
         v = shoes_textblock_send_hover(self, x, y, clicked, NULL);
         if (self_t->hover & HOVER_MOTION)
@@ -834,7 +851,8 @@ void shoes_textblock_send_release(VALUE self, int button, int x, int y) {
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-    GET_STRUCT(textblock, self_t);
+    shoes_textblock *self_t;
+    Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
     if (button > 0 && (self_t->hover & HOVER_CLICK)) {
         VALUE proc = ATTR(self_t->attr, release);
@@ -848,7 +866,8 @@ VALUE shoes_textblock_event_is_here(VALUE self, int x, int y) {
 #ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
 #else
-    GET_STRUCT(textblock, self_t);
+    shoes_textblock *self_t;
+    Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
   if (IS_INSIDE(self_t, x, y)) 
     return Qtrue;

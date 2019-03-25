@@ -120,7 +120,8 @@ VALUE shoes_shape_draw(VALUE self, VALUE c, VALUE actual) {
 #ifdef NEW_MACRO_SHAPE
     Get_TypedStruct2(self, shoes_shape, self_t);
 #else
-    GET_STRUCT(shape, self_t);
+    shoes_shape *self_t;
+    Data_Get_Struct(self, shoes_shape, self_t);
 #endif
     if (ATTR(self_t->attr, hidden) == Qtrue) return self;
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
@@ -250,7 +251,8 @@ VALUE shoes_shape_motion(VALUE self, int x, int y, char *touch) {
 #ifdef NEW_MACRO_SHAPE
     Get_TypedStruct2(self, shoes_shape, self_t);
 #else
-    GET_STRUCT(shape, self_t);
+    shoes_shape *self_t;
+    Data_Get_Struct(self, shoes_shape, self_t);
 #endif
     click = ATTR(self_t->attr, click);
 
@@ -290,9 +292,10 @@ VALUE shoes_shape_send_click(VALUE self, int button, int x, int y) {
 #ifdef NEW_MACRO_SHAPE
       Get_TypedStruct2(self, shoes_shape, self_t);
 #else
-      GET_STRUCT(shape, self_t);
+      shoes_shape *self_t;
+      Data_Get_Struct(self, shoes_shape, self_t);
 #endif
-        v = shoes_shape_motion(self, x, y, NULL);
+      v = shoes_shape_motion(self, x, y, NULL);
         if (self_t->hover & HOVER_MOTION)
             self_t->hover = HOVER_MOTION | HOVER_CLICK;
     }
@@ -304,7 +307,8 @@ void shoes_shape_send_release(VALUE self, int button, int x, int y) {
 #ifdef NEW_MACRO_SHAPE
     Get_TypedStruct2(self, shoes_shape, self_t);
 #else
-    GET_STRUCT(shape, self_t);
+    shoes_shape *self_t;
+    Data_Get_Struct(self, shoes_shape, self_t);
 #endif
     if (button > 0 && (self_t->hover & HOVER_CLICK)) {
         VALUE proc = ATTR(self_t->attr, release);

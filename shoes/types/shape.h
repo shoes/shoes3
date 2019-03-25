@@ -8,7 +8,7 @@
 #ifndef SHOES_SHAPE_TYPE_H
 #define SHOES_SHAPE_TYPE_H
 
-#define NEW_MACRO_SHAPE
+//#define NEW_MACRO_SHAPE
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;

@@ -8,7 +8,7 @@
 #ifndef SHOES_NATIVE_TYPE_H
 #define SHOES_NATIVE_TYPE_H
 
-#define NEW_MACRO_CONTROL
+//#define NEW_MACRO_CONTROL
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;

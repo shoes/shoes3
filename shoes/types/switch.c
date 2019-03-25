@@ -48,7 +48,8 @@ VALUE shoes_switch_get_active(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     return shoes_native_switch_get_active(self_t->ref);
 }
@@ -57,7 +58,8 @@ VALUE shoes_switch_set_active(VALUE self, VALUE activate) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     if (self_t->ref != NULL)
         shoes_native_switch_set_active(self_t->ref, activate == Qtrue);

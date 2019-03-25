@@ -8,7 +8,7 @@
 #ifndef SHOES_PATTERN_TYPE_H
 #define SHOES_PATTERN_TYPE_H
 
-#define NEW_MACRO_PATTERN
+//#define NEW_MACRO_PATTERN
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
@@ -52,7 +52,7 @@ VALUE shoes_subpattern_new(VALUE klass, VALUE pat, VALUE parent);
 VALUE shoes_canvas_background(int argc, VALUE *argv, VALUE self);
 VALUE shoes_canvas_border(int argc, VALUE *argv, VALUE self);
 
-/*
+
 #if defined(NEW_MACRO_PATTERN) && !defined(NEW_MACRO_COLOR)
 #define PATH_OUT(cr, attr, place, sw, cap, dash, pen, cfunc) \
 { \
@@ -113,7 +113,7 @@ VALUE shoes_canvas_border(int argc, VALUE *argv, VALUE self);
   } \
 }
 #elif defined(NEW_MACRO_COLOR) && defined(NEW_MACRO_PATTERN)
-*/
+
 #define PATH_OUT(cr, attr, place, sw, cap, dash, pen, cfunc) \
 { \
   VALUE p = ATTR(attr, pen); \
@@ -141,7 +141,7 @@ VALUE shoes_canvas_border(int argc, VALUE *argv, VALUE self);
     } \
   } \
 }
-/*
+
 #else
 #define PATH_OUT(cr, attr, place, sw, cap, dash, pen, cfunc) \
 { \
@@ -173,7 +173,7 @@ VALUE shoes_canvas_border(int argc, VALUE *argv, VALUE self);
   } \
 }
 #endif
-*/
+
 #define CAP_SET(cr, cap) \
   if (cap == s_project) \
     cairo_set_line_cap(cr, CAIRO_LINE_CAP_SQUARE); \

@@ -29,7 +29,8 @@ VALUE shoes_edit_box_get_text(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     if (self_t->ref == NULL) return Qnil;
     return shoes_native_edit_box_get_text(self_t->ref);
@@ -41,7 +42,8 @@ VALUE shoes_edit_box_set_text(VALUE self, VALUE text) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     if (!NIL_P(text)) {
         text = shoes_native_to_s(text);
@@ -59,7 +61,8 @@ VALUE shoes_edit_box_append(VALUE self, VALUE text) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     if (!NIL_P(text)) {
         text = shoes_native_to_s(text);
@@ -75,7 +78,8 @@ VALUE shoes_edit_box_scroll_to_end(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     if (self_t->ref != NULL) shoes_native_edit_box_scroll_to_end(self_t->ref);
     return Qnil;
@@ -85,7 +89,7 @@ VALUE shoes_edit_box_draw(VALUE self, VALUE c, VALUE actual) {
 #ifdef NEW_MACRO_CONTROL
     SETUP_CONTROL_T(80, 0, FALSE);
 #else
-    SETUP_CONTROL_T(80, 0, FALSE);
+    SETUP_CONTROL(80, 0, FALSE);
 #endif
     if (RTEST(actual)) {
         if (self_t->ref == NULL) {

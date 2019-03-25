@@ -8,7 +8,7 @@
 #ifndef SHOES_TEXTBLOCK_TYPE_H
 #define SHOES_TEXTBLOCK_TYPE_H
 
-#define NEW_MACRO_TEXTBLOCK
+//#define NEW_MACRO_TEXTBLOCK
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;

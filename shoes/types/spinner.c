@@ -48,7 +48,8 @@ VALUE shoes_spinner_start(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     shoes_native_spinner_start(self_t->ref);
     return self;
@@ -58,7 +59,8 @@ VALUE shoes_spinner_stop(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     shoes_native_spinner_stop(self_t->ref);
     return self;
@@ -68,7 +70,8 @@ VALUE shoes_spinner_started(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     return (shoes_native_spinner_started(self_t->ref) ? Qtrue : Qfalse);
 }

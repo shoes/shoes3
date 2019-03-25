@@ -43,7 +43,6 @@ void shoes_link_free(shoes_link *link) {
 #ifdef NEW_MACRO_LINK
 // creates struct shoes_link_type
 TypedData_Type_New(shoes_link);
-#undef GET_STRUCT
 #endif
 
 VALUE shoes_link_alloc(VALUE klass) {
@@ -79,7 +78,8 @@ VALUE shoes_link_at(shoes_textblock *t, VALUE self, int index, int blockhover, V
 #ifdef NEW_MACRO_LINK
     Get_TypedStruct2(self, shoes_link, link);
 #else
-    GET_STRUCT(link, link);
+    shoes_link *link;
+    Data_Get_Struct(self, shoes_link, link);
 #endif
 #ifdef NEW_MACRO_TEXT
     Get_TypedStruct2(link->ele, shoes_text, self_t);

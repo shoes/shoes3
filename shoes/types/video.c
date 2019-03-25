@@ -7,7 +7,7 @@
 VALUE cVideo, eVlcError;
 
 #ifdef NEW_MACRO_APP
-FUNC_M("+video", video, -1);
+FUNC_T("+video", video, -1);
 #else
 FUNC_M("+video", video, -1);
 #endif
@@ -200,7 +200,12 @@ VALUE shoes_video_get_top(VALUE self) {
 }
 
 VALUE shoes_video_get_height(VALUE self) {
-    GET_STRUCT(video, self_t);
+#ifdef NEW_MACRO_VIDEO
+    Get_TypedStruct2(self, shoes_video, self_t);
+#else
+    shoes_video *self_t;
+    Data_Get_Struct(self, shoes_video, self_t);
+#endif
     return INT2NUM(self_t->place.h);
 }
 

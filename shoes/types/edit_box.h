@@ -5,6 +5,7 @@
 #include "shoes/world.h"
 #include "shoes/native/native.h"
 
+
 #ifndef SHOES_EDIT_BOX_TYPE_H
 #define SHOES_EDIT_BOX_TYPE_H
 

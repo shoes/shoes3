@@ -90,7 +90,8 @@ VALUE shoes_control_focus(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
 //  ATTRSET(self_t->attr, hidden, Qtrue);
     if (self_t->ref != NULL) shoes_native_control_focus(self_t->ref);
@@ -101,7 +102,8 @@ VALUE shoes_control_get_state(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     return ATTR(self_t->attr, state);
 }
@@ -136,7 +138,8 @@ VALUE shoes_control_set_state(VALUE self, VALUE state) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     if (shoes_control_try_state(self_t, state))
         ATTRSET(self_t->attr, state, state);
@@ -147,14 +150,20 @@ VALUE shoes_control_temporary_hide(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     if (self_t->ref != NULL) shoes_control_hide_ref(self_t->ref);
     return self;
 }
 
 VALUE shoes_control_hide(VALUE self) {
-    GET_STRUCT(control, self_t);
+#ifdef NEW_MACRO_CONTROL
+    Get_TypedStruct2(self, shoes_control, self_t);
+#else
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
+#endif
     ATTRSET(self_t->attr, hidden, Qtrue);
     if (self_t->ref != NULL) shoes_control_hide_ref(self_t->ref);
     return self;
@@ -164,7 +173,8 @@ VALUE shoes_control_temporary_show(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     if (self_t->ref != NULL) shoes_control_show_ref(self_t->ref);
     return self;
@@ -174,7 +184,8 @@ VALUE shoes_control_show(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     ATTRSET(self_t->attr, hidden, Qfalse);
     if (self_t->ref != NULL) shoes_control_show_ref(self_t->ref);
@@ -185,7 +196,8 @@ VALUE shoes_control_remove(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     shoes_canvas_remove_item(self_t->parent, self, 1, 0);
     
@@ -212,7 +224,8 @@ void shoes_control_send(VALUE self, ID event) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     VALUE sendevt = Qtrue;
     shoes_canvas *parent_canvas;
@@ -257,7 +270,8 @@ VALUE shoes_control_get_tooltip(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     return shoes_native_control_get_tooltip(self_t->ref);
 }
@@ -266,11 +280,11 @@ VALUE shoes_control_set_tooltip(VALUE self, VALUE tooltip) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     if (self_t->ref != NULL)
         shoes_native_control_set_tooltip(self_t->ref, tooltip);
-
     return self;
 }
 

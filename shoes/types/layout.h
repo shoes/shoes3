@@ -1,7 +1,8 @@
 #ifndef SHOES_LAYOUT_TYPE_H
 #define SHOES_LAYOUT_TYPE_H
 
-#define NEW_MACRO_LAYOUT
+//#define NEW_MACRO_LAYOUT
+
 // C level layouts. Not all are implemented. 
 typedef enum {
   Layout_None,

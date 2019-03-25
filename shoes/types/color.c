@@ -274,7 +274,8 @@ cairo_pattern_t *shoes_color_pattern(VALUE self) {
 #ifdef NEW_MACRO_COLOR
     Get_TypedStruct(shoes_color, color);
 #else
-    GET_STRUCT(color, color);
+    shoes_color *color;
+    Data_Get_Struct(self, shoes_color, color);
 #endif
     if (color->a == 255)
         return cairo_pattern_create_rgb(color->r / 255., color->g / 255., color->b / 255.);
@@ -283,10 +284,11 @@ cairo_pattern_t *shoes_color_pattern(VALUE self) {
 }
 
 void shoes_color_grad_stop(cairo_pattern_t *pattern, double stop, VALUE self) {
-#ifndef NEW_MACRO_COLOR
-    GET_STRUCT(color, color);
-#else
+#ifdef NEW_MACRO_COLOR
     Get_TypedStruct(shoes_color, color);
+#else
+    shoes_color *color;
+    Data_Get_Struct(self, shoes_color, color);
 #endif
     if (color->a == 255)
         return cairo_pattern_add_color_stop_rgb(pattern, stop, color->r / 255., color->g / 255., color->b / 255.);
@@ -394,15 +396,16 @@ VALUE shoes_color_parse(VALUE self, VALUE source) {
 
 VALUE shoes_color_spaceship(VALUE self, VALUE c2) {
     int v1, v2;
-#ifndef NEW_MACRO_COLOR
-    shoes_color *color2;
-    GET_STRUCT(color, color);
-    if (!rb_obj_is_kind_of(c2, cColor)) return Qnil;
-    Data_Get_Struct(c2, shoes_color, color2);
-#else
+#ifdef NEW_MACRO_COLOR
     Get_TypedStruct(shoes_color, color);
     if (!rb_obj_is_kind_of(c2, cColor)) return Qnil;
     Get_TypedStruct2(c2, shoes_color, color2);
+#else
+    shoes_color *color;
+    shoes_color *color2;
+    Data_Get_Struct(self, shoes_color, color);
+    if (!rb_obj_is_kind_of(c2, cColor)) return Qnil;
+    Data_Get_Struct(c2, shoes_color, color2);
 #endif
     v1 = color->r + color->g + color->b;
     v2 = color2->r + color2->g + color2->b;
@@ -413,13 +416,14 @@ VALUE shoes_color_spaceship(VALUE self, VALUE c2) {
 
 VALUE shoes_color_equal(VALUE self, VALUE c2) {
     if (!rb_obj_is_kind_of(c2, cColor)) return Qnil;  //TODO Is this correct?
-#ifndef NEW_MACRO_COLOR
-    GET_STRUCT(color, color);
-    shoes_color *color2;
-    Data_Get_Struct(c2, shoes_color, color2);
-#else
-    Get_TypedStruct(shoes_color, color);
+#ifdef NEW_MACRO_COLOR
+    Get_TypedStruct2(self, shoes_color, color);
     Get_TypedStruct2(c2, shoes_color, color2);
+#else
+    shoes_color *color;
+    shoes_color *color2;
+    Data_Get_Struct(self, shoes_color, color);
+    Data_Get_Struct(c2, shoes_color, color2);
 #endif
     if (color->r == color2->r && color->g == color2->g &&
             color->b == color2->b && color->a == color2->a ) {
@@ -432,7 +436,8 @@ VALUE shoes_color_get_red(VALUE self) {
 #ifdef NEW_MACRO_COLOR
   Get_TypedStruct(shoes_color, color);
 #else
-  GET_STRUCT(color, color);
+  shoes_color *color;
+  Data_Get_Struct(self, shoes_color, color);
 #endif
   return INT2NUM(color->r);
 }
@@ -441,7 +446,8 @@ VALUE shoes_color_get_green(VALUE self) {
 #ifdef NEW_MACRO_COLOR
   Get_TypedStruct(shoes_color, color);
 #else
-  GET_STRUCT(color, color);
+  shoes_color *color;
+  Data_Get_Struct(self, shoes_color, color);
 #endif
   return INT2NUM(color->g);
 }
@@ -450,7 +456,8 @@ VALUE shoes_color_get_blue(VALUE self) {
 #ifdef NEW_MACRO_COLOR
   Get_TypedStruct(shoes_color, color);
 #else
-  GET_STRUCT(color, color);
+  shoes_color *color;
+  Data_Get_Struct(self, shoes_color, color);
 #endif
   return INT2NUM(color->b);
 }
@@ -459,7 +466,8 @@ VALUE shoes_color_get_alpha(VALUE self) {
 #ifdef NEW_MACRO_COLOR
   Get_TypedStruct(shoes_color, color);
 #else
-  GET_STRUCT(color, color);
+  shoes_color *color;
+  Data_Get_Struct(self, shoes_color, color);
 #endif
   return INT2NUM(color->a);
 }
@@ -468,7 +476,8 @@ VALUE shoes_color_is_black(VALUE self) {
 #ifdef NEW_MACRO_COLOR
   Get_TypedStruct(shoes_color, color);
 #else
-  GET_STRUCT(color, color);
+  shoes_color *color;
+  Data_Get_Struct(self, shoes_color, color);
 #endif
   return (color->r + color->g + color->b == 0) ? Qtrue : Qfalse;
 }
@@ -477,7 +486,8 @@ VALUE shoes_color_is_dark(VALUE self) {
 #ifdef NEW_MACRO_COLOR
   Get_TypedStruct(shoes_color, color);
 #else
-  GET_STRUCT(color, color);
+  shoes_color *color;
+  Data_Get_Struct(self, shoes_color, color);
 #endif
   return ((int)color->r + (int)color->g + (int)color->b < SHOES_COLOR_DARK) ? Qtrue : Qfalse;
 }
@@ -486,7 +496,8 @@ VALUE shoes_color_is_light(VALUE self) {
 #ifdef NEW_MACRO_COLOR
   Get_TypedStruct(shoes_color, color);
 #else
-  GET_STRUCT(color, color);
+  shoes_color *color;
+  Data_Get_Struct(self, shoes_color, color);
 #endif
   return ((int)color->r + (int)color->g + (int)color->b > SHOES_COLOR_LIGHT) ? Qtrue : Qfalse;
 }
@@ -495,7 +506,8 @@ VALUE shoes_color_is_opaque(VALUE self) {
 #ifdef NEW_MACRO_COLOR
   Get_TypedStruct(shoes_color, color);
 #else
-  GET_STRUCT(color, color);
+  shoes_color *color;
+  Data_Get_Struct(self, shoes_color, color);
 #endif
   return (color->a == SHOES_COLOR_OPAQUE) ? Qtrue : Qfalse;
 }
@@ -504,7 +516,8 @@ VALUE shoes_color_is_transparent(VALUE self) {
 #ifdef NEW_MACRO_COLOR
   Get_TypedStruct(shoes_color, color);
 #else
-  GET_STRUCT(color, color);
+  shoes_color *color;
+  Data_Get_Struct(self, shoes_color, color);
 #endif
   return (color->a == SHOES_COLOR_TRANSPARENT) ? Qtrue : Qfalse;
 }
@@ -513,7 +526,8 @@ VALUE shoes_color_is_white(VALUE self) {
 #ifdef NEW_MACRO_COLOR
   Get_TypedStruct(shoes_color, color);
 #else
-  GET_STRUCT(color, color);
+  shoes_color *color;
+  Data_Get_Struct(self, shoes_color, color);
 #endif
   return (color->r + color->g + color->b == 765) ? Qtrue : Qfalse;
 }
@@ -523,7 +537,8 @@ VALUE shoes_color_invert(VALUE self) {
   Get_TypedStruct(shoes_color, color);
   NEW_COLOR_T(color2, obj);
 #else
-  GET_STRUCT(color, color);
+  shoes_color *color;
+  Data_Get_Struct(self, shoes_color, color);
   NEW_COLOR(color2, obj);
 #endif
   color2->r = 255 - color->r;
@@ -537,7 +552,8 @@ VALUE shoes_color_to_s(VALUE self) {
 #ifdef NEW_MACRO_COLOR
   Get_TypedStruct(shoes_color, color);
 #else
-  GET_STRUCT(color, color);
+  shoes_color *color;
+  Data_Get_Struct(self, shoes_color, color);
 #endif
   VALUE ary = rb_ary_new3(4,
                 INT2NUM(color->r), INT2NUM(color->g), INT2NUM(color->b),

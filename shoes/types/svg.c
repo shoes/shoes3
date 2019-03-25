@@ -18,12 +18,18 @@
 #include "shoes/http.h"
 #include "shoes/types/effect.h"
 #include "shoes/types/svg.h"
+#include "shoes/app.h"
 
 // ruby
 VALUE cSvg, cSvgHandle;
 
+#ifdef NEW_MACRO_APP
+FUNC_T("+svg", svg, -1);
+FUNC_T("+svghandle", svghandle, -1);
+#else
 FUNC_M("+svg", svg, -1);
 FUNC_M("+svghandle", svghandle, -1);
+#endif
 
 CLASS_COMMON2(svg);
 TRANS_COMMON(svg, 1);
@@ -34,11 +40,12 @@ void shoes_svg_init() {
   // svg is kind of like cImage with different methods
   // do not call draw from Shoes scripts - just don't do it!
   
-  //cSvg   = rb_define_class_under(cTypes, "Svg", rb_cObject);
-  //rb_define_alloc_func(cSvg, shoes_svg_alloc);
-
+#ifdef NEW_MACRO_SVG
   cSvg   = rb_define_class_under(cTypes, "Svg", rb_cData);
-  //rb_define_alloc_func(cSvg, shoes_svg_alloc);
+#else
+  cSvg   = rb_define_class_under(cTypes, "Svg", rb_cObject);
+  rb_define_alloc_func(cSvg, shoes_svg_alloc);
+#endif
   rb_define_method(cSvg, "draw", CASTHOOK(shoes_svg_draw), 2);
   rb_define_method(cSvg, "preferred_width", CASTHOOK(shoes_svg_preferred_width), 0);
   rb_define_method(cSvg, "preferred_height", CASTHOOK(shoes_svg_preferred_height),0);
@@ -75,9 +82,12 @@ void shoes_svg_init() {
   rb_define_method(cSvg, "skew", CASTHOOK(shoes_svg_skew), -1);
 
   RUBY_M("+svg", svg, -1);
-
+#ifdef NEW_MACRO_SVGHANDLE
+  cSvgHandle = rb_define_class_under(cTypes, "SvgHandle", rb_cData);
+#else
   cSvgHandle = rb_define_class_under(cTypes, "SvgHandle", rb_cObject); // new with 3.3.0
   rb_define_alloc_func(cSvgHandle, shoes_svghandle_alloc);
+#endif
   rb_define_method(cSvgHandle, "width", CASTHOOK(shoes_svghandle_get_width), 0);
   rb_define_method(cSvgHandle, "height", CASTHOOK(shoes_svghandle_get_height), 0);
   rb_define_method(cSvgHandle, "group?", CASTHOOK(shoes_svghandle_has_group), 1);
@@ -910,7 +920,8 @@ VALUE shoes_svghandle_get_width(VALUE self) {
 #ifdef NEW_MACRO_SVGHANDLE
   Get_TypedStruct(shoes_svghandle, self_t);
 #else
-  GET_STRUCT(svghandle, self_t);
+  shoes_svghandle *self_t;
+  Data_Get_Struct(self, shoes_svghandle, self_t);
 #endif
   return INT2NUM(self_t->svghdim.width);
 }
@@ -919,7 +930,8 @@ VALUE shoes_svghandle_get_height(VALUE self) {
 #ifdef NEW_MACRO_SVGHANDLE
   Get_TypedStruct(shoes_svghandle, self_t);
 #else
-  GET_STRUCT(svghandle, self_t);
+  shoes_svghandle *self_t;
+  Data_Get_Struct(self, shoes_svghandle, self_t);
 #endif
   return INT2NUM(self_t->svghdim.height);
 }

@@ -49,7 +49,8 @@ VALUE shoes_check_is_checked(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     return shoes_native_check_get(self_t->ref);
 }
@@ -58,7 +59,8 @@ VALUE shoes_check_set_checked(VALUE self, VALUE on) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     ATTRSET(self_t->attr, checked, on);
     if (self_t->ref != NULL)

@@ -49,7 +49,8 @@ VALUE shoes_slider_get_fraction(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     if (self_t->ref != NULL)
         perc = shoes_native_slider_get_fraction(self_t->ref);
@@ -62,7 +63,8 @@ VALUE shoes_slider_set_fraction(VALUE self, VALUE _perc) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     if (self_t->ref != NULL)
         shoes_native_slider_set_fraction(self_t->ref, perc);

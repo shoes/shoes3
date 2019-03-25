@@ -111,7 +111,8 @@ VALUE shoes_radio_group(VALUE self) {
 #ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
-    GET_STRUCT(control, self_t);
+    shoes_control *self_t;
+    Data_Get_Struct(self, shoes_control, self_t);
 #endif
     if (!NIL_P(self_t->parent)) {
         shoes_canvas *canvas;

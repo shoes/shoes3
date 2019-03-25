@@ -259,7 +259,8 @@ VALUE shoes_image_get_full_width(VALUE self) {
 #ifdef NEW_MACRO_IMAGE
     Get_TypedStruct2(self, shoes_image, image);
 #else
-    GET_STRUCT(image, image);
+    shoes_image *image;
+    Data_Get_Struct(self, shoes_image, image);
 #endif
     return INT2NUM(image->cached->width);
 }
@@ -268,7 +269,8 @@ VALUE shoes_image_get_full_height(VALUE self) {
 #ifdef NEW_MACRO_IMAGE
     Get_TypedStruct2(self, shoes_image, image);
 #else
-    GET_STRUCT(image, image);
+    shoes_image *image;
+    Data_Get_Struct(self, shoes_image, image);
 #endif
     return INT2NUM(image->cached->height);
 }
@@ -300,7 +302,8 @@ VALUE shoes_image_get_pixel(VALUE self, VALUE _x, VALUE _y) {
 #ifdef NEW_MACRO_IMAGE
     Get_TypedStruct2(self, shoes_image, image);
 #else
-    GET_STRUCT(image, image);
+    shoes_image *image;
+    Data_Get_Struct(self, shoes_image, image);
 #endif
     unsigned char *pixels = shoes_image_surface_get_pixel(image->cached, x, y);
     if (pixels != NULL)
@@ -313,7 +316,8 @@ VALUE shoes_image_set_pixel(VALUE self, VALUE _x, VALUE _y, VALUE col) {
 #ifdef NEW_MACRO_IMAGE
     Get_TypedStruct2(self, shoes_image, image);
 #else
-    GET_STRUCT(image, image);
+    shoes_image *image;
+    Data_Get_Struct(self, shoes_image, image);
 #endif
     shoes_image_ensure_dup(image);
     unsigned char *pixels = shoes_image_surface_get_pixel(image->cached, x, y);
@@ -340,7 +344,8 @@ VALUE shoes_image_get_path(VALUE self) {
 #ifdef NEW_MACRO_IMAGE
     Get_TypedStruct2(self, shoes_image, image);
 #else
-    GET_STRUCT(image, image);
+    shoes_image *image;
+    Data_Get_Struct(self, shoes_image, image);
 #endif
     return image->path;
 }
@@ -349,7 +354,8 @@ VALUE shoes_image_set_path(VALUE self, VALUE path) {
 #ifdef NEW_MACRO_IMAGE
     Get_TypedStruct2(self, shoes_image, image);
 #else
-    GET_STRUCT(image, image);
+    shoes_image *image;
+    Data_Get_Struct(self, shoes_image, image);
 #endif
     image->path = path;
     image->cached = shoes_load_image(image->parent, path, Qfalse);
@@ -403,7 +409,8 @@ void shoes_image_image(VALUE parent, VALUE path, VALUE attr) {
 #ifdef NEW_MACRO_IMAGE
     Get_TypedStruct2(self, shoes_image, image);
 #else
-    GET_STRUCT(image, image);
+    shoes_image *image;
+    Data_Get_Struct(self, shoes_image, image);
 #endif
     shoes_image_ensure_dup(pi);
     shoes_place_exact(&place, image->attr, 0, 0);
@@ -416,7 +423,8 @@ VALUE shoes_image_size(VALUE self) {
 #ifdef NEW_MACRO_IMAGE
     Get_TypedStruct2(self, shoes_image, self_t);
 #else
-    GET_STRUCT(image, self_t);
+    shoes_image *self_t;
+    Data_Get_Struct(self, shoes_image, self_t);
 #endif
     return rb_ary_new3(2, INT2NUM(self_t->cached->width), INT2NUM(self_t->cached->height));
 }
@@ -427,7 +435,8 @@ VALUE shoes_image_motion(VALUE self, int x, int y, char *touch) {
 #ifdef NEW_MACRO_IMAGE
     Get_TypedStruct2(self, shoes_image, self_t);
 #else
-    GET_STRUCT(image, self_t);
+    shoes_image *self_t;
+    Data_Get_Struct(self, shoes_image, self_t);
 #endif
 
     click = ATTR(self_t->attr, click);
@@ -454,7 +463,8 @@ VALUE shoes_image_send_click(VALUE self, int button, int x, int y) {
 #ifdef NEW_MACRO_IMAGE
         Get_TypedStruct2(self, shoes_image, self_t);
 #else
-        GET_STRUCT(image, self_t);
+        shoes_image *self_t;
+        Data_Get_Struct(self, shoes_image, self_t);
 #endif
         v = shoes_image_motion(self, x, y, NULL);
         if (self_t->hover & HOVER_MOTION)
@@ -482,7 +492,8 @@ void shoes_image_send_release(VALUE self, int button, int x, int y) {
 #ifdef NEW_MACRO_IMAGE
     Get_TypedStruct2(self, shoes_image, self_t);
 #else
-    GET_STRUCT(image, self_t);
+    shoes_image *self_t;
+    Data_Get_Struct(self, shoes_image, self_t);
 #endif
     if (button > 0 && (self_t->hover & HOVER_CLICK)) {
         VALUE proc = ATTR(self_t->attr, release);

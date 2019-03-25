@@ -17,7 +17,7 @@
 #include "shoes/code.h"
 #include <rsvg.h>
 
-#define NEW_MACRO_CANVAS
+//#define NEW_MACRO_CANVAS
 
 struct _shoes_app;
 
@@ -122,7 +122,8 @@ typedef struct {
    
 #define SETUP_IMAGE() \
   shoes_place place; \
-  GET_STRUCT(image, image); \
+  shoes_image *image; \
+  Data_Get_Struct(self, shoes_image, image); \
   shoes_image_ensure_dup(image); \
   shoes_place_exact(&place, attr, 0, 0); \
   if (NIL_P(attr)) attr = image->attr; \

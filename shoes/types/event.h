@@ -8,7 +8,7 @@
 #ifndef SHOES_EVENT_TYPE_H
 #define SHOES_EVENT_TYPE_H
 
-#define NEW_MACRO_EVENT
+//#define NEW_MACRO_EVENT
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
