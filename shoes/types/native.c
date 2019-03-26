@@ -202,7 +202,11 @@ VALUE shoes_control_remove(VALUE self) {
     shoes_canvas_remove_item(self_t->parent, self, 1, 0);
     
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
     if (self_t->ref != NULL) {
         SHOES_CONTROL_REF ref = self_t->ref;
         if (rb_obj_is_kind_of(self, cRadio)) {
@@ -229,13 +233,21 @@ void shoes_control_send(VALUE self, ID event) {
 #endif
     VALUE sendevt = Qtrue;
     shoes_canvas *parent_canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, parent_canvas);
+#else
     Data_Get_Struct(self_t->parent, shoes_canvas, parent_canvas);
+#endif
    // do we have an event overide? 
     if (parent_canvas->app->use_event_handler && event == s_click) {
       //fprintf(stderr, "C: button click seeks permission\n");
       shoes_app *app = parent_canvas->app;
       shoes_canvas *app_canvas;
+#ifdef NEW_MACRO_CANVAS
+      TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, app_canvas);
+#else
       Data_Get_Struct(app->canvas, shoes_canvas, app_canvas);
+#endif
       VALUE evtproc = ATTR(app_canvas->attr, event);
       if (! NIL_P(evtproc)) {
         // TODO:  verify selt_t->place.name is accurate, somehow
@@ -318,7 +330,11 @@ VALUE shoes_canvas_hide(VALUE self) {
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
 #endif
     ATTRSET(self_t->attr, hidden, Qtrue);
     shoes_canvas_ccall(self, shoes_control_temporary_hide, shoes_native_control_hide, 1);
@@ -331,7 +347,11 @@ VALUE shoes_canvas_show(VALUE self) {
     Get_TypedStruct2(self, shoes_control, self_t);
 #else
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
 #endif
     ATTRSET(self_t->attr, hidden, Qfalse);
     shoes_canvas_ccall(self, shoes_control_temporary_show, shoes_native_control_show, 1);

@@ -544,7 +544,11 @@ static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, g
 
     if (!event->is_hint) {
         shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+        TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
         Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
         state = (GdkModifierType)event->state;
         int mods = 0;
         if (event->state & GDK_SHIFT_MASK)
@@ -575,7 +579,11 @@ static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, g
 static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data) {
     shoes_app *app = (shoes_app *)data;
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
     
     int x, y;
     GdkModifierType state;
@@ -593,7 +601,11 @@ static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, g
 static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, gpointer data) {
     shoes_app *app = (shoes_app *)data;
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
     // process modifiers
     int mods = 0;
     if (event->state & GDK_SHIFT_MASK)
@@ -687,7 +699,11 @@ static gboolean shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gp
 // considered to be a hack.
 static void shoes_gtk_resized_max(shoes_app *app, int width, int height) {
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
 #ifdef SZBUG
     fprintf(stderr,"shoes_gtk_resized_max: %d %d\n", width, height);
 #endif
@@ -836,7 +852,11 @@ static void shoes_canvas_gtk_paint_children(GtkWidget *widget, gpointer data) {
 static void shoes_canvas_gtk_paint(GtkWidget *widget, cairo_t *cr, gpointer data) {
     VALUE c = (VALUE)data;
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(c, shoes_canvas, canvas);
+#endif
     canvas->slot->drawevent = cr;		// stash it for the children
 
     // getting widget dirty area, already clipped
@@ -853,7 +873,11 @@ static void shoes_canvas_gtk_paint(GtkWidget *widget, cairo_t *cr, gpointer data
 static void shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpointer data) {
     VALUE c = (VALUE)data;
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(c, shoes_canvas, canvas);
+#endif
 #ifdef SZBUG
     fprintf(stderr,"shoes_canvas_gtk_size: %d %d %d %d\n", size->x, size->y, size->width, size->height);
 #endif
@@ -889,7 +913,11 @@ static void shoes_canvas_gtk_size(GtkWidget *widget, GtkAllocation *size, gpoint
 static void shoes_canvas_gtk_scroll(GtkRange *r, gpointer data) {
     VALUE c = (VALUE)data;
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(c, shoes_canvas, canvas);
+#endif
     canvas->slot->scrolly = (int)gtk_range_get_value(r);
     shoes_slot_repaint(canvas->app->slot);
 }
@@ -1254,7 +1282,11 @@ gboolean shoes_app_gtk_configure_event(GtkWidget *widget, GdkEvent *evt, gpointe
   if (widget == app->os.window) {  // GtkWindow
     //gtk_widget_set_size_request(widget, evt->configure.width, evt->configure.height);
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
 #if GTK_CHECK_VERSION(3,12,0)
     if (gtk_window_is_maximized((GtkWindow *)widget)) {
 #else
@@ -1405,7 +1437,11 @@ void shoes_browser_open(char *url) {
 void shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int height, int scrolls, int toplevel) {
     shoes_canvas *canvas;
     SHOES_SLOT_OS *slot;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(c, shoes_canvas, canvas);
+#endif
           
     slot = shoes_slot_alloc(canvas, parent, toplevel);
 
@@ -1534,7 +1570,11 @@ void shoes_native_canvas_resize(shoes_canvas *canvas) {
 static gboolean start_wait(gpointer data) {
     VALUE rbcanvas = (VALUE)data;
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(rbcanvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(rbcanvas, shoes_canvas, canvas);
+#endif
 
     shoes_safe_block(rbcanvas, ATTR(canvas->attr, start), rb_ary_new3(1, rbcanvas));
     return FALSE; // timeout will be stopped and destroyed
@@ -2196,7 +2236,11 @@ static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer dat
 static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, gpointer data) {
     VALUE c = (VALUE)data;
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(c, shoes_canvas, canvas);
+#endif
 #ifdef SZBUG
     fprintf(stderr,"shoes_canvas_gtk_size_menu: %d %d %d %d\n", size->x, size->y, size->width, size->height);
 #endif
@@ -2238,7 +2282,11 @@ gboolean shoes_app_gtk_configure_menu(GtkWidget *widget, GdkEvent *evt, gpointer
   if (widget == app->os.window) {  // GtkWindow
     //gtk_widget_set_size_request(widget, evt->configure.width, evt->configure.height);
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
 #if GTK_CHECK_VERSION(3,12,0)
     if (gtk_window_is_maximized((GtkWindow *)widget)) {
 #else
@@ -2276,7 +2324,11 @@ gboolean shoes_app_gtk_configure_menu(GtkWidget *widget, GdkEvent *evt, gpointer
 void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int height, int scrolls, int toplevel) {
   shoes_canvas *canvas;
   SHOES_SLOT_OS *slot;
+#ifdef NEW_MACRO_CANVAS
+  TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
+#else
   Data_Get_Struct(c, shoes_canvas, canvas);
+#endif
   
   slot = shoes_slot_alloc(canvas, parent, toplevel);
   

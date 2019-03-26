@@ -75,7 +75,11 @@ VALUE shoes_menuitem_new(VALUE text, int flags, char *key, VALUE blk, VALUE canv
   Data_Get_Struct(obj, shoes_menuitem, mi);
 #endif
   //shoes_canvas *cvs;
+#ifdef NEW_MACRO_CANVAS
+  //TypedData_Get_Struct(canvas, shoes_canvas, &shoes_canvas_type, cvs);
+#else
   //Data_Get_Struct(canvas, shoes_canvas, cvs);
+#endif
   //shoes_app *app = cvs->app;  
   mi->title = strdup(RSTRING_PTR(text));
   if (strncmp(mi->title, "---", 3) == 0) {

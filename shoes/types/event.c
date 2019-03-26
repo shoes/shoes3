@@ -165,7 +165,11 @@ VALUE shoes_event_create_event(shoes_app *app, ID etype, int button, int x, int 
     // TODO: ASSUME all the ps_widget have the canvas place
     int w,h; 
     shoes_canvas *cvs;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(nobj, shoes_canvas, &shoes_canvas_type, cvs);
+#else
     Data_Get_Struct(nobj, shoes_canvas, cvs);
+#endif
     w = cvs->place.w;
     h = cvs->place.h;
     evt = shoes_event_new_widget(cShoesEvent, etype, nobj, button, x, y, w, h, modifiers, key);
@@ -184,7 +188,11 @@ VALUE shoes_event_find_psuedo (VALUE self, int x, int y, VALUE *hitobj) {
     int ox = x, oy = y;
     VALUE v = Qnil;  //  v is t/f, Qtrue/Qnil
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
 
     if (ORIGIN(self_t->place)) {
         oy = y + self_t->slot->scrolly;
@@ -246,7 +254,11 @@ VALUE shoes_event_find_native (VALUE self, int x, int y, VALUE *hitobj) {
     int ox = x, oy = y;
     VALUE v = Qnil;  //  v is t/f, Qtrue/Qnil
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
 
     if (ORIGIN(self_t->place)) {
         oy = y + self_t->slot->scrolly;

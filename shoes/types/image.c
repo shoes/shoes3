@@ -242,7 +242,11 @@ VALUE shoes_image_new(VALUE klass, VALUE path, VALUE attr, VALUE parent, shoes_t
         image->type = SHOES_CACHE_FILE;
     } else {
         shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+        TypedData_Get_Struct(image->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
         Data_Get_Struct(image->parent, shoes_canvas, canvas);
+#endif
         int w = ATTR2(int, attr, width, canvas->width);
         int h = ATTR2(int, attr, height, canvas->height);
         VALUE block = ATTR(attr, draw);
@@ -445,7 +449,11 @@ VALUE shoes_image_motion(VALUE self, int x, int y, char *touch) {
     if (IS_INSIDE(self_t, x, y)) {
         if (!NIL_P(click)) {
             shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+            TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
             Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
             shoes_app_cursor(canvas->app, s_link);
         }
         h = 1;

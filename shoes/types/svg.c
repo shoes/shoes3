@@ -156,7 +156,11 @@ VALUE shoes_svg_new(int argc, VALUE *argv, VALUE parent) {
   VALUE attr = Qnil, widthObj, heightObj, svg_string = Qnil;
   VALUE svghanObj = Qnil;
   shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+  TypedData_Get_Struct(parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
   Data_Get_Struct(parent, shoes_canvas, canvas);
+#endif
 
   rb_arg_list args;
 //  switch (rb_parse_args(argc, argv, "s|h", &args))
@@ -312,7 +316,11 @@ VALUE shoes_svg_draw(VALUE self, VALUE c, VALUE actual) {
   shoes_svg *self_t;
   Data_Get_Struct(self, shoes_svg, self_t);
 #endif
+#ifdef NEW_MACRO_CANVAS
+  TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
+#else
   Data_Get_Struct(c, shoes_canvas, canvas);
+#endif
   if (ATTR(self_t->attr, hidden) == Qtrue) return self;
   int rel =(REL_CANVAS | REL_SCALE);
   shoes_place_decide(&place, c, self_t->attr, self_t->place.w, self_t->place.h, rel, REL_COORDS(rel) == REL_CANVAS);
@@ -454,7 +462,11 @@ static cairo_surface_t *buid_surface(VALUE self, VALUE docanvas, double scale, i
   Data_Get_Struct(self, shoes_svg, self_t);
 #endif
   shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+  TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
   shoes_place place = self_t->place;
   cairo_surface_t *surf;
   cairo_t *cr;
@@ -703,7 +715,11 @@ VALUE shoes_svg_remove(VALUE self) {
   Data_Get_Struct(self, shoes_svg, self_t);
 #endif
   shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+  TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
   Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
 
   rb_ary_delete(canvas->contents, self);    // shoes_basic_remove does it this way
   shoes_canvas_repaint_all(self_t->parent); //
@@ -731,7 +747,11 @@ VALUE shoes_svg_motion(VALUE self, int x, int y, char *touch) {
   if (IS_INSIDE(self_t, x, y)) {
     if (!NIL_P(click)) {
       shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+      TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
       Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
       shoes_app_cursor(canvas->app, s_link);
     }
     h = 1;

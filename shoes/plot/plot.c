@@ -85,7 +85,11 @@ VALUE shoes_plot_new(int argc, VALUE *argv, VALUE parent) {
     VALUE pie_pct = Qnil, colors = Qnil, radar_opts = Qnil;
     VALUE rbcol_settings = Qnil, grid_lines = Qnil, radar_lbl_mult = Qnil;
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(parent, shoes_canvas, canvas);
+#endif
 
     rb_arg_list args;
     switch (rb_parse_args(argc, argv, "iih", &args)) {
@@ -329,7 +333,11 @@ VALUE shoes_plot_draw(VALUE self, VALUE c, VALUE actual) {
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
 #endif
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(c, shoes_canvas, canvas);
+#endif
     if (ATTR(self_t->attr, hidden) == Qtrue) return self;
     int rel =(REL_CANVAS | REL_SCALE);
     shoes_place_decide(&place, c, self_t->attr, self_t->place.w, self_t->place.h, rel, REL_COORDS(rel) == REL_CANVAS);
@@ -655,7 +663,11 @@ cairo_surface_t *build_surface(VALUE self, double scale, int *result, char *file
     Data_Get_Struct(self, shoes_plot, self_t);
 #endif
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
     shoes_place place = self_t->place;
     cairo_surface_t *surf;
     cairo_t *cr;
@@ -750,7 +762,11 @@ VALUE shoes_plot_remove(VALUE self) {
     shoes_plot *self_t;
     Data_Get_Struct(self, shoes_plot, self_t);
 #endif
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
 
     rb_ary_delete(canvas->contents, self);    // shoes_basic_remove does it this way
     // free some pango/cairo stuff
@@ -828,7 +844,11 @@ VALUE shoes_plot_motion(VALUE self, int x, int y, char *touch) {
     if (shoes_plot_inside(self_t, x, y)) {
         if (!NIL_P(click)) {
             shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+            TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
             Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
             shoes_app_cursor(canvas->app, s_link);
         }
         h = 1;

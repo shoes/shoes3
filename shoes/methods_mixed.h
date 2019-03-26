@@ -6,6 +6,7 @@
 //  shoes_##ele *var; \
 //  Data_Get_Struct(self, shoes_##ele, var)
   
+  
 /*
  * New Extension API 
  */
@@ -135,7 +136,10 @@ const rb_data_type_t wrapped##_type = { \
   { \
     VALUE canvas, obj; \
     shoes_canvas *self_t; \
-    Data_Get_Struct(self, shoes_canvas, self_t); \
+    if (RTYPEDDATA_P(self)) \
+      self_t = (shoes_canvas *)RTYPEDDATA_DATA(self); \
+    else \
+      Data_Get_Struct(self, shoes_canvas, self_t); \
     char *n = name; \
     if (rb_ary_entry(self_t->app->nesting, 0) == self || \
          ((rb_obj_is_kind_of(self, cWidget) || self == self_t->app->nestslot) && \
@@ -154,7 +158,11 @@ const rb_data_type_t wrapped##_type = { \
   { \
     VALUE canvas; \
     char *n = name; \
-    Get_TypedStruct2(self, shoes_app, app); \
+    shoes_app *app; \
+    if (RTYPEDDATA_P(self)) \
+      app = (shoes_app *)RTYPEDDATA_DATA(self); \
+    else \
+      Data_Get_Struct(self, shoes_app, app); \
     if (RARRAY_LEN(app->nesting) > 0) \
       canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
     else \
@@ -531,6 +539,24 @@ const rb_data_type_t wrapped##_type = { \
   Data_Get_Struct(c, shoes_canvas, canvas); \
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
   shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, REL_COORDS(rel) == REL_CANVAS)
+
+#define SETUP_CANVAS() \
+  shoes_canvas *canvas; \
+  cairo_t *cr; \
+  if (RTYPEDDATA_P(self)) \
+    canvas = (shoes_canvas *)RTYPEDDATA_DATA(self); \
+   else \
+    Data_Get_Struct(self, shoes_canvas, canvas); \
+  cr = CCR(canvas)
+   
+#define SETUP_IMAGE() \
+  shoes_place place; \
+  shoes_image *image; \
+  Data_Get_Struct(self, shoes_image, image); \
+  shoes_image_ensure_dup(image); \
+  shoes_place_exact(&place, attr, 0, 0); \
+  if (NIL_P(attr)) attr = image->attr; \
+  else if (!NIL_P(image->attr)) attr = rb_funcall(image->attr, s_merge, 1, attr);
 
 
 #endif 

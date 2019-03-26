@@ -58,7 +58,11 @@ VALUE shoes_effect_new(ID name, VALUE attr, VALUE parent) {
     Data_Get_Struct(obj, shoes_effect, fx);
 #endif
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(parent, shoes_canvas, canvas);
+#endif
     fx->parent = parent;
     fx->attr = attr;
     fx->filter = shoes_effect_for_type(name);

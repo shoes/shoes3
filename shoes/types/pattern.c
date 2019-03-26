@@ -191,7 +191,11 @@ int is_slot_scrolled(shoes_canvas *canvas) {
    gutterw = shoes_native_slot_gutter(cvs->slot);
    while (gutterw == 0 && (! NIL_P(cvs->parent)) ) {
      //fprintf(stderr, "Backgound Climb up\n");
+#ifdef NEW_MACRO_CANVAS
+     TypedData_Get_Struct(cvs->parent, shoes_canvas, &shoes_canvas_type, cvs);
+#else
      Data_Get_Struct(cvs->parent, shoes_canvas, cvs);
+#endif
      gutterw = shoes_native_slot_gutter(cvs->slot);
    } 
    return gutterw;

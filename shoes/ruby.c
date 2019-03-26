@@ -407,7 +407,11 @@ void shoes_place_exact(shoes_place *place, VALUE attr, int ox, int oy) {
 
 void shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsigned char rel, int padded) {
     shoes_canvas *canvas = NULL;
+#ifdef NEW_MACRO_CANVAS
+    if (!NIL_P(c)) TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     if (!NIL_P(c)) Data_Get_Struct(c, shoes_canvas, canvas);
+#endif
     VALUE ck = rb_obj_class(c);
     VALUE stuck = ATTR(attr, attach);
 
@@ -605,7 +609,11 @@ void shoes_extras_remove_all(shoes_canvas *canvas) {
         if (!NIL_P(ele)) {
             //Data_Get_Struct(ele, shoes_basic, basic);
             SETUP_BASIC_T(ele);
+#ifdef NEW_MACRO_CANVAS
+            TypedData_Get_Struct(basic->parent, shoes_canvas, &shoes_canvas_type, parent);
+#else
             Data_Get_Struct(basic->parent, shoes_canvas, parent);
+#endif
             if (parent == canvas) {
                 rb_funcall(ele, s_remove, 0);
                 rb_ary_delete_at(canvas->app->extras, i);

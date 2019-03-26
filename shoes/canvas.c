@@ -62,7 +62,7 @@ VALUE shoes_canvas_alloc(VALUE klass) {
     canvas->insertion = -2;
     canvas->layout_mgr = Qnil;
 #ifdef NEW_MACRO_CANVAS
-    VALUE obj = TypedData_Wrap_Struct(klass, &shoes_canvas_type, app);
+    VALUE obj = TypedData_Wrap_Struct(klass, &shoes_canvas_type, canvas);
 #else
     VALUE obj = Data_Wrap_Struct(klass, shoes_canvas_mark, shoes_canvas_free, canvas);
 #endif
@@ -72,7 +72,11 @@ VALUE shoes_canvas_alloc(VALUE klass) {
 VALUE shoes_canvas_new(VALUE klass, shoes_app *app) {
     shoes_canvas *canvas;
     VALUE self = shoes_canvas_alloc(klass);
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self, shoes_canvas, canvas);
+#endif
     canvas->app = app;
     return self;
 }
@@ -118,7 +122,11 @@ VALUE shoes_canvas_close(VALUE self) {
 
 VALUE shoes_canvas_get_scroll_top(VALUE self) {
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self, shoes_canvas, canvas);
+#endif
     return INT2NUM(canvas->slot->scrolly);
 }
 
@@ -141,7 +149,11 @@ VALUE shoes_canvas_get_scroll_height(VALUE self) {
 VALUE shoes_canvas_get_gutter_width(VALUE self) {
     int scrollwidth = 0;
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self, shoes_canvas, canvas);
+#endif
     scrollwidth = shoes_native_slot_gutter(canvas->slot);
     return INT2NUM(scrollwidth);
 }
@@ -308,7 +320,11 @@ static void shoes_canvas_empty(shoes_canvas *canvas, int extras) {
 
 void shoes_canvas_clear(VALUE self) {
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self, shoes_canvas, canvas);
+#endif
     canvas->cr = NULL;
     canvas->attr = rb_hash_new();
     ATTRSET(canvas->attr, cap, Qnil);
@@ -336,7 +352,11 @@ void shoes_canvas_clear(VALUE self) {
 
 shoes_canvas *shoes_canvas_init(VALUE self, SHOES_SLOT_OS *slot, VALUE attr, int width, int height) {
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self, shoes_canvas, canvas);
+#endif
     canvas->attr = attr;
     canvas->place.iw = canvas->place.w = canvas->width = width;
     canvas->place.ih = canvas->place.h = canvas->height = height;
@@ -447,20 +467,32 @@ VALUE shoes_canvas_reset(VALUE self) {
 
 VALUE shoes_canvas_contents(VALUE self) {
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
     return self_t->contents;
 }
 
 VALUE shoes_canvas_children(VALUE self) {
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
     return self_t->contents;
 }
 
 void shoes_canvas_remove_item(VALUE self, VALUE item, char c, char t) {
     long i;
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
     shoes_native_remove_item(self_t->slot, item, c);
     if (t) {
         i = rb_ary_index_of(self_t->app->extras, item);
@@ -474,7 +506,11 @@ void shoes_canvas_remove_item(VALUE self, VALUE item, char c, char t) {
 static int shoes_canvas_inherits(VALUE ele, shoes_canvas *pc) {
     if (rb_obj_is_kind_of(ele, cCanvas)) {
         shoes_canvas *c;
+#ifdef NEW_MACRO_CANVAS
+        TypedData_Get_Struct(ele, shoes_canvas, &shoes_canvas_type, c);
+#else
         Data_Get_Struct(ele, shoes_canvas, c);
+#endif
         return (pc == c || DC(c->slot) == DC(pc->slot));
     }
 
@@ -485,13 +521,21 @@ int shoes_canvas_independent(shoes_canvas *c) {
     shoes_canvas *pc;
     if (NIL_P(c->parent)) return TRUE;
 
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(c->parent, shoes_canvas, &shoes_canvas_type, pc);
+#else
     Data_Get_Struct(c->parent, shoes_canvas, pc);
+#endif
     return !(pc == c || DC(c->slot) == DC(pc->slot));
 }
 
 static void shoes_canvas_reflow(shoes_canvas *self_t, VALUE c) {
     shoes_canvas *parent;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, parent);
+#else
     Data_Get_Struct(c, shoes_canvas, parent);
+#endif
 
     self_t->cr = parent->cr;
     shoes_place_decide(&self_t->place, c, self_t->attr, parent->place.iw, 0, REL_CANVAS, FALSE);
@@ -509,13 +553,21 @@ static void shoes_canvas_reflow(shoes_canvas *self_t, VALUE c) {
 
 VALUE shoes_canvas_remove(VALUE self) {
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
     shoes_canvas_empty(self_t, TRUE);
     self_t->stage = CANVAS_EMPTY; // to be able to remove everything in shoes_canvas_repaint_all
     if (!NIL_P(self_t->parent)) {
         shoes_canvas *pc;
         shoes_canvas_remove_item(self_t->parent, self, 0, 0);
+#ifdef NEW_MACRO_CANVAS
+        TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, pc);
+#else
         Data_Get_Struct(self_t->parent, shoes_canvas, pc);
+#endif
         if (pc != self_t && DC(self_t->slot) != DC(pc->slot))
             shoes_slot_destroy(self_t, pc);
         shoes_canvas_repaint_all(self);
@@ -531,7 +583,11 @@ VALUE shoes_canvas_refresh_slot(VALUE self) {
 
 static void shoes_canvas_place(shoes_canvas *self_t) {
     shoes_canvas *pc;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, pc);
+#else
     Data_Get_Struct(self_t->parent, shoes_canvas, pc);
+#endif
     shoes_native_canvas_place(self_t, pc);
 }
 
@@ -541,8 +597,16 @@ VALUE shoes_canvas_draw(VALUE self, VALUE c, VALUE actual) {
     shoes_canvas *self_t;
     shoes_canvas *canvas;
     VALUE ck = rb_obj_class(self);
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(c, shoes_canvas, canvas);
+#endif
 #ifdef SHOES_GTK
     //if (!RTEST(actual))
     //    canvas->group.radios = NULL;
@@ -594,7 +658,11 @@ VALUE shoes_canvas_draw(VALUE self, VALUE c, VALUE actual) {
               */
               c1 = (shoes_canvas *)RTYPEDDATA_DATA(ele);
             } else {
+#ifdef NEW_MACRO_CANVAS
+              TypedData_Get_Struct(ele, shoes_canvas, &shoes_canvas_type, c1);
+#else
               Data_Get_Struct(ele, shoes_canvas, c1);
+#endif
             }
             if (shoes_canvas_inherits(ele, self_t)) {
                 if (!NIL_P(masks) && RTEST(actual)) {
@@ -614,7 +682,11 @@ VALUE shoes_canvas_draw(VALUE self, VALUE c, VALUE actual) {
                         shoes_canvas *c2;
                         VALUE ele2 = rb_ary_entry(self_t->contents, j);
                         if (rb_obj_is_kind_of(ele2, cCanvas)) {
+#ifdef NEW_MACRO_CANVAS
+                            TypedData_Get_Struct(ele2, shoes_canvas, &shoes_canvas_type, c2);
+#else
                             Data_Get_Struct(ele2, shoes_canvas, c2);
+#endif
                             if (c2->topy < c1->topy || ABSY(c2->place) || POS(c2->place) != REL_CANVAS)
                                 break;
                             if (c1->fully > c2->fully)
@@ -862,7 +934,11 @@ VALUE shoes_canvas_stack(int argc, VALUE *argv, VALUE self) {
     shoes_add_ele(canvas, stack);
 
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(stack, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(stack, shoes_canvas, self_t);
+#endif
     return stack;
 }
 
@@ -924,7 +1000,11 @@ VALUE shoes_canvas_layout(int argc, VALUE *argv, VALUE self) {
       rb_ary_pop(canvas->app->nesting);
     }
     shoes_add_ele(canvas, layout_canvas);  // Shoes tracks the layout's canvas
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(layout_canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(layout_canvas, shoes_canvas, canvas);
+#endif
     shoes_layout_size(canvas, 0);         // callback to user layout method
     return layout_obj;
 }
@@ -950,7 +1030,11 @@ VALUE shoes_canvas_get_app(VALUE self) {
     VALUE app = Qnil, c = shoes_find_canvas(self);
     if (rb_obj_is_kind_of(c, cCanvas)) {
         shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+        TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
+#else
         Data_Get_Struct(c, shoes_canvas, canvas);
+#endif
         app = canvas->app->self;
         if (rb_block_given_p())
             mfp_instance_eval(app, rb_block_proc());
@@ -961,7 +1045,11 @@ VALUE shoes_canvas_get_app(VALUE self) {
 void shoes_canvas_repaint_all(VALUE self) {
     shoes_canvas *canvas;
     self = shoes_find_canvas(self);
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self, shoes_canvas, canvas);
+#endif
     if (canvas->stage == CANVAS_EMPTY) return;
     shoes_canvas_compute(self);
     shoes_slot_repaint(canvas->slot);
@@ -969,19 +1057,31 @@ void shoes_canvas_repaint_all(VALUE self) {
 
 void shoes_canvas_ccall(VALUE self, ccallfunc func, ccallfunc2 func2, unsigned char check) {
     shoes_canvas *self_t, *pc;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
 
     if (check) { // check if already hidden by a parent canvas
         pc = self_t;
         while (!NIL_P(pc->parent)) {
+#ifdef NEW_MACRO_CANVAS
+            TypedData_Get_Struct(pc->parent, shoes_canvas, &shoes_canvas_type, pc);
+#else
             Data_Get_Struct(pc->parent, shoes_canvas, pc);
+#endif
             if (RTEST(ATTR(pc->attr, hidden)))
                 return;
         }
     }
 
     if (!NIL_P(self_t->parent)) {
+#ifdef NEW_MACRO_CANVAS
+        TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, pc);
+#else
         Data_Get_Struct(self_t->parent, shoes_canvas, pc);
+#endif
         if (DC(self_t->slot) != DC(pc->slot)) // if actual canvas native widget != parent canvas native widget
 #ifdef SHOES_QUARTZ
             func2(DC((NSControl *)self_t->slot));
@@ -1012,7 +1112,11 @@ void shoes_canvas_ccall(VALUE self, ccallfunc func, ccallfunc2 func2, unsigned c
 
 VALUE shoes_canvas_toggle(VALUE self) {
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
     if (RTEST(ATTR(self_t->attr, hidden)))
         shoes_canvas_show(self);
     else
@@ -1078,7 +1182,11 @@ VALUE shoes_canvas_start(int argc, VALUE *argv, VALUE self) {
 
 static void shoes_canvas_send_start(VALUE self) {
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self, shoes_canvas, canvas);
+#endif
 
     if (canvas->stage == CANVAS_NADA || canvas->stage == CANVAS_PAINT) {
         int i;
@@ -1118,7 +1226,11 @@ static void shoes_canvas_send_start(VALUE self) {
 
 void shoes_canvas_send_finish(VALUE self) {
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self, shoes_canvas, canvas);
+#endif
     VALUE finish = ATTR(canvas->attr, finish);
     if (!NIL_P(finish))
         shoes_safe_block(self, finish, rb_ary_new3(1, self));
@@ -1129,7 +1241,11 @@ VALUE shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE mods,
     int ox = x, oy = y;
     VALUE v = Qnil;
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
 
     if (ORIGIN(self_t->place)) {
         oy = y + self_t->slot->scrolly;
@@ -1182,14 +1298,22 @@ VALUE shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE mods,
 
 VALUE shoes_canvas_mouse(VALUE self) {
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
     return rb_ary_new3(3, INT2NUM(self_t->app->mouseb),
                        INT2NUM(self_t->app->mousex), INT2NUM(self_t->app->mousey));
 }
 
 VALUE shoes_canvas_goto(VALUE self, VALUE url) {
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
     shoes_app_goto(self_t->app, RSTRING_PTR(url));
     return self;
 }
@@ -1204,7 +1328,11 @@ VALUE shoes_canvas_send_click(VALUE self, int button, int x, int y, VALUE mods) 
             shoes_safe_block(self, url, rb_ary_new3(4, INT2NUM(button), INT2NUM(x), INT2NUM(y), mods));
         else {
             shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+            TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
             Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
             shoes_app_goto(self_t->app, RSTRING_PTR(url));
         }
     }
@@ -1215,7 +1343,11 @@ void shoes_canvas_send_release(VALUE self, int button, int x, int y, VALUE mods)
     long i;
     int ox = x, oy = y;
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
 
     if (ORIGIN(self_t->place)) {
         oy = y + self_t->slot->scrolly;
@@ -1261,7 +1393,11 @@ VALUE shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url, VALUE mods) 
     long i;
     int ox = x, oy = y;
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
 
     oh = self_t->hover;
     ch = h = IS_INSIDE(self_t, x, y);
@@ -1306,7 +1442,11 @@ VALUE shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url, VALUE mods) 
 
         if (ch && NIL_P(url)) {
             shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+            TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
             Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
             if (self_t->app->cursor == s_link)
                 shoes_app_cursor(self_t->app, s_arrow_cursor);
         }
@@ -1327,7 +1467,11 @@ void shoes_canvas_wheel_way(shoes_canvas *self_t, ID dir) {
 void shoes_canvas_send_wheel(VALUE self, ID dir, int x, int y, VALUE mods) {
     long i;
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
 
     if (ATTR(self_t->attr, hidden) != Qtrue) {
         VALUE wheel = ATTR(self_t->attr, wheel);
@@ -1359,8 +1503,10 @@ shoes_canvas_send_##event_name (VALUE self, VALUE key) \
 { \
   long i; \
   shoes_canvas *self_t; \
-  Data_Get_Struct(self, shoes_canvas, self_t); \
-\
+  if (RTYPEDDATA_P(self)) \
+    self_t = (shoes_canvas *)RTYPEDDATA_DATA(self); \
+  else \
+    Data_Get_Struct(self, shoes_canvas, self_t); \
   if (ATTR(self_t->attr, hidden) != Qtrue) \
   { \
     VALUE handler = ATTR(self_t->attr, event_name); \
@@ -1394,8 +1540,16 @@ VALUE shoes_slot_new(VALUE klass, VALUE attr, VALUE parent) {
     shoes_canvas *self_t, *pc;
     VALUE self = shoes_canvas_alloc(klass);
     shoes_canvas_clear(self);
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(parent, shoes_canvas, &shoes_canvas_type, pc);
+#else
     Data_Get_Struct(parent, shoes_canvas, pc);
+#endif
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
     self_t->cr = pc->cr;
     self_t->slot = pc->slot;
     self_t->parent = parent;
@@ -1459,13 +1613,21 @@ VALUE shoes_canvas_set_cursor(VALUE self, VALUE name) {
 //
 VALUE shoes_canvas_get_clipboard(VALUE self) {
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
     return shoes_native_clipboard_get(self_t->app);
 }
 
 VALUE shoes_canvas_set_clipboard(VALUE self, VALUE string) {
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
     string = shoes_native_to_s(string);
     shoes_native_clipboard_set(self_t->app, string);
     return string;

@@ -114,7 +114,11 @@ VALUE shoes_layout_new(VALUE attr, VALUE parent) {
     VALUE canvas = shoes_slot_new(cFlow, attr, parent);
     lay->canvas = canvas;
     shoes_canvas *cvs;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(canvas, shoes_canvas, &shoes_canvas_type, cvs);
+#else
     Data_Get_Struct(canvas, shoes_canvas, cvs);
+#endif
     VALUE mgr;
     s_manager = rb_intern ("use");
     s_setup = rb_intern("setup");
@@ -184,7 +188,11 @@ VALUE shoes_layout_delete_at(int argc, VALUE *argv, VALUE self) {
 #endif
     VALUE canvas_obj = lay->canvas;
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(canvas_obj, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(canvas_obj, shoes_canvas, canvas);
+#endif
     rb_arg_list args;
     rb_parse_args(argc, argv, "i", &args); 
     long pos = NUM2LONG(args.a[0]);
@@ -239,7 +247,11 @@ VALUE shoes_layout_finish(int argc, VALUE *argv, VALUE self) {
   Data_Get_Struct(self, shoes_layout, lay);
 #endif
 	shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+	TypedData_Get_Struct(lay->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
 	Data_Get_Struct(lay->canvas, shoes_canvas, canvas);
+#endif
   if (canvas->layout_mgr != Qnil) {
 #ifdef NEW_MACRO_LAYOUT
     Get_TypedStruct2(canvas->layout_mgr, shoes_layout, ly);
@@ -267,7 +279,11 @@ VALUE shoes_layout_get_height(VALUE self) {
   Data_Get_Struct(self, shoes_layout, lay);
 #endif
 	shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+	TypedData_Get_Struct(lay->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
 	Data_Get_Struct(lay->canvas, shoes_canvas, canvas);
+#endif
   return INT2NUM(canvas->height);
   
 }
@@ -282,7 +298,11 @@ VALUE shoes_layout_get_width(VALUE self) {
   Data_Get_Struct(self, shoes_layout, lay);
 #endif
 	shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+	TypedData_Get_Struct(lay->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
 	Data_Get_Struct(lay->canvas, shoes_canvas, canvas);
+#endif
   return INT2NUM(canvas->width);
 }
 
@@ -310,7 +330,11 @@ VALUE shoes_layout_add_rules(int argc, VALUE *argv, VALUE self) {
   Data_Get_Struct(self, shoes_layout, lay);
 #endif
 	shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+	TypedData_Get_Struct(lay->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
 	Data_Get_Struct(lay->canvas, shoes_canvas, canvas);
+#endif
   VALUE rtn;
   if (! NIL_P(lay->delegate)) {
       ID s_rules = rb_intern("rules");
@@ -337,7 +361,11 @@ VALUE shoes_layout_append_constraints(int argc, VALUE *argv, VALUE self)
   if (lay->mgr != Layout_VFL)
     rb_raise(rb_eArgError, "not allowed for this layout manager");
   shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+  TypedData_Get_Struct(lay->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
   Data_Get_Struct(lay->canvas, shoes_canvas, canvas);
+#endif
   shoes_vfl_add_contraints(lay, canvas, argv[0]);
 }
 
@@ -354,7 +382,11 @@ VALUE shoes_layout_parse_vfl(int argc, VALUE *argv, VALUE self) {
   Data_Get_Struct(self, shoes_layout, lay);
 #endif
 	shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+	TypedData_Get_Struct(lay->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
 	Data_Get_Struct(lay->canvas, shoes_canvas, canvas);
+#endif
   VALUE rtn;
   if (lay->mgr == Layout_VFL)
     rtn = shoes_vfl_parse(lay, canvas, arg);
@@ -375,7 +407,11 @@ VALUE shoes_layout_get_constraints(int argc, VALUE *argv, VALUE self) {
     ashash = argv[0];
   if (lay->mgr == Layout_VFL) {
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(lay->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(lay->canvas, shoes_canvas, canvas);
+#endif
     if (NIL_P(ashash))
       return shoes_vfl_get_constraints(lay, canvas);
     else
@@ -404,7 +440,11 @@ void shoes_layout_size(shoes_canvas *canvas, int pass) {
   // Find a delegate or use the internal internal?
   if (lay->delegate != Qnil) {
     shoes_canvas *cvs;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(lay->canvas, shoes_canvas, &shoes_canvas_type, cvs);
+#else
     Data_Get_Struct(lay->canvas, shoes_canvas, cvs);
+#endif
     VALUE del = lay->delegate;
     rb_funcall(lay->delegate, s_size, 2, lay->canvas, INT2NUM(pass));
   } else {
@@ -431,7 +471,11 @@ void shoes_layout_add_ele(shoes_canvas *canvas, VALUE ele) {
     Data_Get_Struct(canvas->layout_mgr, shoes_layout, lay);
 #endif
     shoes_canvas *cvs;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(lay->canvas, shoes_canvas, &shoes_canvas_type, cvs);
+#else
     Data_Get_Struct(lay->canvas, shoes_canvas, cvs);
+#endif
     if (! NIL_P(lay->delegate)) {
       VALUE del = lay->delegate;
 			shoes_abstract *widget;

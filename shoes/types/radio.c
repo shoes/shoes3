@@ -37,7 +37,11 @@ VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual) {
       VALUE group = ATTR(self_t->attr, group);
       if (NIL_P(group)) {
         shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+        TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
+#else
         Data_Get_Struct(c, shoes_canvas, canvas);
+#endif
         ++shoes_app_serial_num;
         char buf[20];
         sprintf(buf, "grprad_%d", shoes_app_serial_num);
@@ -118,7 +122,11 @@ VALUE shoes_radio_group(VALUE self) {
         shoes_canvas *canvas;
         VALUE group = ATTR(self_t->attr, group);
         if (NIL_P(group)) group = self_t->parent;
+#ifdef NEW_MACRO_CANVAS
+        TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
         Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
         return shoes_hash_get(canvas->app->groups, group);
     }
     return Qnil;

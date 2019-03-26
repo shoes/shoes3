@@ -188,7 +188,11 @@ void shoes_http_request_free(shoes_http_request *req) {
 VALUE shoes_http_threaded(VALUE self, VALUE url, VALUE attr) {
     VALUE obj = shoes_http_new(cDownload, self, attr);
     shoes_canvas *self_t;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
+#else
     Data_Get_Struct(self, shoes_canvas, self_t);
+#endif
     char *url_string = NULL;
 
     if (!rb_respond_to(url, s_host)) {

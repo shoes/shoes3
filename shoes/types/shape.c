@@ -87,7 +87,11 @@ VALUE shoes_shape_new(VALUE parent, ID name, VALUE attr, shoes_transform *st, ca
     shoes_shape *path;
     Data_Get_Struct(obj, shoes_shape, path);
 #endif
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(parent, shoes_canvas, canvas);
+#endif
     path->parent = parent;
     path->attr = attr;
     path->name = name;
@@ -124,7 +128,11 @@ VALUE shoes_shape_draw(VALUE self, VALUE c, VALUE actual) {
     Data_Get_Struct(self, shoes_shape, self_t);
 #endif
     if (ATTR(self_t->attr, hidden) == Qtrue) return self;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
     shoes_place_exact(&place, self_t->attr, CPX(canvas), CPY(canvas));
 
     if (RTEST(actual))
@@ -272,7 +280,11 @@ VALUE shoes_shape_motion(VALUE self, int x, int y, char *touch) {
         if (in_shape) {
             if (!NIL_P(click)) {
                 shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+                TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
                 Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
                 shoes_app_cursor(canvas->app, s_link);
             }
             h = 1;

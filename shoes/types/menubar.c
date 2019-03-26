@@ -69,7 +69,11 @@ VALUE shoes_menubar_alloc(VALUE klass) {
 VALUE shoes_menubar_new(VALUE canvas) {
     shoes_app *app;
     shoes_canvas *cvs;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(canvas, shoes_canvas, &shoes_canvas_type, cvs);
+#else
     Data_Get_Struct(canvas, shoes_canvas, cvs);
+#endif
     app = cvs->app;
     if (NIL_P(app->menubar)) {
       // Should not happen in real life, but

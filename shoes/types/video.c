@@ -93,7 +93,11 @@ VALUE shoes_video_new(VALUE attr, VALUE parent) {
     /* getting surface dimensions, first try at video widget, then parent canvas, then video track size */
     // TODO: this needs review to make sure it does what was intended
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(video->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(video->parent, shoes_canvas, canvas);
+#endif
     if ( !RTEST(ATTR(attr, width)) ) {
         if ( RTEST(ATTR(canvas->attr, width)) ) {
             ATTRSET(attr, width, ATTR(canvas->attr, width));
@@ -148,7 +152,11 @@ VALUE shoes_video_draw(VALUE self, VALUE c, VALUE actual) {
     shoes_video *self_t;
     Data_Get_Struct(self, shoes_video, self_t);
 #endif
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(c, shoes_canvas, canvas);
+#endif
 
     shoes_place_decide(&place, c, self_t->attr, canvas->place.iw, canvas->place.ih, REL_CANVAS, TRUE);
     VALUE ck = rb_obj_class(c); // flow vs stack management in FINISH macro
@@ -265,7 +273,11 @@ VALUE shoes_video_remove(VALUE self) {
     Data_Get_Struct(self, shoes_video, self_t);
 #endif
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
 
     rb_ary_delete(canvas->contents, self);
 #ifdef SHOES_QUARTZ
@@ -347,7 +359,11 @@ VALUE shoes_canvas_video(int argc, VALUE *argv, VALUE self) {
     VALUE video = shoes_video_new(args.a[0], self);
 
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self, shoes_canvas, canvas);
+#endif
     cairo_t *cr;
     cr = CCR(canvas);
     if (canvas->insertion <= -1)

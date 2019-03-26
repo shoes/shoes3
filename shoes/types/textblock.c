@@ -153,7 +153,11 @@ VALUE shoes_textblock_new(VALUE klass, VALUE texts, VALUE attr, VALUE parent, sh
     shoes_textblock *text;
     Data_Get_Struct(obj, shoes_textblock, text);
 #endif
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(parent, shoes_canvas, canvas);
+#endif
     text->texts = shoes_text_check(texts, obj);
     text->attr = attr;
     text->parent = parent;
@@ -177,7 +181,11 @@ VALUE shoes_textblock_draw(VALUE self, VALUE c, VALUE actual) {
     shoes_textblock *self_t;
     Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(c, shoes_canvas, canvas);
+#endif
     cr = CCR(canvas);
 
     if (!NIL_P(self_t->attr) && ATTR(self_t->attr, hidden) == Qtrue)
@@ -502,7 +510,11 @@ VALUE shoes_textblock_string(VALUE self) {
     shoes_textblock *self_t;
     Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
     if (!self_t->cached || self_t->pattr == NULL)
         shoes_textblock_make_pango(canvas->app, rb_obj_class(self), self_t);
     return rb_str_new(self_t->text->str, self_t->text->len);
@@ -807,7 +819,11 @@ VALUE shoes_textblock_motion(VALUE self, int x, int y, char *t) {
         shoes_textblock *self_t;
         Data_Get_Struct(self, shoes_textblock, self_t);
 #endif
+#ifdef NEW_MACRO_CANVAS
+        TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
         Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
         shoes_app_cursor(canvas->app, s_link);
     }
     return url;

@@ -95,7 +95,11 @@ VALUE shoes_timer_draw(VALUE self, VALUE c, VALUE actual) {
     Data_Get_Struct(self, shoes_timer, self_t);
 #endif
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
     if (RTEST(actual) && self_t->started == ANIM_NADA) {
         self_t->frame = 0;
         shoes_timer_start(self);
@@ -141,7 +145,11 @@ VALUE shoes_timer_stop(VALUE self) {
 #endif
     if (self_t->started == ANIM_STARTED) {
         shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+        TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
         Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
         shoes_native_timer_remove(canvas, self_t->ref);
         self_t->started = ANIM_PAUSED;
     }
@@ -158,7 +166,11 @@ VALUE shoes_timer_start(VALUE self) {
     unsigned int interval = self_t->rate;
     if (self_t->started != ANIM_STARTED) {
         shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+        TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
+#else
         Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
+#endif
         self_t->ref = shoes_native_timer_start(self, canvas, interval);
         self_t->started = ANIM_STARTED;
     }

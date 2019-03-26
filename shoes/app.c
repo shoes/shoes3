@@ -103,7 +103,11 @@ VALUE shoes_apps_get(VALUE self) {
 static void shoes_app_clear(shoes_app *app) {
     shoes_ele_remove_all(app->extras);
 //  shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+//  TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
 //  Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
 //  shoes_extras_remove_all(canvas);
     shoes_canvas_clear(app->canvas);
     app->nestslot = Qnil;
@@ -637,7 +641,11 @@ shoes_code shoes_app_visit(shoes_app *app, char *path) {
     shoes_exec exec;
     shoes_canvas *canvas;
     VALUE meth;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
 
     canvas->slot->scrolly = 0;
     shoes_native_slot_clear(canvas);
@@ -735,7 +743,11 @@ VALUE shoes_app_set_event_handler(VALUE self, VALUE block) {
     Data_Get_Struct(self, shoes_app, app);
 #endif
     shoes_canvas *canvas; 
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(app->canvas, shoes_canvas, canvas); 
+#endif
     if (rb_obj_is_kind_of(block, rb_cProc)) {
       fprintf(stderr, "set app event handler\n");
       ATTRSET(canvas->attr, event, block);  
@@ -767,7 +779,11 @@ shoes_code shoes_app_motion(shoes_app *app, int x, int y, int mods) {
     if (app->use_event_handler) {
       VALUE evt = shoes_event_create_event(app, s_motion, 0, x, y, modifiers, Qnil);
       shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+      TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
@@ -805,7 +821,11 @@ shoes_code shoes_app_click(shoes_app *app, int button, int x, int y, int mods) {
     if (app->use_event_handler) {
       VALUE evt = shoes_event_create_event(app, s_click, button, x, y, modifiers, Qnil);
       shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+      TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
@@ -842,7 +862,11 @@ shoes_code shoes_app_release(shoes_app *app, int button, int x, int y, int mods)
     if (app->use_event_handler) {
       VALUE evt = shoes_event_create_event(app, s_release, button, x, y, modifiers, Qnil);
       shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+      TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
@@ -867,7 +891,11 @@ shoes_code shoes_app_wheel(shoes_app *app, ID dir, int x, int y, int mods) {
     VALUE sendevt = Qtrue;
     VALUE modifiers = Qnil;
     shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+    TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
     if (canvas->slot->vscroll) shoes_canvas_wheel_way(canvas, dir);
     if (mods & SHOES_MODIFY_CTRL) {
       if (mods & SHOES_MODIFY_SHIFT) 
@@ -881,7 +909,11 @@ shoes_code shoes_app_wheel(shoes_app *app, ID dir, int x, int y, int mods) {
     if (app->use_event_handler) {
       VALUE evt = shoes_event_create_event(app, s_wheel, (dir == s_up), x, y, modifiers, Qnil);
       shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+      TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
@@ -918,7 +950,11 @@ shoes_code shoes_app_keypress(shoes_app *app, VALUE key) {
       if (app->use_event_handler) {
         VALUE evt = shoes_event_new_key(cShoesEvent, s_keypress, key);
         shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+        TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
         Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
         VALUE event = ATTR(canvas->attr, event);  
         if (! NIL_P(event)) {
           shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
@@ -947,7 +983,11 @@ shoes_code shoes_app_keydown(shoes_app *app, VALUE key) {
     if (app->use_event_handler) {
       VALUE evt = shoes_event_new_key(cShoesEvent, s_keydown, key);
       shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+      TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
@@ -977,7 +1017,11 @@ shoes_code shoes_app_keyup(shoes_app *app, VALUE key) {
     if (app->use_event_handler) {
       VALUE evt = shoes_event_new_key(cShoesEvent, s_keyup, key);
       shoes_canvas *canvas;
+#ifdef NEW_MACRO_CANVAS
+      TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+#else
       Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+#endif
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
