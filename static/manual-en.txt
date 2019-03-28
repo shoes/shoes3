@@ -2453,7 +2453,22 @@ pixels high.
 Adds a radio button.  If a `group name` is given, the radio button is
 considered part of a group.  Among radio buttons in the same group, only one
 may be checked.  (If no group name is given, one is created that only
-contains this radio button. 
+contains this radio button.
+
+{{{
+ #!ruby
+Shoes.app do
+
+	radio(:one, left: 10, top: 10) 
+	radio(:one, left: 10, top: 30)
+	radio(:one, left: 10, top: 50)
+
+	radio(:two, left: 100, top: 10) 
+	radio(:two, left: 100, top: 30)
+	radio(:two, left: 100, top: 50)
+	
+end
+}}}
 
 === span(text) » Shoes::Span ===
 
