@@ -9,7 +9,7 @@
 #ifndef SHOES_DOWNLOAD_TYPE_H
 #define SHOES_DOWNLOAD_TYPE_H
 
-//#define NEW_MACRO_HTTP
+#define NEW_MACRO_HTTP
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;

@@ -6,7 +6,7 @@
 #ifndef SHOES_VIDEO_TYPE_H
 #define SHOES_VIDEO_TYPE_H
 
-//#define NEW_MACRO_VIDEO
+#define NEW_MACRO_VIDEO
 
 //#define SHOES_VIDEO 1
 

@@ -9,7 +9,7 @@
 #ifndef SHOES_MENUITEM_TYPE_H
 #define SHOES_MENUITEM_TYPE_H
 
-//#define NEW_MACRO_MENUITEM
+#define NEW_MACRO_MENUITEM
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cShoesMenuitem, cShoesMenu;

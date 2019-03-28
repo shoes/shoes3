@@ -8,7 +8,7 @@
 #ifndef SHOES_IMAGE_TYPE_H
 #define SHOES_IMAGE_TYPE_H
 
-//#define NEW_MACRO_IMAGE
+#define NEW_MACRO_IMAGE
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
@@ -82,7 +82,8 @@ VALUE shoes_canvas_blur(int, VALUE *, VALUE);
 VALUE shoes_canvas_glow(int, VALUE *, VALUE);
 VALUE shoes_canvas_shadow(int, VALUE *, VALUE);
 
-
+// todo: this macro only used in image.c and only once.
+/* 
 #define SHOES_IMAGE_PLACE(type, imw, imh, surf) \
   SETUP_DRAWING(shoes_##type, (REL_CANVAS | REL_SCALE), imw, imh); \
   VALUE ck = rb_obj_class(c); \
@@ -90,5 +91,5 @@ VALUE shoes_canvas_shadow(int, VALUE *, VALUE);
     shoes_image_draw_surface(CCR(canvas), self_t, &place, surf, imw, imh); \
   FINISH(); \
   return self;
-
+*/
 #endif

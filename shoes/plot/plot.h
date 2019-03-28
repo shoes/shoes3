@@ -17,8 +17,8 @@
 
 // shoes_plot and shoes_chart_series structs are defined in canvas.h
 
-//#define NEW_MACRO_CHARTSERIES
-//#define NEW_MACRO_PLOT
+#define NEW_MACRO_CHARTSERIES
+#define NEW_MACRO_PLOT
 
 #ifdef NEW_MACRO_CHARTSERIES
 extern const rb_data_type_t shoes_chart_series_type;

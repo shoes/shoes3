@@ -8,7 +8,7 @@
 #ifndef SHOES_TEXTBLOCK_TYPE_H
 #define SHOES_TEXTBLOCK_TYPE_H
 
-//#define NEW_MACRO_TEXTBLOCK
+#define NEW_MACRO_TEXTBLOCK
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
@@ -81,6 +81,34 @@ VALUE shoes_canvas_inscription(int argc, VALUE *argv, VALUE self);
   str = Qnil; \
   if (!NIL_P(oattr)) str = rb_hash_aref(oattr, ID2SYM(s_##name)); \
   if (!NIL_P(hsh) && NIL_P(str)) str = rb_hash_aref(hsh, ID2SYM(s_##name))
+
+// TODO: MARKUP_* macro belongs to either TextBlock or Text?
+#define MARKUP_BLOCK(klass) \
+  text = shoes_textblock_new(klass, msgs, attr, self, canvas->st); \
+  shoes_add_ele(canvas, text)
+
+#define MARKUP_INLINE(klass) \
+  text = shoes_text_new(klass, msgs, attr)
+  
+#define MARKUP_DEF(mname, fname, klass) \
+  VALUE \
+  shoes_canvas_##mname(int argc, VALUE *argv, VALUE self) \
+  { \
+    long i; \
+    VALUE msgs, attr, text; \
+    SETUP_CANVAS(); \
+    msgs = rb_ary_new(); \
+    attr = Qnil; \
+    for (i = 0; i < argc; i++) \
+    { \
+      if (rb_obj_is_kind_of(argv[i], rb_cHash)) \
+        attr = argv[i]; \
+      else \
+        rb_ary_push(msgs, argv[i]); \
+    } \
+    MARKUP_##fname(klass); \
+    return text; \
+  }
      
 #define APPLY_ATTR() \
   if (attr != NULL) { \
@@ -119,6 +147,7 @@ VALUE shoes_canvas_inscription(int argc, VALUE *argv, VALUE self);
     } \
     APPLY_ATTR(); \
   }
+  
 #endif
 
 #endif

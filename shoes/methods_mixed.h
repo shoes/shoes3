@@ -44,7 +44,10 @@ const rb_data_type_t wrapped##_type = { \
   { \
     VALUE canvas, obj; \
     shoes_canvas *self_t; \
-    Data_Get_Struct(self, shoes_canvas, self_t); \
+    if (RTYPEDDATA_P(self)) \
+      self_t = (shoes_canvas*)RTYPEDDATA_DATA(self); \
+    else \
+      self_t = (shoes_canvas*)rb_data_object_get(self); \
     char *n = name; \
     if (rb_ary_entry(self_t->app->nesting, 0) == self || \
          ((rb_obj_is_kind_of(self, cWidget) || self == self_t->app->nestslot) && \
@@ -64,7 +67,10 @@ const rb_data_type_t wrapped##_type = { \
     VALUE canvas; \
     char *n = name; \
     shoes_app *app; \
-    Data_Get_Struct(self, shoes_app, app); \
+    if (RTYPEDDATA_P(self)) \
+      app = (shoes_app*)RTYPEDDATA_DATA(self); \
+    else \
+      app = (shoes_app*)rb_data_object_get(self); \
     if (RARRAY_LEN(app->nesting) > 0) \
       canvas = rb_ary_entry(app->nesting, RARRAY_LEN(app->nesting) - 1); \
     else \
@@ -80,11 +86,18 @@ const rb_data_type_t wrapped##_type = { \
 #define SETUP_CONTROL_T(dh, dw, flex) \
   char *msg = ""; \
   int len = dw ? dw : 200; \
+  shoes_control *self_t; \
   shoes_canvas *canvas; \
   shoes_place place; \
   VALUE text = Qnil, ck = rb_obj_class(c); \
-  Get_TypedStruct2(self, shoes_control, self_t); \
-  Data_Get_Struct(c, shoes_canvas, canvas); \
+  if (RTYPEDDATA_P(self)) \
+    self_t = (shoes_control*)RTYPEDDATA_DATA(self); \
+  else \
+    self_t = (shoes_control*)rb_data_object_get(self); \
+  if (RTYPEDDATA_P(c)) \
+    canvas = (shoes_canvas *)RTYPEDDATA_DATA(c); \
+   else \
+    canvas = (shoes_canvas *)rb_data_object_get(c); \
   text = ATTR(self_t->attr, text); \
   if (!NIL_P(text)) { \
     text = shoes_native_to_s(text); \
@@ -100,8 +113,14 @@ const rb_data_type_t wrapped##_type = { \
   shoes_canvas *canvas; \
   shoes_place place; \
   VALUE text = Qnil, ck = rb_obj_class(c); \
-  Data_Get_Struct(self, shoes_control, self_t); \
-  Data_Get_Struct(c, shoes_canvas, canvas); \
+  if (RTYPEDDATA_P(self)) \
+    self_t = (shoes_control*)RTYPEDDATA_DATA(self); \
+  else \
+    self_t = (shoes_control*)rb_data_object_get(self); \
+  if (RTYPEDDATA_P(c)) \
+    canvas = (shoes_canvas *)RTYPEDDATA_DATA(c); \
+   else \
+    canvas = (shoes_canvas *)rb_data_object_get(c); \
   text = ATTR(self_t->attr, text); \
   if (!NIL_P(text)) { \
     text = shoes_native_to_s(text); \
@@ -117,8 +136,14 @@ const rb_data_type_t wrapped##_type = { \
   self_type *self_t; \
   shoes_place place; \
   shoes_canvas *canvas; \
-  Data_Get_Struct(self, self_type, self_t); \
-  Data_Get_Struct(c, shoes_canvas, canvas); \
+  if (RTYPEDDATA_P(self)) \
+    self_t = (self_type*)RTYPEDDATA_DATA(self); \
+  else \
+    self_t = (self_type*)rb_data_object_get(self); \
+  if (RTYPEDDATA_P(c)) \
+    canvas = (shoes_canvas *)RTYPEDDATA_DATA(c); \
+   else \
+    canvas = (shoes_canvas *)rb_data_object_get(c); \
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
   shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, REL_COORDS(rel) == REL_CANVAS)
 
@@ -283,6 +308,7 @@ const rb_data_type_t wrapped##_type = { \
     else \
       Data_Get_Struct(self, shoes_##ele, self_t); \
     long i; \
+    shoes_textblock *block_t; \
     VALUE texts, attr, block; \
     attr = Qnil; \
     texts = rb_ary_new(); \
@@ -296,7 +322,10 @@ const rb_data_type_t wrapped##_type = { \
     self_t->texts = texts; \
     if (!NIL_P(attr)) self_t->attr = attr; \
     block = shoes_find_textblock(self); \
-    Get_TypedStruct2(block, shoes_textblock, block_t); \
+    if (RTYPEDDATA_P(block)) \
+      TypedData_Get_Struct(block, shoes_textblock, RTYPEDDATA_TYPE(block), block_t); \
+    else \
+      Data_Get_Struct(block, shoes_textblock, block_t); \
     shoes_textblock_uncache(block_t, TRUE); \
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
@@ -326,7 +355,10 @@ const rb_data_type_t wrapped##_type = { \
     self_t->texts = texts; \
     if (!NIL_P(attr)) self_t->attr = attr; \
     block = shoes_find_textblock(self); \
-    Data_Get_Struct(block, shoes_textblock, block_t); \
+    if (RTYPEDDATA_P(block)) \
+      TypedData_Get_Struct(block, shoes_textblock, RTYPEDDATA_TYPE(block), block_t); \
+    else \
+      Data_Get_Struct(block, shoes_textblock, block_t); \
     shoes_textblock_uncache(block_t, TRUE); \
     shoes_canvas_repaint_all(self_t->parent); \
     return self; \
@@ -482,9 +514,15 @@ const rb_data_type_t wrapped##_type = { \
       Data_Get_Struct(self, shoes_##ele, self_t); \
     shoes_canvas *canvas = NULL; \
     if (!NIL_P(self_t->parent)) { \
-      Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
+      if (RTYPEDDATA_P(self_t->parent)) \
+        TypedData_Get_Struct(self_t->parent, shoes_canvas, RTYPEDDATA_TYPE(self_t->parent), canvas); \
+      else \
+        Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
     } else { \
-      Data_Get_Struct(self, shoes_canvas, canvas); \
+      if (RTYPEDDATA_P(self)) \
+        TypedData_Get_Struct(self, shoes_canvas, RTYPEDDATA_TYPE(self), canvas); \
+      else \
+        Data_Get_Struct(self, shoes_canvas, canvas); \
     } \
     return INT2NUM(self_t->place.x - CPX(canvas)); \
   } \
@@ -499,9 +537,15 @@ const rb_data_type_t wrapped##_type = { \
       Data_Get_Struct(self, shoes_##ele, self_t); \
     shoes_canvas *canvas = NULL; \
     if (!NIL_P(self_t->parent)) { \
-      Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
+      if (RTYPEDDATA_P(self_t->parent)) \
+        TypedData_Get_Struct(self_t->parent, shoes_canvas, RTYPEDDATA_TYPE(self_t->parent), canvas); \
+      else \
+        Data_Get_Struct(self_t->parent, shoes_canvas, canvas); \
     } else { \
-      Data_Get_Struct(self, shoes_canvas, canvas); \
+      if (RTYPEDDATA_P(self)) \
+        TypedData_Get_Struct(self, shoes_canvas, RTYPEDDATA_TYPE(self), canvas); \
+      else \
+        Data_Get_Struct(self, shoes_canvas, canvas); \
     } \
     return INT2NUM(self_t->place.y - CPY(canvas)); \
   } \
@@ -533,10 +577,17 @@ const rb_data_type_t wrapped##_type = { \
 // TODO change when canvas is converted
 //
 #define SETUP_DRAWING_T(self_type, rel, dw, dh) \
+  self_type *self_t; \
   shoes_place place; \
   shoes_canvas *canvas; \
-  Get_TypedStruct(self_type, self_t); \
-  Data_Get_Struct(c, shoes_canvas, canvas); \
+  if (RTYPEDDATA_P(self)) \
+    self_t = (self_type*)RTYPEDDATA_DATA(self); \
+  else \
+    self_t = (self_type*)rb_data_object_get(self); \
+  if (RTYPEDDATA_P(c)) \
+    canvas = (shoes_canvas *)RTYPEDDATA_DATA(c); \
+   else \
+    canvas = (shoes_canvas *)rb_data_object_get(c); \
   if (ATTR(self_t->attr, hidden) == Qtrue) return self; \
   shoes_place_decide(&place, c, self_t->attr, dw, dh, rel, REL_COORDS(rel) == REL_CANVAS)
 
@@ -552,7 +603,10 @@ const rb_data_type_t wrapped##_type = { \
 #define SETUP_IMAGE() \
   shoes_place place; \
   shoes_image *image; \
-  Data_Get_Struct(self, shoes_image, image); \
+  if (RTYPEDDATA_P(self)) \
+    image = (shoes_image*)RTYPEDDATA_DATA(self); \
+  else \
+    image = (shoes_image*)rb_data_object_get(self); \
   shoes_image_ensure_dup(image); \
   shoes_place_exact(&place, attr, 0, 0); \
   if (NIL_P(attr)) attr = image->attr; \

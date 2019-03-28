@@ -9,7 +9,7 @@
 #ifndef SHOES_EFFECT_TYPE_H
 #define SHOES_EFFECT_TYPE_H
 
-//#define NEW_MACRO_EFFECT
+#define NEW_MACRO_EFFECT
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;

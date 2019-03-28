@@ -81,6 +81,14 @@ typedef struct {
     Data_Get_Struct(ele, shoes_basic, basic); \
   }
   
+#define SETUP_SHAPE() \
+  shoes_canvas *canvas = NULL; \
+  VALUE c = shoes_find_canvas(self); \
+  if (RTYPEDDATA_P(c)) \
+    canvas = (shoes_canvas*)RTYPEDDATA_DATA(c); \
+  else \
+    canvas = (shoes_canvas*)rb_data_object_get(c); \
+   Data_Get_Struct(c, shoes_canvas, canvas)
 
     
 /* TODO: delete after macro transition
@@ -164,6 +172,7 @@ typedef struct {
     shoes_cached_image *image;
 } shoes_cache_entry;
 
+
 //
 // image struct
 //
@@ -179,6 +188,7 @@ typedef struct {
     VALUE path;
     char hover;
 } shoes_image;
+
 
 typedef struct {
     VALUE parent;
@@ -445,43 +455,6 @@ extern VALUE shoes_svg_motion(VALUE, int, int, char *);
 extern VALUE shoes_svg_send_click(VALUE, int, int, int);
 extern void shoes_svg_send_release(VALUE, int, int, int);
 
-// TODO: to be removed during refactoring
-extern VALUE shoes_text_new(VALUE klass, VALUE texts, VALUE attr);
-
 extern VALUE cNative, cPlot, cRadio, cShoesMenu, cShoesMenuitem, cShoesMenubar;
-
-
-// TODO: MARKUP_* macro belongs to either TextBlock or Text?
-#define MARKUP_BLOCK(klass) \
-  text = shoes_textblock_new(klass, msgs, attr, self, canvas->st); \
-  shoes_add_ele(canvas, text)
-
-#define MARKUP_INLINE(klass) \
-  text = shoes_text_new(klass, msgs, attr)
-  
-#define MARKUP_DEF(mname, fname, klass) \
-  VALUE \
-  shoes_canvas_##mname(int argc, VALUE *argv, VALUE self) \
-  { \
-    long i; \
-    VALUE msgs, attr, text; \
-    SETUP_CANVAS(); \
-    msgs = rb_ary_new(); \
-    attr = Qnil; \
-    for (i = 0; i < argc; i++) \
-    { \
-      if (rb_obj_is_kind_of(argv[i], rb_cHash)) \
-        attr = argv[i]; \
-      else \
-        rb_ary_push(msgs, argv[i]); \
-    } \
-    MARKUP_##fname(klass); \
-    return text; \
-  }
-
-#define SETUP_SHAPE() \
-  shoes_canvas *canvas = NULL; \
-  VALUE c = shoes_find_canvas(self); \
-  Data_Get_Struct(c, shoes_canvas, canvas)
   
 #endif

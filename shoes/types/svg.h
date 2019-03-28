@@ -8,8 +8,8 @@
 #ifndef SHOES_SVG_TYPE_H
 #define SHOES_SVG_TYPE_H
 
-//#define NEW_MACRO_SVG       // uncomment to use new macros for shoes_svg
-//#define NEW_MACRO_SVGHANDLE // uncomment to use new macros for shoes_svghandle
+#define NEW_MACRO_SVG       // uncomment to use new macros for shoes_svg
+#define NEW_MACRO_SVGHANDLE // uncomment to use new macros for shoes_svghandle
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;

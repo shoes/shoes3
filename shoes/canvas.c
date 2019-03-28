@@ -643,9 +643,8 @@ VALUE shoes_canvas_draw(VALUE self, VALUE c, VALUE actual) {
         }
 
         self_t->topy = canvas->cy;
-        
-        fprintf(stderr, "Widgets: %d, draw: %s\n", RARRAY_LEN(self_t->contents),
-            (actual == Qtrue)? "true" : "false");
+        //fprintf(stderr, "Widgets: %d, draw: %s\n", RARRAY_LEN(self_t->contents),
+        //    (actual == Qtrue)? "true" : "false");
             
         for (i = 0; i < RARRAY_LEN(self_t->contents); i++) {
             shoes_canvas *c1;

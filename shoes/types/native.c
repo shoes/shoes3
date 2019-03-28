@@ -326,15 +326,11 @@ VALUE shoes_control_is_here(VALUE self, int x, int y) {
 
 // canvas
 VALUE shoes_canvas_hide(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
-    Get_TypedStruct2(self, shoes_control, self_t);
-#else
     shoes_canvas *self_t;
 #ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
 #else
     Data_Get_Struct(self, shoes_canvas, self_t);
-#endif
 #endif
     ATTRSET(self_t->attr, hidden, Qtrue);
     shoes_canvas_ccall(self, shoes_control_temporary_hide, shoes_native_control_hide, 1);
@@ -343,15 +339,11 @@ VALUE shoes_canvas_hide(VALUE self) {
 }
 
 VALUE shoes_canvas_show(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
-    Get_TypedStruct2(self, shoes_control, self_t);
-#else
     shoes_canvas *self_t;
 #ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
 #else
     Data_Get_Struct(self, shoes_canvas, self_t);
-#endif
 #endif
     ATTRSET(self_t->attr, hidden, Qfalse);
     shoes_canvas_ccall(self, shoes_control_temporary_show, shoes_native_control_show, 1);

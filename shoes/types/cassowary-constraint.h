@@ -1,7 +1,7 @@
 #ifndef SHOES_CASSOWARY_TYPE_H
 #define SHOES_CASSOWARY_TYPE_H
 
-//#define NEW_MACRO_CASSOWARY
+#define NEW_MACRO_CASSOWARY
 
 typedef struct {
   VALUE target_object;

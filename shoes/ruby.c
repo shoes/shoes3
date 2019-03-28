@@ -782,9 +782,14 @@ void shoes_ruby_init() {
     //
     cTypes = rb_define_module("Shoes");
     rb_mod_remove_const(rb_cObject, rb_str_new2("Shoes"));
-
+    
+#ifdef NEW_MACRO_APP
+    cShoesWindow = rb_define_class_under(cTypes, "Window", rb_cData);
+    cMouse = rb_define_class_under(cTypes, "Mouse", rb_cData);
+#else
     cShoesWindow = rb_define_class_under(cTypes, "Window", rb_cObject);
     cMouse = rb_define_class_under(cTypes, "Mouse", rb_cObject);
+#endif
 #ifdef NEW_MACRO_CANVAS
     cCanvas = rb_define_class_under(cTypes, "Canvas", rb_cData);
 #else
@@ -866,6 +871,7 @@ void shoes_ruby_init() {
     
     /* Settings holds global values, not per app values. Part of shoes_world_t */
 #ifdef NEW_MACRO_SETTINGS
+    cSettings  = rb_define_class_under(cTypes, "Settings", rb_cData);
 #else
     cSettings  = rb_define_class_under(cTypes, "Settings", rb_cObject);
     rb_define_alloc_func(cSettings, shoes_settings_alloc);

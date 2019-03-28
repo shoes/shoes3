@@ -59,19 +59,6 @@ void shoes_http_klass_free(shoes_http_klass *dl) {
 TypedData_Type_New(shoes_http_klass);
 #endif
 
-VALUE shoes_http_new(VALUE klass, VALUE parent, VALUE attr) {
-    VALUE obj = shoes_http_alloc(klass);
-#ifdef NEW_MACRO_HTTP
-    Get_TypedStruct2(obj, shoes_http_klass, dl);
-#else
-    shoes_http_klass *dl;
-    Data_Get_Struct(obj, shoes_http_klass, dl);
-#endif
-    dl->parent = parent;
-    dl->attr = attr;
-    return obj;
-}
-
 VALUE shoes_http_alloc(VALUE klass) {
     VALUE obj;
     shoes_http_klass *dl = SHOE_ALLOC(shoes_http_klass);
@@ -86,6 +73,20 @@ VALUE shoes_http_alloc(VALUE klass) {
     dl->response = Qnil;
     return obj;
 }
+
+VALUE shoes_http_new(VALUE klass, VALUE parent, VALUE attr) {
+    VALUE obj = shoes_http_alloc(klass);
+#ifdef NEW_MACRO_HTTP
+    Get_TypedStruct2(obj, shoes_http_klass, dl);
+#else
+    shoes_http_klass *dl;
+    Data_Get_Struct(obj, shoes_http_klass, dl);
+#endif
+    dl->parent = parent;
+    dl->attr = attr;
+    return obj;
+}
+
 
 VALUE shoes_http_remove(VALUE self) {
 #ifdef NEW_MACRO_HTTP

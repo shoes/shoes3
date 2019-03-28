@@ -8,7 +8,7 @@
 #ifndef SHOES_COLOR_TYPE_H
 #define SHOES_COLOR_TYPE_H
 
-//#define NEW_MACRO_COLOR   // use ruby 2.4 macros
+#define NEW_MACRO_COLOR   // use ruby 2.4 macros
 
 /* extern variables necessary to communicate with other parts of Shoes */
 extern VALUE cShoes, cApp, cTypes, cCanvas, cWidget;
