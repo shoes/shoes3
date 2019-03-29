@@ -38,6 +38,7 @@ static void shoes_native_systray_gapp(char *title, char *message, char *path) {
   shoes_settings *st;
   Data_Get_Struct(shoes_world->settings, shoes_settings, st);
 #endif
+  char *nm = RSTRING_PTR(st->app_name);
   g_application_send_notification (G_APPLICATION(shoes_GtkApp), RSTRING_PTR(st->app_name), note);
 }
 #endif

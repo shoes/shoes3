@@ -28,7 +28,7 @@ SHOES_CONTROL_REF shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_pla
 #if 1
         GtkWidget *first = (GtkWidget *)lctrl->ref;
         ref = gtk_radio_button_new(NULL);
-        gtk_radio_button_join_group(ref, first);
+        gtk_radio_button_join_group((GtkRadioButton *)ref, (GtkRadioButton *)first);
 #else
         ref = gtk_radio_button_new(NULL);
         

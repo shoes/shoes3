@@ -17,7 +17,7 @@
 #include "shoes/code.h"
 #include <rsvg.h>
 
-//#define NEW_MACRO_CANVAS
+#define NEW_MACRO_CANVAS
 
 struct _shoes_app;
 
