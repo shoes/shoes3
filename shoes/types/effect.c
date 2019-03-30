@@ -8,12 +8,7 @@
 VALUE cEffect;
 
 void shoes_effect_init() {
-#ifdef NEW_MACRO_EFFECT
     cEffect   = rb_define_class_under(cTypes, "Effect", rb_cData);
-#else
-    cEffect   = rb_define_class_under(cTypes, "Effect", rb_cObject);
-    rb_define_alloc_func(cEffect, shoes_effect_alloc);
-#endif
     rb_define_method(cEffect, "draw", CASTHOOK(shoes_effect_draw), 2);
     rb_define_method(cEffect, "remove", CASTHOOK(shoes_basic_remove), 0);
 }
@@ -29,20 +24,14 @@ void shoes_effect_free(shoes_effect *fx) {
     RUBY_CRITICAL(free(fx));
 }
 
-#ifdef NEW_MACRO_EFFECT
 // creates struct shoes_effect_type
 TypedData_Type_New(shoes_effect);
-#endif
 
 VALUE shoes_effect_alloc(VALUE klass) {
     VALUE obj;
     shoes_effect *fx = SHOE_ALLOC(shoes_effect);
     SHOE_MEMZERO(fx, shoes_effect, 1);
-#ifdef NEW_MACRO_EFFECT
     obj = TypedData_Wrap_Struct(klass, &shoes_effect_type, fx);
-#else
-    obj = Data_Wrap_Struct(klass, shoes_effect_mark, shoes_effect_free, fx);
-#endif
     fx->attr = Qnil;
     fx->parent = Qnil;
 
@@ -51,18 +40,9 @@ VALUE shoes_effect_alloc(VALUE klass) {
 
 VALUE shoes_effect_new(ID name, VALUE attr, VALUE parent) {
     VALUE obj = shoes_effect_alloc(cEffect);
-#ifdef NEW_MACRO_EFFECT
     Get_TypedStruct2(obj, shoes_effect, fx);
-#else
-    shoes_effect *fx;
-    Data_Get_Struct(obj, shoes_effect, fx);
-#endif
     shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(parent, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-    Data_Get_Struct(parent, shoes_canvas, canvas);
-#endif
     fx->parent = parent;
     fx->attr = attr;
     fx->filter = shoes_effect_for_type(name);
@@ -278,20 +258,10 @@ static void shoes_layer_blur_filter(cairo_t *cr, VALUE attr, shoes_place *place,
     if (NIL_P(fill))
         cairo_set_source_rgb(cr2, 0., 0., 0.);
     else if (rb_obj_is_kind_of(fill, cColor)) {
-#ifdef NEW_MACRO_COLOR
         Get_TypedStruct2(fill, shoes_color, color);
-#else
-        shoes_color *color;
-        Data_Get_Struct(fill, shoes_color, color);
-#endif
         cairo_set_source_rgba(cr2, color->r / 255., color->g / 255., color->b / 255., color->a / 255.);
     } else {
-#ifdef NEW_MACRO_PATTERN
         Get_TypedStruct2(fill, shoes_pattern, pattern);
-#else
-        shoes_pattern *pattern;
-        Data_Get_Struct(fill, shoes_pattern, pattern);
-#endif
         cairo_set_source(cr2, PATTERN(pattern));
     }
     cairo_rectangle(cr2, 0, 0, width, height);

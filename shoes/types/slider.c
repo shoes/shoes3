@@ -5,11 +5,7 @@
 // ruby
 VALUE cSlider;
 
-#ifdef NEW_MACRO_APP
 FUNC_T("+slider", slider, -1);
-#else
-FUNC_M("+slider", slider, -1);
-#endif
 
 void shoes_slider_init() {
     cSlider  = rb_define_class_under(cTypes, "Slider", cNative);
@@ -24,11 +20,7 @@ void shoes_slider_init() {
 }
 
 VALUE shoes_slider_draw(VALUE self, VALUE c, VALUE actual) {
-#ifdef NEW_MACRO_CONTROL
     SETUP_CONTROL_T(0, 0, FALSE);
-#else
-    SETUP_CONTROL(0, 0, FALSE);
-#endif
     if (RTEST(actual)) {
         if (self_t->ref == NULL) {
             self_t->ref = shoes_native_slider(self, canvas, &place, self_t->attr, msg);
@@ -46,12 +38,7 @@ VALUE shoes_slider_draw(VALUE self, VALUE c, VALUE actual) {
 
 VALUE shoes_slider_get_fraction(VALUE self) {
     double perc = 0.;
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     if (self_t->ref != NULL)
         perc = shoes_native_slider_get_fraction(self_t->ref);
 
@@ -60,12 +47,7 @@ VALUE shoes_slider_get_fraction(VALUE self) {
 
 VALUE shoes_slider_set_fraction(VALUE self, VALUE _perc) {
     double perc = min(max(NUM2DBL(_perc), 0.0), 1.0);
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     if (self_t->ref != NULL)
         shoes_native_slider_set_fraction(self_t->ref, perc);
 

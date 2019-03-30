@@ -158,12 +158,7 @@ SHOES_CONTROL_REF shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_pl
           fgclr = shoes_color_parse(cColor, fgclr);  // convert string to cColor
         if (rb_obj_is_kind_of(fgclr, cColor)) 
         { 
-#ifdef NEW_MACRO_COLOR
           Get_TypedStruct2(fgclr, shoes_color, color); 
-#else
-          shoes_color *color; 
-          Data_Get_Struct(fgclr, shoes_color, color); 
-#endif
           guint16 red = color->r * 65535;
           guint16 green = color->g * 65535;
           guint16 blue = color->b * 65535;

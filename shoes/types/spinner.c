@@ -5,11 +5,7 @@
 // ruby
 VALUE cSpinner;
 
-#ifdef NEW_MACRO_APP
 FUNC_T("+spinner", spinner, -1);
-#else
-FUNC_M("+spinner", spinner, -1);
-#endif
 
 void shoes_spinner_init() {
     cSpinner  = rb_define_class_under(cTypes, "Spinner", cNative);
@@ -25,11 +21,7 @@ void shoes_spinner_init() {
 
 // ruby
 VALUE shoes_spinner_draw(VALUE self, VALUE c, VALUE actual) {
-#ifdef NEW_MACRO_CONTROL
     SETUP_CONTROL_T(0, 0, FALSE);
-#else
-    SETUP_CONTROL(0, 0, FALSE);
-#endif
     if (RTEST(actual)) {
         if (self_t->ref == NULL) {
             self_t->ref = shoes_native_spinner(self, canvas, &place, self_t->attr, msg);
@@ -45,34 +37,19 @@ VALUE shoes_spinner_draw(VALUE self, VALUE c, VALUE actual) {
 }
 
 VALUE shoes_spinner_start(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     shoes_native_spinner_start(self_t->ref);
     return self;
 }
 
 VALUE shoes_spinner_stop(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     shoes_native_spinner_stop(self_t->ref);
     return self;
 }
 
 VALUE shoes_spinner_started(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     return (shoes_native_spinner_started(self_t->ref) ? Qtrue : Qfalse);
 }
 

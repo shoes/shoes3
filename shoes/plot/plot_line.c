@@ -14,24 +14,14 @@ void shoes_plot_draw_datapts(cairo_t *cr, shoes_plot *plot) {
     bottom = plot->graph_h;
     for (i = 0; i < plot->seriescnt; i++) {
         VALUE rbser = rb_ary_entry(plot->series, i);
-#ifdef NEW_MACRO_CHARTSERIES
         Get_TypedStruct2(rbser, shoes_chart_series, cs);
-#else
-        shoes_chart_series *cs;
-        Data_Get_Struct(rbser, shoes_chart_series, cs);
-#endif
         VALUE rbvalues = cs->values;
         VALUE rbmaxv = cs->maxv;
         double maximum = NUM2DBL(rbmaxv);
         VALUE rbminv = cs->minv;
         double minimum = NUM2DBL(rbminv);
         int strokew = NUM2INT(cs->strokes);
-#ifdef NEW_MACRO_COLOR
         Get_TypedStruct2(cs->color, shoes_color, color);
-#else
-        shoes_color *color;
-        Data_Get_Struct(cs->color, shoes_color, color);
-#endif
         /*
         VALUE rbvalues = rb_ary_entry(plot->values, i);
         VALUE rbmaxv = rb_ary_entry(plot->maxvs, i);

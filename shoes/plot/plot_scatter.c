@@ -17,14 +17,8 @@ void shoes_plot_draw_scatter_pts(cairo_t *cr, shoes_plot *plot) {
     VALUE rbxser, rbyser;
     rbxser = rb_ary_entry(plot->series, 0);
     rbyser = rb_ary_entry(plot->series, 1);
-#ifdef NEW_MACRO_CHARTSERIES
     Get_TypedStruct2(rbxser, shoes_chart_series, serx);
     Get_TypedStruct2(rbyser, shoes_chart_series, sery);
-#else
-    shoes_chart_series *serx, *sery;
-    Data_Get_Struct(rbxser, shoes_chart_series, serx);
-    Data_Get_Struct(rbyser, shoes_chart_series, sery);
-#endif
     double xmax = NUM2DBL(serx->maxv);
     double ymax = NUM2DBL(sery->maxv);
     double xmin = NUM2DBL(serx->minv);
@@ -34,12 +28,7 @@ void shoes_plot_draw_scatter_pts(cairo_t *cr, shoes_plot *plot) {
     VALUE rbstroke = serx->strokes;
     int strokew = NUM2INT(rbstroke);
     if (strokew < 1) strokew = 1;
-#ifdef NEW_MACRO_COLOR
     Get_TypedStruct2(shcolor, shoes_color, color);
-#else
-    shoes_color *color;
-    Data_Get_Struct(shcolor, shoes_color, color);
-#endif
     int obvs = RARRAY_LEN(serx->values);
     for (i = 0; i < obvs; i++) {
         double xval, yval;
@@ -89,14 +78,8 @@ static void shoes_plot_scatter_ticks_and_labels(cairo_t *cr, shoes_plot *plot) {
     VALUE rbserx, rbsery;
     rbserx = rb_ary_entry(plot->series, 0);
     rbsery = rb_ary_entry(plot->series, 1);
-#ifdef NEW_MACRO_CHARTSERIES
     Get_TypedStruct2(rbserx, shoes_chart_series, serx);
     Get_TypedStruct2(rbsery, shoes_chart_series, sery);
-#else
-    shoes_chart_series *serx, *sery;
-    Data_Get_Struct(rbserx, shoes_chart_series, serx);
-    Data_Get_Struct(rbsery, shoes_chart_series, sery);
-#endif
     double xmax = NUM2DBL(serx->maxv);
     double ymax = NUM2DBL(sery->maxv);
     double xmin = NUM2DBL(serx->minv);
@@ -171,14 +154,8 @@ void shoes_plot_scatter_legend(cairo_t *cr, shoes_plot *plot) {
     VALUE rbserx, rbsery;
     rbserx = rb_ary_entry(plot->series, 0);
     rbsery = rb_ary_entry(plot->series, 1);
-#ifdef NEW_MACRO_CHARTSERIES
     Get_TypedStruct2(rbserx, shoes_chart_series, serx);
     Get_TypedStruct2(rbsery, shoes_chart_series, sery);
-#else
-    shoes_chart_series *serx, *sery;
-    Data_Get_Struct(rbserx, shoes_chart_series, serx);
-    Data_Get_Struct(rbsery, shoes_chart_series, sery);
-#endif
     int legend_width = 0;
     int x, y;
 
@@ -197,12 +174,7 @@ void shoes_plot_scatter_legend(cairo_t *cr, shoes_plot *plot) {
     y = yoffset;
 
     int baseline = bottom - 5; //TODO: compute baseline better
-#ifdef NEW_MACRO_COLOR
     Get_TypedStruct2(serx->color, shoes_color, color);
-#else
-    shoes_color *color;
-    Data_Get_Struct(serx->color, shoes_color, color);
-#endif
     cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
                           color->b / 255.0, color->a / 255.0);
     cairo_move_to(cr, x, baseline);
@@ -218,11 +190,7 @@ void shoes_plot_scatter_legend(cairo_t *cr, shoes_plot *plot) {
     pango_layout_set_font_description (y_layout, plot->legend_pfd);
     pango_layout_set_text (y_layout, ystr, -1);
     pango_layout_get_pixel_extents (y_layout, NULL, &logical);
-#ifdef NEW_MACRO_COLOR
     color = Get_TypedStruct3(serx->color, shoes_color);
-#else
-    Data_Get_Struct(sery->color, shoes_color, color);
-#endif
     cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
                           color->b / 255.0, color->a / 255.0);
     // since we're drawing text vertically, compute text placement differently

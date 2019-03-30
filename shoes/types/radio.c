@@ -5,11 +5,7 @@
 // ruby
 VALUE cRadio;
 
-#ifdef NEW_MACRO_APP
 FUNC_T("+radio", radio, -1);
-#else
-FUNC_M("+radio", radio, -1);
-#endif
 
 void shoes_radio_init() {
     cRadio  = rb_define_class_under(cTypes, "Radio", cNative);
@@ -27,21 +23,13 @@ void shoes_radio_init() {
 extern int shoes_app_serial_num;
 
 VALUE shoes_radio_draw(VALUE self, VALUE c, VALUE actual) {
-#ifdef NEW_MACRO_CONTROL
   SETUP_CONTROL_T(0, 20, FALSE);
-#else
-  SETUP_CONTROL(0, 20, FALSE);
-#endif
   if (RTEST(actual)) {
     if (self_t->ref == NULL) {
       VALUE group = ATTR(self_t->attr, group);
       if (NIL_P(group)) {
         shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
         TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-        Data_Get_Struct(c, shoes_canvas, canvas);
-#endif
         ++shoes_app_serial_num;
         char buf[20];
         sprintf(buf, "grprad_%d", shoes_app_serial_num);
@@ -112,21 +100,12 @@ void shoes_radio_button_click(VALUE control) {
 #endif
 
 VALUE shoes_radio_group(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     if (!NIL_P(self_t->parent)) {
         shoes_canvas *canvas;
         VALUE group = ATTR(self_t->attr, group);
         if (NIL_P(group)) group = self_t->parent;
-#ifdef NEW_MACRO_CANVAS
         TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-        Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-#endif
         return shoes_hash_get(canvas->app->groups, group);
     }
     return Qnil;
@@ -144,12 +123,7 @@ static int shoes_radio_group_keys(VALUE key, VALUE val, VALUE arg) {
     SHOES_CONTROL_REF ref = (SHOES_CONTROL_REF)arg;
     for (int i = 0; i < RARRAY_LEN(val); i++) {
       VALUE entry = rb_ary_entry(val, i);
-#ifdef NEW_MACRO_CONTROL
       Get_TypedStruct2(entry, shoes_control, ctrl);
-#else
-      shoes_control *ctrl;
-      Data_Get_Struct(entry, shoes_control, ctrl);
-#endif
       if ( ctrl->ref == ref) {
         //printf("FOUND RADIO in group\n");
         rb_ary_delete_at(val, i);

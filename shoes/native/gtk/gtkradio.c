@@ -19,12 +19,7 @@ SHOES_CONTROL_REF shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_pla
         VALUE leader = rb_ary_entry(group, 0);
         if (NIL_P(leader))
           fprintf(stderr,"No control in group hash");
-#ifdef NEW_MACRO_CONTROL
         Get_TypedStruct2(leader, shoes_control, lctrl);
-#else
-        shoes_control *lctrl;
-        Data_Get_Struct(leader, shoes_control, lctrl);
-#endif
 #if 1
         GtkWidget *first = (GtkWidget *)lctrl->ref;
         ref = gtk_radio_button_new(NULL);

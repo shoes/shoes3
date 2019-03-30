@@ -38,20 +38,14 @@ void shoes_cassowary_constraint_mark(shoes_cassowary_constraint *ct) {
 static void shoes_cassowary_constraint_free(shoes_cassowary_constraint *ct) {
   RUBY_CRITICAL(SHOE_FREE(ct));
 }
-#ifdef NEW_MACRO_CASSOWARY
 TypedData_Type_New(shoes_cassowary_constraint);
-#endif
 
 VALUE shoes_cassowary_constraint_alloc(VALUE klass) {
   //fprintf(stderr,"shoes_cassowary_constraint_alloc called\n");
   VALUE obj;
   shoes_cassowary_constraint *ct = SHOE_ALLOC(shoes_cassowary_constraint);
   SHOE_MEMZERO(ct, shoes_cassowary_constraint, 1);
-#ifdef NEW_MACRO_CASSOWARY
   obj = TypedData_Wrap_Struct(klass, &shoes_cassowary_constraint_type, ct);
-#else
-  obj = Data_Wrap_Struct(klass, shoes_cassowary_constraint_mark, shoes_cassowary_constraint_free, ct);
-#endif
   // init fields 
   ct->target_object = Qnil;
   ct->target_attr = Qnil;
@@ -71,12 +65,7 @@ VALUE shoes_cassowary_constraint_alloc(VALUE klass) {
 VALUE shoes_cassowary_constraint_new(int argc, VALUE *argv, VALUE self) {
   fprintf(stderr, "shoes_cassowary_constraint_new called\n");
   VALUE obj = shoes_cassowary_constraint_alloc(cCassowaryconstraint);
-#ifdef NEW_MACRO_CASSOWARY
   Get_TypedStruct2(obj, shoes_cassowary_constraint, ct);
-#else
-  shoes_cassowary_constraint *ct;
-  Data_Get_Struct(obj, shoes_cassowary_constraint, ct);
-#endif
   if (argc == 8) {
     ct->target_object = argv[0];
     ct->target_attr = argv[1];

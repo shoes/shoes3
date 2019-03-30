@@ -40,10 +40,8 @@ static void shoes_app_free(shoes_app *app) {
     RUBY_CRITICAL(free(app));
 }
 
-#ifdef NEW_MACRO_APP
 // creates struct shoes_app_type
 TypedData_Type_New(shoes_app);
-#endif
 
 // This is different from all other object creation. why? 
 VALUE shoes_app_alloc(VALUE klass) {
@@ -81,11 +79,7 @@ VALUE shoes_app_alloc(VALUE klass) {
     app->monitor = -1;
     app->id = 0;
     app->scratch = cairo_create(cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1));
-#ifdef NEW_MACRO_APP
     app->self = TypedData_Wrap_Struct(klass, &shoes_app_type, app);
-#else
-    app->self = Data_Wrap_Struct(klass, shoes_app_mark, shoes_app_free, app);
-#endif
     rb_extend_object(app->self, cTypes);
     return app->self;
 }
@@ -103,11 +97,7 @@ VALUE shoes_apps_get(VALUE self) {
 static void shoes_app_clear(shoes_app *app) {
     shoes_ele_remove_all(app->extras);
 //  shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
 //  TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-//  Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-#endif
 //  shoes_extras_remove_all(canvas);
     shoes_canvas_clear(app->canvas);
     app->nestslot = Qnil;
@@ -140,12 +130,7 @@ VALUE shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner) {
     VALUE attr = Qnil;
     VALUE app = shoes_app_new(self == cDialog ? cDialog : cApp);
     char *url = "/";
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     switch (rb_parse_args(argc, argv, "h,s|h,", &args)) {
         case 1:
             attr = args.a[0];
@@ -165,12 +150,7 @@ VALUE shoes_app_window(int argc, VALUE *argv, VALUE self, VALUE owner) {
     if (RTEST(ATTR(attr,title)))
       app_t->title = ATTR(attr, title);
     else {
-#ifdef NEW_MACRO_SETTINGS
       Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
-#else
-      shoes_settings *st;
-      Data_Get_Struct(shoes_world->settings, shoes_settings, st);
-#endif
       app_t->title = st->app_name;
     }
 #endif 
@@ -213,64 +193,34 @@ VALUE shoes_app_main(int argc, VALUE *argv, VALUE self) {
 }
 
 VALUE shoes_app_slot(VALUE app) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     return app_t->nestslot;
 }
 
 VALUE shoes_app_get_width(VALUE app) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     return INT2NUM(app_t->width);
 }
 
 VALUE shoes_app_get_height(VALUE app) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     return INT2NUM(app_t->height);
 }
 
 VALUE shoes_app_get_window_x_position(VALUE app) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     shoes_native_app_get_window_position(app_t);
     return INT2NUM(app_t->x);
 }
 
 VALUE shoes_app_get_window_y_position(VALUE app) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     shoes_native_app_get_window_position(app_t);
     return INT2NUM(app_t->y);
 }
 
 VALUE shoes_app_set_window_position(VALUE app, VALUE x, VALUE y) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     app_t->x = NUM2INT(x);
     app_t->y = NUM2INT(y);
     shoes_native_app_window_move(app_t, app_t->x, app_t->y);
@@ -279,31 +229,16 @@ VALUE shoes_app_set_window_position(VALUE app, VALUE x, VALUE y) {
 
 VALUE shoes_app_set_icon(VALUE app, VALUE icon_path) {
     char *path;
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     path = RSTRING_PTR(icon_path);
-#ifdef NEW_MACRO_SETTINGS
     Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
-#else
-    shoes_settings *st;
-    Data_Get_Struct(shoes_world->settings, shoes_settings, st);
-#endif
     st->icon_path = icon_path;  // Watch out, this could be ABS path
     shoes_native_app_set_icon(app_t, path);
     return Qtrue;
 }
 
 VALUE shoes_app_resize_window(VALUE app, VALUE width, VALUE height) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     app_t->width = NUM2INT(width);
     app_t->height = NUM2INT(height);
     shoes_native_app_resize_window(app_t);
@@ -311,22 +246,12 @@ VALUE shoes_app_resize_window(VALUE app, VALUE width, VALUE height) {
 }
 
 VALUE shoes_app_get_resizable(VALUE app) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     return shoes_native_get_resizable(app_t) ? Qtrue : Qfalse;
 }
 
 VALUE shoes_app_set_resizable(VALUE app, VALUE resizable) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     shoes_native_set_resizable(app_t, app_t->resizable = RTEST(resizable));
     return resizable;
 }
@@ -334,19 +259,9 @@ VALUE shoes_app_set_resizable(VALUE app, VALUE resizable) {
 // TODO deprecate this in Ruby
 VALUE shoes_app_set_wtitle(VALUE app, VALUE title) {
     char *wtitle;
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     app_t->title = title;
-#ifdef NEW_MACRO_SETTINGS
     Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
-#else
-    shoes_settings *st;
-    Data_Get_Struct(shoes_world->settings, shoes_settings, st);
-#endif
     st->app_name = title;
     wtitle = RSTRING_PTR(title);
     shoes_native_app_title(app_t, wtitle);
@@ -354,22 +269,12 @@ VALUE shoes_app_set_wtitle(VALUE app, VALUE title) {
 }
 
 VALUE shoes_app_get_title(VALUE app) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     return app_t->title;
 }
 
 VALUE shoes_app_set_title(VALUE app, VALUE title) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     if (!NIL_P(title)) {
       app_t->title = title;
       // api change 3.3.7: really change the visible title
@@ -383,12 +288,7 @@ void shoes_app_title(shoes_app *app, VALUE title) {
     if (!NIL_P(title))
         app->title = title;
     else {
-#ifdef NEW_MACRO_SETTINGS
         Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
-#else
-        shoes_settings *st;
-        Data_Get_Struct(shoes_world->settings, shoes_settings, st);
-#endif
       app->title = st->app_name;
     }
     msg = RSTRING_PTR(app->title);
@@ -397,33 +297,18 @@ void shoes_app_title(shoes_app *app, VALUE title) {
 
 
 VALUE shoes_app_get_fullscreen(VALUE app) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     return app_t->fullscreen ? Qtrue : Qfalse;
 }
 
 VALUE shoes_app_set_fullscreen(VALUE app, VALUE yn) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     shoes_native_app_fullscreen(app_t, app_t->fullscreen = RTEST(yn));
     return yn;
 }
 
 VALUE shoes_app_set_opacity(VALUE app, VALUE opacity) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     app_t->opacity = NUM2DBL(opacity);
 
     if ((0.0 <= app_t->opacity) && (1.0 >= app_t->opacity))
@@ -433,34 +318,19 @@ VALUE shoes_app_set_opacity(VALUE app, VALUE opacity) {
 }
 
 VALUE shoes_app_get_opacity(VALUE app) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     return DBL2NUM(shoes_native_app_get_opacity(app_t));
 }
 
 
 VALUE shoes_app_set_decoration(VALUE app, VALUE decorated) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     shoes_native_app_set_decoration(app_t, (decorated != Qfalse));
     return Qtrue;
 }
 
 VALUE shoes_app_get_decoration(VALUE app) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(app, shoes_app, app_t);
-#else
-    shoes_app *app_t;
-    Data_Get_Struct(app, shoes_app, app_t);
-#endif
     return (shoes_native_app_get_decoration(app_t) ? Qtrue : Qfalse);
 }
 
@@ -499,12 +369,7 @@ shoes_code shoes_app_start(VALUE allapps, char *uri) {
 
     for (i = 0; i < RARRAY_LEN(allapps); i++) {
         VALUE appobj2 = rb_ary_entry(allapps, i);
-#ifdef NEW_MACRO_APP
         Get_TypedStruct2(appobj2, shoes_app, app);
-#else
-        shoes_app *app;
-        Data_Get_Struct(appobj2, shoes_app, app);
-#endif
         if (!app->started) {
             code = shoes_app_open(app, uri);
             app->started = TRUE;
@@ -519,12 +384,7 @@ shoes_code shoes_app_start(VALUE allapps, char *uri) {
 shoes_code shoes_app_open(shoes_app *app, char *path) {
     shoes_code code = SHOES_OK;
     int dialog = (rb_obj_class(app->self) == cDialog);
-#ifdef NEW_MACRO_SETTINGS
     Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
-#else
-    shoes_settings *st;
-    Data_Get_Struct(shoes_world->settings, shoes_settings, st);
-#endif
     
     if (st->use_menus == Qtrue) {
       app->have_menu = 1;   
@@ -542,11 +402,7 @@ shoes_code shoes_app_open(shoes_app *app, char *path) {
 #ifndef MTITTLE
     shoes_app_title(app, app->title);
 #else
-#ifdef NEW_MACRO_SETTINGS
     st = Get_TypedStruct3(shoes_world->settings, shoes_settings);
-#else
-    Data_Get_Struct(shoes_world->settings, shoes_settings, st);
-#endif
     shoes_app_title(app, st->app_name);
 #endif
     if (app->slot != NULL)
@@ -641,11 +497,7 @@ shoes_code shoes_app_visit(shoes_app *app, char *path) {
     shoes_exec exec;
     shoes_canvas *canvas;
     VALUE meth;
-#ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-    Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-#endif
 
     canvas->slot->scrolly = 0;
     shoes_native_slot_clear(canvas);
@@ -736,18 +588,9 @@ void shoes_hash_debug(VALUE attr) {
 }
 
 VALUE shoes_app_set_event_handler(VALUE self, VALUE block) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(self, shoes_app, app);
-#else
-    shoes_app *app;
-    Data_Get_Struct(self, shoes_app, app);
-#endif
     shoes_canvas *canvas; 
-#ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-    Data_Get_Struct(app->canvas, shoes_canvas, canvas); 
-#endif
     if (rb_obj_is_kind_of(block, rb_cProc)) {
       fprintf(stderr, "set app event handler\n");
       ATTRSET(canvas->attr, event, block);  
@@ -779,20 +622,11 @@ shoes_code shoes_app_motion(shoes_app *app, int x, int y, int mods) {
     if (app->use_event_handler) {
       VALUE evt = shoes_event_create_event(app, s_motion, 0, x, y, modifiers, Qnil);
       shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-#endif
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
-#ifdef NEW_MACRO_EVENT
         Get_TypedStruct2(evt, shoes_event, tevent);
-#else
-        shoes_event *tevent;
-        Data_Get_Struct(evt, shoes_event, tevent);
-#endif
         sendevt = shoes_event_contrain_TF(tevent->accept);
       } else {
         fprintf(stderr, "click: don't have event - but should - dump hash\n");
@@ -821,20 +655,11 @@ shoes_code shoes_app_click(shoes_app *app, int button, int x, int y, int mods) {
     if (app->use_event_handler) {
       VALUE evt = shoes_event_create_event(app, s_click, button, x, y, modifiers, Qnil);
       shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-#endif
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
-#ifdef NEW_MACRO_EVENT
         Get_TypedStruct2(evt, shoes_event, tevent);
-#else
-        shoes_event *tevent;
-        Data_Get_Struct(evt, shoes_event, tevent);
-#endif
         sendevt = shoes_event_contrain_TF(tevent->accept);
       } else {
         fprintf(stderr, "click: don't have event - but should - dump hash\n");
@@ -862,20 +687,11 @@ shoes_code shoes_app_release(shoes_app *app, int button, int x, int y, int mods)
     if (app->use_event_handler) {
       VALUE evt = shoes_event_create_event(app, s_release, button, x, y, modifiers, Qnil);
       shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-#endif
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
-#ifdef NEW_MACRO_EVENT
         Get_TypedStruct2(evt, shoes_event, tevent);
-#else
-        shoes_event *tevent;
-        Data_Get_Struct(evt, shoes_event, tevent);
-#endif
         sendevt = shoes_event_contrain_TF(tevent->accept);
       } else {
         fprintf(stderr, "release: doen't have event - but should - dump hash\n");
@@ -891,11 +707,7 @@ shoes_code shoes_app_wheel(shoes_app *app, ID dir, int x, int y, int mods) {
     VALUE sendevt = Qtrue;
     VALUE modifiers = Qnil;
     shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-    Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-#endif
     if (canvas->slot->vscroll) shoes_canvas_wheel_way(canvas, dir);
     if (mods & SHOES_MODIFY_CTRL) {
       if (mods & SHOES_MODIFY_SHIFT) 
@@ -909,20 +721,11 @@ shoes_code shoes_app_wheel(shoes_app *app, ID dir, int x, int y, int mods) {
     if (app->use_event_handler) {
       VALUE evt = shoes_event_create_event(app, s_wheel, (dir == s_up), x, y, modifiers, Qnil);
       shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-#endif
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
-#ifdef NEW_MACRO_EVENT
         Get_TypedStruct2(evt, shoes_event, tevent);
-#else
-        shoes_event *tevent;
-        Data_Get_Struct(evt, shoes_event, tevent);
-#endif
         sendevt = shoes_event_contrain_TF(tevent->accept);
       } else {
         fprintf(stderr, "wheel: doen't have event - but should - dump hash\n");
@@ -950,20 +753,11 @@ shoes_code shoes_app_keypress(shoes_app *app, VALUE key) {
       if (app->use_event_handler) {
         VALUE evt = shoes_event_new_key(cShoesEvent, s_keypress, key);
         shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
         TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-        Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-#endif
         VALUE event = ATTR(canvas->attr, event);  
         if (! NIL_P(event)) {
           shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
-#ifdef NEW_MACRO_EVENT
           Get_TypedStruct2(evt, shoes_event, tevent);
-#else
-          shoes_event *tevent;
-          Data_Get_Struct(evt, shoes_event, tevent);
-#endif
           sendevt = shoes_event_contrain_TF(tevent->accept);
         } else {
           fprintf(stderr, "keypress: doen't have event - but should - dump hash\n");
@@ -983,20 +777,11 @@ shoes_code shoes_app_keydown(shoes_app *app, VALUE key) {
     if (app->use_event_handler) {
       VALUE evt = shoes_event_new_key(cShoesEvent, s_keydown, key);
       shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-#endif
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
-#ifdef NEW_MACRO_EVENT
         Get_TypedStruct2(evt, shoes_event, tevent);
-#else
-        shoes_event *tevent;
-        Data_Get_Struct(evt, shoes_event, tevent);
-#endif
         sendevt = shoes_event_contrain_TF(tevent->accept);
       } else {
         fprintf(stderr, "keydown: doen't have event - but should - dump hash\n");
@@ -1017,20 +802,11 @@ shoes_code shoes_app_keyup(shoes_app *app, VALUE key) {
     if (app->use_event_handler) {
       VALUE evt = shoes_event_new_key(cShoesEvent, s_keyup, key);
       shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-      Data_Get_Struct(app->canvas, shoes_canvas, canvas);
-#endif
       VALUE event = ATTR(canvas->attr, event);  
       if (! NIL_P(event)) {
         shoes_safe_block(app->canvas, event, rb_ary_new3(1, evt));
-#ifdef NEW_MACRO_EVENT
         Get_TypedStruct2(evt, shoes_event, tevent);
-#else
-        shoes_event *tevent;
-        Data_Get_Struct(evt, shoes_event, tevent);
-#endif
         sendevt = shoes_event_contrain_TF(tevent->accept);
       } else {
         fprintf(stderr, "keyup: doen't have event - but should - dump hash\n");
@@ -1102,12 +878,7 @@ debug_value(VALUE obj) {
 #endif
 
 VALUE shoes_app_replay_event(VALUE self, VALUE evh) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(self, shoes_app, self_t);
-#else
-    shoes_app *self_t;
-    Data_Get_Struct(self, shoes_app, self_t);
-#endif
    VALUE btn, vx, vy, mods, type, vobj;
   btn = shoes_hash_get(evh, rb_intern("button"));
   vx = shoes_hash_get(evh, rb_intern("x"));
@@ -1216,32 +987,17 @@ VALUE shoes_app_close_window(shoes_app *app) {
 }
 
 VALUE shoes_app_location(VALUE self) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(self, shoes_app, app);
-#else
-    shoes_app *app;
-    Data_Get_Struct(self, shoes_app, app);
-#endif
     return app->location;
 }
 
 VALUE shoes_app_is_started(VALUE self) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(self, shoes_app, app);
-#else
-    shoes_app *app;
-    Data_Get_Struct(self, shoes_app, app);
-#endif
     return app->started ? Qtrue : Qfalse;
 }
 
 VALUE shoes_app_contents(VALUE self) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(self, shoes_app, app);
-#else
-    shoes_app *app;
-    Data_Get_Struct(self, shoes_app, app);
-#endif
     return shoes_canvas_contents(app->canvas);
 }
 
@@ -1332,22 +1088,12 @@ VALUE shoes_app_terminal(int argc, VALUE *argv, VALUE self) {
 /* -------     monitor     ------ */
 
 VALUE shoes_app_monitor_get(VALUE self) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(self, shoes_app, app);
-#else
-    shoes_app *app;
-    Data_Get_Struct(self, shoes_app, app);
-#endif
   return INT2NUM(shoes_native_monitor_get(app));
 }
 
 VALUE shoes_app_monitor_set(VALUE self, VALUE mon) {
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(self, shoes_app, app);
-#else
-    shoes_app *app;
-    Data_Get_Struct(self, shoes_app, app);
-#endif
   app->monitor = NUM2INT(mon);
   shoes_native_monitor_set(app);
   return INT2NUM(app->monitor);
@@ -1356,12 +1102,7 @@ VALUE shoes_app_monitor_set(VALUE self, VALUE mon) {
 /* ----------- app id (serial number) -------*/
 VALUE shoes_app_id(VALUE self) {
   char buf[10];
-#ifdef NEW_MACRO_APP
     Get_TypedStruct2(self, shoes_app, app);
-#else
-    shoes_app *app;
-    Data_Get_Struct(self, shoes_app, app);
-#endif
   sprintf(buf,"AppID%d", app->id);
   return rb_str_new2(buf);
 }

@@ -7,23 +7,14 @@
 // ruby
 VALUE cShape;
 
-#ifdef NEW_MACRO_APP
 FUNC_T("+shape", shape, -1);
-#else
-FUNC_M("+shape", shape, -1);
-#endif
 
 PLACE_COMMON(shape);
 CLASS_COMMON2(shape);
 TRANS_COMMON(shape, 1);
 
 void shoes_shape_init() {
-#ifdef NEW_MACRO_SHAPE
     cShape    = rb_define_class_under(cTypes, "Shape", rb_cData);    
-#else
-    cShape    = rb_define_class_under(cTypes, "Shape", rb_cObject);    
-    rb_define_alloc_func(cShape, shoes_shape_alloc);
-#endif    
     rb_define_method(cShape, "app", CASTHOOK(shoes_canvas_get_app), 0);
     rb_define_method(cShape, "displace", CASTHOOK(shoes_shape_displace), 2);
     rb_define_method(cShape, "draw", CASTHOOK(shoes_shape_draw), 2);
@@ -58,20 +49,14 @@ void shoes_shape_free(shoes_shape *path) {
     RUBY_CRITICAL(free(path));
 }
 
-#ifdef NEW_MACRO_SHAPE
 // creates struct shoes_shape_type
 TypedData_Type_New(shoes_shape);
-#endif
 
 VALUE shoes_shape_alloc(VALUE klass) {
     VALUE obj;
     shoes_shape *shape = SHOE_ALLOC(shoes_shape);
     SHOE_MEMZERO(shape, shoes_shape, 1);
-#ifdef NEW_MACRO_SHAPE
     obj = TypedData_Wrap_Struct(klass, &shoes_shape_type, shape);
-#else
-    obj = Data_Wrap_Struct(klass, shoes_shape_mark, shoes_shape_free, shape);
-#endif
     shape->attr = Qnil;
     shape->parent = Qnil;
     shape->line = NULL;
@@ -81,17 +66,8 @@ VALUE shoes_shape_alloc(VALUE klass) {
 VALUE shoes_shape_new(VALUE parent, ID name, VALUE attr, shoes_transform *st, cairo_path_t *line) {
     shoes_canvas *canvas;
     VALUE obj = shoes_shape_alloc(cShape);
-#ifdef NEW_MACRO_SHAPE
     Get_TypedStruct2(obj, shoes_shape,  path);
-#else
-    shoes_shape *path;
-    Data_Get_Struct(obj, shoes_shape, path);
-#endif
-#ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(parent, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-    Data_Get_Struct(parent, shoes_canvas, canvas);
-#endif
     path->parent = parent;
     path->attr = attr;
     path->name = name;
@@ -121,18 +97,9 @@ VALUE shoes_shape_attr(int argc, VALUE *argv, int syms, ...) {
 VALUE shoes_shape_draw(VALUE self, VALUE c, VALUE actual) {
     shoes_canvas *canvas;
     shoes_place place;
-#ifdef NEW_MACRO_SHAPE
     Get_TypedStruct2(self, shoes_shape, self_t);
-#else
-    shoes_shape *self_t;
-    Data_Get_Struct(self, shoes_shape, self_t);
-#endif
     if (ATTR(self_t->attr, hidden) == Qtrue) return self;
-#ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-    Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-#endif
     shoes_place_exact(&place, self_t->attr, CPX(canvas), CPY(canvas));
 
     if (RTEST(actual))
@@ -256,12 +223,7 @@ void shoes_shape_sketch(cairo_t *cr, ID name, shoes_place *place, shoes_transfor
 VALUE shoes_shape_motion(VALUE self, int x, int y, char *touch) {
     char h = 0;
     VALUE click;
-#ifdef NEW_MACRO_SHAPE
     Get_TypedStruct2(self, shoes_shape, self_t);
-#else
-    shoes_shape *self_t;
-    Data_Get_Struct(self, shoes_shape, self_t);
-#endif
     click = ATTR(self_t->attr, click);
 
     if (IS_INSIDE(self_t, x, y)) {
@@ -280,11 +242,7 @@ VALUE shoes_shape_motion(VALUE self, int x, int y, char *touch) {
         if (in_shape) {
             if (!NIL_P(click)) {
                 shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
                 TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-                Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-#endif
                 shoes_app_cursor(canvas->app, s_link);
             }
             h = 1;
@@ -301,12 +259,7 @@ VALUE shoes_shape_send_click(VALUE self, int button, int x, int y) {
     VALUE v = Qnil;
 
     if (button > 0) {
-#ifdef NEW_MACRO_SHAPE
       Get_TypedStruct2(self, shoes_shape, self_t);
-#else
-      shoes_shape *self_t;
-      Data_Get_Struct(self, shoes_shape, self_t);
-#endif
       v = shoes_shape_motion(self, x, y, NULL);
         if (self_t->hover & HOVER_MOTION)
             self_t->hover = HOVER_MOTION | HOVER_CLICK;
@@ -316,12 +269,7 @@ VALUE shoes_shape_send_click(VALUE self, int button, int x, int y) {
 }
 
 void shoes_shape_send_release(VALUE self, int button, int x, int y) {
-#ifdef NEW_MACRO_SHAPE
     Get_TypedStruct2(self, shoes_shape, self_t);
-#else
-    shoes_shape *self_t;
-    Data_Get_Struct(self, shoes_shape, self_t);
-#endif
     if (button > 0 && (self_t->hover & HOVER_CLICK)) {
         VALUE proc = ATTR(self_t->attr, release);
         self_t->hover ^= HOVER_CLICK;
@@ -331,12 +279,7 @@ void shoes_shape_send_release(VALUE self, int button, int x, int y) {
 }
 
 VALUE shoes_shape_event_is_here(VALUE self, int x, int y) {
-#ifdef NEW_MACRO_SHAPE
   Get_TypedStruct2(self, shoes_shape, shp);
-#else
-  shoes_shape *shp;
-  Data_Get_Struct(self, shoes_shape, shp);
-#endif
   if (IS_INSIDE(shp, x, y)) 
     return Qtrue;
   else 

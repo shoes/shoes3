@@ -4,11 +4,7 @@
 // ruby
 VALUE cEditLine;
 
-#ifdef NEW_MACRO_APP
 FUNC_T("+edit_line", edit_line, -1);
-#else
-FUNC_M("+edit_line", edit_line, -1);
-#endif
 
 void shoes_edit_line_init() {
     cEditLine  = rb_define_class_under(cTypes, "EditLine", cNative);
@@ -25,24 +21,14 @@ void shoes_edit_line_init() {
 }
 
 VALUE shoes_edit_line_get_text(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
    if (self_t->ref == NULL) return Qnil;
     return shoes_native_edit_line_get_text(self_t->ref);
 }
 
 VALUE shoes_edit_line_set_text(VALUE self, VALUE text) {
     char *msg = "";
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     if (!NIL_P(text)) {
         text = shoes_native_to_s(text);
         ATTRSET(self_t->attr, text, text);
@@ -55,12 +41,7 @@ VALUE shoes_edit_line_set_text(VALUE self, VALUE text) {
 // cjc: added in Shoes 3.2.15
 VALUE shoes_edit_line_enterkey(VALUE self, VALUE proc) {
     // store the proc in the attr
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     if (!NIL_P(proc)) {
         ATTRSET(self_t->attr, donekey, proc);
     }
@@ -68,22 +49,13 @@ VALUE shoes_edit_line_enterkey(VALUE self, VALUE proc) {
 }
 
 VALUE shoes_edit_line_cursor_to_end(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     shoes_native_edit_line_cursor_to_end(self_t->ref);
     return Qnil;
 }
 
 VALUE shoes_edit_line_draw(VALUE self, VALUE c, VALUE actual) {
-#ifdef NEW_MACRO_CONTROL
     SETUP_CONTROL_T(0, 0, FALSE);
-#else
-    SETUP_CONTROL(0, 0, FALSE);
-#endif
 
 #ifdef SHOES_QUARTZ
     // cjc 2015-03-15  only change h, ih

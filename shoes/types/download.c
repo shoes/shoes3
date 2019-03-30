@@ -4,11 +4,7 @@
 // ruby
 VALUE cDownload, cResponse;
 
-#ifdef NEW_MACRO_APP
 FUNC_T("+download", download, -1);
-#else
-FUNC_M("+download", download, -1);
-#endif
 
 EVENT_COMMON(http, http_klass, start);
 EVENT_COMMON(http, http_klass, progress);
@@ -16,12 +12,7 @@ EVENT_COMMON(http, http_klass, finish);
 EVENT_COMMON(http, http_klass, error);
 
 void shoes_download_init() {
-#ifdef NEW_MACRO_HTTP
     cDownload   = rb_define_class_under(cTypes, "Download", rb_cData);
-#else
-    cDownload   = rb_define_class_under(cTypes, "Download", rb_cObject);
-    rb_define_alloc_func(cDownload, shoes_http_alloc);
-#endif
     rb_define_method(cDownload, "abort", CASTHOOK(shoes_http_abort), 0);
     rb_define_method(cDownload, "finish", CASTHOOK(shoes_http_finish), -1);
     rb_define_method(cDownload, "remove", CASTHOOK(shoes_http_remove), 0);
@@ -54,20 +45,14 @@ void shoes_http_klass_free(shoes_http_klass *dl) {
     RUBY_CRITICAL(free(dl));
 }
 
-#ifdef NEW_MACRO_HTTP
 // creates struct shoes_http_klass_type
 TypedData_Type_New(shoes_http_klass);
-#endif
 
 VALUE shoes_http_alloc(VALUE klass) {
     VALUE obj;
     shoes_http_klass *dl = SHOE_ALLOC(shoes_http_klass);
     SHOE_MEMZERO(dl, shoes_http_klass, 1);
-#ifdef NEW_MACRO_HTTP
     obj = TypedData_Wrap_Struct(klass, &shoes_http_klass_type, dl);
-#else
-    obj = Data_Wrap_Struct(klass, shoes_http_klass_mark, shoes_http_klass_free, dl);
-#endif
     dl->parent = Qnil;
     dl->attr = Qnil;
     dl->response = Qnil;
@@ -76,12 +61,7 @@ VALUE shoes_http_alloc(VALUE klass) {
 
 VALUE shoes_http_new(VALUE klass, VALUE parent, VALUE attr) {
     VALUE obj = shoes_http_alloc(klass);
-#ifdef NEW_MACRO_HTTP
     Get_TypedStruct2(obj, shoes_http_klass, dl);
-#else
-    shoes_http_klass *dl;
-    Data_Get_Struct(obj, shoes_http_klass, dl);
-#endif
     dl->parent = parent;
     dl->attr = attr;
     return obj;
@@ -89,24 +69,14 @@ VALUE shoes_http_new(VALUE klass, VALUE parent, VALUE attr) {
 
 
 VALUE shoes_http_remove(VALUE self) {
-#ifdef NEW_MACRO_HTTP
     Get_TypedStruct2(self, shoes_http_klass, self_t);
-#else
-    shoes_http_klass *self_t;
-    Data_Get_Struct(self, shoes_http_klass, self_t);
-#endif
     self_t->state = SHOES_DOWNLOAD_HALT;
     shoes_canvas_remove_item(self_t->parent, self, 0, 1);
     return self;
 }
 
 VALUE shoes_http_abort(VALUE self) {
-#ifdef NEW_MACRO_HTTP
     Get_TypedStruct2(self, shoes_http_klass, self_t);
-#else
-    shoes_http_klass *self_t;
-    Data_Get_Struct(self, shoes_http_klass, self_t);
-#endif
     self_t->state = SHOES_DOWNLOAD_HALT;
     return self;
 }
@@ -114,12 +84,7 @@ VALUE shoes_http_abort(VALUE self) {
 int shoes_message_download(VALUE self, void *data) {
     VALUE proc = Qnil;
     shoes_http_event *de = (shoes_http_event *)data;
-#ifdef NEW_MACRO_HTTP
     Get_TypedStruct2(self, shoes_http_klass, dl);
-#else
-    shoes_http_klass *dl;
-    Data_Get_Struct(self, shoes_http_klass, dl);
-#endif
     INFO("EVENT: %d (%d), %lu, %llu, %llu\n", (int)de->stage, (int)de->error, de->percent,
          de->transferred, de->total);
 
@@ -189,11 +154,7 @@ void shoes_http_request_free(shoes_http_request *req) {
 VALUE shoes_http_threaded(VALUE self, VALUE url, VALUE attr) {
     VALUE obj = shoes_http_new(cDownload, self, attr);
     shoes_canvas *self_t;
-#ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
-#else
-    Data_Get_Struct(self, shoes_canvas, self_t);
-#endif
     char *url_string = NULL;
 
     if (!rb_respond_to(url, s_host)) {
@@ -254,42 +215,22 @@ VALUE shoes_http_threaded(VALUE self, VALUE url, VALUE attr) {
 }
 
 VALUE shoes_http_length(VALUE self) {
-#ifdef NEW_MACRO_HTTP
     Get_TypedStruct2(self, shoes_http_klass, dl);
-#else
-    shoes_http_klass *dl;
-    Data_Get_Struct(self, shoes_http_klass, dl);
-#endif
     return rb_ull2inum(dl->total);
 }
 
 VALUE shoes_http_percent(VALUE self) {
-#ifdef NEW_MACRO_HTTP
     Get_TypedStruct2(self, shoes_http_klass, dl);
-#else
-    shoes_http_klass *dl;
-    Data_Get_Struct(self, shoes_http_klass, dl);
-#endif
     return rb_uint2inum(dl->percent);
 }
 
 VALUE shoes_http_response(VALUE self) {
-#ifdef NEW_MACRO_HTTP
     Get_TypedStruct2(self, shoes_http_klass, dl);
-#else
-    shoes_http_klass *dl;
-    Data_Get_Struct(self, shoes_http_klass, dl);
-#endif
     return dl->response;
 }
 
 VALUE shoes_http_transferred(VALUE self) {
-#ifdef NEW_MACRO_HTTP
     Get_TypedStruct2(self, shoes_http_klass, dl);
-#else
-    shoes_http_klass *dl;
-    Data_Get_Struct(self, shoes_http_klass, dl);
-#endif
     return rb_ull2inum(dl->transferred);
 }
 

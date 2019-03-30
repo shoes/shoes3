@@ -407,11 +407,7 @@ void shoes_place_exact(shoes_place *place, VALUE attr, int ox, int oy) {
 
 void shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh, unsigned char rel, int padded) {
     shoes_canvas *canvas = NULL;
-#ifdef NEW_MACRO_CANVAS
     if (!NIL_P(c)) TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-    if (!NIL_P(c)) Data_Get_Struct(c, shoes_canvas, canvas);
-#endif
     VALUE ck = rb_obj_class(c);
     VALUE stuck = ATTR(attr, attach);
 
@@ -609,11 +605,7 @@ void shoes_extras_remove_all(shoes_canvas *canvas) {
         if (!NIL_P(ele)) {
             //Data_Get_Struct(ele, shoes_basic, basic);
             SETUP_BASIC_T(ele);
-#ifdef NEW_MACRO_CANVAS
             TypedData_Get_Struct(basic->parent, shoes_canvas, &shoes_canvas_type, parent);
-#else
-            Data_Get_Struct(basic->parent, shoes_canvas, parent);
-#endif
             if (parent == canvas) {
                 rb_funcall(ele, s_remove, 0);
                 rb_ary_delete_at(canvas->app->extras, i);
@@ -661,15 +653,7 @@ VALUE shoes_app_method_missing(int argc, VALUE *argv, VALUE self) {
   VALUE cname, canvas;
   //GET_STRUCT(app, app);
   /* TODO Temporary while fixing TypedData new API */
-#ifdef NEW_MACRO_APP
   Get_TypedStruct2(self, shoes_app, app);
-#else
-  shoes_app* app;
-  if (RTYPEDDATA_P(self))
-    app = (shoes_app*)RTYPEDDATA_DATA(self);
-  else 
-    app = (shoes_app*)rb_data_object_get(self);
-#endif
   cname = argv[0];
   /*
   if (TYPE(cname) == T_SYMBOL) {
@@ -783,19 +767,9 @@ void shoes_ruby_init() {
     cTypes = rb_define_module("Shoes");
     rb_mod_remove_const(rb_cObject, rb_str_new2("Shoes"));
     
-#ifdef NEW_MACRO_APP
     cShoesWindow = rb_define_class_under(cTypes, "Window", rb_cData);
     cMouse = rb_define_class_under(cTypes, "Mouse", rb_cData);
-#else
-    cShoesWindow = rb_define_class_under(cTypes, "Window", rb_cObject);
-    cMouse = rb_define_class_under(cTypes, "Mouse", rb_cObject);
-#endif
-#ifdef NEW_MACRO_CANVAS
     cCanvas = rb_define_class_under(cTypes, "Canvas", rb_cData);
-#else
-    cCanvas = rb_define_class_under(cTypes, "Canvas", rb_cObject);
-    rb_define_alloc_func(cCanvas, shoes_canvas_alloc);
-#endif
     rb_define_method(cCanvas, "top", CASTHOOK(shoes_canvas_get_top), 0);
     rb_define_method(cCanvas, "left", CASTHOOK(shoes_canvas_get_left), 0);
     rb_define_method(cCanvas, "width", CASTHOOK(shoes_canvas_get_width), 0);
@@ -832,12 +806,7 @@ void shoes_ruby_init() {
     rb_const_set(cTypes, rb_intern("HALF_PI"), rb_float_new(SHOES_HALFPI));
     rb_const_set(cTypes, rb_intern("PI"), rb_float_new(SHOES_PI));
     
-#ifdef NEW_MACRO_APP  
     cApp = rb_define_class_under(cTypes, "App", rb_cData);
-#else
-    cApp = rb_define_class_under(cTypes, "App", rb_cObject);
-    rb_define_alloc_func(cApp, shoes_app_alloc);
-#endif
     rb_define_method(cApp, "fullscreen", CASTHOOK(shoes_app_get_fullscreen), 0);
     rb_define_method(cApp, "fullscreen=", CASTHOOK(shoes_app_set_fullscreen), 1);
     rb_define_method(cApp, "name", CASTHOOK(shoes_app_get_title), 0);
@@ -870,12 +839,7 @@ void shoes_ruby_init() {
     rb_define_method(cApp, "id", CASTHOOK(shoes_app_id), 0);
     
     /* Settings holds global values, not per app values. Part of shoes_world_t */
-#ifdef NEW_MACRO_SETTINGS
     cSettings  = rb_define_class_under(cTypes, "Settings", rb_cData);
-#else
-    cSettings  = rb_define_class_under(cTypes, "Settings", rb_cObject);
-    rb_define_alloc_func(cSettings, shoes_settings_alloc);
-#endif
     rb_define_method(cSettings, "dbus", CASTHOOK(shoes_settings_dbus),0);
     rb_define_method(cSettings, "app_name", CASTHOOK(shoes_settings_app_name),0);
     rb_define_method(cSettings, "app_name=", CASTHOOK(shoes_settings_set_app_name),1);

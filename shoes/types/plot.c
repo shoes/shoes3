@@ -5,25 +5,15 @@
 // ruby
 VALUE cPlot, cChartSeries;
 
-#ifdef NEW_MACRO_APP
 FUNC_T("+plot", plot, -1);
 FUNC_T("+chart_series", chart_series, -1);
-#else
-FUNC_M("+plot", plot, -1);
-FUNC_M("+chart_series", chart_series, -1);
-#endif
 
 // The next two macros are very important for new widget writers.
 CLASS_COMMON2(plot)
 TRANS_COMMON(plot, 1);
 
 void shoes_plot_init() {
-#ifdef NEW_MACRO_PLOT
     cPlot   = rb_define_class_under(cTypes, "Plot", rb_cData);
-#else
-    cPlot   = rb_define_class_under(cTypes, "Plot", rb_cObject);
-    rb_define_alloc_func(cPlot, shoes_plot_alloc);
-#endif
     // methods unique to plot
     rb_define_method(cPlot, "add", CASTHOOK(shoes_plot_add), 1);
     rb_define_method(cPlot, "redraw_to", CASTHOOK(shoes_plot_redraw_to), 1);
@@ -62,12 +52,7 @@ void shoes_plot_init() {
     rb_define_method(cPlot, "rotate", CASTHOOK(shoes_plot_rotate), 1);
     rb_define_method(cPlot, "scale", CASTHOOK(shoes_plot_scale), -1);
     rb_define_method(cPlot, "skew", CASTHOOK(shoes_plot_skew), -1);
-#ifdef NEW_MACRO_CHARTSERIES
     cChartSeries = rb_define_class_under(cTypes, "chart_series", rb_cData);
-#else
-    cChartSeries = rb_define_class_under(cTypes, "chart_series", rb_cObject);
-    rb_define_alloc_func(cChartSeries, shoes_chart_series_alloc);
-#endif
     //  simple getters/setters
     rb_define_method(cChartSeries, "values", CASTHOOK(shoes_chart_series_values), 0);
     rb_define_method(cChartSeries, "labels", CASTHOOK(shoes_chart_series_labels), 0);

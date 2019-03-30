@@ -15,12 +15,7 @@ void shoes_plot_pie_init(shoes_plot *plot) {
     pie_chart_t *piechart = malloc(sizeof(pie_chart_t));
     plot->c_things = (void *)piechart;
     VALUE cs = rb_ary_entry(plot->series, 0);
-#ifdef NEW_MACRO_CHARTSERIES
     Get_TypedStruct2(cs, shoes_chart_series, ser);
-#else
-    shoes_chart_series *ser;
-    Data_Get_Struct(cs, shoes_chart_series, ser);
-#endif
     int numobs = RARRAY_LEN(ser->values);
     piechart->count = numobs;
     pie_slice_t *slices = (pie_slice_t *)malloc(sizeof(pie_slice_t) * numobs);
@@ -49,11 +44,7 @@ void shoes_plot_pie_init(shoes_plot *plot) {
         slice->endAngle = 2 * (angle + fraction) * SHOES_PI;
         //VALUE wedge_color = shoes_plot_pie_color(i);
         VALUE wedge_color = rb_ary_entry(plot->default_colors, i);
-#ifdef NEW_MACRO_COLOR
         slice->color = Get_TypedStruct3(wedge_color, shoes_color);
-#else
-        Data_Get_Struct(wedge_color, shoes_color, slice->color);
-#endif
     }
 }
 
@@ -144,12 +135,7 @@ void shoes_plot_draw_pie_legend(cairo_t *cr, shoes_plot *self_t) {
     int i;
     if (self_t->seriescnt != 1) return;
     VALUE cs = rb_ary_entry(self_t->series, 0);
-#ifdef NEW_MACRO_CHARTSERIES
     Get_TypedStruct2(cs, shoes_chart_series, ser);
-#else
-    shoes_chart_series *ser;
-    Data_Get_Struct(cs, shoes_chart_series, ser);
-#endif
     int numstrs = RARRAY_LEN(ser->labels);
     VALUE rbobs = ser->labels;
     PangoLayout *layouts[numstrs];
@@ -178,12 +164,7 @@ void shoes_plot_draw_pie_legend(cairo_t *cr, shoes_plot *self_t) {
     for (i = 0; i < numstrs; i++) {
         cairo_move_to(cr, box_x, box_y);
         VALUE rbcolor = rb_ary_entry(self_t->default_colors, i);
-#ifdef NEW_MACRO_COLOR
         Get_TypedStruct2(rbcolor, shoes_color, color);
-#else
-        shoes_color *color;
-        Data_Get_Struct(rbcolor, shoes_color, color);
-#endif
         cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
                               color->b / 255.0, color->a / 255.0);
         pango_cairo_show_layout(cr, layouts[i]);

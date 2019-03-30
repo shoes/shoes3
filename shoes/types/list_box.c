@@ -5,11 +5,7 @@
 // ruby
 VALUE cListBox;
 
-#ifdef NEW_MACRO_APP
 FUNC_T("+list_box", list_box, -1);
-#else
-FUNC_M("+list_box", list_box, -1);
-#endif 
 
 void shoes_list_box_init() {
     cListBox  = rb_define_class_under(cTypes, "ListBox", cNative);
@@ -27,12 +23,7 @@ void shoes_list_box_init() {
 
 VALUE shoes_list_box_choose(VALUE self, VALUE item) {
     VALUE items = Qnil;
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     ATTRSET(self_t->attr, choose, item);
     if (self_t->ref == NULL) return self;
 
@@ -43,35 +34,20 @@ VALUE shoes_list_box_choose(VALUE self, VALUE item) {
 }
 
 VALUE shoes_list_box_text(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     if (self_t->ref == NULL) return Qnil;
     return shoes_native_list_box_get_active(self_t->ref, ATTR(self_t->attr, items));
 }
 
 VALUE shoes_list_box_items_get(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     return ATTR(self_t->attr, items);
 }
 
 VALUE shoes_list_box_items_set(VALUE self, VALUE items) {
     VALUE opt = shoes_list_box_text(self);
 
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     if (!rb_obj_is_kind_of(items, rb_cArray))
         rb_raise(rb_eArgError, "ListBox items must be an array.");
     ATTRSET(self_t->attr, items, items);
@@ -82,11 +58,7 @@ VALUE shoes_list_box_items_set(VALUE self, VALUE items) {
 }
 
 VALUE shoes_list_box_draw(VALUE self, VALUE c, VALUE actual) {
-#ifdef NEW_MACRO_CONTROL
     SETUP_CONTROL_T(0, 0, TRUE);
-#else
-    SETUP_CONTROL(0, 0, TRUE);
-#endif
 #ifdef SHOES_QUARTZ
     place.h += 4;
     place.ih += 4;

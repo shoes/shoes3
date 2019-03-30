@@ -17,12 +17,7 @@ EVENT_COMMON(control, control, change);
 
 // Many widgets depend on cNative, so initialization needs to be triggered first.
 void shoes_0_native_type_init() {
-#ifdef NEW_MACRO_CONTROL
     cNative  = rb_define_class_under(cTypes, "Native", rb_cData);
-#else
-    cNative  = rb_define_class_under(cTypes, "Native", rb_cObject);
-    rb_define_alloc_func(cNative, shoes_control_alloc);
-#endif    
     rb_define_method(cNative, "app", CASTHOOK(shoes_canvas_get_app), 0);
     rb_define_method(cNative, "parent", CASTHOOK(shoes_control_get_parent), 0);
     rb_define_method(cNative, "style", CASTHOOK(shoes_control_style), -1);
@@ -51,22 +46,16 @@ void shoes_control_free(shoes_control *control) {
     RUBY_CRITICAL(free(control));
 }
 
-#ifdef NEW_MACRO_CONTROL
 // creates struct shoes_control_type
 TypedData_Type_New(shoes_control);
 //#undef Data_Get_Struct
 #undef Data_Wrap_Struct
-#endif
 
 VALUE shoes_control_alloc(VALUE klass) {
     VALUE obj;
     shoes_control *control = SHOE_ALLOC(shoes_control);
     SHOE_MEMZERO(control, shoes_control, 1);
-#ifdef NEW_MACRO_CONTROL
     obj = TypedData_Wrap_Struct(klass, &shoes_control_type, control);
-#else
-    obj = Data_Wrap_Struct(klass, shoes_control_mark, shoes_control_free, control);
-#endif
     control->attr = Qnil;
     control->parent = Qnil;
     return obj;
@@ -74,12 +63,7 @@ VALUE shoes_control_alloc(VALUE klass) {
 
 VALUE shoes_control_new(VALUE klass, VALUE attr, VALUE parent) {
     VALUE obj = shoes_control_alloc(klass);
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(obj, shoes_control, control);
-#else
-    shoes_control *control;
-    Data_Get_Struct(obj, shoes_control, control);
-#endif
     control->attr = attr;
     control->parent = parent;
     return obj;
@@ -88,24 +72,14 @@ VALUE shoes_control_new(VALUE klass, VALUE attr, VALUE parent) {
 
 
 VALUE shoes_control_focus(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
 //  ATTRSET(self_t->attr, hidden, Qtrue);
     if (self_t->ref != NULL) shoes_native_control_focus(self_t->ref);
     return self;
 }
 
 VALUE shoes_control_get_state(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     return ATTR(self_t->attr, state);
 }
 
@@ -136,78 +110,44 @@ static VALUE shoes_control_try_state(shoes_control *self_t, VALUE state) {
 }
 
 VALUE shoes_control_set_state(VALUE self, VALUE state) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     if (shoes_control_try_state(self_t, state))
         ATTRSET(self_t->attr, state, state);
     return self;
 }
 
 VALUE shoes_control_temporary_hide(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     if (self_t->ref != NULL) shoes_control_hide_ref(self_t->ref);
     return self;
 }
 
 VALUE shoes_control_hide(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     ATTRSET(self_t->attr, hidden, Qtrue);
     if (self_t->ref != NULL) shoes_control_hide_ref(self_t->ref);
     return self;
 }
 
 VALUE shoes_control_temporary_show(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     if (self_t->ref != NULL) shoes_control_show_ref(self_t->ref);
     return self;
 }
 
 VALUE shoes_control_show(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     ATTRSET(self_t->attr, hidden, Qfalse);
     if (self_t->ref != NULL) shoes_control_show_ref(self_t->ref);
     return self;
 }
 
 VALUE shoes_control_remove(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     shoes_canvas_remove_item(self_t->parent, self, 1, 0);
     
     shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-    Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-#endif
     if (self_t->ref != NULL) {
         SHOES_CONTROL_REF ref = self_t->ref;
         if (rb_obj_is_kind_of(self, cRadio)) {
@@ -226,29 +166,16 @@ void shoes_control_check_styles(shoes_control *self_t) {
 
 void shoes_control_send(VALUE self, ID event) {
     VALUE click;
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     VALUE sendevt = Qtrue;
     shoes_canvas *parent_canvas;
-#ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, parent_canvas);
-#else
-    Data_Get_Struct(self_t->parent, shoes_canvas, parent_canvas);
-#endif
    // do we have an event overide? 
     if (parent_canvas->app->use_event_handler && event == s_click) {
       //fprintf(stderr, "C: button click seeks permission\n");
       shoes_app *app = parent_canvas->app;
       shoes_canvas *app_canvas;
-#ifdef NEW_MACRO_CANVAS
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, app_canvas);
-#else
-      Data_Get_Struct(app->canvas, shoes_canvas, app_canvas);
-#endif
       VALUE evtproc = ATTR(app_canvas->attr, event);
       if (! NIL_P(evtproc)) {
         // TODO:  verify selt_t->place.name is accurate, somehow
@@ -260,12 +187,7 @@ void shoes_control_send(VALUE self, ID event) {
         // use 
         VALUE evt = shoes_event_new_widget(cShoesEvent, s_btn_activate, self, 1, x, y, w, h, Qnil, Qnil);
         shoes_safe_block(app->canvas, evtproc, rb_ary_new3(1, evt));
-#ifdef NEW_MACRO_EVENT
         Get_TypedStruct2(evt, shoes_event, tevent);
-#else
-        shoes_event *tevent;
-        Data_Get_Struct(evt, shoes_event, tevent);
-#endif
         sendevt = shoes_event_contrain_TF(tevent->accept);
       } else
         fprintf(stderr, "shoes_control_send: doesn't have event - but it should\n");
@@ -280,22 +202,12 @@ void shoes_control_send(VALUE self, ID event) {
 
 
 VALUE shoes_control_get_tooltip(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     return shoes_native_control_get_tooltip(self_t->ref);
 }
 
 VALUE shoes_control_set_tooltip(VALUE self, VALUE tooltip) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     if (self_t->ref != NULL)
         shoes_native_control_set_tooltip(self_t->ref, tooltip);
     return self;
@@ -312,12 +224,7 @@ void shoes_control_show_ref(SHOES_CONTROL_REF ref) {
 
 // called by low level when feeding events
 VALUE shoes_control_is_here(VALUE self, int x, int y) {
-#ifdef NEW_MACRO_CONTROL
   Get_TypedStruct2(self, shoes_control, ctl);
-#else
-  shoes_control *ctl;
-  Data_Get_Struct(self, shoes_control, ctl);
-#endif
   if (IS_INSIDE(ctl, x, y)) 
     return Qtrue;
   else 
@@ -328,11 +235,7 @@ VALUE shoes_control_is_here(VALUE self, int x, int y) {
 // canvas
 VALUE shoes_canvas_hide(VALUE self) {
     shoes_canvas *self_t;
-#ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
-#else
-    Data_Get_Struct(self, shoes_canvas, self_t);
-#endif
     ATTRSET(self_t->attr, hidden, Qtrue);
     shoes_canvas_ccall(self, shoes_control_temporary_hide, shoes_native_control_hide, 1);
     shoes_canvas_repaint_all(self);
@@ -341,11 +244,7 @@ VALUE shoes_canvas_hide(VALUE self) {
 
 VALUE shoes_canvas_show(VALUE self) {
     shoes_canvas *self_t;
-#ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
-#else
-    Data_Get_Struct(self, shoes_canvas, self_t);
-#endif
     ATTRSET(self_t->attr, hidden, Qfalse);
     shoes_canvas_ccall(self, shoes_control_temporary_show, shoes_native_control_show, 1);
     shoes_canvas_repaint_all(self);

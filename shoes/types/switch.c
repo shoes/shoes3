@@ -4,11 +4,7 @@
 
 // ruby
 VALUE cSwitch;
-#ifdef NEW_MACRO_APP
 FUNC_T("+switch", switch, -1);
-#else
-FUNC_M("+switch", switch, -1);
-#endif
 
 EVENT_COMMON(control, control, active)
 
@@ -25,11 +21,7 @@ void shoes_switch_init() {
 }
 
 VALUE shoes_switch_draw(VALUE self, VALUE c, VALUE actual) {
-#ifdef NEW_MACRO_CONTROL
     SETUP_CONTROL_T(0, 0, FALSE);
-#else
-    SETUP_CONTROL(0, 0, FALSE);
-#endif
     if (RTEST(actual)) {
         if (self_t->ref == NULL) {
             self_t->ref = shoes_native_switch(self, canvas, &place, self_t->attr, msg);
@@ -45,22 +37,12 @@ VALUE shoes_switch_draw(VALUE self, VALUE c, VALUE actual) {
 }
 
 VALUE shoes_switch_get_active(VALUE self) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     return shoes_native_switch_get_active(self_t->ref);
 }
 
 VALUE shoes_switch_set_active(VALUE self, VALUE activate) {
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     if (self_t->ref != NULL)
         shoes_native_switch_set_active(self_t->ref, activate == Qtrue);
 

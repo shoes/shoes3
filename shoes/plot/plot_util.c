@@ -19,12 +19,7 @@ void shoes_plot_draw_fill(cairo_t *cr, shoes_plot *plot) {
     if (NIL_P(plot->background)) {
         cairo_set_source_rgba(cr, 0.99, 0.99, 0.99, 0.99);
     } else {
-#ifdef NEW_MACRO_COLOR
         Get_TypedStruct2(plot->background, shoes_color, color);
-#else
-        shoes_color *color;
-        Data_Get_Struct(plot->background, shoes_color, color);
-#endif
         cairo_set_source_rgba(cr,
                               color->r / 255.0,
                               color->g / 255.0,
@@ -81,12 +76,7 @@ void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot) {
     int i;
     VALUE rbxser;
     rbxser = rb_ary_entry(plot->series, 0);
-#ifdef NEW_MACRO_CHARTSERIES
     Get_TypedStruct2(rbxser, shoes_chart_series, serx);
-#else
-    shoes_chart_series *serx;
-    Data_Get_Struct(rbxser, shoes_chart_series, serx);
-#endif
     VALUE xobs = serx->labels;
     if (NIL_P(xobs) || TYPE(xobs) != T_ARRAY) rb_raise (rb_eArgError, "xobs must be an array");
 
@@ -112,12 +102,7 @@ void shoes_plot_draw_ticks_and_labels(cairo_t *cr, shoes_plot *plot) {
     int j;
     for (j = 0; j < min(2, plot->seriescnt); j++) {
         VALUE rbser = rb_ary_entry(plot->series, j);
-#ifdef  NEW_MACRO_CHARTSERIES
         Get_TypedStruct2(rbser, shoes_chart_series, cs);
-#else
-        shoes_chart_series *cs;
-        Data_Get_Struct(rbser, shoes_chart_series, cs);
-#endif
         double maximum = NUM2DBL(cs->maxv);
         double minimum = NUM2DBL(cs->minv);
         double v_scale = height / (maximum - minimum);
@@ -176,12 +161,7 @@ void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot) {
             legend_width += white_space;
         }
         VALUE cs = rb_ary_entry(plot->series, i);
-#ifdef NEW_MACRO_CHARTSERIES
         Get_TypedStruct2(cs, shoes_chart_series, ser);
-#else
-        shoes_chart_series *ser;
-        Data_Get_Struct(cs, shoes_chart_series, ser);
-#endif
         //rbstr = rb_ary_entry(plot->long_names, i);
         strary[i] = RSTRING_PTR(ser->desc);
         layouts[i] = pango_cairo_create_layout (cr);
@@ -204,19 +184,9 @@ void shoes_plot_draw_legend(cairo_t *cr, shoes_plot *plot) {
     cairo_move_to(cr, x, baseline);
     for (i = 0; i < plot->seriescnt; i++) {
         VALUE cs = rb_ary_entry(plot->series, i);
-#ifdef NEW_MACRO_CHARTSERIES
         Get_TypedStruct2(cs, shoes_chart_series, ser);
-#else
-        shoes_chart_series *ser;
-        Data_Get_Struct(cs, shoes_chart_series, ser);
-#endif
         VALUE rbcolor = ser->color;
-#ifdef NEW_MACRO_COLOR
         Get_TypedStruct2(rbcolor, shoes_color, color);
-#else
-        shoes_color *color;
-        Data_Get_Struct(rbcolor, shoes_color, color);
-#endif
         cairo_set_source_rgba(cr, color->r / 255.0, color->g / 255.0,
                               color->b / 255.0, color->a / 255.0);
         pango_cairo_show_layout(cr, layouts[i]);
@@ -320,12 +290,7 @@ void shoes_plot_draw_caption(cairo_t *cr, shoes_plot *plot) {
 }
 
 void shoes_plot_draw_nub(cairo_t *cr, shoes_plot *plot,  double x, double y, int nubt, int szhint ) {
-#ifdef NEW_MACRO_COLOR
     Get_TypedStruct2(plot->background, shoes_color, bgcolor);
-#else
-    shoes_color *bgcolor;
-    Data_Get_Struct(plot->background, shoes_color, bgcolor);
-#endif
     switch (nubt) {
         case NUB_NONE:
             return; // probably shouldn't happen but just in case

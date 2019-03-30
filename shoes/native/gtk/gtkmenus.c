@@ -57,12 +57,7 @@ VALUE shoes_native_menubar_setup(shoes_app *app, void *gtkmb) {
       // use the platform neutral calls to build Shoes menu
       // we can't do that for the menubar so we'll build it ourself
       VALUE mbv = shoes_menubar_alloc(cShoesMenubar);
-#ifdef NEW_MACRO_MENUBAR
       Get_TypedStruct2(mbv, shoes_menubar, mb);
-#else
-      shoes_menubar *mb;
-      Data_Get_Struct(mbv, shoes_menubar, mb);
-#endif
       mb->context = app->canvas;
       mb->native = (void *)menubar;
       
@@ -76,12 +71,7 @@ void shoes_native_build_menus(shoes_app *app,VALUE mbv) {
       
       // Shoes menu
       //VALUE shoestext = rb_str_new2("Shoes");
-#ifdef NEW_MACRO_SETTINGS
       Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
-#else
-      shoes_settings *st;
-      Data_Get_Struct(shoes_world->settings, shoes_settings, st);
-#endif
       VALUE shoestext = st->app_name;
       VALUE shoesmenu = shoes_menu_new(shoestext);
       int flags = MENUITEM_ENABLE;
@@ -147,11 +137,7 @@ void shoes_native_menubar_dump(GList *list) {
 
 void shoes_native_menubar_update(VALUE canvasv) {
   shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
   TypedData_Get_Struct(canvasv, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-  Data_Get_Struct(canvasv, shoes_canvas, canvas);
-#endif
   shoes_app *app = canvas->app; 
   gtk_widget_show_all(app->os.window); // TODO Kind of works; Narrow scope?
 }
@@ -162,11 +148,7 @@ void shoes_native_menubar_append(shoes_menubar *mb, shoes_menu *mn) {
   GtkWidget *menu = (GtkWidget *)mn->native; // or extra?
   // add the app accel group to the menu
   shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
   TypedData_Get_Struct(mb->context, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-  Data_Get_Struct(mb->context, shoes_canvas, canvas);
-#endif
   shoes_app *app = canvas->app;
   gtk_menu_set_accel_group((GtkMenu *)mn->extra, app->os.accel_group);
   
@@ -176,12 +158,7 @@ void shoes_native_menubar_append(shoes_menubar *mb, shoes_menu *mn) {
 
 void shoes_native_menubar_remove(shoes_menubar *mb, int pos) {
   VALUE mnv = rb_ary_entry(mb->menus, pos);
-#ifdef NEW_MACRO_MENU
   Get_TypedStruct2(mnv, shoes_menu, mn);
-#else
-  shoes_menu *mn;
-  Data_Get_Struct(mnv, shoes_menu, mn);
-#endif
   //fprintf(stderr, "mbar: remove %s at %d\n", mn->title, pos);
   gtk_container_remove(GTK_CONTAINER(mb->native), GTK_WIDGET(mn->native));
 }
@@ -190,11 +167,7 @@ void shoes_native_menubar_insert(shoes_menubar *mb, shoes_menu *mn, int pos) {
   //fprintf(stderr, "mbar: insert menu %s at pos %d\n", mn->title, pos);
   // add the app accel group to the menu
   shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
   TypedData_Get_Struct(mb->context, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-  Data_Get_Struct(mb->context, shoes_canvas, canvas);
-#endif
   shoes_app *app = canvas->app;
   gtk_menu_set_accel_group((GtkMenu *)mn->extra, app->os.accel_group);
 
@@ -234,11 +207,7 @@ void shoes_native_menu_dump(GList *list) {
 
 void shoes_native_menu_update(VALUE canvasv) {
   shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
   TypedData_Get_Struct(canvasv, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-  Data_Get_Struct(canvasv, shoes_canvas, canvas);
-#endif
   shoes_app *app = canvas->app; 
   shoes_app_gtk *gk = &app->os; 
   gtk_widget_show_all(gk->window); // TODO Kind of works; Narrow scope?
@@ -304,12 +273,7 @@ void shoes_native_menu_insert(shoes_menu *mn, shoes_menuitem *mi, int pos) {
 
 void shoes_native_menu_remove(shoes_menu *mn, int pos) {
   VALUE miv = rb_ary_entry(mn->items, pos);
-#ifdef NEW_MACRO_MENUITEM
   Get_TypedStruct2(miv, shoes_menuitem, mi);
-#else
-  shoes_menuitem *mi;
-  Data_Get_Struct(miv, shoes_menuitem, mi);
-#endif
  // fprintf(stderr, "Menu %s, delete %s\n", mn->title, mi->title);
   gtk_container_remove(GTK_CONTAINER(mn->extra), GTK_WIDGET(mi->native));
 }
@@ -331,11 +295,7 @@ void *shoes_native_menuitem_new(shoes_menuitem *mi) {
   mi->native = (void *)gmi;
 #if 0
   shoes_canvas *canvas;
-#ifdef NEW_MACRO_CANVAS
   TypedData_Get_Struct(mi->context, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-  Data_Get_Struct(mi->context, shoes_canvas, canvas);
-#endif
   shoes_app *app = canvas->app;
   if (mi->key && strlen(mi->key) && mi->state > MENUITEM_ENABLE) { 
     guint gkey = gdk_keyval_from_name(mi->key);

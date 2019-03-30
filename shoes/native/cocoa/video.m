@@ -42,12 +42,7 @@ extern VALUE cTimer;
   if (self.window != nil)    // shows how to access a property. who knew?
   {
     // NSLog(@"vid moved to Window");
-#ifdef NEW_MACRO_VIDEO
     Get_TypedStruct2(video, shoes_video, vid);
-#else
-    shoes_video *vid;
-    Data_Get_Struct(video, shoes_video, vid);
-#endif
     vid->realized = 1;
   }
 }

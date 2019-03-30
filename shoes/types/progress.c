@@ -5,11 +5,7 @@
 // ruby
 VALUE cProgress;
 
-#ifdef NEW_MACRO_APP
 FUNC_T("+progress", progress, -1);
-#else
-FUNC_M("+progress", progress, -1);
-#endif
 
 void shoes_progress_init() {
     cProgress  = rb_define_class_under(cTypes, "Progress", cNative);
@@ -24,11 +20,7 @@ void shoes_progress_init() {
 
 // ruby
 VALUE shoes_progress_draw(VALUE self, VALUE c, VALUE actual) {
-#ifdef NEW_MACRO_CONTROL
     SETUP_CONTROL_T(0, 0, FALSE);
-#else
-    SETUP_CONTROL(0, 0, FALSE);
-#endif
     if (RTEST(actual)) {
         if (self_t->ref == NULL) {
             self_t->ref = shoes_native_progress(self, canvas, &place, self_t->attr, msg);
@@ -44,12 +36,7 @@ VALUE shoes_progress_draw(VALUE self, VALUE c, VALUE actual) {
 
 VALUE shoes_progress_get_fraction(VALUE self) {
     double perc = 0.;
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     if (self_t->ref != NULL)
         perc = shoes_native_progress_get_fraction(self_t->ref);
     return rb_float_new(perc);
@@ -57,12 +44,7 @@ VALUE shoes_progress_get_fraction(VALUE self) {
 
 VALUE shoes_progress_set_fraction(VALUE self, VALUE _perc) {
     double perc = min(max(NUM2DBL(_perc), 0.0), 1.0);
-#ifdef NEW_MACRO_CONTROL
     Get_TypedStruct2(self, shoes_control, self_t);
-#else
-    shoes_control *self_t;
-    Data_Get_Struct(self, shoes_control, self_t);
-#endif
     if (self_t->ref != NULL)
         shoes_native_progress_set_fraction(self_t->ref, perc);
     return self;

@@ -156,12 +156,7 @@ shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
         fgclr = shoes_color_parse(cColor, fgclr);  // convert string to cColor
       if (rb_obj_is_kind_of(fgclr, cColor)) 
       {
-#ifdef NEW_MACRO_COLOR
         Get_TypedStruct2(fgclr, shoes_color, color);
-#else
-        shoes_color *color; 
-        Data_Get_Struct(fgclr, shoes_color, color);
-#endif
         CGFloat rg = (CGFloat)color->r / 255;
         CGFloat gb = (CGFloat)color->g / 255;
         CGFloat bb = (CGFloat)color->b / 255;

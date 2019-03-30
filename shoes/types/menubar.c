@@ -9,19 +9,10 @@
 // ruby
 extern VALUE cShoesMenubar;
 
-#ifdef NEW_MACRO_APP
 FUNC_T("+menubar", menubar, -1);
-#else
-FUNC_M("+menubar", menubar, -1);
-#endif
 
 void shoes_menubar_init() {
-#ifdef NEW_MACRO_MENUBAR
     cShoesMenubar  = rb_define_class_under(cTypes, "Menubar", rb_cData);
-#else
-    cShoesMenubar  = rb_define_class_under(cTypes, "Menubar", rb_cObject);
-    rb_define_alloc_func(cShoesMenubar, shoes_menubar_alloc);
-#endif
     rb_define_method(cShoesMenubar, "menus", CASTHOOK(shoes_menubar_list),0);
     rb_define_method(cShoesMenubar, "[]", CASTHOOK(shoes_menubar_at), 1);
     rb_define_method(cShoesMenubar, "<<", CASTHOOK(shoes_menubar_append), 1);
@@ -42,20 +33,14 @@ static void shoes_menubar_free(shoes_menubar *mb) {
     RUBY_CRITICAL(SHOE_FREE(mb));
 }
 
-#ifdef NEW_MACRO_MENUBAR
 // creates struct shoes_menubar_type
 TypedData_Type_New(shoes_menubar);
-#endif
 
 VALUE shoes_menubar_alloc(VALUE klass) {
     VALUE obj;
     shoes_menubar *mb = SHOE_ALLOC(shoes_menubar);
     SHOE_MEMZERO(mb, shoes_menubar, 1);
-#ifdef NEW_MACRO_MENUBAR
     obj = TypedData_Wrap_Struct(klass, &shoes_menubar_type, mb);
-#else
-    obj = Data_Wrap_Struct(klass, shoes_menubar_mark, shoes_menubar_free, mb);
-#endif
     mb->native = NULL;
     mb->menus = rb_ary_new();
     mb->context = Qnil;
@@ -69,11 +54,7 @@ VALUE shoes_menubar_alloc(VALUE klass) {
 VALUE shoes_menubar_new(VALUE canvas) {
     shoes_app *app;
     shoes_canvas *cvs;
-#ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(canvas, shoes_canvas, &shoes_canvas_type, cvs);
-#else
-    Data_Get_Struct(canvas, shoes_canvas, cvs);
-#endif
     app = cvs->app;
     if (NIL_P(app->menubar)) {
       // Should not happen in real life, but
@@ -85,18 +66,8 @@ VALUE shoes_menubar_new(VALUE canvas) {
 
 VALUE shoes_menubar_append(VALUE self, VALUE menu) {
   if (rb_obj_is_kind_of(menu, cShoesMenu)) {
-#ifdef NEW_MACRO_MENUBAR
     Get_TypedStruct2(self, shoes_menubar, mb);
-#else
-    shoes_menubar *mb;
-    Data_Get_Struct(self, shoes_menubar, mb);
-#endif
-#ifdef NEW_MACRO_MENU
     Get_TypedStruct2(menu, shoes_menu, mn);
-#else
-    shoes_menu *mn;
-    Data_Get_Struct(menu, shoes_menu, mn);
-#endif
     mn->context = (void *)mb->context;
     shoes_native_menubar_append(mb, mn);
     int cnt = RARRAY_LEN(mb->menus);
@@ -108,22 +79,12 @@ VALUE shoes_menubar_append(VALUE self, VALUE menu) {
 }
 
 VALUE shoes_menubar_list(VALUE self) {
-#ifdef NEW_MACRO_MENUBAR
     Get_TypedStruct2(self, shoes_menubar, mb);
-#else
-    shoes_menubar *mb;
-    Data_Get_Struct(self, shoes_menubar, mb);
-#endif
   return mb->menus;
 }
 
 VALUE shoes_menubar_index(VALUE self, VALUE arg) {
-#ifdef NEW_MACRO_MENUBAR
     Get_TypedStruct2(self, shoes_menubar, mb);
-#else
-    shoes_menubar *mb;
-    Data_Get_Struct(self, shoes_menubar, mb);
-#endif
   if (TYPE(arg) == T_FIXNUM) {
     int pos = NUM2INT(arg);
     int cnt = RARRAY_LEN(mb->menus);
@@ -135,12 +96,7 @@ VALUE shoes_menubar_index(VALUE self, VALUE arg) {
     int i;
     for (i = 0; i < cnt; i++) {
       VALUE mnv = rb_ary_entry(mb->menus, i);
-#ifdef NEW_MACRO_MENU
       Get_TypedStruct2(mnv, shoes_menu, mn);
-#else
-      shoes_menu *mn;
-      Data_Get_Struct(mnv, shoes_menu, mn);
-#endif
       if (strcmp(txt,mn->title) == 0)
         return INT2NUM(i);
     
@@ -153,12 +109,7 @@ VALUE shoes_menubar_at(VALUE self, VALUE arg) {
   VALUE posv = shoes_menubar_index(self, arg);
   if (NIL_P(posv))
     return posv;
-#ifdef NEW_MACRO_MENUBAR
   Get_TypedStruct2(self, shoes_menubar, mb);
-#else
-  shoes_menubar *mb;
-  Data_Get_Struct(self, shoes_menubar, mb);
-#endif
   int pos = NUM2INT(posv);
   return rb_ary_entry(mb->menus, pos);
 #if 0  
@@ -170,12 +121,7 @@ VALUE shoes_menubar_at(VALUE self, VALUE arg) {
     int i;
     for (i = 0; i < cnt; i++) {
       VALUE mnv = rb_ary_entry(mb->menus, i);
-#ifdef NEW_MACRO_MENU
       Get_TypedStruct2(mnv, shoes_menu, mn);
-#else
-      shoes_menu *mn;
-      Data_Get_Struct(mnv, shoes_menu, mn);
-#endif
       if (mn->title == 0) continue;
       if (strcmp(txt,mn->title) == 0)
         return mnv;    
@@ -188,12 +134,7 @@ VALUE shoes_menubar_at(VALUE self, VALUE arg) {
 
 VALUE shoes_menubar_insert(VALUE self, VALUE mnv, VALUE arg) {
   int pos = 0;
-#ifdef NEW_MACRO_MENUBAR
   Get_TypedStruct2(self, shoes_menubar, mb);
-#else
-  shoes_menubar *mb;
-  Data_Get_Struct(self, shoes_menubar, mb);
-#endif
   int cnt = RARRAY_LEN(mb->menus);  //cnt before
   VALUE pv = shoes_menubar_index(self, arg);
   if (NIL_P(pv))
@@ -209,12 +150,7 @@ VALUE shoes_menubar_insert(VALUE self, VALUE mnv, VALUE arg) {
   } else {
     // Call the native function and then diddle with the items (rb_ary)
     // to match
-#ifdef NEW_MACRO_MENU
       Get_TypedStruct2(mnv, shoes_menu, mn);
-#else
-      shoes_menu *mn;
-      Data_Get_Struct(mnv, shoes_menu, mn);
-#endif
       mn->context = (void *)mb->context;
       shoes_native_menubar_insert(mb, mn, pos);
       VALUE nary = rb_ary_new2(cnt+1); 
@@ -236,12 +172,7 @@ VALUE shoes_menubar_insert(VALUE self, VALUE mnv, VALUE arg) {
 }
 
 VALUE shoes_menubar_remove(VALUE self, VALUE arg) {
-#ifdef NEW_MACRO_MENUBAR
     Get_TypedStruct2(self, shoes_menubar, mb);
-#else
-    shoes_menubar *mb;
-    Data_Get_Struct(self, shoes_menubar, mb);
-#endif
   VALUE posv = shoes_menubar_index(self, arg);
   if (NIL_P(posv))
     rb_raise(rb_eArgError, "menu not found");

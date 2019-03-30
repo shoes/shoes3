@@ -32,12 +32,7 @@ static void shoes_native_systray_gapp(char *title, char *message, char *path) {
   GFile *iconf = g_file_new_for_path (path);
   GIcon *icon = g_file_icon_new (iconf);
   g_notification_set_icon(note, icon);  //TODO: could get icon from settings
-#ifdef NEW_MACRO_SETTINGS
   Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
-#else
-  shoes_settings *st;
-  Data_Get_Struct(shoes_world->settings, shoes_settings, st);
-#endif
   char *nm = RSTRING_PTR(st->app_name);
   g_application_send_notification (G_APPLICATION(shoes_GtkApp), RSTRING_PTR(st->app_name), note);
 }

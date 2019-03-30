@@ -9,7 +9,6 @@
 // ruby
 VALUE cTextBlock, cPara, cBanner, cTitle, cSubtitle, cTagline, cCaption, cInscription;
 
-#ifdef NEW_MACRO_APP
 FUNC_T("+para", para, -1);
 FUNC_T("+banner", banner, -1);
 FUNC_T("+title", title, -1);
@@ -17,23 +16,10 @@ FUNC_T("+subtitle", subtitle, -1);
 FUNC_T("+tagline", tagline, -1);
 FUNC_T("+caption", caption, -1);
 FUNC_T("+inscription", inscription, -1);
-#else
-FUNC_M("+para", para, -1);
-FUNC_M("+banner", banner, -1);
-FUNC_M("+title", title, -1);
-FUNC_M("+subtitle", subtitle, -1);
-FUNC_M("+tagline", tagline, -1);
-FUNC_M("+caption", caption, -1);
-FUNC_M("+inscription", inscription, -1);
-#endif
 
 PLACE_COMMON(textblock);
 CLASS_COMMON2(textblock);
-#ifdef NEW_MACRO_TEXTBLOCK
 REPLACE_COMMON_T(textblock);
-#else
-REPLACE_COMMON(textblock);
-#endif
 
 MARKUP_DEF(para, BLOCK, cPara);
 MARKUP_DEF(banner, BLOCK, cBanner);
@@ -49,12 +35,7 @@ static void shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblo
 static void shoes_app_style_for(shoes_textblock *block, shoes_app *app, VALUE klass, VALUE oattr, guint start_index, guint end_index);
 
 void shoes_textblock_init() {
-#ifdef NEW_MACRO_TEXTBLOCK
     cTextBlock = rb_define_class_under(cTypes, "TextBlock", rb_cData);
-#else
-    cTextBlock = rb_define_class_under(cTypes, "TextBlock", rb_cObject);
-    rb_define_alloc_func(cTextBlock, shoes_textblock_alloc);
-#endif
     rb_define_method(cTextBlock, "app", CASTHOOK(shoes_canvas_get_app), 0);
     rb_define_method(cTextBlock, "contents", CASTHOOK(shoes_textblock_children), 0);
     rb_define_method(cTextBlock, "children", CASTHOOK(shoes_textblock_children), 0);
@@ -122,20 +103,14 @@ void shoes_textblock_free(shoes_textblock *text) {
     RUBY_CRITICAL(free(text));
 }
 
-#ifdef NEW_MACRO_TEXT
 // creates struct shoes_textblock_type
 TypedData_Type_New(shoes_textblock);
-#endif
 
 VALUE shoes_textblock_alloc(VALUE klass) {
     VALUE obj;
     shoes_textblock *text = SHOE_ALLOC(shoes_textblock);
     SHOE_MEMZERO(text, shoes_textblock, 1);
-#ifdef NEW_MACRO_TEXTBLOCK
     obj = TypedData_Wrap_Struct(klass, &shoes_textblock_type, text);
-#else
-    obj = Data_Wrap_Struct(klass, shoes_textblock_mark, shoes_textblock_free, text);
-#endif
     text->texts = Qnil;
     text->links = Qnil;
     text->attr = Qnil;
@@ -147,17 +122,8 @@ VALUE shoes_textblock_alloc(VALUE klass) {
 VALUE shoes_textblock_new(VALUE klass, VALUE texts, VALUE attr, VALUE parent, shoes_transform *st) {
     shoes_canvas *canvas;
     VALUE obj = shoes_textblock_alloc(klass);
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(obj, shoes_textblock, text);
-#else
-    shoes_textblock *text;
-    Data_Get_Struct(obj, shoes_textblock, text);
-#endif
-#ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(parent, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-    Data_Get_Struct(parent, shoes_canvas, canvas);
-#endif
     text->texts = shoes_text_check(texts, obj);
     text->attr = attr;
     text->parent = parent;
@@ -175,17 +141,8 @@ VALUE shoes_textblock_draw(VALUE self, VALUE c, VALUE actual) {
     PangoRectangle crect, lrect;
 
     VALUE ck = rb_obj_class(c);
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-    shoes_textblock *self_t;
-    Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
-#ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-    Data_Get_Struct(c, shoes_canvas, canvas);
-#endif
     cr = CCR(canvas);
 
     if (!NIL_P(self_t->attr) && ATTR(self_t->attr, hidden) == Qtrue)
@@ -504,17 +461,8 @@ static void shoes_app_style_for(shoes_textblock *block, shoes_app *app, VALUE kl
 
 VALUE shoes_textblock_string(VALUE self) {
     shoes_canvas *canvas;
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-    shoes_textblock *self_t;
-    Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
-#ifdef NEW_MACRO_CANVAS
     TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-    Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-#endif
     if (!self_t->cached || self_t->pattr == NULL)
         shoes_textblock_make_pango(canvas->app, rb_obj_class(self), self_t);
     return rb_str_new(self_t->text->str, self_t->text->len);
@@ -532,12 +480,7 @@ static void shoes_textblock_iter_pango(VALUE texts, shoes_textblock *block, shoe
         if (rb_obj_is_kind_of(v, cTextClass)) {
             VALUE tklass = rb_obj_class(v);
             guint start;
-#ifdef NEW_MACRO_TEXT
             Get_TypedStruct2(v, shoes_text, text);
-#else
-            shoes_text *text;
-            Data_Get_Struct(v, shoes_text, text);
-#endif
             start = block->len;
             shoes_textblock_iter_pango(text->texts, block, app);
             if ((text->hover & HOVER_MOTION) && tklass == cLink)
@@ -625,12 +568,7 @@ static void shoes_textblock_on_layout(shoes_app *app, VALUE klass, shoes_textblo
 }
 
 VALUE shoes_textblock_style_m(int argc, VALUE *argv, VALUE self) {
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-    shoes_textblock *self_t;
-    Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
     VALUE obj = shoes_textblock_style(argc, argv, self);
     shoes_textblock_uncache(self_t, FALSE);
     return obj;
@@ -653,12 +591,7 @@ void shoes_textblock_uncache(shoes_textblock *text, unsigned char all) {
 }
 
 VALUE shoes_textblock_children(VALUE self) {
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, text);
-#else
-    shoes_textblock *text;
-    Data_Get_Struct(self, shoes_textblock, text);
-#endif
     return text->texts;
 }
 
@@ -667,12 +600,7 @@ static void shoes_textcursor_reset(shoes_textcursor *c) {
 }
 
 VALUE shoes_textblock_set_cursor(VALUE self, VALUE pos) {
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-    shoes_textblock *self_t;
-    Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
     if (self_t->cursor == NULL) {
         if (NIL_P(pos)) return Qnil;
         else            shoes_textcursor_reset(self_t->cursor = SHOE_ALLOC(shoes_textcursor));
@@ -691,45 +619,25 @@ VALUE shoes_textblock_set_cursor(VALUE self, VALUE pos) {
 }
 
 VALUE shoes_textblock_get_cursor(VALUE self) {
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-    shoes_textblock *self_t;
-    Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
     if (self_t->cursor == NULL || self_t->cursor->pos == INT_MAX) return Qnil;
     return INT2NUM(self_t->cursor->pos);
 }
 
 VALUE shoes_textblock_cursorx(VALUE self) {
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-    shoes_textblock *self_t;
-    Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
     if (self_t->cursor == NULL || self_t->cursor->x == INT_MAX) return Qnil;
     return INT2NUM(self_t->cursor->x);
 }
 
 VALUE shoes_textblock_cursory(VALUE self) {
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-    shoes_textblock *self_t;
-    Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
     if (self_t->cursor == NULL || self_t->cursor->y == INT_MAX) return Qnil;
     return INT2NUM(self_t->cursor->y);
 }
 
 VALUE shoes_textblock_set_marker(VALUE self, VALUE pos) {
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-    shoes_textblock *self_t;
-    Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
     if (self_t->cursor == NULL) {
         if (NIL_P(pos)) return Qnil;
         else            shoes_textcursor_reset(self_t->cursor = SHOE_ALLOC(shoes_textcursor));
@@ -743,24 +651,14 @@ VALUE shoes_textblock_set_marker(VALUE self, VALUE pos) {
 }
 
 VALUE shoes_textblock_get_marker(VALUE self) {
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-    shoes_textblock *self_t;
-    Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
     if (self_t->cursor == NULL || self_t->cursor->hi == INT_MAX) return Qnil;
     return INT2NUM(self_t->cursor->hi);
 }
 
 VALUE shoes_textblock_get_highlight(VALUE self) {
     int marker, start, len;
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-    shoes_textblock *self_t;
-    Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
     if (self_t->cursor == NULL || self_t->cursor->pos == INT_MAX) return Qnil;
     marker = self_t->cursor->hi;
     if (marker == INT_MAX) marker = self_t->cursor->pos;
@@ -772,11 +670,7 @@ VALUE shoes_textblock_get_highlight(VALUE self) {
 // TODO macro transition cleanup
 VALUE shoes_find_textblock(VALUE self) {
     while (!NIL_P(self) && !rb_obj_is_kind_of(self, cTextBlock)) {
-#ifdef NEW_MACRO_TEXTBLOCK
         SETUP_BASIC_T(self);
-#else
-        SETUP_BASIC();
-#endif
         self = basic->parent;
     }
     return self;
@@ -785,12 +679,7 @@ VALUE shoes_find_textblock(VALUE self) {
 VALUE shoes_textblock_send_hover(VALUE self, int x, int y, VALUE *clicked, char *t) {
     VALUE url = Qnil;
     int index, trailing, i, hover;
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-    shoes_textblock *self_t;
-    Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
     if (self_t->layout == NULL || NIL_P(self_t->links)) return Qnil;
     if (!NIL_P(self_t->attr) && ATTR(self_t->attr, hidden) == Qtrue) return Qnil;
 
@@ -813,17 +702,8 @@ VALUE shoes_textblock_motion(VALUE self, int x, int y, char *t) {
     VALUE url = shoes_textblock_send_hover(self, x, y, NULL, t);
     if (!NIL_P(url)) {
         shoes_canvas *canvas;
-#ifdef NEW_MACRO_TEXTBLOCK
         Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-        shoes_textblock *self_t;
-        Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
-#ifdef NEW_MACRO_CANVAS
         TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
-#else
-        Data_Get_Struct(self_t->parent, shoes_canvas, canvas);
-#endif
         shoes_app_cursor(canvas->app, s_link);
     }
     return url;
@@ -831,12 +711,7 @@ VALUE shoes_textblock_motion(VALUE self, int x, int y, char *t) {
 
 VALUE shoes_textblock_hit(VALUE self, VALUE _x, VALUE _y) {
     int x = NUM2INT(_x), y = NUM2INT(_y), index, trailing;
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-    shoes_textblock *self_t;
-    Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
     x -= self_t->place.ix + self_t->place.dx;
     y -= self_t->place.iy + self_t->place.dy;
     if (x < 0 || x > self_t->place.iw || y < 0 || y > self_t->place.ih)
@@ -849,12 +724,7 @@ VALUE shoes_textblock_send_click(VALUE self, int button, int x, int y, VALUE *cl
     VALUE v = Qnil;
 
     if (button > 0) {
-#ifdef NEW_MACRO_TEXTBLOCK
         Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-        shoes_textblock *self_t;
-        Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
         v = shoes_textblock_send_hover(self, x, y, clicked, NULL);
         if (self_t->hover & HOVER_MOTION)
             self_t->hover = HOVER_MOTION | HOVER_CLICK;
@@ -864,12 +734,7 @@ VALUE shoes_textblock_send_click(VALUE self, int button, int x, int y, VALUE *cl
 }
 
 void shoes_textblock_send_release(VALUE self, int button, int x, int y) {
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-    shoes_textblock *self_t;
-    Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
     if (button > 0 && (self_t->hover & HOVER_CLICK)) {
         VALUE proc = ATTR(self_t->attr, release);
         self_t->hover ^= HOVER_CLICK;
@@ -879,12 +744,7 @@ void shoes_textblock_send_release(VALUE self, int button, int x, int y) {
 }
 
 VALUE shoes_textblock_event_is_here(VALUE self, int x, int y) {
-#ifdef NEW_MACRO_TEXTBLOCK
     Get_TypedStruct2(self, shoes_textblock, self_t);
-#else
-    shoes_textblock *self_t;
-    Data_Get_Struct(self, shoes_textblock, self_t);
-#endif
   if (IS_INSIDE(self_t, x, y)) 
     return Qtrue;
   else 
