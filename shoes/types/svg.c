@@ -34,8 +34,6 @@ FUNC_M("+svghandle", svghandle, -1);
 CLASS_COMMON2(svg);
 TRANS_COMMON(svg, 1);
 
-
-
 void shoes_svg_init() {
   // svg is kind of like cImage with different methods
   // do not call draw from Shoes scripts - just don't do it!

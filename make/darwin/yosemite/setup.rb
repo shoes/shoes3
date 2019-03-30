@@ -9,11 +9,16 @@ module Make
 	mkdir_p "#{TGT_DIR}"
 	# copy Ruby, dylib, includes - have them in place before
 	# we build things 
-	puts "Ruby at #{EXT_RUBY} : #{SHOES_GEM_ARCH}"
-	rbvt = RUBY_V
+	puts "Ruby at #{EXT_RUBY} : #{SHOES_GEM_ARCH} RUBY_V : #{RUBY_V}"
+	rbvt = rbinc = RUBY_V
 	rbvm = RUBY_V[/^\d+\.\d+/]
 	rm_rf "#{TGT_DIR}/lib"
 	mkdir_p "#{TGT_DIR}/lib"
+	if rbvm != '2.3'
+	  # because ruby changes from version to version, os to os. Curses!
+	  rbvt = EXT_RUBY[/(\d+\.\d+\.\d+)/]
+	  rbinc = rbvt[/\d+\.\d+/] + '.0'
+	end
 	# clean out leftovers from last build
 	#rm_f "#{TGT_DIR}/libruby.dylib" if File.exist? "#{TGT_DIR}/libruby.dylib"
 	#rm_f "#{TGT_DIR}/libruby.#{rbvm}.dylib" if File.exist? "#{TGT_DIR}/libruby.#{rbvm}.dylib"
@@ -23,8 +28,8 @@ module Make
 	# copy and link libruby.dylib
 	cp "#{EXT_RUBY}/lib/libruby.#{rbvt}.dylib", "#{TGT_DIR}"
 	# copy include files - it might help build gems
-	mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
-	cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
+	mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbinc}"
+	cp_r "#{EXT_RUBY}/include/ruby-#{rbinc}/", "#{TGT_DIR}/lib/ruby/include"
 	
 	if APP['LIBPATHS']
 	  dep_find_and_copy( APP['LIBPATHS'], SOLOCS)

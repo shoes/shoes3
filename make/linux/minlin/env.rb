@@ -23,7 +23,7 @@ LINUX_CFLAGS << " -DSZBUG"
 #LINUX_CFLAGS << " -DSHOES_FORCE_RADIO"
 
 LINUX_CFLAGS << " -DDEBUG" if ENV['DEBUG']
-LINUX_CFLAGS << " -DSHOES_GTK -fPIC -shared -Wno-unused-but-set-variable"
+LINUX_CFLAGS << " -DSHOES_GTK -fPIC -shared -Wuninitialized -Wno-unused-but-set-variable"
 # Following line may need handcrafting
 LINUX_CFLAGS << " -I/usr/include/"
 LINUX_CFLAGS << " #{`pkg-config --cflags gtk+-3.0`.strip}"
