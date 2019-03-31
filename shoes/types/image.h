@@ -82,14 +82,4 @@ VALUE shoes_canvas_blur(int, VALUE *, VALUE);
 VALUE shoes_canvas_glow(int, VALUE *, VALUE);
 VALUE shoes_canvas_shadow(int, VALUE *, VALUE);
 
-// todo: this macro only used in image.c and only once.
-/* 
-#define SHOES_IMAGE_PLACE(type, imw, imh, surf) \
-  SETUP_DRAWING(shoes_##type, (REL_CANVAS | REL_SCALE), imw, imh); \
-  VALUE ck = rb_obj_class(c); \
-  if (RTEST(actual)) \
-    shoes_image_draw_surface(CCR(canvas), self_t, &place, surf, imw, imh); \
-  FINISH(); \
-  return self;
-*/
 #endif

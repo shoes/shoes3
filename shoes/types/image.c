@@ -288,6 +288,7 @@ static void shoes_image_draw_surface(cairo_t *cr, shoes_image *self_t, shoes_pla
     shoes_undo_transformation(cr, self_t->st, place, 0);
     self_t->place = *place;
 }
+
 // TODO useless macro - only used once. clean up after transition
 #define SHOES_IMAGE_PLACE(type, imw, imh, surf) \
   SETUP_DRAWING_T(shoes_##type, (REL_CANVAS | REL_SCALE), imw, imh); \

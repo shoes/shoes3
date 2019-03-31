@@ -497,12 +497,7 @@ void shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh,
                 oy = canvas->cy;
                 if ((REL_COORDS(rel) & REL_STICKY) && shoes_is_element(stuck)) {
                     shoes_element *element;
-                    //Data_Get_Struct(stuck, shoes_element, element);
-                    /* Temporary while fixing TypedData new API */
-                    if (RTYPEDDATA_P(stuck))
-                      element = (shoes_element*)RTYPEDDATA_DATA(stuck);
-                    else
-                      element = (shoes_element*)rb_data_object_get(stuck);
+                    element = (shoes_element*)RTYPEDDATA_DATA(stuck);
                     ox = element->place.x;
                     oy = element->place.y;
                 }
@@ -555,14 +550,9 @@ void shoes_place_decide(shoes_place *place, VALUE c, VALUE attr, int dw, int dh,
 // shoes_basic routines
 //
 VALUE shoes_basic_remove(VALUE self) {
-  //GET_STRUCT(basic, self_t);
-  /* Temporary while fixing TypedData new API */
   shoes_basic* self_t;
-  if (RTYPEDDATA_P(self))
-    self_t = (shoes_basic*)RTYPEDDATA_DATA(self);
-  else 
-    self_t = (shoes_basic*)rb_data_object_get(self);
-    
+  self_t = (shoes_basic*)RTYPEDDATA_DATA(self);
+      
   shoes_canvas_remove_item(self_t->parent, self, 0, 0);
   shoes_canvas_repaint_all(self_t->parent);
   return self;
@@ -572,9 +562,9 @@ unsigned char shoes_is_element_p(VALUE ele, unsigned char any) {
   void *dmark;
   if (TYPE(ele) != T_DATA)
     return 0;
-  dmark = RDATA(ele)->dmark;
+  //dmark = RDATA(ele)->dmark;
   /* Temporary while fixing TypedData new API */
-  if (RTYPEDDATA_P(ele)) 
+  //if (RTYPEDDATA_P(ele)) 
     dmark = RTYPEDDATA_TYPE(ele)->function.dmark;
   return (dmark == shoes_canvas_mark || dmark == shoes_shape_mark ||
       dmark == shoes_image_mark || dmark == shoes_effect_mark ||
@@ -728,7 +718,7 @@ VALUE shoes_font(VALUE self, VALUE path) {
 //
 // See ruby.h for the complete list of App methods which redirect to Canvas.
 //
-CANVAS_DEFS(FUNC_M);
+CANVAS_DEFS(FUNC_T);
 
 #define C(n, s) \
   re##n = rb_eval_string(s); \

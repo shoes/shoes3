@@ -17,8 +17,6 @@
 #include "shoes/code.h"
 #include <rsvg.h>
 
-#define NEW_MACRO_CANVAS
-
 struct _shoes_app;
 
 typedef unsigned int PIXEL;
@@ -63,52 +61,33 @@ typedef struct {
     unsigned char flags;
 } shoes_place;
 
-// TODO Transition to new macros. - clean up after transistion
-
-#define SETUP_BASIC() \
-  shoes_basic *basic; \
-  if (RTYPEDDATA_P(self)) { \
-    basic = (shoes_basic *)RTYPEDDATA_DATA(self); \
-  } else { \
-    Data_Get_Struct(self, shoes_basic, basic); \
-  }
+/*
+ *  Note: SETUP_BASIC_T does not typecheck because we downcast all
+ *  drawables (widgets, shapes,.. to shoes_basic struct
+ */
 
 #define SETUP_BASIC_T(ele) \
   shoes_basic *basic; \
-  if (RTYPEDDATA_P(ele)) { \
-    basic = (shoes_basic *)RTYPEDDATA_DATA(ele); \
-  } else { \
-    Data_Get_Struct(ele, shoes_basic, basic); \
-  }
+  basic = (shoes_basic *)RTYPEDDATA_DATA(ele); 
   
 #define SETUP_SHAPE() \
   shoes_canvas *canvas = NULL; \
   VALUE c = shoes_find_canvas(self); \
-  if (RTYPEDDATA_P(c)) \
-    canvas = (shoes_canvas*)RTYPEDDATA_DATA(c); \
-  else \
-    canvas = (shoes_canvas*)rb_data_object_get(c); \
-   Data_Get_Struct(c, shoes_canvas, canvas)
+  TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
 
-    
-/* TODO: delete after macro transition
-#define SETUP_BASIC() \
-  shoes_basic *basic; \
-  Data_Get_Struct(self, shoes_basic, basic);
-*/
 
 #define COPY_PENS(attr1, attr2) \
   if (NIL_P(ATTR(attr1, stroke))) ATTRSET(attr1, stroke, ATTR(attr2, stroke)); \
   if (NIL_P(ATTR(attr1, fill)))   ATTRSET(attr1, fill, ATTR(attr2, fill)); \
   if (NIL_P(ATTR(attr1, strokewidth))) ATTRSET(attr1, strokewidth, ATTR(attr2, strokewidth)); \
   if (NIL_P(ATTR(attr1, cap))) ATTRSET(attr1, cap, ATTR(attr2, cap));
+  
 #define DRAW(c, app, blk) \
   { \
     rb_ary_push(app->nesting, c); \
     blk; \
     rb_ary_pop(app->nesting); \
   }
-
 
 #define ABSX(place)   ((place).flags & FLAG_ABSX)
 #define ABSY(place)   ((place).flags & FLAG_ABSY)
@@ -230,9 +209,8 @@ typedef struct {
     VALUE layout_mgr;         // we have a Layout object 
 } shoes_canvas;
 
-#ifdef NEW_MACRO_CANVAS
+
 extern const rb_data_type_t shoes_canvas_type;
-#endif
 
 
 VALUE shoes_app_main(int, VALUE *, VALUE);

@@ -48,7 +48,7 @@ static void shoes_canvas_free(shoes_canvas *canvas) {
     RUBY_CRITICAL(free(canvas));
 }
 
-TypedData_Type_New(shoes_canvas);
+const TypedData_Type_New(shoes_canvas);
 
 VALUE shoes_canvas_alloc(VALUE klass) {
     shoes_canvas *canvas = SHOE_ALLOC(shoes_canvas);
@@ -579,16 +579,13 @@ VALUE shoes_canvas_draw(VALUE self, VALUE c, VALUE actual) {
         for (i = 0; i < RARRAY_LEN(self_t->contents); i++) {
             shoes_canvas *c1;
             VALUE ele = rb_ary_entry(self_t->contents, i);
-            if (RTYPEDDATA_P(ele)) {
-              /* This a nasty trick. The original blindly assumes that
-               * Data_Get_Struct can unwrap anything into a shoes_canvas.
-               * shoes_element would be a better choice but they both fail
-               * for TypedData objects
-              */
-              c1 = (shoes_canvas *)RTYPEDDATA_DATA(ele);
-            } else {
-              TypedData_Get_Struct(ele, shoes_canvas, &shoes_canvas_type, c1);
-            }
+            /* This a nasty trick. The original blindly assumes that
+             * Data_Get_Struct can unwrap anything into a shoes_canvas.
+             * shoes_element would be a better choice but they both fail
+             * for TypedData objects
+            */
+            c1 = (shoes_canvas *)RTYPEDDATA_DATA(ele);
+
             if (shoes_canvas_inherits(ele, self_t)) {
                 if (!NIL_P(masks) && RTEST(actual)) {
                     if (rb_obj_class(ele) == cMask)
@@ -1342,10 +1339,7 @@ shoes_canvas_send_##event_name (VALUE self, VALUE key) \
 { \
   long i; \
   shoes_canvas *self_t; \
-  if (RTYPEDDATA_P(self)) \
-    self_t = (shoes_canvas *)RTYPEDDATA_DATA(self); \
-  else \
-    Data_Get_Struct(self, shoes_canvas, self_t); \
+  TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t); \
   if (ATTR(self_t->attr, hidden) != Qtrue) \
   { \
     VALUE handler = ATTR(self_t->attr, event_name); \

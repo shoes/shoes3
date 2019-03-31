@@ -345,12 +345,7 @@ void shoes_layout_add_ele(shoes_canvas *canvas, VALUE ele) {
     if (! NIL_P(lay->delegate)) {
       VALUE del = lay->delegate;
 			shoes_abstract *widget;
-      // TODO: in Typed world this won't work - fix after macro transition
-			//Data_Get_Struct(ele, shoes_abstract, widget);
-      if (RTYPEDDATA_P(ele))
-        widget = (shoes_abstract*)RTYPEDDATA_DATA(ele);
-      else 
-        widget = (shoes_abstract*)rb_data_object_get(ele);
+      widget = (shoes_abstract*)RTYPEDDATA_DATA(ele);
 			rb_funcall(del, s_addw, 3, lay->canvas, ele, widget->attr);
       return;
     }

@@ -777,7 +777,7 @@ emeus_constraint_layout_size_allocate (EmeusConstraintLayout *self,
       int x,y,wid,hgt;
       shoes_abstract *ab;
       VALUE abv = (VALUE)gshoes_ele_get_element(child->widget);
-      Data_Get_Struct(abv, shoes_abstract, ab);
+      ab = (shoes_abstract *)RTYPEDDATA_DATA(abv); 
       //variable_set_value(top, ab->place.y);
       //variable_set_value(left, ab->place.x);
       //variable_set_value(width, ab->place.w);

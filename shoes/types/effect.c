@@ -51,7 +51,7 @@ VALUE shoes_effect_new(ID name, VALUE attr, VALUE parent) {
 }
 
 VALUE shoes_effect_draw(VALUE self, VALUE c, VALUE actual) {
-    SETUP_DRAWING(shoes_effect, REL_TILE, canvas->width, canvas->height);
+    SETUP_DRAWING_T(shoes_effect, REL_TILE, canvas->width, canvas->height);
 
     if (RTEST(actual) && self_t->filter != NULL)
         self_t->filter(CCR(canvas), self_t->attr, &self_t->place);
