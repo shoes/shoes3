@@ -600,6 +600,11 @@ namespace :setup do
 	    task :xwin7 do
 	      sh "echo 'TGT_ARCH=xwin7' >build_target"
 	    end
+      
+      desc "Setup for Msys2 cross compile"
+      task :xmsys2 do
+        sh "echo 'TGT_ARCH=xmsys2' >build_target"
+      end
 	    
 	    desc "Setup for OSX 10.10+ (osxcross tools)"
 	    task :darwin14 do

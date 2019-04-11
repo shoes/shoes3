@@ -87,7 +87,7 @@ class MakeMinGW
     end
 
     Object::APPVERSION = APP['VERSION']
-    Object::RELEASE_DATE = Date.parse(APP['DATE']).strftime("%Y-%m-%d")
+    #Object::RELEASE_DATE = Date.parse(APP['DATE']).strftime("%Y-%m-%d")
     def make_installer_gtifw exe_path
       def sh(*args); super; end
       rm_rf "qtifw"

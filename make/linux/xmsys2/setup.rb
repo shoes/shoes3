@@ -38,6 +38,9 @@ module Make
         cp "#{path}", "#{TGT_DIR}"
       end
     end
+    if rbvm != '2.3' 
+      ssl_copy()
+    end
     # copy/setup etc/share
     mkdir_p "#{TGT_DIR}/share/glib-2.0/schemas"
     cp  "#{ShoesDeps}/share/glib-2.0/schemas/gschemas.compiled" ,
@@ -56,8 +59,8 @@ module Make
         f.write "#gtk-theme-name=win32"
       end
     end
-    mkdir_p "#{ShoesDeps}/lib"
-    cp_r "#{ShoesDeps}/lib/gtk-3.0", "#{TGT_DIR}/lib" 
+    #mkdir_p "#{ShoesDeps}/lib"
+    #cp_r "#{ShoesDeps}/lib/gtk-3.0", "#{TGT_DIR}/lib" 
     bindir = "#{ShoesDeps}/bin"
     if File.exist?("#{bindir}/gtk-update-icon-cache-3.0.exe")
       cp "#{bindir}/gtk-update-icon-cache-3.0.exe",
@@ -67,5 +70,24 @@ module Make
     end
     cp APP['icons']['win32'], "shoes/appwin32.ico"
   end
+  
+  # if ruby is from RubyInstaller then copy some dlls from there
+  def ssl_copy()
+    if File.exist? "#{EXT_RUBY}/lib/engines"
+      puts "SSL copying from RubyInstaller #{ShoesDeps}"
+      cp_r "#{EXT_RUBY}/lib/engines", "#{TGT_DIR}/lib"
+      Dir.glob("#{EXT_RUBY}/bin/ruby_builtin_dlls/*.dll") do |f|
+        cp f, TGT_DIR # CAUTION: replaces dlls from ShoesDeps
+      end
+      
+    elsif File.exist? "#{ShoesDeps}/bin/engines"
+      puts "SSL copying from MXE NOT SUPPORT for xmsys2"
+      abort
+    else
+      puts "Can't find the openssl-1.1 libs"
+      abort
+    end
+  end
+
 end
 

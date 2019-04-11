@@ -51,8 +51,8 @@ STRIP = "strip -s"
 WINDRES = "windres"
 PKG_CONFIG = "pkg-config.exe"
 # dance on ENV['PKG_CONFIG_PATH'] We want something  pkg-config can use
-ENV['PKG_CONFIG_PATH'] = `cygpath -u #{ShoesDeps}/lib/pkgconfig`.chomp 
-#ENV['PKG_CONFIG_PATH'] = "#{ShoesDeps}/lib/pkgconfig"
+#ENV['PKG_CONFIG_PATH'] = `cygpath -u #{ShoesDeps}/lib/pkgconfig`.chomp 
+ENV['PKG_CONFIG_PATH'] = "#{ShoesDeps}/lib/pkgconfig"
 
 if APP['GDB']
   WIN32_CFLAGS << "-g3 -O0"
@@ -61,7 +61,7 @@ else
 end
 
 
-gtk_pkg_path = "#{GtkDeps}/lib/pkgconfig/gtk+-3.0.pc"
+#gtk_pkg_path = "#{GtkDeps}/lib/pkgconfig/gtk+-3.0.pc"
 GTK_CFLAGS = `#{PKG_CONFIG} --cflags gtk+-3.0 --define-variable=prefix=#{ShoesDeps}`.chomp
 GTK_LDFLAGS = `#{PKG_CONFIG} --libs gtk+-3.0 --define-variable=prefix=#{ShoesDeps}`.chomp
 CAIRO_CFLAGS = `#{PKG_CONFIG} --cflags glib-2.0 --define-variable=prefix=#{ShoesDeps}`.chomp +

@@ -28,7 +28,8 @@ require_relative '../../switch_ruby'
 # Ruby doesn't do triplets like everyone else. 
 arch_2_file = {'i386-mingw32.shared' => 'i386-mingw32'}
 # Match what Gem:: does (not what you think it should do)
-arch_2_gem =  {'i386-mingw32.shared' => 'x86-mingw32'}
+arch_2_gem =  {'i386-mingw32.shared' => 'x86-mingw32', # mxe compiled ruby
+               'i386-mingw32' => 'x86-mingw32' }        # hand compiled ruby
 
 SHOES_TGT_ARCH = RbConfig::CONFIG['arch']
 SHOES_GEM_ARCH = arch_2_gem[RbConfig::CONFIG['arch']]

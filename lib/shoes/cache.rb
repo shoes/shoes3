@@ -42,16 +42,16 @@ else
   #puts "LOOSE Shoes #{RUBY_VERSION} #{DIR}"
   $:.unshift ENV['GEM_HOME'] if ENV['GEM_HOME']
   rv = case RUBY_VERSION
-    when /1.9/
-      '1.9.1'
-    when /2.0.0/
-      '2.0.0'
-    when /2.1/
-      '2.1.0'
     when /2.2/
       '2.2.0'
     when /2.3/
       '2.3.0'
+    when /2.4/
+      '2,4.0'
+    when /2.5/
+      '2.5.0'
+    when /2.6/
+      '2.6.0'
     else
       RUBY_VERSION
   end

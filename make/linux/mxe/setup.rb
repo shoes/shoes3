@@ -38,6 +38,9 @@ module Make
         cp "#{path}", "#{TGT_DIR}"
       end
     end
+    if rbvm != '2.3' 
+      ssl_copy()
+    end
     # copy/setup etc/share
     mkdir_p "#{TGT_DIR}/share/glib-2.0/schemas"
     cp  "#{ShoesDeps}/share/glib-2.0/schemas/gschemas.compiled" ,
@@ -66,6 +69,23 @@ module Make
       #cp  "#{bindir}/gtk-update-icon-cache.exe", TGT_DIR
     end
     cp APP['icons']['win32'], "shoes/appwin32.ico"
+  end
+  
+  # if ruby is from RubyInstaller then copy some dlls from there
+  def ssl_copy()
+    if File.exist? "#{EXT_RUBY}/lib/engines"
+      puts "SSL copying from RubyInstaller #{ShoesDeps} - NOT from mxe"
+      abort
+    elsif File.exist? "#{ShoesDeps}/bin/engines"
+      puts "SSL copying from MXE"
+      mkdir_p "#{TGT_DIR}/lib"
+      cp_r "#{ShoesDeps}/bin/engines/padlock.dll", TGT_DIR
+      cp   "#{ShoesDeps}/bin/libcrypto-1_1.dll", TGT_DIR
+      cp   "#{ShoesDeps}/bin/libssl-1_1.dll", TGT_DIR
+    else
+      puts "Can't find the openssl-1.1 libs"
+      abort
+    end
   end
 end
 

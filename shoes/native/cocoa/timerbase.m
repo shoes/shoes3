@@ -93,7 +93,7 @@ static int
 start_wait(VALUE data) {
   VALUE rbcanvas = (VALUE)data;
   shoes_canvas *canvas;
-  Data_Get_Struct(rbcanvas, shoes_canvas, canvas);
+  TypedData_Get_Struct(rbcanvas, shoes_canvas, &shoes_canvas_type, canvas);
   
   shoes_safe_block(rbcanvas, ATTR(canvas->attr, start), rb_ary_new3(1, rbcanvas));
   //NSLog(@"one_shot finished"); 

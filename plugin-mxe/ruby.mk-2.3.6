@@ -3,13 +3,13 @@
 PKG             := ruby
 $(PKG)_WEBSITE  := https://ruby-lang.org
 $(PKG)_IGNORE   :=
-$(PKG)_VERSION  := 2.4.5
-$(PKG)_CHECKSUM := 6737741ae6ffa61174c8a3dcdd8ba92bc38827827ab1d7ea1ec78bc3cefc5198
+$(PKG)_VERSION  := 2.3.8
+$(PKG)_CHECKSUM := b5016d61440e939045d4e22979e04708ed6c8e1c52e7edb2553cf40b73c59abf
 $(PKG)_SUBDIR   := ruby-$($(PKG)_VERSION)
 $(PKG)_FILE     := ruby-$($(PKG)_VERSION).tar.gz
-$(PKG)_URL      := https://cache.ruby-lang.org/pub/ruby/2.4/$($(PKG)_FILE)
-$(PKG)_URL_2    := https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.5.tar.gz
-$(PKG)_DEPS     := cc yaml libffi openssl  gdbm 
+$(PKG)_URL      := https://cache.ruby-lang.org/pub/ruby/2.3/$($(PKG)_FILE)
+$(PKG)_URL_2    := https://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.8.tar.gz
+$(PKG)_DEPS     := cc yaml libffi openssl1.0  gdbm 
 
 $(PKG)_DEPS_$(BUILD) := autotools 
 
