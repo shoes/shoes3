@@ -196,11 +196,11 @@ add_to_menubar(NSMenu *main, NSMenu *menu)
 }
 
 void shoes_osx_create_apple_menu(VALUE mbv) {
-	// Setup menubar and Shoes menu
+    // Setup menubar and Shoes menu
     Get_TypedStruct2(mbv, shoes_menubar, mb);
     NSMenu *main = (NSMenu *)mb->native; 
     // Create the Native application (Apple) menu.
-   // NSMenu *menuApp = [[NSMenu alloc] initWithTitle: @"Apple Menu"];
+    // NSMenu *menuApp = [[NSMenu alloc] initWithTitle: @"Apple Menu"];
     NSMenu *menuApp = [[NSMenu alloc] initWithTitle: @"MyApp"];
     [menuApp setAutoenablesItems: NO]; // Beware
 
@@ -220,8 +220,8 @@ void shoes_osx_create_apple_menu(VALUE mbv) {
     
     // Now populate with MenuItems unless told not to..
     NSMenuItem *menuitem;    
-	int flags = MENUITEM_ENABLE; 
-	char *key = "";
+    int flags = MENUITEM_ENABLE; 
+    char *key = "";
 
     if ( st->osx_menutrim == Qfalse) {    
 	    //menuitem = [menuApp addItemWithTitle:@"Open..."

@@ -28,8 +28,6 @@ void shoes_menuitem_mark(shoes_menuitem *mi) {
 static void shoes_menuitem_free(shoes_menuitem *mi) {
 	if (mi->title) free(mi->title);
 	if (mi->key) free(mi->key);
-  if (mi->id) 
-    free(mi->id);
   RUBY_CRITICAL(SHOE_FREE(mi));
 }
 
@@ -48,7 +46,6 @@ VALUE shoes_menuitem_alloc(VALUE klass) {
     mi->key = NULL;
     mi->block = Qnil;
     mi->context = Qnil;
-    mi->id = NULL;
     return obj;
 }
 

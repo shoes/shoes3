@@ -31,7 +31,7 @@ if tight_shoes
   GEM_DIR = File.join(LIB_DIR, '+gem')
   $:.unshift SITE_LIB_DIR
   $:.unshift GEM_DIR
-  ENV['GEM_HOME'] = GEM_DIR
+  #ENV['GEM_HOME'] = GEM_DIR # it's an rvm thing 
   np = []
   ENV['PATH'].split(':').each do |p|
     np << p unless p =~ /\/.(rvm|rbenv)\//
@@ -96,9 +96,9 @@ if tight_shoes
   RbConfig::MAKEFILE_CONFIG.merge! config
   # Add paths to Shoes builtin Gems TODO: may not be needed
   GEM_CENTRAL_DIR = File.join(DIR, 'lib/ruby/gems/' + RbConfig::CONFIG['ruby_version'])
-  Dir[GEM_CENTRAL_DIR + "/gems/*"].each do |gdir|
-    $: << "#{gdir}/lib"
-  end
+  #Dir[GEM_CENTRAL_DIR + "/gems/*"].each do |gdir|
+  #  $: << "#{gdir}/lib"
+  #end
   #jloc = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}/getoutofjail.card"
   jloc = File.join(LIB_DIR, Shoes::RELEASE_NAME, 'getoutofjail.card')
   #puts "Jailbreak location #{jloc}"
@@ -119,9 +119,9 @@ if tight_shoes
   else
     if ENV['GEM_PATH']
       # replace GEM_PATH 
-      ENV['GEM_PATH'] = "#{GEM_DIR}:#{GEM_CENTRAL_DIR}"
-      Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
-      Gem.refresh
+      #ENV['GEM_PATH'] = "#{GEM_DIR}:#{GEM_CENTRAL_DIR}"
+      #Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
+      #Gem.refresh
     end
     ShoesGemJailBreak = false
   end
@@ -153,7 +153,7 @@ else # Loose Shoes
     GEM_CENTRAL_DIR = GEM_DIR = gp # don't use ~/.shoes/+gem/
     Dir[GEM_CENTRAL_DIR + "/gems/*"].each do |gdir|
       #debug "adding to loadpath: #{gdir}"
-      $: << "#{gdir}/lib"
+      #$: << "#{gdir}/lib"
     end
     Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
     Gem.refresh

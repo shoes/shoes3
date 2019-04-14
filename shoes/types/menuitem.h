@@ -23,7 +23,6 @@ typedef struct {
     char *key;     // accelerator key . flags in state var above
     VALUE block;   // ruby block to call
     VALUE context; // app->canvas 
-    void *id;      // gtk accel path, optionally a cocoa tag
 } shoes_menuitem;
 
 
