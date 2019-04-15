@@ -23,9 +23,10 @@ end
 # Shoes/widget ruby interface (aka types/)
 mkdir_p "#{tp}/types", verbose: false
 rbwidget_src = FileList["shoes/types/*.c"]
-#ifdef SHOES_WIN32
+if TGT_ARCH =~ /xmsw|msx/
   rbwidget_src -= ['shoes/types/svg.c']
-#endif
+  rbwidget_src -= ['shoes/types/video.c']
+end
 rbwidget_obj = []
 rbwidget_hdr = []
 rbwidget_src.each do |c|

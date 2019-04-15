@@ -10,13 +10,9 @@
 #include "shoes/types/color.h"
 #include "shoes/internal.h"
 #include "shoes/appwin32.h"
-#include "shoes/native/windows.h"
 #include <commdlg.h>
 #include <shlobj.h>
-
-#define HEIGHT_PAD 6
-#define true 1
-#define false 0
+#include "shoes/native/windows.h"
 
 void
 shoes_native_canvas_resize(shoes_canvas *canvas)
@@ -43,10 +39,26 @@ shoes_native_control_position(SHOES_CONTROL_REF ref, shoes_place *p1, VALUE self
   MoveWindow(ref, p2->ix + p2->dx, p2->iy + p2->dy, p2->iw, p2->ih, TRUE);
 }
 
+// TODO: can't find this in shoes-r1157 - types/list_box.c wants it
+void shoes_native_control_position_no_pad(SHOES_CONTROL_REF ref , shoes_place *p1,
+        VALUE self, shoes_canvas *canvas, shoes_place *p2) {
+  PLACE_COORDS();
+  MoveWindow(ref, p2->ix + p2->dx, p2->iy + p2->dy, p2->iw, p2->ih, TRUE);
+}
+
 void
 shoes_native_control_repaint(SHOES_CONTROL_REF ref, shoes_place *p1,
   shoes_canvas *canvas, shoes_place *p2)
 {
+  p2->iy -= canvas->slot->scrolly;
+  if (CHANGED_COORDS())
+    shoes_native_control_position(ref, p1, Qnil, canvas, p2);
+  p2->iy += canvas->slot->scrolly;
+}
+
+// TODO: can't find this in shoes-r1157 - types/list_box.c wants it
+void shoes_native_control_repaint_no_pad(SHOES_CONTROL_REF ref, shoes_place *p1,
+        shoes_canvas *canvas, shoes_place *p2) {
   p2->iy -= canvas->slot->scrolly;
   if (CHANGED_COORDS())
     shoes_native_control_position(ref, p1, Qnil, canvas, p2);
@@ -75,11 +87,6 @@ shoes_native_control_remove(SHOES_CONTROL_REF ref, shoes_canvas *canvas)
 void
 shoes_native_control_free(SHOES_CONTROL_REF ref)
 {
-}
-
-inline void shoes_win32_control_font(int id, HWND hwnd)
-{
-  SendDlgItemMessage(hwnd, id, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM(true, 0));
 }
 
 SHOES_SURFACE_REF
@@ -380,5 +387,54 @@ void shoes_native_slider_set_fraction(SHOES_CONTROL_REF ref, double perc) {
 }
 
 double shoes_native_slider_get_fraction(SHOES_CONTROL_REF ref) {
-  return 1.0
+  return 1.0;
 }
+
+SHOES_CONTROL_REF shoes_native_spinner(VALUE self, shoes_canvas *canvas, 
+    shoes_place *place, VALUE attr, char *msg) {
+  return NULL; 
+}
+
+void shoes_native_spinner_start(SHOES_CONTROL_REF ref) {
+} 
+
+void shoes_native_spinner_stop(SHOES_CONTROL_REF ref) {
+}
+
+gboolean shoes_native_spinner_started(SHOES_CONTROL_REF ref) {
+  return TRUE;
+}
+
+SHOES_CONTROL_REF shoes_native_switch(VALUE self, shoes_canvas *canvas,
+    shoes_place *place, VALUE attr, char *msg) {
+  return NULL;
+}
+
+void shoes_native_switch_set_active(SHOES_CONTROL_REF ref, int activate) {
+}
+
+VALUE shoes_native_switch_get_active(SHOES_CONTROL_REF ref) {
+  return Qnil;
+}
+
+void shoes_native_systray(char *title, char *message, char *path) {
+}
+
+SHOES_CONTROL_REF shoes_native_text_view(VALUE self, shoes_canvas *canvas, 
+    shoes_place *place, VALUE attr, char *msg) {
+  return NULL;
+}
+
+VALUE shoes_native_text_view_get_text(SHOES_CONTROL_REF ref) {
+  return Qnil;
+}
+
+void shoes_native_text_view_set_text(SHOES_CONTROL_REF ref, char *msg) {
+}
+
+VALUE shoes_native_text_view_append(SHOES_CONTROL_REF ref, char *msg) {
+  return Qnil;
+}
+
+
+

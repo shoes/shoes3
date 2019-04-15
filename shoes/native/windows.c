@@ -10,17 +10,8 @@
 #include "shoes/types/color.h"
 #include "shoes/internal.h"
 #include "shoes/appwin32.h"
-#include <commdlg.h>
-#include <shlobj.h>
+#include "shoes/native/windows.h"
 
-#define HEIGHT_PAD 6
-
-#ifndef IDC_HAND
-#define IDC_HAND MAKEINTRESOURCE(32649)
-#endif
-
-extern ID cTimer;
-extern ID s_hand_cursor, s_link, s_arrow;
 
 int win_current_tmo = 10; // TODO: settings can poke this. May not be needed/used 
 
@@ -56,6 +47,11 @@ shoes_utf8(WCHAR *buffer)
   return utf8;
 }
 
+void shoes_win32_control_font(int id, HWND hwnd)
+{
+  SendDlgItemMessage(hwnd, id, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), MAKELPARAM(true, 0));
+}
+
 void
 shoes_win32_center(HWND hwnd)
 {
@@ -69,10 +65,11 @@ shoes_win32_center(HWND hwnd)
      0, 0, SWP_NOZORDER|SWP_NOSIZE );
 }
 
-int
-shoes_win32_cmdvector(const char *cmdline, char ***argv)
+// TODO - not used? renamed/removed in ruby 2.2.0
+int shoes_win32_cmdvector(const char *cmdline, char ***argv)
 {
-  return rb_w32_cmdvector(cmdline, argv);
+  //return rb_w32_cmdvector(cmdline, argv);
+  return 0;
 }
 
 
@@ -1145,7 +1142,7 @@ int shoes_native_monitor_get(shoes_app *app) {
   return 0;
 }
 
-VALUE shoes_native_monitor_count(VALUE self) {
+int shoes_native_monitor_count(VALUE self) {
   return INT2NUM(1);
 }
 
@@ -1170,6 +1167,9 @@ void shoes_get_time(SHOES_TIME *ts) {
 }
 
 
-// calls from ruby.c
+// calls from ruby.c - stubbed out - see subsys.rb
 void shoes_svg_init() {
+}
+
+void shoes_video_init() {
 }

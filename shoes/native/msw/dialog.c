@@ -10,15 +10,12 @@
 #include "shoes/types/color.h"
 #include "shoes/internal.h"
 #include "shoes/appwin32.h"
-#include "shoes/native/windows.h"
 #include <commdlg.h>
 #include <shlobj.h>
+#include "shoes/native/windows.h"
 
-#define HEIGHT_PAD 6
-
-#ifndef IDC_HAND
-#define IDC_HAND MAKEINTRESOURCE(32649)
-#endif
+const char *dialog_title = USTR("Shoes asks:");
+const char *dialog_title_says = USTR("Shoes says:");
 
 
 VALUE
