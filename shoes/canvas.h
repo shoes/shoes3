@@ -15,7 +15,9 @@
 
 #include "shoes/config.h"
 #include "shoes/code.h"
+#ifndef SHOES_WIN32
 #include <rsvg.h>
+#endif
 
 struct _shoes_app;
 
@@ -426,13 +428,14 @@ shoes_cached_image *shoes_cached_image_new(int, int, cairo_surface_t *);
 shoes_cached_image *shoes_load_image(VALUE, VALUE, VALUE);
 unsigned char shoes_image_downloaded(shoes_image_download_event *);
 
+#ifndef SHOWS_WIN32
 // Canvas needs cSvg to create snapshots and send events
 extern VALUE cSvg;
 
 extern VALUE shoes_svg_motion(VALUE, int, int, char *);
 extern VALUE shoes_svg_send_click(VALUE, int, int, int);
 extern void shoes_svg_send_release(VALUE, int, int, int);
-
+#endif
 extern VALUE cNative, cPlot, cRadio, cShoesMenu, cShoesMenuitem, cShoesMenubar;
   
 #endif
