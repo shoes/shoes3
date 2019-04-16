@@ -33,6 +33,12 @@ end
 # use target ruby
 require_relative '../../switch_ruby'
 
+# hack if user gives a gem location inside rvm or rbenv
+if APP['GEMLOC'] =~ /(\.rvm)|(\.rbenv)/
+   $stderr.puts "Copying all gems from rvbm/rbenv"
+   APP['RVMGEM'] = APP['GEMLOC']
+end
+
 arch_2_file = {
   'x86_64-darwin17' => 'x86_64-darwin17',
   'x86_64-darwin14' => 'x86_64-darwin14',

@@ -6,6 +6,7 @@ module Gem
   if Shoes::RELEASE_TYPE =~ /TIGHT/
     @ruby = (File.join(RbConfig::CONFIG['bindir'], 'shoes') + RbConfig::CONFIG['EXEEXT']).
           sub(/.*\s.*/m, '"\&"') + " --ruby"
+    debug "setting @ruby to #{@ruby}"
   end
 end
 class << Gem::Ext::ExtConfBuilder
@@ -17,6 +18,7 @@ class << Gem::Ext::ExtConfBuilder
     mf = mf.gsub(/^INSTALL_PROG\s*=\s*.*$/, "INSTALL_PROG = $(INSTALL) -m 0755")
     mf = mf.gsub(/^INSTALL_DATA\s*=\s*.*$/, "INSTALL_DATA = $(INSTALL) -m 0644")
     File.open('Makefile', 'wb') {|f| f.print mf}
+    debug "after trying the new Makefile"
     make__(dest_path, results)
   end
 end

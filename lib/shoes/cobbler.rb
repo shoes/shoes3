@@ -453,9 +453,11 @@ the first selection and then the Folder named plugins"
     ui.title "Installing #{spec.name} #{spec.version}"
     installer = Gem::DependencyInstaller.new
     begin
-      installer.install(spec.name, spec.version)
-      gem_reset
+			ENV['PATH'] = "/usr/local/bin:/usr/bin"
+			$stderr.puts "gem installer env: #{ENV['PATH']}"
+			installer.install(spec.name, spec.version)
       spec.activate
+      gem_reset
       ui.say "Finished installing #{spec.name}"
     rescue Object => e
        puts "Fail #{e}"
