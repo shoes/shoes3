@@ -6,7 +6,6 @@ module Gem
   if Shoes::RELEASE_TYPE =~ /TIGHT/
     @ruby = (File.join(RbConfig::CONFIG['bindir'], 'shoes') + RbConfig::CONFIG['EXEEXT']).
           sub(/.*\s.*/m, '"\&"') + " --ruby"
-    debug "setting @ruby to #{@ruby}"
   end
 end
 class << Gem::Ext::ExtConfBuilder
