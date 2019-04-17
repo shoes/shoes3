@@ -15,6 +15,19 @@
 
 int win_current_tmo = 10; // TODO: settings can poke this. May not be needed/used 
 
+// called from canvas.c 
+void shoes_get_time(SHOES_TIME *ts) {
+ *ts = GetTickCount();
+}
+
+// calls from ruby.c - stubbed out until written for windows - see subsys.rb
+void shoes_svg_init() {
+}
+
+void shoes_video_init() {
+}
+
+
 shoes_code shoes_classex_init();
 LRESULT CALLBACK shoes_app_win32proc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK shoes_slot_win32proc(HWND, UINT, WPARAM, LPARAM);
@@ -536,12 +549,6 @@ shoes_app_win32proc(
       }
     break; // WM_CHAR
 
-#ifndef true
-#define true 1
-#endif
-#ifndef false
-#define false 0
-#endif
     case WM_SYSKEYDOWN:
     case WM_KEYDOWN:
       if (w == VK_CONTROL)
@@ -1089,12 +1096,14 @@ shoes_native_window_color(shoes_app *app)
 // Is this needed for winodws?
 shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, shoes_settings *st) {
   fprintf(stderr, "shoes_native_app_open_menu called\n");
+  return shoes_native_app_open(app, path, dialog, st);
 }
 
 // Is this needed for winodws?
 void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width,
     int height, int scrolls, int toplevel) {
   fprintf(stderr, "shoes_slot_init_menu called\n");
+  shoes_slot_init(c, parent, x, y, width, height, scrolls, toplevel);
 }
 
 void shoes_native_app_resize_window(shoes_app *app) {
@@ -1133,43 +1142,5 @@ int shoes_native_app_get_decoration(shoes_app *app) {
   return false;
 }
 
-// Monitors 
-
-void shoes_native_monitor_set(shoes_app *app) {
-}
-
-int shoes_native_monitor_get(shoes_app *app) {
-  return 0;
-}
-
-int shoes_native_monitor_count(VALUE self) {
-  return INT2NUM(1);
-}
-
-int shoes_native_monitor_default() {
-  return 0;
-}
-
-void shoes_native_monitor_geometry(int idx, shoes_monitor_t *geo) {
-}
-
-// next two have implementations in gtk.c 
-void shoes_native_terminal(char *app_dir, int monitor, int columns, int rows,
-    int fontsize, char *fgcolor, char *bgcolor, char *title) {
-}
-
-int shoes_win32_console() {
-  return true; 
-}
-// calls from canvas.c - see winhttp.c for an implementation
-
-void shoes_get_time(SHOES_TIME *ts) {
-}
 
 
-// calls from ruby.c - stubbed out - see subsys.rb
-void shoes_svg_init() {
-}
-
-void shoes_video_init() {
-}
