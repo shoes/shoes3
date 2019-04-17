@@ -451,11 +451,12 @@ the first selection and then the Folder named plugins"
     # setup Gem download ui
     ui = Gem::DefaultUserInteraction.ui = Gem::CobblerFace.new(@progbar, @status)
     ui.title "Installing #{spec.name} #{spec.version}"
-    installer = Gem::DependencyInstaller.new
+    installer = Gem::DependencyInstaller.new({:nodoc => true, :install_dir => GEM_DIR})
     begin
-      installer.install(spec.name, spec.version)
-      gem_reset
+			#$stderr.puts "gem build setup: #{installer.options}"
+			installer.install(spec.name, spec.version)
       spec.activate
+      gem_reset
       ui.say "Finished installing #{spec.name}"
     rescue Object => e
        puts "Fail #{e}"
