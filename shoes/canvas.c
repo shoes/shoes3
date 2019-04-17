@@ -15,7 +15,9 @@
 #include "shoes/types/shape.h"
 #include "shoes/types/textblock.h"
 #include "shoes/types/layout.h"
+#ifndef SHOES_WIN32
 #include "shoes/types/svg.h"
+#endif
 #include "shoes/http.h"
 
 const double SHOES_PIM2   = 6.28318530717958647693;
@@ -1141,9 +1143,11 @@ VALUE shoes_canvas_send_click2(VALUE self, int button, int x, int y, VALUE mods,
             } else if (rb_obj_is_kind_of(ele, cImage)) {
                 v = shoes_image_send_click(ele, button, ox, oy);
                 *clicked = ele;
+#ifndef SHOES_WIN32
             } else if (rb_obj_is_kind_of(ele, cSvg)) {
                 v = shoes_svg_send_click(ele, button, ox, oy);
                 *clicked = ele;
+#endif
             } else if (rb_obj_is_kind_of(ele, cPlot)) {
                 v = shoes_plot_send_click(ele, button, ox, oy);
                 *clicked = ele;
@@ -1225,8 +1229,10 @@ void shoes_canvas_send_release(VALUE self, int button, int x, int y, VALUE mods)
                 shoes_textblock_send_release(ele, button, ox, oy);
             } else if (rb_obj_is_kind_of(ele, cImage)) {
                 shoes_image_send_release(ele, button, ox, oy);
+#ifndef SHOES_WIN32
             } else if (rb_obj_is_kind_of(ele, cSvg)) {
                 shoes_svg_send_release(ele, button, ox, oy);
+#endif
             } else if (rb_obj_is_kind_of(ele, cPlot)) {
                 shoes_plot_send_release(ele, button, ox, oy);
             } else if (rb_obj_is_kind_of(ele, cShape)) {
@@ -1271,8 +1277,10 @@ VALUE shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url, VALUE mods) 
                 urll = shoes_textblock_motion(ele, ox, oy, &h);
             } else if (rb_obj_is_kind_of(ele, cImage)) {
                 urll = shoes_image_motion(ele, ox, oy, NULL);
+#ifndef SHOES_WIN32
             } else if (rb_obj_is_kind_of(ele, cSvg)) {
                 urll = shoes_svg_motion(ele, ox, oy, NULL);
+#endif
             } else if (rb_obj_is_kind_of(ele, cPlot)) {
                 urll = shoes_plot_motion(ele, ox, oy, NULL);
             }

@@ -1,5 +1,7 @@
 #include "shoes/types/event.h"
+#ifndef SHOES_WIN32
 #include "shoes/types/svg.h"
+#endif
 #include "shoes/app.h"
 
 VALUE cShoesEvent; 
@@ -192,10 +194,11 @@ VALUE shoes_event_find_psuedo (VALUE self, int x, int y, VALUE *hitobj) {
             } else if (rb_obj_is_kind_of(ele, cImage)) {
                 v = shoes_image_event_is_here(ele, ox, oy);
                 *hitobj = ele;
+#ifndef SHOES_WIN32
             } else if (rb_obj_is_kind_of(ele, cSvg)) {
                 v = shoes_svg_event_is_here(ele, ox, oy);
                 *hitobj  = ele;
-            
+#endif            
             } else if (rb_obj_is_kind_of(ele, cPlot)) {
                 v = shoes_plot_event_is_here(ele, ox, oy);
                 *hitobj = ele;

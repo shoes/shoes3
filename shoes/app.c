@@ -389,7 +389,7 @@ shoes_code shoes_app_open(shoes_app *app, char *path) {
     if (st->use_menus == Qtrue) {
       app->have_menu = 1;   
     }
-#ifndef SHOES_QUARTZ
+#if !defined(SHOES_QUARTZ) && !defined(SHOES_WIN32)
     // gtk has two ways to open 
     if (app->have_menu)
       code = shoes_native_app_open_menu(app, path, dialog, st);
@@ -407,7 +407,8 @@ shoes_code shoes_app_open(shoes_app *app, char *path) {
 #endif
     if (app->slot != NULL)
        shoes_native_slot_reset(app->slot);
-#ifndef SHOES_QUARTZ
+       
+#if !defined(SHOES_QUARTZ) && !defined(SHOES_WIN32)
     if (app->have_menu)
       shoes_slot_init_menu(app->canvas, app->slot, 0, 0, app->width, app->height, TRUE, TRUE);
     else

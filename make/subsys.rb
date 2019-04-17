@@ -23,6 +23,10 @@ end
 # Shoes/widget ruby interface (aka types/)
 mkdir_p "#{tp}/types", verbose: false
 rbwidget_src = FileList["shoes/types/*.c"]
+if TGT_ARCH =~ /xmsw|msx/
+  rbwidget_src -= ['shoes/types/svg.c']
+  rbwidget_src -= ['shoes/types/video.c']
+end
 rbwidget_obj = []
 rbwidget_hdr = []
 rbwidget_src.each do |c|
@@ -60,6 +64,23 @@ if TGT_ARCH =~ /yosemite|mavericks|minosx|darwin14/
     sh "#{CC} -o #{tp}/native/cocoa.o -I. -c #{LINUX_CFLAGS} shoes/native/cocoa.m"
   end
   file "#{tp}/native/zznative.done" => ["#{tp}/native/cocoa.o"] + nat_obj do
+    touch "#{tp}/native/zznative.done"
+  end
+elsif TGT_ARCH =~ /xmsw|msw/
+  nat_src = FileList['shoes/native/msw/*.c']
+  nat_src.each do |c|
+    fnm = File.basename(c, ".*")
+    o = "#{tp}/native/#{fnm}.o"
+    nat_obj << o
+    h = c.gsub(/.c$/, '.h')
+    file o => [c] + [h] + ['shoes/native/native.h'] + Base_h do
+      sh "#{CC} -o #{o} -I. -c #{LINUX_CFLAGS} #{c}"
+    end
+  end  
+  file "#{tp}/native/windows.o" => ["shoes/native/windows.c"] + Base_h do
+    sh "#{CC} -o #{tp}/native/windows.o -I. -c #{LINUX_CFLAGS} shoes/native/windows.c"
+  end
+  file "#{tp}/native/zznative.done" => ["#{tp}/native/windows.o"] + nat_obj do
     touch "#{tp}/native/zznative.done"
   end
 else

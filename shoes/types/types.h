@@ -15,7 +15,9 @@
 #include "shoes/types/shape.h"
 #include "shoes/types/slider.h"
 #include "shoes/types/spinner.h"
+#ifndef SHOES_WIN32
 #include "shoes/types/svg.h"
+#endif
 #include "shoes/types/switch.h"
 #include "shoes/types/systray.h"
 #include "shoes/types/text.h"

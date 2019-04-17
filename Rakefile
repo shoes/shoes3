@@ -278,6 +278,14 @@ when :linux
       require File.expand_path('make/gems')
       require File.expand_path('make/subsys')
       builder = MakeDarwin
+   when /xmsw/
+      require File.expand_path('make/linux/xmsw/env')
+      require File.expand_path('make/linux/xmsw/tasks')
+      require File.expand_path('make/linux/xmsw/stubs')
+      require File.expand_path('make/linux/xmsw/packdeps')
+      require File.expand_path('make/linux/xmsw/setup')
+      require File.expand_path('make/gems')
+      require File.expand_path('make/subsys')
    when /minlin/ 
       # This is Loose Shoes setup now known as minlin
       if CROSS && HAVE_BLD  # shortcut
@@ -425,7 +433,7 @@ SubDirs = ["#{rtp}/zzbase.done",  "#{rtp}/http/zzdownload.done",
     
 # Windows doesn't use console - don't try to build it. Delete from dependcies
 case TGT_DIR
-  when /win7/, /xwin7/, /msys2/, /xmsys2/, /mxe/, /mxe_osx/
+  when /win7/, /xwin7/, /msys2/, /xmsys2/, /mxe/, /mxe_osx/, /xmsw/
     SubDirs.delete("#{rtp}/console/zzconsole.done")
 end
 
@@ -576,6 +584,11 @@ namespace :setup do
         sh "echo 'TGT_ARCH=minlin' >build_target"
       end
         
+      desc "Setup for Native Windows"
+      task :xmsw do
+        sh "echo 'TGT_ARCH=xmsw' >build_target"
+      end
+      
 	    desc "Setup for Linux x86_64"
 	    task :xlin64 do
 	      sh "echo 'TGT_ARCH=xlin64' >build_target"
