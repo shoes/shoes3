@@ -2001,7 +2001,8 @@ int shoes_win32_console() {
 }
 
 // Called by Shoes after ruby/gtk/shoes is initialized and running
-int shoes_native_terminal() {
+void shoes_native_terminal(char *dir_path, int monitor, int columns, int row,
+    int fontsize, char *fg, char *bg, char *title) {
     // has a console been setup by --console flag?
     if (shoes_console_out == NULL) {
         if (shoes_win32_console() == 0) // cshoes.exe can do this
