@@ -114,8 +114,8 @@ class String; make_inspect end
 class Symbol; make_inspect end
 class Time; make_inspect end
 class Numeric; make_inspect :to_s end
-class Bignum; make_inspect :to_s end
-class Fixnum; make_inspect :to_s end
+#class Bignum; make_inspect :to_s end 		# deprecated 2.4+
+#class Fixnum; make_inspect :to_s end 		# deprecated 2.4+
 class Float; make_inspect :to_s end
 class TrueClass; make_inspect :to_s end
 class FalseClass; make_inspect :to_s end

@@ -16,7 +16,7 @@ module Make
 	mkdir_p "#{TGT_DIR}/lib"
 	if rbvm != '2.3'
 	  # because ruby changes from version to version, os to os. Curses!
-	  rbvt = EXT_RUBY[/(\d+\.\d+\.\d+)/]
+	  rbvt = RUBY_VERSION[/(\d+\.\d+\.\d+)/]
 	  rbinc = rbvt[/\d+\.\d+/] + '.0'
 	end
 	# clean out leftovers from last build

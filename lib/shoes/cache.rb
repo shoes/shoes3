@@ -4,7 +4,6 @@ include FileUtils
 require_relative 'download.rb'
 # locate ~/.shoes
 require 'tmpdir'
-#require 'rubygems' # Loads a Gem class
 
 lib_dir = nil
 homes = []
@@ -19,18 +18,16 @@ homes.each do |home_top, home_dir|
   end
 end
 LIB_DIR = lib_dir || File.join(Dir::tmpdir, "shoes")
-#LIB_DIR.gsub! /\\/, '\/'
-#LIB_DIR.gsub! /\\+/, "/"
 LIB_DIR.gsub!(/\\/, '/') # should not be needed? 
 
 tight_shoes = Shoes::RELEASE_TYPE =~ /TIGHT/
 rbv = RbConfig::CONFIG['ruby_version']
 if tight_shoes 
-  #require 'rbconfig'
   SITE_LIB_DIR = File.join(LIB_DIR, '+lib')
   GEM_DIR = File.join(LIB_DIR, '+gem')
   $:.unshift SITE_LIB_DIR
   $:.unshift GEM_DIR
+  # make PATH clean of RVM/Rbenv references
   np = []
   ENV['PATH'].split(':').each do |p|
     np << p unless p =~ /(\.rvm)|(\.rbenv)/
@@ -40,22 +37,8 @@ if tight_shoes
 else
   #puts "LOOSE Shoes #{RUBY_VERSION} #{DIR}"
   $:.unshift ENV['GEM_HOME'] if ENV['GEM_HOME']
-  rv = case RUBY_VERSION
-    when /2.2/
-      '2.2.0'
-    when /2.3/
-      '2.3.0'
-    when /2.4/
-      '2,4.0'
-    when /2.5/
-      '2.5.0'
-    when /2.6/
-      '2.6.0'
-    else
-      RUBY_VERSION
-  end
-  $:.unshift DIR+"/lib/ruby/#{rv}/#{RbConfig::CONFIG['arch']}"
-  $:.unshift DIR+"/lib/ruby/#{rv}"
+  $:.unshift DIR+"/lib/ruby/#{rbv}/#{RbConfig::CONFIG['arch']}"
+  $:.unshift DIR+"/lib/ruby/#{rbv}"
   $:.unshift DIR+"/lib/shoes"
 end
 
@@ -64,11 +47,24 @@ mkdir_p(CACHE_DIR)
 SHOES_RUBY_ARCH = RbConfig::CONFIG['arch']
 
 if tight_shoes 
-  #puts "Dir: #{DIR} #{RbConfig::CONFIG["oldincludedir"]}"
-  incld = "#{DIR}/lib/ruby/include/ruby-1.9.1"
+  incld = "#{DIR}/lib/ruby/include"
+  ruby_ins = ""
+  ruby_v = RbConfig::CONFIG['ruby_version']
+  arch_flag = ""
+  if RUBY_PLATFORM =~ /darwin/
+    ruby_ins = "#{DIR}/shoes-bin --ruby"
+    RbConfig::CONFIG['DLDFLAGS'].split(' ').each do |arg|
+      if arg =~ /-mmacosx-version/
+        arch_flag = arg
+        break
+      end
+    end
+  else
+		ruby_ins = "#{DIR}/shoes --ruby"
+  end
   config = {
-	  'ruby_install_name' => "shoes --ruby",
-	  'RUBY_INSTALL_NAME' => "shoes --ruby",
+ 	  'ruby_install_name' => ruby_ins,
+	  'RUBY_INSTALL_NAME' => ruby_ins,
 	  'prefix' => "#{DIR}", 
 	  'bindir' => "#{DIR}", 
 	  'rubylibdir' => "#{DIR}/lib/ruby",
@@ -81,29 +77,27 @@ if tight_shoes
 	  'psdir' => "#{DIR}/doc/${PACKAGE}",
 	  'htmldir' => "#{DIR}/doc/${PACKAGE}",
 	  'docdir' => "#{DIR}/doc/${PACKAGE}",
-#	  'archdir' => "#{DIR}/ruby/lib/#{SHOES_RUBY_ARCH}",
-	  'archdir' => "#{DIR}/lib/ruby/1.9.1/#{SHOES_RUBY_ARCH}",
+	  'archdir' => "#{DIR}/lib/ruby/#{ruby_v}/#{SHOES_RUBY_ARCH}",
 	  'sitedir' => SITE_LIB_DIR,
 	  'sitelibdir' => SITE_LIB_DIR,
 	  'sitearchdir' => "#{SITE_LIB_DIR}/#{SHOES_RUBY_ARCH}",
 	  'LIBRUBYARG_STATIC' => "",
 	  'libdir' => "#{DIR}",
-	  'LDFLAGS' => "-L. -L#{DIR}",
-	  'rubylibprefix' => "#{DIR}/ruby"
+	  'LDFLAGS' => arch_flag + "-L. -L#{DIR}",
+	  'rubylibprefix' => "#{DIR}/ruby",
+	  'ARCH_FLAG' => arch_flag
   }
   RbConfig::CONFIG.merge! config
   RbConfig::MAKEFILE_CONFIG.merge! config
-  # Add paths to Shoes builtin Gems TODO: may not be needed
   GEM_CENTRAL_DIR = File.join(DIR, 'lib/ruby/gems/' + RbConfig::CONFIG['ruby_version'])
   #Dir[GEM_CENTRAL_DIR + "/gems/*"].each do |gdir|
   #  $: << "#{gdir}/lib"  # needed for OSX - no it's not
   #end
+  # override an existing GEM_HOME
   if ENV['GEM_HOME']
 		ENV['GEM_HOME'] = GEM_DIR
   end
-  #jloc = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}/getoutofjail.card"
   jloc = File.join(LIB_DIR, Shoes::RELEASE_NAME, 'getoutofjail.card')
-  #puts "Jailbreak location #{jloc}"
   # Jailbreak for Gems. Load them a from a pre-existing ruby's gems
   # or file contents
   if File.exist? jloc
@@ -120,8 +114,12 @@ if tight_shoes
     ShoesGemJailBreak = true
   else
     if ENV['GEM_PATH']
-      # replace GEM_PATH 
-      ENV['GEM_PATH'] = "#{GEM_DIR}:#{GEM_CENTRAL_DIR}"
+      # replace GEM_HOME and GEM_PATH already in Gem::
+      if RUBY_PLATFORM =~ /mingw/
+				ENV['GEM_PATH'] = "#{GEM_DIR};#{GEM_CENTRAL_DIR}"
+      else     
+				ENV['GEM_PATH'] = "#{GEM_DIR}:#{GEM_CENTRAL_DIR}"
+      end
       Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
       Gem.refresh
     end
@@ -166,11 +164,12 @@ require_relative 'vlcpath'
 yamlp = File.join(LIB_DIR, Shoes::RELEASE_NAME, 'vlc.yaml')
 Vlc_path.load yamlp
 if ENV['GEM_HOME'] && !ShoesGemJailBreak
-	$stderr.puts "Killing rvm in paths"
+	#$stderr.puts "Removing any rvm paths in $:"
 	$:.each do |p| 
 	  if p =~ /(\.rvm)|(\.rbenv)/
 			$:.delete(p)
 		end
 	end
 end
+
 

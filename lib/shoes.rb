@@ -103,6 +103,11 @@ class Shoes
             'Passes commands to RubyGems.') do
       require 'shoes/setup'
       require 'rubygems/gem_runner'
+      if RUBY_PLATFORM =~ /darwin/
+        sav = STDOUT.dup
+        $stdout.reopen(STDERR)
+				$stdout.puts "ruby is #{Gem::ruby}"
+      end
       Gem::GemRunner.new.run(ARGV)
       fail SystemExit, ''
     end
