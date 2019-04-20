@@ -103,10 +103,10 @@ static VALUE shoes_make_font_list(FcFontSet *fonts, VALUE ary) {
 #ifdef SHOES_GTK_WIN32
 /*
  * This is only called when a shoe script uses the font(filename) command
- * so the file name is lacuna.ttf, coolvetica.ttf (Shoes splash for the
+ * so the file name is lacuna.ttf, coolvetica.ttf (Shoes splash or the
  * Shoes manual) or a user supplied font
 */
-VALUE shoes_load_font(const char *filename) {
+VALUE shoes_native_load_font(const char *filename) {
     VALUE allfonts, newfonts, oldfonts;
    // the Shoes api says after a font load, return an array of the font
     // name(s). FamilyName in font-speak.
@@ -127,7 +127,7 @@ VALUE shoes_load_font(const char *filename) {
       printf("windows failed to add fonts in %s\n", filename);
       return Qnil;
     }
-    allfonts = shoes_font_list();   // everything, include the one loaded
+    allfonts = shoes_native_font_list();   // everything, include the one loaded
     oldfonts = rb_const_get(cShoes, rb_intern("FONTS"));
     newfonts = rb_funcall(allfonts, rb_intern("-"), 1, oldfonts);
     shoes_update_fonts(allfonts);
@@ -140,7 +140,7 @@ static int CALLBACK shoes_font_list_iter(const ENUMLOGFONTEX *font, const NEWTEX
     return TRUE;
 }
 
-VALUE shoes_font_list() {
+VALUE shoes_native_font_list() {
     LOGFONT font = {0, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, ""};
     VALUE ary = rb_ary_new();
     HDC dc = GetDC(NULL);
@@ -154,7 +154,7 @@ VALUE shoes_font_list() {
 #else  // Linux gtk3
 #if 0
 // Fontconfig list
-VALUE shoes_font_list() {
+VALUE shoes_native_font_list() {
     VALUE ary = rb_ary_new();
     FcConfig *fc = FcConfigGetCurrent();
     FcFontSet *fonts = FcConfigGetFonts(fc, FcSetApplication);
@@ -164,7 +164,7 @@ VALUE shoes_font_list() {
     return ary;
 }
 
-VALUE shoes_load_font(const char *filename) {
+VALUE shoes_native_load_font(const char *filename) {
     FcConfig *fc = FcConfigGetCurrent();
     FcFontSet *fonts = FcFontSetCreate();
     if (!FcFileScan(fonts, NULL, NULL, NULL, (const FcChar8 *)filename, FcTrue))
@@ -178,12 +178,12 @@ VALUE shoes_load_font(const char *filename) {
         return Qnil;
 
     // refresh the FONTS list
-    shoes_update_fonts(shoes_font_list());
+    shoes_update_fonts(shoes_native_font_list());
     return ary;
 }
 #else
 // Pango list from https://www.lemoda.net/pango/list-fonts/index.html
-VALUE shoes_font_list() {
+VALUE shoes_native_font_list() {
     int i;
     PangoFontFamily ** families;
     int n_families;
@@ -205,7 +205,7 @@ VALUE shoes_font_list() {
     return ary;
 }
 
-VALUE shoes_load_font(const char *filename) {
+VALUE shoes_native_load_font(const char *filename) {
     FcConfig *fc = FcConfigGetCurrent();
     FcFontSet *fonts = FcFontSetCreate();
     if (!FcFileScan(fonts, NULL, NULL, NULL, (const FcChar8 *)filename, FcTrue))
@@ -220,7 +220,7 @@ VALUE shoes_load_font(const char *filename) {
         return Qnil;
 
     // refresh the FONTS list
-    shoes_update_fonts(shoes_font_list());
+    shoes_update_fonts(shoes_native_font_list());
     return ary;
 }
 #endif // Pango version
@@ -416,7 +416,7 @@ int shoes_win32_cmdvector(const char *cmdline, char ***argv) {
     return 0; // TODO: delete this function.
 }
 
-void shoes_get_time(SHOES_TIME *ts) {
+void shoes_native_get_time(SHOES_TIME *ts) {
     *ts = g_get_monotonic_time();  // Should work for GTK3 w/o win32
 }
 
@@ -424,7 +424,7 @@ unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end) {
     return *end - *start;
 }
 #else
-void shoes_get_time(SHOES_TIME *ts) {
+void shoes_native_get_time(SHOES_TIME *ts) {
 #ifdef SHOES_GTK_OSX
     gettimeofday(ts, NULL);
 #else
@@ -464,8 +464,8 @@ static gboolean shoes_gtk_catch_message(gpointer user) {
     return FALSE;
 }
 
-// Only called by image.c
-int shoes_throw_message(unsigned int name, VALUE obj, void *data) {
+
+int shoes_native_throw_message(unsigned int name, VALUE obj, void *data) {
     int ret;
     shoes_gtk_msg *msg = SHOE_ALLOC(shoes_gtk_msg);
     msg->name = name;
@@ -1097,7 +1097,7 @@ void shoes_native_loop() {
     if (APP_WINDOW(app)) gtk_main();
 }
 
-shoes_code shoes_app_cursor(shoes_app *app, ID cursor) {
+shoes_code shoes_native_app_cursor(shoes_app *app, ID cursor) {
     if (app->os.window == NULL || gtk_widget_get_window(app->os.window)== NULL || app->cursor == cursor)
         goto done;
     GdkCursor *c;
@@ -1389,7 +1389,7 @@ void shoes_native_app_close(shoes_app *app) {
 
 // Below function doesn't work - /etc/alternatives doesn't exist.
 // TODO: Appears to not be used at Shoe/ruby level
-void shoes_browser_open(char *url) {
+void shoes_native_browser_open(char *url) {
     VALUE browser = rb_str_new2("/etc/alternatives/x-www-browser '");
     rb_str_cat2(browser, url);
     rb_str_cat2(browser, "' 2>/dev/null &");
@@ -1397,7 +1397,7 @@ void shoes_browser_open(char *url) {
 }
 
  
-void shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int height, int scrolls, int toplevel) {
+void shoes_native_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int height, int scrolls, int toplevel) {
     shoes_canvas *canvas;
     SHOES_SLOT_OS *slot;
     TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
@@ -1410,14 +1410,14 @@ void shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, in
     */
     slot->oscanvas = gtkfixed_alt_new(width, height); 
 #ifdef SZBUG
-    fprintf(stderr,"shoes_slot_init topleve: %d, slot->canvas %lx\n", toplevel, (unsigned long)slot->oscanvas);
+    fprintf(stderr,"shoes_native_slot_init topleve: %d, slot->canvas %lx\n", toplevel, (unsigned long)slot->oscanvas);
 #endif
     g_signal_connect(G_OBJECT(slot->oscanvas), "draw",
                      G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
 
     g_signal_connect(G_OBJECT(slot->oscanvas), "size-allocate",
                      G_CALLBACK(shoes_canvas_gtk_size), (gpointer)c);
-    INFO("shoes_slot_init(%lu)\n", c);
+    INFO("shoes_native_slot_init(%lu)\n", c);
 
     if (toplevel) {
         gtk_container_add(GTK_CONTAINER(parent->oscanvas), slot->oscanvas);
@@ -1453,13 +1453,13 @@ void shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, in
     }
 }
 
-void shoes_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc) {
+void shoes_native_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc) {
     if (canvas->slot->vscroll)
         gtk_container_remove(GTK_CONTAINER(canvas->slot->oscanvas), canvas->slot->vscroll);
     gtk_container_remove(GTK_CONTAINER(pc->slot->oscanvas), canvas->slot->oscanvas);
 }
 
-cairo_t *shoes_cairo_create(shoes_canvas *canvas) {
+cairo_t *shoes_native_cairo_create(shoes_canvas *canvas) {
     GdkWindow *win = gtk_widget_get_window(canvas->slot->oscanvas);
     cairo_t *cr = gdk_cairo_create(win);
     if (canvas->slot->drawevent != NULL &&
@@ -1480,10 +1480,10 @@ cairo_t *shoes_cairo_create(shoes_canvas *canvas) {
     return cr;
 }
 
-void shoes_cairo_destroy(shoes_canvas *canvas) {
+void shoes_native_cairo_destroy(shoes_canvas *canvas) {
 }
 
-void shoes_group_clear(SHOES_GROUP_OS *group) {
+void shoes_native_group_clear(SHOES_GROUP_OS *group) {
     //group->radios = NULL;
     //group->layout = NULL;
 }
@@ -2284,7 +2284,7 @@ void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int widt
   
   g_signal_connect(G_OBJECT(slot->oscanvas), "size-allocate",
                    G_CALLBACK(shoes_canvas_gtk_size_menu), (gpointer)c);
-  INFO("shoes_slot_init(%lu)\n", c);
+  INFO("shoes_slot_init_menu(%lu)\n", c);
   
   if (toplevel) {
     //gtk_container_add(GTK_CONTAINER(parent->oscanvas), slot->oscanvas);

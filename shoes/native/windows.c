@@ -16,7 +16,7 @@
 int win_current_tmo = 10; // TODO: settings can poke this. May not be needed/used 
 
 // called from canvas.c 
-void shoes_get_time(SHOES_TIME *ts) {
+void shoes_native_get_time(SHOES_TIME *ts) {
  *ts = GetTickCount();
 }
 
@@ -87,12 +87,12 @@ int shoes_win32_cmdvector(const char *cmdline, char ***argv)
 
 
 VALUE
-shoes_load_font(const char *filename)
+shoes_native_load_font(const char *filename)
 {
   VALUE allfonts, newfonts, oldfonts;
   int fonts = AddFontResourceEx(filename, FR_PRIVATE, 0);
   if (!fonts) return Qnil;
-  allfonts = shoes_font_list();
+  allfonts = shoes_native_font_list();
   oldfonts = rb_const_get(cShoes, rb_intern("FONTS"));
   newfonts = rb_funcall(allfonts, rb_intern("-"), 1, oldfonts);
   shoes_update_fonts(allfonts);
@@ -108,7 +108,7 @@ shoes_font_list_iter(const LOGFONTA *font, const TEXTMETRICA *pfont, DWORD type,
 }
 
 VALUE
-shoes_font_list()
+shoes_native_font_list()
 {
   LOGFONT font;
   VALUE ary = rb_ary_new();
@@ -142,7 +142,7 @@ void shoes_native_quit()
   PostQuitMessage(0);
 }
 
-int shoes_throw_message(unsigned int name, VALUE obj, void *data)
+int shoes_native_throw_message(unsigned int name, VALUE obj, void *data)
 {
   return SendMessage(shoes_world->os.hidden, SHOES_WM_MESSAGE + name, obj, (LPARAM)data);
 }
@@ -710,7 +710,7 @@ shoes_app_win32proc(
 }
 
 shoes_code
-shoes_app_cursor(shoes_app *app, ID cursor)
+shoes_native_app_cursor(shoes_app *app, ID cursor)
 {
   HCURSOR c;
   if (cursor == s_hand_cursor|| cursor == s_link) {
@@ -920,13 +920,13 @@ shoes_native_app_close(shoes_app *app)
 }
 
 void
-shoes_browser_open(char *url)
+shoes_native_browser_open(char *url)
 {
   ShellExecute(0, "open", url, 0, 0, 0);
 }
 
 void
-shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int height, int scrolls, int toplevel)
+shoes_native_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int height, int scrolls, int toplevel)
 {
   shoes_canvas *canvas;
   SHOES_SLOT_OS *slot;
@@ -953,7 +953,7 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
 }
 
 void
-shoes_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc)
+shoes_native_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc)
 {
   if (canvas->slot->dc != NULL) {
     DeleteObject(GetCurrentObject(canvas->slot->dc, OBJ_BITMAP));
@@ -963,7 +963,7 @@ shoes_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc)
 }
 
 cairo_t *
-shoes_cairo_create(shoes_canvas *canvas)
+shoes_native_cairo_create(shoes_canvas *canvas)
 {
   if (canvas->slot->surface != NULL)
     return NULL;
@@ -1007,7 +1007,7 @@ shoes_cairo_create(shoes_canvas *canvas)
   return cr;
 }
 
-void shoes_cairo_destroy(shoes_canvas *canvas)
+void shoes_native_cairo_destroy(shoes_canvas *canvas)
 {
   BitBlt(canvas->slot->dc2, 0, 0, canvas->width, canvas->height, canvas->slot->dc, 0, 0, SRCCOPY);
   cairo_surface_destroy(canvas->slot->surface);
@@ -1019,7 +1019,7 @@ void shoes_cairo_destroy(shoes_canvas *canvas)
 }
 
 void
-shoes_group_clear(SHOES_GROUP_OS *group)
+shoes_native_group_clear(SHOES_GROUP_OS *group)
 {
 }
 
@@ -1103,7 +1103,7 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
 void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width,
     int height, int scrolls, int toplevel) {
   fprintf(stderr, "shoes_slot_init_menu called\n");
-  shoes_slot_init(c, parent, x, y, width, height, scrolls, toplevel);
+  shoes_native_slot_init(c, parent, x, y, width, height, scrolls, toplevel);
 }
 
 void shoes_native_app_resize_window(shoes_app *app) {

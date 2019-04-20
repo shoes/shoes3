@@ -902,7 +902,7 @@ int shoes_http_image_handler(shoes_http_event *de, void *data) {
     } else if (de->stage == SHOES_HTTP_COMPLETED) {
         shoes_image_download_event *side = SHOE_ALLOC(shoes_image_download_event);
         SHOE_MEMCPY(side, idat, shoes_image_download_event, 1);
-        return shoes_throw_message(SHOES_IMAGE_DOWNLOAD, idat->slot, side);
+        return shoes_native_throw_message(SHOES_IMAGE_DOWNLOAD, idat->slot, side);
     }
     return SHOES_DOWNLOAD_CONTINUE;
 }

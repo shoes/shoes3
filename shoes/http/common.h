@@ -47,7 +47,7 @@
 
 #define HTTP_EVENT(handler, s, last, perc, trans, tot, dat, bd, abort) \
 { SHOES_TIME ts; \
-  shoes_get_time(&ts); \
+  shoes_native_get_time(&ts); \
   unsigned long elapsed = shoes_diff_time(&(last), &ts); \
   if (s != SHOES_HTTP_TRANSFER || elapsed > 600 ) { \
     shoes_http_event *event = SHOE_ALLOC(shoes_http_event); \
@@ -80,7 +80,7 @@ typedef struct {
 
 typedef int (*shoes_http_handler)(shoes_http_event *, void *);
 
-void shoes_get_time(SHOES_TIME *);
+void shoes_native_get_time(SHOES_TIME *);
 unsigned long shoes_diff_time(SHOES_TIME *, SHOES_TIME *);
 
 #endif

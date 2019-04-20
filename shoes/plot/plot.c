@@ -703,7 +703,7 @@ VALUE shoes_plot_motion(VALUE self, int x, int y, char *touch) {
         if (!NIL_P(click)) {
             shoes_canvas *canvas;
             TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
-            shoes_app_cursor(canvas->app, s_link);
+            shoes_native_app_cursor(canvas->app, s_link);
         }
         h = 1;
     }

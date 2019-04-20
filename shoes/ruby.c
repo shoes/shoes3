@@ -712,7 +712,7 @@ VALUE shoes_log(VALUE self) {
 
 VALUE shoes_font(VALUE self, VALUE path) {
     StringValue(path);
-    return shoes_load_font(RSTRING_PTR(path));
+    return shoes_native_load_font(RSTRING_PTR(path));
 }
 
 //

@@ -136,7 +136,7 @@ int shoes_doth_handler(shoes_http_event *de, void *data) {
     shoes_doth_data *doth = (shoes_doth_data *)data;
     shoes_http_event *de2 = SHOE_ALLOC(shoes_http_event);
     SHOE_MEMCPY(de2, de, shoes_http_event, 1);
-    return shoes_throw_message(SHOES_THREAD_DOWNLOAD, doth->download, de2);
+    return shoes_native_throw_message(SHOES_THREAD_DOWNLOAD, doth->download, de2);
 }
 
 void shoes_http_request_free(shoes_http_request *req) {

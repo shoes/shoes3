@@ -704,7 +704,7 @@ VALUE shoes_textblock_motion(VALUE self, int x, int y, char *t) {
         shoes_canvas *canvas;
         Get_TypedStruct2(self, shoes_textblock, self_t);
         TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
-        shoes_app_cursor(canvas->app, s_link);
+        shoes_native_app_cursor(canvas->app, s_link);
     }
     return url;
 }

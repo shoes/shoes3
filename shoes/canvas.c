@@ -186,7 +186,7 @@ VALUE shoes_canvas_style(int argc, VALUE *argv, VALUE self) {
 static VALUE shoes_canvas_paint_call(VALUE self) {
     shoes_code code = SHOES_OK;
     SHOES_TIME start, mid;
-    shoes_get_time(&start);
+    shoes_native_get_time(&start);
 
     if (self == Qnil)
         return self;
@@ -196,20 +196,20 @@ static VALUE shoes_canvas_paint_call(VALUE self) {
     if (canvas->cr != NULL)
         goto quit;
 
-    canvas->cr = cr = shoes_cairo_create(canvas);
+    canvas->cr = cr = shoes_native_cairo_create(canvas);
     if (cr == NULL)
         goto quit;
 
     cairo_save(cr);
     shoes_canvas_draw(self, self, Qfalse);
-    shoes_get_time(&mid);
+    shoes_native_get_time(&mid);
     INFO("COMPUTE: %0.6f s\n", ELAPSED);
     cairo_restore(cr);
 
     canvas->cr = cr;
     cairo_save(cr);
     shoes_canvas_draw(self, self, Qtrue);
-    shoes_get_time(&mid);
+    shoes_native_get_time(&mid);
     INFO("DRAW: %0.6f s\n", ELAPSED);
     cairo_restore(cr);
 
@@ -222,8 +222,8 @@ static VALUE shoes_canvas_paint_call(VALUE self) {
     cairo_destroy(cr);
     cr = canvas->cr = NULL;
 
-    shoes_cairo_destroy(canvas);
-    shoes_get_time(&mid);
+    shoes_native_cairo_destroy(canvas);
+    shoes_native_get_time(&mid);
     INFO("PAINT: %0.6f s\n", ELAPSED);
     shoes_canvas_send_start(self);
 quit:
@@ -327,7 +327,7 @@ void shoes_canvas_clear(VALUE self) {
     canvas->endx = 0;
     canvas->topy = 0;
     canvas->fully = 0;
-    shoes_group_clear(&canvas->group);
+    shoes_native_group_clear(&canvas->group);
 }
 
 shoes_canvas *shoes_canvas_init(VALUE self, SHOES_SLOT_OS *slot, VALUE attr, int width, int height) {
@@ -513,7 +513,7 @@ VALUE shoes_canvas_remove(VALUE self) {
         shoes_canvas_remove_item(self_t->parent, self, 0, 0);
         TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, pc);
         if (pc != self_t && DC(self_t->slot) != DC(pc->slot))
-            shoes_slot_destroy(self_t, pc);
+            shoes_native_slot_destroy(self_t, pc);
         shoes_canvas_repaint_all(self);
     }
     shoes_canvas_send_finish(self);
@@ -1296,7 +1296,7 @@ VALUE shoes_canvas_send_motion(VALUE self, int x, int y, VALUE url, VALUE mods) 
             shoes_canvas *self_t;
             TypedData_Get_Struct(self, shoes_canvas, &shoes_canvas_type, self_t);
             if (self_t->app->cursor == s_link)
-                shoes_app_cursor(self_t->app, s_arrow_cursor);
+                shoes_native_app_cursor(self_t->app, s_arrow_cursor);
         }
     }
 
@@ -1394,7 +1394,7 @@ VALUE shoes_slot_new(VALUE klass, VALUE attr, VALUE parent) {
         //
         // create the slot off-screen until it can be properly placed
         //
-        shoes_slot_init(self, pc->slot, -99, -99, 100, 100, scrolls, FALSE);
+        shoes_native_slot_init(self, pc->slot, -99, -99, 100, 100, scrolls, FALSE);
         self_t->place.x = self_t->place.y = 0;
         self_t->place.ix = self_t->place.iy = 0;
     }
@@ -1437,7 +1437,7 @@ VALUE shoes_canvas_get_cursor(VALUE self) {
 
 VALUE shoes_canvas_set_cursor(VALUE self, VALUE name) {
     SETUP_CANVAS();
-    shoes_app_cursor(canvas->app, SYM2ID(name));
+    shoes_native_app_cursor(canvas->app, SYM2ID(name));
     return name;
 }
 

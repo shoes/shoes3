@@ -124,7 +124,7 @@ shoes_code shoes_init(SHOES_INIT_ARGS) {
     
     shoes_native_init();
 
-    rb_const_set(cShoes, rb_intern("FONTS"), shoes_font_list());
+    rb_const_set(cShoes, rb_intern("FONTS"), shoes_native_font_list());
     return SHOES_OK;
 }
 

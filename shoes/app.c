@@ -413,7 +413,7 @@ shoes_code shoes_app_open(shoes_app *app, char *path) {
       shoes_slot_init_menu(app->canvas, app->slot, 0, 0, app->width, app->height, TRUE, TRUE);
     else
 #endif
-      shoes_slot_init(app->canvas, app->slot, 0, 0, app->width, app->height, TRUE, TRUE);
+      shoes_native_slot_init(app->canvas, app->slot, 0, 0, app->width, app->height, TRUE, TRUE);
 
     code = shoes_app_goto(app, path);
     if (code != SHOES_OK)
@@ -919,7 +919,7 @@ shoes_code shoes_app_goto(shoes_app *app, char *path) {
     shoes_code code = SHOES_OK;
     const char http_scheme[] = "http://";
     if (strlen(path) > strlen(http_scheme) && strncmp(http_scheme, path, strlen(http_scheme)) == 0) {
-        shoes_browser_open(path);
+        shoes_native_browser_open(path);
     } else {
         code = shoes_app_visit(app, path);
        if (code == SHOES_OK) {

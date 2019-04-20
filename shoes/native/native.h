@@ -25,12 +25,12 @@
 #define SHOES_IMAGE_DOWNLOAD  42
 #define SHOES_MAX_MESSAGE     100
 
-VALUE shoes_font_list(void);
-VALUE shoes_load_font(const char *);
+VALUE shoes_native_font_list(void);
+VALUE shoes_native_load_font(const char *);
 void shoes_native_init(void);
 void shoes_native_cleanup(shoes_world_t *world);
 void shoes_native_quit(void);
-int shoes_throw_message(unsigned int, VALUE, void *);
+int shoes_native_throw_message(unsigned int, VALUE, void *);
 void shoes_native_slot_mark(SHOES_SLOT_OS *);
 void shoes_native_slot_reset(SHOES_SLOT_OS *);
 void shoes_native_slot_clear(shoes_canvas *);
@@ -39,7 +39,7 @@ void shoes_native_slot_lengthen(SHOES_SLOT_OS *, int, int);
 void shoes_native_slot_scroll_top(SHOES_SLOT_OS *);
 int shoes_native_slot_gutter(SHOES_SLOT_OS *);
 void shoes_native_remove_item(SHOES_SLOT_OS *, VALUE, char);
-shoes_code shoes_app_cursor(shoes_app *, ID);
+shoes_code shoes_native_app_cursor(shoes_app *, ID);
 void shoes_native_app_resized(shoes_app *);
 void shoes_native_app_title(shoes_app *, char *);
 void shoes_native_app_fullscreen(shoes_app *, char);
@@ -57,16 +57,16 @@ void shoes_native_loop(void);
 void shoes_native_app_close(shoes_app *);
 void shoes_native_app_set_icon(shoes_app *, char *);
 void shoes_native_app_set_wtitle(shoes_app *, char*);
-int shoes_native_console();  // Yes it's different
+int shoes_native_console();  // Yes it's different from terminal
 void shoes_native_terminal(char *, int, int, int, int, char *, char *, char *);
 void shoes_native_app_console();
-void shoes_browser_open(char *);
-void shoes_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
+void shoes_native_browser_open(char *);  // TODO: unused? 
+void shoes__native_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
 void shoes_slot_init_menu(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
-cairo_t *shoes_cairo_create(shoes_canvas *);
-void shoes_slot_destroy(shoes_canvas *, shoes_canvas *);
-void shoes_cairo_destroy(shoes_canvas *);
-void shoes_group_clear(SHOES_GROUP_OS *);
+cairo_t *shoes_native_cairo_create(shoes_canvas *);
+void shoes_native_slot_destroy(shoes_canvas *, shoes_canvas *);
+void shoes_native_cairo_destroy(shoes_canvas *);
+void shoes_native_group_clear(SHOES_GROUP_OS *);  // TODO: usused? 
 void shoes_native_canvas_place(shoes_canvas *, shoes_canvas *);
 void shoes_native_canvas_resize(shoes_canvas *);
 

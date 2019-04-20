@@ -616,7 +616,7 @@ create_help_menu(NSMenu *main)
 }
 
 VALUE
-shoes_font_list()
+shoes_native_font_list()
 {
   INIT;
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
@@ -665,7 +665,7 @@ shoes_font_list()
 }
 
 VALUE
-shoes_load_font(const char *filename)
+shoes_native_load_font(const char *filename)
 {
   VALUE families = Qnil;
 #ifndef OLD_OSX
@@ -728,7 +728,7 @@ shoes_load_font(const char *filename)
     }
   }
 #endif
-  shoes_update_fonts(shoes_font_list());
+  shoes_update_fonts(shoes_native_font_list());
   return families;
 }
 
@@ -773,7 +773,7 @@ void shoes_native_quit()
   RELEASE;
 }
 
-void shoes_get_time(SHOES_TIME *ts)
+void shoes_native_get_time(SHOES_TIME *ts)
 {
   gettimeofday(ts, NULL);
 }
@@ -791,7 +791,7 @@ unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
   return usec;
 }
 
-int shoes_throw_message(unsigned int name, VALUE obj, void *data)
+int shoes_native_throw_message(unsigned int name, VALUE obj, void *data)
 {
   return shoes_catch_message(name, obj, data);
 }
@@ -854,7 +854,7 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
 }
 
 shoes_code
-shoes_app_cursor(shoes_app *app, ID cursor)
+shoes_native_app_cursor(shoes_app *app, ID cursor)
 {
   if (app->os.window == NULL || app->cursor == cursor)
     goto done;
@@ -1119,7 +1119,7 @@ shoes_native_app_close(shoes_app *app)
 }
 
 void
-shoes_browser_open(char *url)
+shoes_native_browser_open(char *url)
 {
   VALUE browser = rb_str_new2("open ");
   rb_str_cat2(browser, url);
@@ -1127,7 +1127,7 @@ shoes_browser_open(char *url)
 }
 
 void
-shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int height, int scrolls, int toplevel)
+shoes_native_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int height, int scrolls, int toplevel)
 {
   shoes_canvas *canvas;
   SHOES_SLOT_OS *slot;
@@ -1158,7 +1158,7 @@ shoes_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, int hei
 }
 
 void
-shoes_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc)
+shoes_native_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc)
 {
   INIT;
   if (canvas->slot->vscroll != NULL)
@@ -1168,7 +1168,7 @@ shoes_slot_destroy(shoes_canvas *canvas, shoes_canvas *pc)
 }
 
 cairo_t *
-shoes_cairo_create(shoes_canvas *canvas)
+shoes_native_cairo_create(shoes_canvas *canvas)
 {
   cairo_t *cr;
   canvas->slot->surface = cairo_quartz_surface_create_for_cg_context(canvas->slot->context,
@@ -1178,13 +1178,13 @@ shoes_cairo_create(shoes_canvas *canvas)
   return cr;
 }
 
-void shoes_cairo_destroy(shoes_canvas *canvas)
+void shoes_native_cairo_destroy(shoes_canvas *canvas)
 {
   cairo_surface_destroy(canvas->slot->surface);
 }
 
 void
-shoes_group_clear(SHOES_GROUP_OS *group)
+shoes_native_group_clear(SHOES_GROUP_OS *group)
 {
 }
 
