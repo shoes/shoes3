@@ -62,8 +62,9 @@ if tight_shoes
   else
 		ruby_ins = "#{DIR}/shoes --ruby"
   end
+  ccdlflags = RbConfig::CONFIG['CCDLFLAGS']+" "+arch_flag
   config = {
- 	  'ruby_install_name' => ruby_ins,
+ 	  'ruby_install_name' => ruby_ins,  # unused ?
 	  'RUBY_INSTALL_NAME' => ruby_ins,
 	  'prefix' => "#{DIR}", 
 	  'bindir' => "#{DIR}", 
@@ -85,7 +86,9 @@ if tight_shoes
 	  'libdir' => "#{DIR}",
 	  'LDFLAGS' => arch_flag + "-L. -L#{DIR}",
 	  'rubylibprefix' => "#{DIR}/ruby",
-	  'ARCH_FLAG' => arch_flag
+	  'ARCH_FLAG' => arch_flag,
+	  'CCDLFLAGS' => ccdlflags,
+ 	  'ccdlflags' => ccdlflags
   }
   RbConfig::CONFIG.merge! config
   RbConfig::MAKEFILE_CONFIG.merge! config

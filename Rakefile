@@ -261,6 +261,14 @@ when :linux
       require File.expand_path('make/linux/xmsys2/setup')
       require File.expand_path('make/gems')
       require File.expand_path('make/subsys')
+  when /mxe64/
+      require File.expand_path('make/linux/mxe64/env')
+      require File.expand_path('make/linux/mxe64/tasks')
+      require File.expand_path('make/linux/mxe64/stubs')
+      require File.expand_path('make/linux/mxe64/packdeps')
+      require File.expand_path('make/linux/mxe64/setup')
+      require File.expand_path('make/gems')
+      require File.expand_path('make/subsys')
    when /mxe/
       require File.expand_path('make/linux/mxe/env')
       require File.expand_path('make/linux/mxe/tasks')
@@ -433,7 +441,7 @@ SubDirs = ["#{rtp}/zzbase.done",  "#{rtp}/http/zzdownload.done",
     
 # Windows doesn't use console - don't try to build it. Delete from dependcies
 case TGT_DIR
-  when /win7/, /xwin7/, /msys2/, /xmsys2/, /mxe/, /mxe_osx/, /xmsw/
+  when /win7/, /xwin7/, /msys2/, /xmsys2/, /mxe/, /mxe_osx/, /xmsw/, /msw/, /mxe64/
     SubDirs.delete("#{rtp}/console/zzconsole.done")
 end
 
@@ -534,7 +542,12 @@ namespace :setup do
 	  task :msys2 do
       sh "echo TGT_ARCH=msys2 >build_target"
 	  end
-  end
+    
+    desc "Setup for Windows Native Widgets"
+    task :msw do
+      sh "echo TGT_ARCH=msw >build_target"
+    end
+   end
   
   if build_os == :bsd
     desc "Minimal Shoes for linux (default)"
@@ -607,6 +620,11 @@ namespace :setup do
 	    desc "Setup for Windows 7+ (MXE tools - recommended)"
 	    task :mxe do
 	      sh "echo 'TGT_ARCH=mxe' >build_target"
+	    end 
+
+	    desc "Setup for Windows 64bit+ (MXE tools - recommended)"
+	    task :mxe64 do
+	      sh "echo 'TGT_ARCH=mxe64' >build_target"
 	    end 
 	
 	    desc "Setup for Win7+ using Linux (debian tools)"

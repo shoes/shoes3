@@ -1,7 +1,6 @@
 require 'rubygems'
 require 'rubygems/dependency_installer'
-# 2014-02-05 (CJC) There's lots of things in here that aren't needed 
-# or may not work as intended. 
+# 2019-04-23 (CJC) It works for some gems for some people in some situations. 
 module Gem
   if Shoes::RELEASE_TYPE =~ /TIGHT/
     if RUBY_PLATFORM =~ /darwin/
@@ -14,16 +13,31 @@ module Gem
   end
 end
 class << Gem::Ext::ExtConfBuilder
-  alias_method :make__, :make
-  def make(dest_path, results)
-    raise unless File.exist?('Makefile')
-    mf = File.read('Makefile')
-    mf = mf.gsub(/^INSTALL\s*=\s*.*$/, "INSTALL = $(RUBY) -run -e install -- -vp")
-    mf = mf.gsub(/^INSTALL_PROG\s*=\s*.*$/, "INSTALL_PROG = $(INSTALL) -m 0755")
-    mf = mf.gsub(/^INSTALL_DATA\s*=\s*.*$/, "INSTALL_DATA = $(INSTALL) -m 0644")
-    File.open('Makefile', 'wb') {|f| f.print mf}
-    make__(dest_path, results)
-  end
+	if RUBY_PLATFORM =~ /darwin/
+	  alias_method :make__, :make
+	  def make(dest_path, results)
+	    raise unless File.exist?('Makefile')
+	    mf = File.read('Makefile')
+	    mf = mf.gsub(/^V\ =\ 0/, "V = 1")
+	    mf = mf.gsub(/^ARCH_FLAG =/, "ARCH_FLAG = #{RbConfig::CONFIG['ARCH_FLAG']}")
+	    #mf = mf.gsub(/^INSTALL\s*=\s*.*$/, "INSTALL = $(RUBY) -run -e install -- -vp")
+	    #mf = mf.gsub(/^INSTALL_PROG\s*=\s*.*$/, "INSTALL_PROG = $(INSTALL) -m 0755")
+	    #mf = mf.gsub(/^INSTALL_DATA\s*=\s*.*$/, "INSTALL_DATA = $(INSTALL) -m 0644")
+	    File.open('Makefile', 'wb') {|f| f.print mf}
+	    make__(dest_path, results)
+	  end
+	else
+	  alias_method :make__, :make
+	  def make(dest_path, results)
+	    raise unless File.exist?('Makefile')
+	    mf = File.read('Makefile')
+	    mf = mf.gsub(/^INSTALL\s*=\s*.*$/, "INSTALL = $(RUBY) -run -e install -- -vp")
+	    mf = mf.gsub(/^INSTALL_PROG\s*=\s*.*$/, "INSTALL_PROG = $(INSTALL) -m 0755")
+	    mf = mf.gsub(/^INSTALL_DATA\s*=\s*.*$/, "INSTALL_DATA = $(INSTALL) -m 0644")
+	    File.open('Makefile', 'wb') {|f| f.print mf}
+	    make__(dest_path, results)
+	  end
+	end
 end
 
 # STDIN.reopen("/dev/tty") if STDIN.eof?
