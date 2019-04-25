@@ -151,7 +151,7 @@ class Shoes::Setup
         name, version = arg.split(/\s+/, 2)
         count += 1
         # need to handle multiple matching gemspecs
-        installer = Gem::DependencyInstaller.new
+        installer = Gem::DependencyInstaller.new(:document => [])
         poss_gems = installer.find_spec_by_name_and_version(name, version)
         #poss_gems.each_spec { |g| puts "#{g.name} #{g.version}"}
         this_one = nil

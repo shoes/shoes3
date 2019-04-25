@@ -1,28 +1,10 @@
 # Cobbler - various Shoes maintenance things
-# CJC: the gem handling is kind of ugly. Someone should make it pretty.
+# TODO: the gem handling is kind of ugly. Someone should make it pretty, if possible.
 require 'rubygems'
 require 'rubygems/dependency_installer'
 require 'rubygems/uninstaller'
 require 'rubygems/package'
-
-module Gem
-  if Shoes::RELEASE_TYPE =~ /TIGHT/
-    @ruby = (File.join(RbConfig::CONFIG['bindir'], 'shoes') + RbConfig::CONFIG['EXEEXT']).
-          sub(/.*\s.*/m, '"\&"') + " --ruby"
-  end
-end
-class << Gem::Ext::ExtConfBuilder
-  alias_method :make__, :make
-  def make(dest_path, results)
-    raise unless File.exist?('Makefile')
-    mf = File.read('Makefile')
-    mf = mf.gsub(/^INSTALL\s*=\s*.*$/, "INSTALL = $(RUBY) -run -e install -- -vp")
-    mf = mf.gsub(/^INSTALL_PROG\s*=\s*.*$/, "INSTALL_PROG = $(INSTALL) -m 0755")
-    mf = mf.gsub(/^INSTALL_DATA\s*=\s*.*$/, "INSTALL_DATA = $(INSTALL) -m 0644")
-    File.open('Makefile', 'wb') {|f| f.print mf}
-    make__(dest_path, results)
-  end
-end
+require 'shoes/setup'
 
 class Gem::CobblerFace
   class DownloadReporter  #ProgressReporter
@@ -451,7 +433,7 @@ the first selection and then the Folder named plugins"
     # setup Gem download ui
     ui = Gem::DefaultUserInteraction.ui = Gem::CobblerFace.new(@progbar, @status)
     ui.title "Installing #{spec.name} #{spec.version}"
-    installer = Gem::DependencyInstaller.new({:nodoc => true, :install_dir => GEM_DIR})
+    installer = Gem::DependencyInstaller.new({:document => [], :install_dir => GEM_DIR})
     begin
 			#$stderr.puts "gem build setup: #{installer.options}"
 			installer.install(spec.name, spec.version)
@@ -478,7 +460,9 @@ the first selection and then the Folder named plugins"
     if confirm "Really delete gem #{spec.name}"
       begin
         Gem::DefaultUserInteraction.ui = Gem::CobblerDelFace.new()
-        del = Gem::Uninstaller.new(spec)
+        # TODO new(gem, options) not new(spec)
+        del = Gem::Uninstaller.new(spec.name)
+        #del.uninstall() # deep remove - 
         del.remove(spec)
       rescue Exception => e
         alert e
