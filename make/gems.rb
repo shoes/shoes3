@@ -1,5 +1,14 @@
 # build Shoes gems to be copied later. Fluff is not copied - Just the
 # gemspec, LICENSE lib/ and the right arch so/dll/dylib
+require 'rubygems'
+require 'rubygems/dependency_installer'
+
+# because you can't have too much meta-programming hacking
+class  << Gem::Platform
+  def change_platform(arch_str)
+    @local = new(arch_str)
+  end
+end
 
 module Make
   include FileUtils
@@ -7,27 +16,35 @@ module Make
 
   # note: Some methods are unique to invoking context and
   # may not have the Constants set for other contexts
-
-    def build_all_gems
-      gems = Dir.glob("#{APP['GEMLOC']}/*")
-      APP['EXTLIST'].each {|p| gems.delete("#{APP['EXTLOC']}/#{p}") }
-      gems.each do |gemp|
-        next if gemp =~ /built$/
-        build_gem gemp
-        clean_gem gemp # clean out binary stuff
-      end
+  
+  def self.build_shoes_gem (name, version)
+    if !version 
+      version = Gem::Requirement.default
     end
-
-    def build_shoes_gems
-      APP['EXTLIST'].each do |nm|
-        build_shoes_ext "#{APP['EXTLOC']}/#{nm}"
-        clean_gem "#{APP['EXTLOC']}/#{nm}"
-      end
-      APP['GEMLIST'].each do |nm|
-        build_gem "#{APP['GEMLOC']}/#{nm}"
-        clean_gem "#{APP['GEMLOC']}/#{nm}"
-      end
+    # Tell Gem:: what platform we want instead of what we are
+    Gem::Platform.change_platform(RbConfig::CONFIG['arch'])
+    installer = Gem::DependencyInstaller.new domain: :remote
+    begin
+      poss_gems = installer.find_spec_by_name_and_version(name, version)
+    rescue Gem::SpecificGemNotFoundException => e
+      $stderr.puts "Failed to find a spec: #{e}"
+      abort
     end
+    # a temp place to put cross compiled gems (like GEM_HOME but not!)
+    tmpdir = 'gemtemp'
+    mkdir_p tmpdir
+    best_spec = nil;
+    poss_gems.match_platform! # doesn't help
+    poss_gems.each_spec do |spec|
+      $stderr.puts "and  arch: #{Gem::Platform.local}"
+      require_relative 'ext_conf_builder.rb'  # our monkey patch
+      $make_dir = Dir.getwd + '/make'
+      installer = Gem::DependencyInstaller.new({:document => [], :install_dir => tmpdir})
+      installer.install(spec.name, spec.version)
+    end
+    # now extract the (new) gem to abbreviated Shoes version in Gemloc
+
+  end
 
     def build_shoes_ext xdir
       gemn = File.basename(xdir)
@@ -107,13 +124,14 @@ module Make
   def copy_gems
     puts "copy_gems dir=#{pwd} #{TGT_ARCH}"
     if APP['RVMGEM'] 
-      # only minosx target does this. TODO: msys2 could if desired
+      # only minosx target does this and that's iffy
       Dir.glob("#{APP['RVMGEM']}/*") do |f|
         p = "#{APP['RVMGEM']}/#{File.basename(f)}"
-        cp_r p ,"#{TGT_DIR}/lib/ruby/gems/#{APP['RUBY_V']}"
+        cp_r p, "#{TGT_DIR}/lib/ruby/gems/#{APP['RUBY_V']}"
       end
       return 
     end
+=begin
     APP['EXTLIST'].each do |ext|
       $stderr.puts "copy prebuild ext #{ext}"
       copy_files "#{APP['EXTLOC']}/built/#{TGT_ARCH}/#{ext}/ext/*.#{Lext}", "#{TGT_DIR}/lib/ruby/#{RUBY_V}/#{SHOES_TGT_ARCH}"
@@ -123,6 +141,7 @@ module Make
         end
       end
     end
+=end
     gdir = ""
     if RUBY_PLATFORM =~ /bsd/
       #gdir = "#{TGT_DIR}/lib/ruby/gems/#{RUBY_V}.0"
@@ -142,7 +161,7 @@ module Make
           $stderr.puts "Failed to find #{gemn}. Is wildcard correct? "
           abort
         end
-	  end
+      end
       $stderr.puts "Copying prebuilt gem #{gemp} for #{SHOES_GEM_ARCH}"
       spec = eval(File.read("#{gemp}/gemspec"))
       mkdir_p "#{gdir}/specifications"
@@ -183,10 +202,11 @@ module Make
           sh "chrpath #{so} -r '${ORIGIN}/../lib'"
         end
       end
-      # HACK ! we don't need the nokogiri.so for other ruby versions
-      if spec.full_name  =~ /nokogiri-(\d+.\d+.\d+.\d+)-x86-mingw32/
+      # Deal with precompiled native gems (usually from rakecompiler)'
+      # Delete the versioned native libs we can't use
+      if spec.full_name  =~ /nokogiri-(\d+.\d+.\d+.\d+)-(x86|x64)-mingw32/ 
         grubyv = APP['RUBY_V'][/\d.\d/]
-        Dir.chdir("#{gdir}/gems/#{spec.full_name}/lib/nokogiri/") do
+        Dir.chdir("#{gdir}/gems/#{spec.full_name}/lib/#{spec.name}/") do
           Dir.glob('*').each do |dirn|
             if dirn =~ /\d.\d/ && dirn != grubyv
               $stderr.puts "Noko delete: #{dirn}"
@@ -197,24 +217,107 @@ module Make
       end
     end
   end
-end
-=begin
-desc "build all gems for platform"
-task :gems  do
-  Builder.build_all_gems
+  
+  # argument has slop.
+  def self.copy_to_gemloc(str)
+    name = str[/\w+/]
+    gems = Dir.glob("gemtemp/specifications/#{name}*")
+    if gems.size > 1
+      #narrow it down
+      $stderr.puts "Too many gems starting with #{name}"
+      abort
+    end
+    if gems.size != 1
+      $stderr.puts "Couldn't find a match for #{str}"
+      abort
+    end
+    # spec is eval'ed as rake ruby so the file paths are likely wrong
+    # for this purpose
+    spec = eval(File.read(gems[0]))
+    gemname = File.basename(gems[0])
+    gemtemp = 'gemtemp'  # TODO be less fixed
+    destpath = File.join(APP['GEMLOC'], 'built', TGT_ARCH, File.basename(spec.full_name))
+    $stderr.puts "Copy #{spec.full_name} to #{destpath}"
+    mkdir_p destpath
+    # copy spec
+    cp    File.join(gemtemp,'specifications', gemname), File.join(destpath,'gemspec')
+    # deal with gem.build_complete 
+    rubyv = RUBY_VERSION[/\d.\d/]+'.0'
+    gemcompl = File.join(gemtemp, 'extensions', "#{Gem::Platform.local}",
+         rubyv, spec.full_name, 'gem.build_complete')
+    #puts "Check for #{gemcompl}"
+    if File.exist? gemcompl
+        cp gemcompl, File.join(destpath,'gem.build_complete')
+    end 
+    # now copy the lib/ and any native library 
+    # require paths is an array
+    reqpath = spec.require_paths
+    #puts "spec.require_paths: #{reqpath}"
+    if (reqpath.length > 1) &&  (reqpath.include? 'ext')
+      # native library is in ext
+      src = File.join(reqpath)
+      dest = File.join(destpath, reqpath[1])
+      mkdir_p dest
+      $stderr.puts "ext copy #{src} -> #{dest}"
+      #cp_r src, dest
+      cp_r File.join(gemtemp,'gems', spec.full_name, 'ext'), destpath
+    elsif (reqpath.length > 1) &&  (reqpath.include? 'lib')
+      $stderr.puts "lib copy  #{}"
+      cp_r File.join(gemtemp,'gems', spec.full_name, 'lib'), destpath
+    else
+      reqpath.each do |rqp| 
+        $stderr.puts "misc copy #{rqp}"
+        cp_r File.join(gemtemp,'gems', spec.full_name, rqp), destpath
+      end
+    end
+  end
+    
+  # prebuilt gem
+  def self.fetch_native(str)
+    $stderr.puts "looking for prebuilt gem"
+    flds = str.split('-')
+    if flds.length != 4
+      $stderr.puts "Must be name-version-platform"
+      $stderr.puts flds.inspect
+      abort
+    end
+    cmd = "gem install #{flds[0]} --no-doc --version #{flds[1]} \
+--platform #{flds[2]}-#{flds[3]} --install-dir gemtemp"
+    $stderr.puts "using #{cmd}"
+    system cmd
+  end
 end
 
-desc "Build internal Shoes gems and ext"
-task :shoesgems do
-  Builder.build_shoes_gems
+namespace :gems do
+
+  desc "build all gems for platform"
+  task :buildall  do
+    APP['INCLGEMS']
+    Make::build_all_gems()
+  end
+  
+  desc "Build internal Shoes gems <arg>"
+  task :build do
+    if ARGV.length < 2 || ARGV.length > 3
+      $stderr.puts "Use one argument with optiobal version"
+      abort
+    end
+    if ARGV[1][/mingw/]
+      # we can download a prebuilt native gem for a different platform.
+      Make::fetch_native(ARGV[1])
+    else
+      Make::build_shoes_gem(ARGV[1], ARGV[2])
+    end
+    Make::copy_to_gemloc(ARGV[1])
+    # TODO: I use abort here because ARGV[1]+ is already in Rakes task list. 
+    abort
+  end
+  
+  desc "clean all gem for platform"
+  task :clean do
+   Make::clean_all_gems
+  end
+  
+  
 end
 
-desc "clean all gem for platform"
-task :gemsclean do
-  Builder.clean_all_gems
-end
-
-if !APP['GEMLOC']
-  abort "You must define APP['GEMLOC'] see make/#{TGT_ARCH}/env.rb"
-end
-=end

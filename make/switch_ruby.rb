@@ -26,6 +26,7 @@ def switch_ruby(rbpath)
   #puts $".inspect
 end
 rbcfg = Dir.glob("#{EXT_RUBY}/lib/ruby/**/*/rbconfig.rb")[-1]
+#puts "Rbconfig at #{rbcfg}"
 # RVM is kind of weird for me. It can load the wrong rbconfig? Just Odd.
 # Make sure we aren't replacing The rake running Ruby with itself.
 td = "#{RbConfig::TOPDIR}/lib/ruby/#{RbConfig::CONFIG['ruby_version']}/#{RbConfig::CONFIG['arch']}/rbconfig.rb"

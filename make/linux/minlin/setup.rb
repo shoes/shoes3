@@ -11,38 +11,7 @@ module Make
   def static_setup (solocs)
     srcloc= `pwd`.strip
     puts "setup: #{srcloc}"
-=begin
-    mkdir_p "#{TGT_DIR}/lib/shoes"
-    Dir.chdir "#{TGT_DIR}/lib/shoes" do
-      Dir["../../../lib/shoes/*.rb"].each do |f|
-        #puts "SymLinking #{f}"
-        ln_s f, "." unless File.symlink? File.basename(f)
-      end
-    end
-    Dir.chdir "#{TGT_DIR}/lib" do
-      ln_s "../../lib/shoes.rb" , "shoes.rb" unless File.symlink? "shoes.rb"
-      # link to exerb
-      ln_s "../../lib/exerb", "exerb" unless File.symlink? "exerb"
-    end
-    cp_r  "fonts", "#{TGT_DIR}/fonts"
     
-    #cp_r  "samples", "#{TGT_DIR}/samples"
-    mkdir_p "#{TGT_DIR}/samples"
-    ['simple', 'good', 'expert'].each do |d|
-      mkdir_p "#{TGT_DIR}/samples/#{d}"
-      Dir.chdir "#{TGT_DIR}/samples/#{d}" do
-        Dir["../../../samples/#{d}/*"].each do |f|
-          ln_s f, '.' unless File.symlink? File.basename(f)
-        end
-      end
-    end
-    Dir.chdir "#{TGT_DIR}" do
-      ln_s  "../static",  "." unless File.symlink? 'static'
-    end
-    cp    "README.md", "#{TGT_DIR}/README.txt"
-    cp    "CHANGELOG", "#{TGT_DIR}/CHANGELOG.txt"
-    cp    "COPYING", "#{TGT_DIR}/COPYING.txt"
-=end
     ln_s "#{srcloc}/lib", TGT_DIR
     ln_s "#{srcloc}/samples", TGT_DIR
     ln_s "#{srcloc}/static",  TGT_DIR

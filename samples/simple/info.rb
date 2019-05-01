@@ -49,9 +49,9 @@ Shoes.app height: 800, width: 800 do
 	  para ct[0].rstrip
 	  @ld2 = edit_box height: 150, width: 0.95, margin: 8
       require 'bigdecimal'
-      require 'nokogiri'
+      #require 'nokogiri'
       if ShoesGemJailBreak
-        #require 'nokogiri'
+        require 'nokogiri'
       end
 	  $".each do |f|
 	    ct << "#{f}\n" unless hsh[f]

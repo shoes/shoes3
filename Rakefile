@@ -4,7 +4,8 @@ require 'rake'
 require 'fileutils'
 require 'find'
 require 'yaml'
-$stderr.puts "rake ruby: #{RbConfig::CONFIG['prefix']}"
+$running_ruby = RbConfig::CONFIG['prefix']+'/bin/ruby'
+$stderr.puts "rake ruby: #{$running_ruby}"
 require 'rbconfig'
 include FileUtils
 build_os = case RUBY_PLATFORM 
@@ -162,7 +163,7 @@ when :osx
       require File.expand_path('make/darwin/minosx/env')
       require File.expand_path('make/darwin/minosx/tasks')
       require File.expand_path('make/darwin/minosx/setup')
-      require File.expand_path('make/gems')
+      #require File.expand_path('make/gems')
       require File.expand_path('make/subsys')
     else
       require File.expand_path('make/darwin/none/env')
@@ -359,7 +360,7 @@ task "shoes/version.h" do |t|
     f << "#define SHOES_VERSION_REVISION #{APP['REVISION']}\n"
     f << "#define SHOES_VERSION_DATE \"#{APP['DATE']}\"\n"
     f << "#define SHOES_VERSION_PLATFORM \"#{APP['PLATFORM']}\"\n"
-    if CROSS && (!TGT_DIR[/minlin/] &&  !TGT_DIR[/minbsd/] )
+    if CROSS && (!TGT_DIR[/minlin/] &&  !TGT_DIR[/minbsd/] && !TGT_DIR[/minosx/])
       f << "#define SHOES_STYLE \"TIGHT_SHOES\"\n\n"
     else
       f << "#define SHOES_STYLE \"LOOSE_SHOES\"\n\n"
@@ -441,7 +442,8 @@ SubDirs = ["#{rtp}/zzbase.done",  "#{rtp}/http/zzdownload.done",
     
 # Windows doesn't use console - don't try to build it. Delete from dependcies
 case TGT_DIR
-  when /win7/, /xwin7/, /msys2/, /xmsys2/, /mxe/, /mxe_osx/, /xmsw/, /msw/, /mxe64/
+  when /win7/, /xwin7/, /msys2/, /xmsys2/, /mxe/, /mxe_osx/, /xmsw/, /msw/, 
+		/mxe64/, /msys64/, /msw64/
     SubDirs.delete("#{rtp}/console/zzconsole.done")
 end
 
@@ -543,9 +545,19 @@ namespace :setup do
       sh "echo TGT_ARCH=msys2 >build_target"
 	  end
     
-    desc "Setup for Windows Native Widgets"
+    desc "Setup for Windows (32) Native Widgets"
     task :msw do
       sh "echo TGT_ARCH=msw >build_target"
+    end
+    
+	  desc "Setup for Win 64bit using MSYS2"
+	  task :msys64 do
+      sh "echo TGT_ARCH=msys64 >build_target"
+	  end
+    
+    desc "Setup for Windows (64) Native Widgets"
+    task :msw64 do
+      sh "echo TGT_ARCH=msw64 >build_target"
     end
    end
   
@@ -780,17 +792,29 @@ def dep_find_and_copy(locs, shlibs)
   end
 end
 
+DLL_ARY = []
+# Windows File Systems are slow, cache it
 def win_dep_find_and_copy(locs, shlibs)
+  if DLL_ARY.length == 0
+    locs.each do |d| 
+      dlls = {}
+      ary = Dir.glob("#{d}/*.dll")
+      ary.each do |dll|
+        nm = File.basename(dll, ".dll")
+		dlls[nm] = dll
+	  end
+	  DLL_ARY << dlls
+    end
+  end
   shlibs.each_pair do |lib, xxx|
     hit = nil
-    locs.each do |dir| 
-      pos = Dir.glob("#{dir}/#{lib}*.dll")
-      if pos && pos.length == 1
-        hit = pos[0]
-        cp hit, TGT_DIR
-        break;
-      end
-    end
+    DLL_ARY.each do |hsh|
+      hit = hsh[File.basename(lib, ".dll")]
+      if hit
+		cp hit, TGT_DIR
+		break
+	  end
+	end
     if hit 
       next
     else
