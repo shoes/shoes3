@@ -40,6 +40,11 @@ module Make
       end
     end
   end
+  
+  # a stub, loose osx doesn't copy gems but the Builder will call it
+  def copy_gems  
+  end
+
 end
 
 class MakeDarwin
@@ -93,7 +98,9 @@ class MakeDarwin
     end
 
     def copy_deps_to_dist
-      puts "Entering copy_deps_to_dist #{TGT_DIR}"
+      $stderr.puts "Entering copy_deps_to_dist #{TGT_DIR}"
+      # for loose shoes (minosx) , see postbuild_fix
+      return
       # Generate a list of dependencies straight from the generated files.
       # Start with dependencies of shoes-bin, and then add the dependencies
       # of those dependencies. Finally, add any oddballs that must be
@@ -164,6 +171,7 @@ class MakeDarwin
     end
     
     def setup_system_resources
+      return
       # called after the gems are copied into the above setup.
       # build a hash of x.dylib > ShoesDeps/**/*.dylib
       @brew_hsh = {}
@@ -219,8 +227,15 @@ class MakeDarwin
 
     def postbuild_fix
       # if this is called, the only thing that has changed is libshoes.dylib
-      # and shoes-bin. This hasn't needed but might involve
-      #$stderr.puts "called postbuild_fix"
+      # and shoes-bin. minosx needs this.
+      $stderr.puts "called postbuild_fix"
+      Dir.chdir TGT_DIR do
+					#sh "#{INTOOL} -id @executable_path/shoes-bin shoes-bin"
+					sh "#{INTOOL} -change @executable_path/librsvg-2.2.dylib /usr/local/lib/librsvg-2.2.dylib shoes-bin"
+					sh "#{INTOOL} -change @executable_path/librsvg-2.2.dylib /usr/local/lib/librsvg-2.2.dylib libshoes.dylib"
+					#sh "#{INTOOL} -change @executable_path/../lib/libruby.2.4.5.dylib #{EXT_RUBY}/lib/libruby.2.4.5.dylib shoes-bin"
+					#sh "#{INTOOL} -change @executable_path/../lib/libruby.2.4.5.dylib #{EXT_RUBY}/lib/libruby.2.4.5.dylib libshoes.dylibq"
+	    end
 =begin
       install_name_tool -id @executable_path/shoes-bin shoes-bin
       install_name_tool -change /usr/local/lib/libcairo.2.dylib @executable_path/libcairo.2.dylib shoes-bin

@@ -122,7 +122,7 @@ ENV['SYSROOT'] = " -isysroot #{OSX_SDK} #{OSX_ARCH}"
 LINUX_CFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH}"
 LINUX_LDFLAGS << " -isysroot #{OSX_SDK} #{OSX_ARCH} -L#{ShoesDeps}/lib/ #{GLIB_LDFLAGS}"
 
-RUBY_SO = RbConfig::CONFIG['RUBY_SO_NAME']
+#RUBY_SO = RbConfig::CONFIG['RUBY_SO_NAME']
 LINUX_LIBS = " -l#{RUBY_SO} -L#{ShoesDeps}/lib -l cairo -L#{ShoesDeps}/lib -lpangocairo-1.0 -L#{ShoesDeps}/lib -lgif -ljpeg"
 LINUX_LIBS << " -L#{TGT_DIR} #{CAIRO_LDFLAGS} #{PANGO_LDFLAGS} #{GLIB_LDFLAGS}"
 

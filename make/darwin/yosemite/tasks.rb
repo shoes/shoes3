@@ -100,7 +100,7 @@ class MakeDarwin
       # included.
       dylibs = get_dylibs("#{TGT_DIR}/#{NAME}-bin")
       # add the gem's bundles.
-      rbvm = RUBY_V[/^\d+\.\d+/]
+      rbvm = APP['RUBY_V'][/^\d+\.\d+/]
       Dir["#{TGT_DIR}/lib/ruby/gems/#{rbvm}.0/gems/**/*.bundle"].each do |gb|
         puts "Bundle: #{gb}"
         dylibs.concat get_dylibs(gb)
@@ -178,7 +178,7 @@ class MakeDarwin
           @brew_hsh[key] = path
          end
       end
-      rbvm = RUBY_V[/^\d+\.\d+/]
+      rbvm = APP['RUBY_V'][/^\d+\.\d+/]
       #tgtd = File.join(Dir.getwd, TGT_DIR)
       tgtd = File.absolute_path(TGT_DIR)
       puts "tgtd: #{tgtd}"
