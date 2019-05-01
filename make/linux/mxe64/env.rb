@@ -90,7 +90,7 @@ WIN32_CFLAGS << "-I#{ShoesDeps}/include/librsvg-2.0/librsvg "
 WIN32_CFLAGS << `pkg-config --cflags #{pkgruby} --define-variable=prefix=#{EXT_RUBY}`.chomp
 WIN32_CFLAGS << "-Ishoes"
 
-WIN32_LDFLAGS << "-lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32"
+WIN32_LDFLAGS << "-lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 -lmsvcrt"
 WIN32_LDFLAGS << "-lgif -ljpeg -lfontconfig"
 WIN32_LDFLAGS << "-L#{ShoesDeps}/bin"
 WIN32_LDFLAGS << "-fPIC -shared"
@@ -131,7 +131,7 @@ SOLOCS = {
   #'libgcc_s_sjlj-1' => "{basedll}/libgcc_s_sjlj-1.dll", 
   'libgcc_s_seh-1' => '',
   'libwebp-7'  => '',
-  'libsqlite3'  => "#{bindll}/libsqlite3-0.dll",
+  'libsqlite3-0'  => "#{bindll}/libsqlite3-0.dll",
   'libexpat-1' => "",
   'libbz2' => "",
   'libpcre-1' => "",
@@ -148,25 +148,25 @@ SOLOCS.merge!(
     'libffi-6'         => "#{bindll}/libffi-6.dll",
     'libfontconfig-1'  => "#{bindll}/libfontconfig-1.dll",
     'libfreetype-6'    => "#{bindll}/libfreetype-6.dll",
-    'libgdk_pixbuf-2.'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
+    'libgdk_pixbuf-2.0-0'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
     'libgio-2.0-0'         => "#{bindll}/libgio-2.0-0.dll",
     'libglib-2.0-0'        => "#{bindll}/libglib-2.0-0.dll",
-    'libgmodule-2'     => "#{bindll}/libgmodule-2.0-0.dll",
-    'libgobject-2'     => "#{bindll}/libgobject-2.0-0.dll",
+    'libgmodule-2.0-0'     => "#{bindll}/libgmodule-2.0-0.dll",
+    'libgobject-2.0-0'     => "#{bindll}/libgobject-2.0-0.dll",
     'libgdk-3-0'        => "#{gtkdll}/libgdk-3-0.dll", 
     'libgtk-3-0'        => "#{gtkdll}/libgtk-3-0.dll",
     'libpixman-1-0'      => "#{bindll}/libpixman-1-0.dll", 
     'libintl-8'       => "#{bindll}/libintl-8.dll",
     'libpango-1.0-0'       => "#{bindll}/libpango-1.0-0.dll",
-    'libpangocairo-1'  => "#{bindll}/libpangocairo-1.0-0.dll",
-    'libpangoft2-1'     => "#{bindll}/libpangoft2-1.0-0.dll",
-    'libpangowin32-1'     => "#{bindll}/libpangowin32-1.0-0.dll",
+    'libpangocairo-1.0-0'  => "#{bindll}/libpangocairo-1.0-0.dll",
+    'libpangoft2-1.0-0'     => "#{bindll}/libpangoft2-1.0-0.dll",
+    'libpangowin32-1.0-0'     => "#{bindll}/libpangowin32-1.0-0.dll",
     'libharfbuzz-0'    => "#{bindll}/libharfbuzz-0.dll",
     'libpng16-16'       => "#{bindll}/libpng16-16.dll",
     'libcroco-0.6-3'       => "#{bindll}/libcroco-0.6-3.dll",
     'librsvg-2-2'        => "#{bindll}/librsvg-2-2.dll",
-    'libxml2'        => "#{bindll}/libxml2-2.dll",
-    'libgthread-2'     => "#{bindll}/libgthread-2.0-0.dll",
+    'libxml2-2'        => "#{bindll}/libxml2-2.dll",
+    'libgthread-2.0-0'     => "#{bindll}/libgthread-2.0-0.dll",
     'zlib1'       => "#{bindll}/zlib1.dll",
     'libwinpthread-1'     => "#{basedll}/libwinpthread-1.dll",
   }
