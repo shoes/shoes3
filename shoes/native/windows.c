@@ -91,7 +91,8 @@ shoes_native_load_font(const char *filename)
 {
   VALUE allfonts, newfonts, oldfonts;
   int fonts = AddFontResourceEx(filename, FR_PRIVATE, 0);
-  if (!fonts) return Qnil;
+  if (!fonts)
+    return Qnil;
   allfonts = shoes_native_font_list();
   oldfonts = rb_const_get(cShoes, rb_intern("FONTS"));
   newfonts = rb_funcall(allfonts, rb_intern("-"), 1, oldfonts);
@@ -279,7 +280,7 @@ shoes_slot_win32proc(
 {
   shoes_canvas *canvas;
   int mods = 0;         // key state for mouse events
-  VALUE c = (VALUE)GetWindowLong(win, GWL_USERDATA);
+  VALUE c = (VALUE)GetWindowLong(win, GWLP_USERDATA);
 
   if (c != NULL) {
     TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
@@ -418,7 +419,7 @@ shoes_app_win32proc(
   WPARAM w,
   LPARAM l)
 {
-  shoes_app *app = (shoes_app *)GetWindowLong(win, GWL_USERDATA);
+  shoes_app *app = (shoes_app *)GetWindowLong(win, GWLP_USERDATA);
   int x = 0, y = 0;
   int mods = 0;   // TODO: keys pressed for motion events
   switch (msg) {
@@ -850,7 +851,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_settings *st
       NULL
   );
 
-  SetWindowLong(app->slot->window, GWL_USERDATA, (long)app);
+  SetWindowLong(app->slot->window, GWLP_USERDATA, (long)app);
   shoes_win32_center(app->slot->window);
 
   SCROLLINFO si;
@@ -887,7 +888,7 @@ shoes_native_loop() {
     if (msg) {
       HWND focused = GetForegroundWindow();
       if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP) {
-        shoes_app *appk = (shoes_app *)GetWindowLong(focused, GWL_USERDATA);
+        shoes_app *appk = (shoes_app *)GetWindowLong(focused, GWLP_USERDATA);
         ATOM wndatom = GetClassLong(focused, GCW_ATOM);
         if (appk != NULL && wndatom == shoes_world->os.classatom && RARRAY_LEN(appk->slot->controls) > 0) {
           switch (msgs.wParam) {
@@ -945,8 +946,8 @@ shoes_native_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, 
     slot->window = CreateWindowEx(0, SHOES_SLOTCLASS, "Shoes Slot Window",
       WS_CHILD | WS_CLIPCHILDREN | WS_TABSTOP | WS_VISIBLE,
       x, y, width, height, parent->window, NULL, 
-      (HINSTANCE)GetWindowLong(parent->window, GWL_HINSTANCE), NULL);
-    SetWindowLong(slot->window, GWL_USERDATA, (long)c);
+      (HINSTANCE)GetWindowLong(parent->window, GWLP_HINSTANCE), NULL);
+    SetWindowLong(slot->window, GWLP_USERDATA, (long)c);
   }
   if (toplevel)
     shoes_canvas_size(c, width, height);

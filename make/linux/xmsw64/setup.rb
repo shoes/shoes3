@@ -80,12 +80,11 @@ module Make
       puts "SSL copying from MXE"
       mkdir_p "#{TGT_DIR}/lib"
       cp_r "#{ShoesDeps}/bin/engines/padlock.dll", TGT_DIR
-      cp   "#{ShoesDeps}/bin/libcrypto-1_1.dll", TGT_DIR
-      cp   "#{ShoesDeps}/bin/libssl-1_1.dll", TGT_DIR
-    else
-      # Normal path for this situation
-      #puts "Can't find the openssl-1.1 libs"
-      #abort
+      cp   "#{ShoesDeps}/bin/libcrypto-1_1-x64.dll", TGT_DIR
+      cp   "#{ShoesDeps}/bin/libssl-1_1-x64.dll", TGT_DIR
+     else
+      puts "Can't find the openssl-1.1 libs"
+      abort
     end
   end
 end

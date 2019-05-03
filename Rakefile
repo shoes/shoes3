@@ -270,12 +270,12 @@ when :linux
       require File.expand_path('make/linux/mxe64/setup')
       require File.expand_path('make/gems')
       require File.expand_path('make/subsys')
-   when /mxe/
-      require File.expand_path('make/linux/mxe/env')
-      require File.expand_path('make/linux/mxe/tasks')
-      require File.expand_path('make/linux/mxe/stubs')
-      require File.expand_path('make/linux/mxe/packdeps')
-      require File.expand_path('make/linux/mxe/setup')
+   when /mxe32/
+      require File.expand_path('make/linux/mxe32/env')
+      require File.expand_path('make/linux/mxe32/tasks')
+      require File.expand_path('make/linux/mxe32/stubs')
+      require File.expand_path('make/linux/mxe32/packdeps')
+      require File.expand_path('make/linux/mxe32/setup')
       require File.expand_path('make/gems')
       require File.expand_path('make/subsys')
    when /darwin14/
@@ -287,12 +287,20 @@ when :linux
       require File.expand_path('make/gems')
       require File.expand_path('make/subsys')
       builder = MakeDarwin
-   when /xmsw/
-      require File.expand_path('make/linux/xmsw/env')
-      require File.expand_path('make/linux/xmsw/tasks')
-      require File.expand_path('make/linux/xmsw/stubs')
-      require File.expand_path('make/linux/xmsw/packdeps')
-      require File.expand_path('make/linux/xmsw/setup')
+   when /xmsw64/
+      require File.expand_path('make/linux/xmsw64/env')
+      require File.expand_path('make/linux/xmsw64/tasks')
+      require File.expand_path('make/linux/xmsw64/stubs')
+      require File.expand_path('make/linux/xmsw64/packdeps')
+      require File.expand_path('make/linux/xmsw64/setup')
+      require File.expand_path('make/gems')
+      require File.expand_path('make/subsys')
+   when /xmsw32/
+      require File.expand_path('make/linux/xmsw32/env')
+      require File.expand_path('make/linux/xmsw32/tasks')
+      require File.expand_path('make/linux/xmsw32/stubs')
+      require File.expand_path('make/linux/xmsw32/packdeps')
+      require File.expand_path('make/linux/xmsw32/setup')
       require File.expand_path('make/gems')
       require File.expand_path('make/subsys')
    when /minlin/ 
@@ -442,8 +450,7 @@ SubDirs = ["#{rtp}/zzbase.done",  "#{rtp}/http/zzdownload.done",
     
 # Windows doesn't use console - don't try to build it. Delete from dependcies
 case TGT_DIR
-  when /win7/, /xwin7/, /msys2/, /xmsys2/, /mxe/, /mxe_osx/, /xmsw/, /msw/, 
-		/mxe64/, /msys64/, /msw64/
+  when /win7/,  /msys/, /mxe/, /msw/
     SubDirs.delete("#{rtp}/console/zzconsole.done")
 end
 
@@ -546,8 +553,8 @@ namespace :setup do
 	  end
     
     desc "Setup for Windows (32) Native Widgets"
-    task :msw do
-      sh "echo TGT_ARCH=msw >build_target"
+    task :msw32 do
+      sh "echo TGT_ARCH=msw32 >build_target"
     end
     
 	  desc "Setup for Win 64bit using MSYS2"
@@ -609,11 +616,16 @@ namespace :setup do
         sh "echo 'TGT_ARCH=minlin' >build_target"
       end
         
-      desc "Setup for Native Windows"
-      task :xmsw do
-        sh "echo 'TGT_ARCH=xmsw' >build_target"
+      desc "Setup for Native Windows 32 bit"
+      task :xmsw32 do
+        sh "echo 'TGT_ARCH=xmsw32' >build_target"
       end
       
+      desc "Setup for Native Windows 32 bit"
+      task :xmsw64 do
+        sh "echo 'TGT_ARCH=xmsw64' >build_target"
+      end
+     
 	    desc "Setup for Linux x86_64"
 	    task :xlin64 do
 	      sh "echo 'TGT_ARCH=xlin64' >build_target"
@@ -630,8 +642,8 @@ namespace :setup do
 	    end
 	    
 	    desc "Setup for Windows 7+ (MXE tools - recommended)"
-	    task :mxe do
-	      sh "echo 'TGT_ARCH=mxe' >build_target"
+	    task :mxe32 do
+	      sh "echo 'TGT_ARCH=mxe32' >build_target"
 	    end 
 
 	    desc "Setup for Windows 64bit+ (MXE tools - recommended)"
@@ -711,7 +723,7 @@ end
 
 # misc task stubs for Windows build on Linux
 if build_os == :linux
-    require File.expand_path('make/linux/mxe/stubs')
+    require File.expand_path('make/linux/mxe32/stubs')
 end
 
 

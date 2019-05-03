@@ -83,8 +83,9 @@ module Make
       cp   "#{ShoesDeps}/bin/libcrypto-1_1.dll", TGT_DIR
       cp   "#{ShoesDeps}/bin/libssl-1_1.dll", TGT_DIR
     else
-      puts "Can't find the openssl-1.1 libs"
-      abort
+      # normal for msw64
+      #puts "Can't find the openssl-1.1 libs"
+      #abort
     end
   end
 end

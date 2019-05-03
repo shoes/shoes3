@@ -98,7 +98,7 @@ shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
       place->ix + place->dx, place->iy + place->dy,
       place->iw, place->ih,
       canvas->slot->window, (HMENU)cid, 
-      (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE), NULL);
+      (HINSTANCE)GetWindowLong(canvas->slot->window, GWLP_HINSTANCE), NULL);
   rb_ary_push(canvas->slot->controls, self);
   return ref;
 }
@@ -137,7 +137,7 @@ shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *
       WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
       place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
       canvas->slot->window, (HMENU)cid, 
-      (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
+      (HINSTANCE)GetWindowLong(canvas->slot->window, GWLP_HINSTANCE),
       NULL);
   if (buffer != NULL)
     SHOE_FREE(buffer);
@@ -155,7 +155,7 @@ shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VAL
       (RTEST(ATTR(attr, secret)) ? ES_PASSWORD : 0),
       place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
       canvas->slot->window, (HMENU)cid, 
-      (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
+      (HINSTANCE)GetWindowLong(canvas->slot->window, GWLP_HINSTANCE),
       NULL);
   shoes_win32_control_font(cid, canvas->slot->window);
   shoes_native_edit_line_set_text(ref, msg);
@@ -208,7 +208,7 @@ shoes_native_edit_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
     ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN | ES_NOHIDESEL,
     place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
     canvas->slot->window, (HMENU)cid, 
-    (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
+    (HINSTANCE)GetWindowLong(canvas->slot->window, GWLP_HINSTANCE),
     NULL);
   shoes_win32_control_font(cid, canvas->slot->window);
   shoes_native_edit_line_set_text(ref, msg);
@@ -236,7 +236,7 @@ shoes_native_list_box(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
       WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | CBS_DROPDOWNLIST | WS_VSCROLL,
       place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
       canvas->slot->window, (HMENU)cid, 
-      (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
+      (HINSTANCE)GetWindowLong(canvas->slot->window, GWLP_HINSTANCE),
       NULL);
   shoes_win32_control_font(cid, canvas->slot->window);
   rb_ary_push(canvas->slot->controls, self);
@@ -283,7 +283,7 @@ shoes_native_progress(VALUE self, shoes_canvas *canvas, shoes_place *place, VALU
       WS_VISIBLE | WS_CHILD | PBS_SMOOTH,
       place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
       canvas->slot->window, NULL, 
-      (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
+      (HINSTANCE)GetWindowLong(canvas->slot->window, GWLP_HINSTANCE),
       NULL);
 }
 
@@ -307,7 +307,7 @@ shoes_native_check(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
       WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX,
       place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
       canvas->slot->window, (HMENU)cid, 
-      (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
+      (HINSTANCE)GetWindowLong(canvas->slot->window, GWLP_HINSTANCE),
       NULL);
   shoes_win32_control_font(cid, canvas->slot->window);
   rb_ary_push(canvas->slot->controls, self);
@@ -334,7 +334,7 @@ shoes_native_radio(VALUE self, shoes_canvas *canvas, shoes_place *place, VALUE a
       WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_RADIOBUTTON,
       place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
       canvas->slot->window, (HMENU)cid, 
-      (HINSTANCE)GetWindowLong(canvas->slot->window, GWL_HINSTANCE),
+      (HINSTANCE)GetWindowLong(canvas->slot->window, GWLP_HINSTANCE),
       NULL);
   shoes_win32_control_font(cid, canvas->slot->window);
   rb_ary_push(canvas->slot->controls, self);

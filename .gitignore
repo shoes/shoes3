@@ -32,6 +32,10 @@ notes
 /xmsys2
 /pi2
 /qtifw
+/mxe
+/mxe64
+/msw
+/msw64
 *.app
 req/binject
 req/bloopsaphone

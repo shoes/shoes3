@@ -1,7 +1,7 @@
 # xmsw cross  build  
 # TODO: missing curl
 # TODO: massage for mxe deps and locations. (basedll..)
-cf =(ENV['ENV_CUSTOM'] || "#{APP['VAGRANT']}xmsw-custom.yaml")
+cf =(ENV['ENV_CUSTOM'] || "#{APP['VAGRANT']}xmsw32-custom.yaml")
 gtk_version = '3'
 if File.exists? cf
   custmz = YAML.load_file(cf)
@@ -29,7 +29,8 @@ require_relative '../../switch_ruby'
 arch_2_file = {'i386-mingw32.shared' => 'i386-mingw32'}
 # Match what Gem:: does (not what you think it should do)
 arch_2_gem =  {'i386-mingw32.shared' => 'x86-mingw32', # mxe compiled ruby
-               'i386-mingw32' => 'x86-mingw32' }        # hand compiled ruby
+               'i386-mingw32' => 'x86-mingw32',        # hand compiled ruby
+               'x64-mingw32.shared' => 'x64-mingw32'}
 
 SHOES_TGT_ARCH = RbConfig::CONFIG['arch']
 SHOES_GEM_ARCH = arch_2_gem[RbConfig::CONFIG['arch']]
@@ -126,14 +127,11 @@ SOLOCS = {
   'libjpeg-9'    => "#{bindll}/libjpeg-9.dll",
   'libyaml-0-2' => "#{bindll}/libyaml-0-2.dll",
   'libiconv-2'   => "#{bindll}/libiconv-2.dll",
-  #'libeay32'     => "#{bindll}/libeay32.dll",
   'libgdbm-6'    => "#{bindll}/libgdbm-4.dll",
-  #'ssleay32'     => "#{bindll}/ssleay32.dll",
   'libepoxy-0'   => "#{bindll}/libepoxy-0.dll",  
-   #'libgmp-10'     => "#{basedll}/libgmp-10.dll", 
-  #'libgcc_s_dw2-1'  => "#{basedll}/libgcc_s_dw2-1.dll",
-  #'libgcc_s_sjlj-1' => "{basedll}/libgcc_s_sjlj-1.dll", 
-  'libsqlite3'  => "#{bindll}/libsqlite3-0.dll",
+  'libgcc_s_sjlj-1' => '',
+  #'libwebp-7'  => '',
+  'libsqlite3-0'  => "#{bindll}/libsqlite3-0.dll",
   'libexpat-1' => "",
   'libbz2' => "",
   'libpcre-1' => "",
@@ -144,31 +142,31 @@ SOLOCS = {
 
 SOLOCS.merge!(
   {
-#    'libatk-1.0-0'         => "#{bindll}/libatk-1.0-0.dll",
+    'libatk-1.0-0'         => "#{bindll}/libatk-1.0-0.dll",
     'libcairo-2'       => "#{bindll}/libcairo-2.dll",
     'libcairo-gobject-2'  => "#{bindll}/libcairo-gobject-2.dll",
     'libffi-6'         => "#{bindll}/libffi-6.dll",
     'libfontconfig-1'  => "#{bindll}/libfontconfig-1.dll",
     'libfreetype-6'    => "#{bindll}/libfreetype-6.dll",
-#    'libgdk_pixbuf-2.'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
-#    'libgio-2.0-0'         => "#{bindll}/libgio-2.0-0.dll",
+    'libgdk_pixbuf-2.0-0'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
+    'libgio-2.0-0'         => "#{bindll}/libgio-2.0-0.dll",
     'libglib-2.0-0'        => "#{bindll}/libglib-2.0-0.dll",
-#    'libgmodule-2'     => "#{bindll}/libgmodule-2.0-0.dll",
-    'libgobject-2'     => "#{bindll}/libgobject-2.0-0.dll",
-#    'libgdk-3-0'        => "#{gtkdll}/libgdk-3-0.dll", 
-#    'libgtk-3-0'        => "#{gtkdll}/libgtk-3-0.dll",
-#    'libpixman-1-0'      => "#{bindll}/libpixman-1-0.dll", 
-#    'libintl-8'       => "#{bindll}/libintl-8.dll",
+    'libgmodule-2.0-0'     => "#{bindll}/libgmodule-2.0-0.dll",
+    'libgobject-2.0-0'     => "#{bindll}/libgobject-2.0-0.dll",
+    'libgdk-3-0'        => "#{gtkdll}/libgdk-3-0.dll", 
+    'libgtk-3-0'        => "#{gtkdll}/libgtk-3-0.dll",
+    'libpixman-1-0'      => "#{bindll}/libpixman-1-0.dll", 
+    'libintl-8'       => "#{bindll}/libintl-8.dll",
     'libpango-1.0-0'       => "#{bindll}/libpango-1.0-0.dll",
-    'libpangocairo-1'  => "#{bindll}/libpangocairo-1.0-0.dll",
-    'libpangoft2-1'     => "#{bindll}/libpangoft2-1.0-0.dll",
-    'libpangowin32-1'     => "#{bindll}/libpangowin32-1.0-0.dll",
+    'libpangocairo-1.0-0'  => "#{bindll}/libpangocairo-1.0-0.dll",
+    'libpangoft2-1.0-0'     => "#{bindll}/libpangoft2-1.0-0.dll",
+    'libpangowin32-1.0-0'     => "#{bindll}/libpangowin32-1.0-0.dll",
     'libharfbuzz-0'    => "#{bindll}/libharfbuzz-0.dll",
     'libpng16-16'       => "#{bindll}/libpng16-16.dll",
     'libcroco-0.6-3'       => "#{bindll}/libcroco-0.6-3.dll",
     'librsvg-2-2'        => "#{bindll}/librsvg-2-2.dll",
-    'libxml2'        => "#{bindll}/libxml2-2.dll",
-    'libgthread-2'     => "#{bindll}/libgthread-2.0-0.dll",
+    'libxml2-2'        => "#{bindll}/libxml2-2.dll",
+    'libgthread-2.0-0'     => "#{bindll}/libgthread-2.0-0.dll",
     'zlib1'       => "#{bindll}/zlib1.dll",
     'libwinpthread-1'     => "#{basedll}/libwinpthread-1.dll",
   }
