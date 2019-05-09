@@ -45,7 +45,7 @@ typedef struct _shoes_app {
     VALUE nesting;
     VALUE extras;
     VALUE styles;
-    VALUE groups;     // #391 radao groups belong to App not canvas/slot
+    VALUE groups;     // #391 radio groups belong to App not canvas/slot
     ID cursor;
     VALUE title;
     VALUE location;

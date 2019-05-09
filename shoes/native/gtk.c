@@ -1,7 +1,7 @@
 //
 // shoes/native-gtk.c
 // GTK+ code for Shoes.
-//   Modified for Gtk-3.0 by Cecil Coupe (cjc)
+//   Modified for Gtk-3.0 by Cecil Coupe (cjc) + @passenger94 
 //
 #ifndef GTK3
 // fail only used for shoes_native_window_color will be deleted
@@ -47,7 +47,7 @@
 
 /* forward declares in this file */
 static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer data);
-static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, gpointer data);
+static void shoes_canvas_gtk_size_menu(GtkWidget *widget, int w, int h, shoes_canvas *canvas);
 
 // Is mainloop poll()/select() or Timeout driven
 #if defined(SHOES_GTK_WIN32) && ( !defined(GPOLL))
@@ -69,6 +69,7 @@ enum {
   WAYLAND,
 };
 static int shoes_gtk_backend = OLD_SCHOOL;
+
 /*
 int shoes_gtk_set_desktop() {
   char *session = getenv("XDG_SESSION_TYPE");
@@ -381,7 +382,7 @@ void shoes_native_init() {
     if (g_application_get_is_registered((GApplication *)shoes_GtkApp))
       fprintf(stderr, "%s is already registered\n", app_id);
     if (g_application_register((GApplication *)shoes_GtkApp, NULL, NULL)) {
-      fprintf(stderr,"%s is registered\n",app_id);
+      //fprintf(stderr,"%s is registered\n",app_id);
       st->dbus_name = rb_str_new2(app_id);
     }
     g_signal_connect(shoes_GtkApp, "activate", G_CALLBACK (shoes_gtk_app_activate), NULL);
@@ -1047,10 +1048,11 @@ static gint shoes_app_g_poll(GPollFD *fds, guint nfds, gint timeout) {
 int win_current_tmo = 10;  // only used on Windows until bug is fixed
 
 #ifdef SGTMO
-/*static GSource *gtkrb_source;
-static GSource *gtkrb_init_source();
-static  GSourceFuncs gtkrb_func_tbl;*/
 /*
+static GSource *gtkrb_source;
+static GSource *gtkrb_init_source();
+static GSourceFuncs gtkrb_func_tbl;
+
 static GSource *gtkrb_init_source()
 {
   // fill in the struct
@@ -1244,6 +1246,7 @@ void shoes_native_app_window_move(shoes_app *app, int x, int y) {
 int shoes_gtk_is_maximized(shoes_app *app, int width, int height); 
 void shoes_gtk_set_max(shoes_app *app);
 #endif
+
 gboolean shoes_app_gtk_configure_event(GtkWidget *widget, GdkEvent *evt, gpointer data) {
   shoes_app *app = (shoes_app *)data;
   if (widget == app->os.window) {  // GtkWindow
@@ -2163,17 +2166,21 @@ int shoes_gtk_is_maximized(shoes_app *app, int wid, int hgt) {
 // called only by **Window** signal handler for *size-allocate*
 static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer data) {
     shoes_app *app = (shoes_app *)data;
+    int width, height;
     if (widget != app->os.window)
       fprintf(stderr, "widget != app->os.window\n");
-    gtk_window_get_size(GTK_WINDOW(app->os.window), &app->width, &app->height);
+    gtk_window_get_size(GTK_WINDOW(app->os.window), &width, &height);
 #ifdef SZBUG
-    fprintf(stderr,"shoes_app_gtk_size_menu: wid: %d hgt: %d\n", app->width, app->height);
+    fprintf(stderr,"shoes_app_gtk_size_menu: wid: %d hgt: %d\n", width, height);
 #endif
-    app->height -= app->mb_height;
-    // trigger a resize & paint 
-    GtkWidget *wdg = app->slot->oscanvas;
-    gtk_widget_set_size_request(wdg, app->width, app->height);
-    
+    app->width = width;
+    app->height = height - app->mb_height;
+    // process a resize & paint of Shoes content widget, i.e. top level canvas
+    GtkWidget *content_widget = app->slot->oscanvas;
+    //gtk_widget_set_size_request(wdg, app->width, app->height); // prevents shrinkage !!
+    shoes_canvas *canvas;
+    TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+    shoes_canvas_gtk_size_menu(content_widget, app->width, app->height, canvas);
     shoes_canvas_size(app->canvas, app->width, app->height);
 }
 
@@ -2181,18 +2188,15 @@ static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer dat
  *  Called by **canvas->slot** signal handler for *size-allocate*
  *  We can be called twice - for width then for height
 */
-static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, gpointer data) {
-    VALUE c = (VALUE)data;
-    shoes_canvas *canvas;
-    TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
+static void shoes_canvas_gtk_size_menu(GtkWidget *widget, int width, int height, shoes_canvas *canvas) {
 #ifdef SZBUG
-    fprintf(stderr,"shoes_canvas_gtk_size_menu: %d %d %d %d\n", size->x, size->y, size->width, size->height);
+    fprintf(stderr,"shoes_canvas_gtk_size_menu: %d %d\n", width, height);
 #endif
     if (canvas->slot->vscroll) { 
             // && (size->height != canvas->slot->scrollh || size->width != canvas->slot->scrollw)) 
-        if (size->height != canvas->slot->scrollh) {
+        if (height != canvas->slot->scrollh) {
           GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
-          gtk_widget_set_size_request(canvas->slot->vscroll, -1, size->height);
+          gtk_widget_set_size_request(canvas->slot->vscroll, -1, height);
           
           //gtk_widget_set_size_request(GTK_CONTAINER(widget), canvas->app->width, size->height);
           GtkAllocation alloc;
@@ -2201,18 +2205,18 @@ static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, g
           fprintf(stderr, "alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
 #endif
           gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
-                         size->width - alloc.width, 0);
-          gtk_adjustment_set_page_size(adj, size->height);
-          gtk_adjustment_set_page_increment(adj, size->height - 32);
+                         width - alloc.width, 0);
+          gtk_adjustment_set_page_size(adj, height);
+          gtk_adjustment_set_page_increment(adj, height - 32);
   
           if (gtk_adjustment_get_page_size(adj) >= gtk_adjustment_get_upper(adj))
               gtk_widget_hide(canvas->slot->vscroll);
           else {
               gtk_widget_show(canvas->slot->vscroll);
           }
-          canvas->slot->scrollh = size->height;
-      } else if (size->width != canvas->slot->scrollw) {
-          canvas->slot->scrollw = size->width;
+          canvas->slot->scrollh = height;
+      } else if (width != canvas->slot->scrollw) {
+          canvas->slot->scrollw = width;
       }
     }
 }
@@ -2282,8 +2286,8 @@ void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int widt
   g_signal_connect(G_OBJECT(slot->oscanvas), "draw",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
   
-  g_signal_connect(G_OBJECT(slot->oscanvas), "size-allocate",
-                   G_CALLBACK(shoes_canvas_gtk_size_menu), (gpointer)c);
+  //g_signal_connect(G_OBJECT(slot->oscanvas), "size-allocate",
+  //                G_CALLBACK(shoes_canvas_gtk_size_menu), (gpointer)c);
   INFO("shoes_slot_init_menu(%lu)\n", c);
   
   if (toplevel) {
