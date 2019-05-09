@@ -40,7 +40,7 @@ basedll = "#{ShoesDeps}/basedll"
 gtkdll = "#{GtkDeps}/bin"
 APP['LIBPATHS'] = [bindll, "#{EXT_RUBY}/bin"]
 
-WINVERSION = "#{APP['VERSION']}-gtk3-32"
+WINVERSION = "#{APP['VERSION']}-gtk3-64"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
 
 RUBY_HTTP = true

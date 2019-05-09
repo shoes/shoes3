@@ -63,7 +63,7 @@ WIN32_LDFLAGS = []
 WIN32_LIBS = []
 
 if APP['GDB']
-  WIN32_CFLAGS << "-g3 -O0"
+  WIN32_CFLAGS << "-g3 -O0 -DDEBUG"
 else
   WIN32_CFLAGS << "-O -Wall"
 end

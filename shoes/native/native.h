@@ -61,7 +61,7 @@ int shoes_native_console();  // Yes it's different from terminal
 void shoes_native_terminal(char *, int, int, int, int, char *, char *, char *);
 void shoes_native_app_console();
 void shoes_native_browser_open(char *);  // TODO: unused? 
-void shoes__native_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
+void shoes_native_slot_init(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
 void shoes_slot_init_menu(VALUE, SHOES_SLOT_OS *, int, int, int, int, int, int);
 cairo_t *shoes_native_cairo_create(shoes_canvas *);
 void shoes_native_slot_destroy(shoes_canvas *, shoes_canvas *);

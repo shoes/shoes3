@@ -20,6 +20,12 @@ void shoes_native_get_time(SHOES_TIME *ts) {
  *ts = GetTickCount();
 }
 
+unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
+{
+  return *end - *start;
+}
+
+
 // calls from ruby.c - stubbed out until written for windows - see subsys.rb
 void shoes_svg_init() {
 }

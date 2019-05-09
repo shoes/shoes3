@@ -1,7 +1,7 @@
 # xmsw cross  build  
 # TODO: missing curl
 # TODO: massage for mxe deps and locations. (basedll..)
-cf =(ENV['ENV_CUSTOM'] || "#{APP['VAGRANT']}xmsw-custom.yaml")
+cf =(ENV['ENV_CUSTOM'] || "#{APP['VAGRANT']}xmsw64-custom.yaml")
 gtk_version = '3'
 if File.exists? cf
   custmz = YAML.load_file(cf)
@@ -63,7 +63,7 @@ WIN32_LDFLAGS = []
 WIN32_LIBS = []
 
 if APP['GDB']
-  WIN32_CFLAGS << "-g3 -O0"
+  WIN32_CFLAGS << "-g3 -O0 -DDEBUG"
 else
   WIN32_CFLAGS << "-O -Wall"
 end

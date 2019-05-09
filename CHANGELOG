@@ -6,8 +6,22 @@
   Walkabout (3.3+) will be less compatible with the unmaintained 3.1 and with 4.0 (jRuby)
   We have interesting ideas of we what we do with Shoes that may be difficult
   to immplememt in Shoes 4. 
-  
 
+-------------- Shoes 3.3.9 ------------------------------
+
+=== New with 3.3.8
+  * Ruby 2.4.5(6) Gems 3.03
+  * Updated versions of Gems (byebug, nokogiri, etc)
+  
+=== Fixed with 3.3.8
+  * osx: improved building of gems if user has homebrew. 
+  
+=== Developer Issues with 3.3.8
+  * Better cross building of gems (Windows from Linux)
+  * Ruby 2.4+ compatible. Tested with 2.5.5
+  * Support for 64 bit on Windows 10
+  * Can build Shoes for native windows api. Not working. 
+ 
 -------------- Shoes 3.3.7 ------------------------------
 
 === New with 3.3.7

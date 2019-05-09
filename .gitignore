@@ -32,9 +32,9 @@ notes
 /xmsys2
 /pi2
 /qtifw
-/mxe
+/mxe32
 /mxe64
-/msw
+/msw32
 /msw64
 *.app
 req/binject
