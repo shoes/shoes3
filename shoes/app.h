@@ -52,8 +52,9 @@ typedef struct _shoes_app {
     VALUE owner;
     int use_event_handler; 
     int have_menu;
-    int mb_height;
+    int mb_height;  // actually, the height of menubar and toolbar (both optional)
     VALUE menubar;
+    VALUE toolbar; 
     int monitor;    // -1 means default
     int id;         // from global serial number
 } shoes_app;

@@ -82,8 +82,10 @@ typedef struct {
 typedef struct {
     GtkWidget *window;        // GtkWindow 
     GtkWidget *menubar;
-    GtkWidget *vlayout;       // vbox
+    GtkWidget *toolbar;
     GtkWidget *shoes_window;  // GtkFixedAlt, NOT a GtkWindow
+    GtkWidget *vlayout;       // vbox contains optbox and shoes_window
+    GtkWidget *opt_container; // optbox contains menubar and toolbar
     GtkAccelGroup *accel_group;
     // gtk < 3.12
 #if !GTK_CHECK_VERSION(3,12,0)

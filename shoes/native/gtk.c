@@ -47,7 +47,8 @@
 
 /* forward declares in this file */
 static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer data);
-static void shoes_canvas_gtk_size_menu(GtkWidget *widget, int w, int h, shoes_canvas *canvas);
+static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, gpointer data);
+int shoes_gtk_optbox_height(shoes_app *app, int height);
 
 // Is mainloop poll()/select() or Timeout driven
 #if defined(SHOES_GTK_WIN32) && ( !defined(GPOLL))
@@ -552,7 +553,6 @@ static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, g
             &new_x, &new_y);
        if (app->have_menu) {
           shoes_app_motion(app, new_x, new_y + canvas->slot->scrolly, mods);
-          //shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly - app->mb_height, mods);
         } else {
           // TODO: Do not Hardcode offsets. 
           if (shoes_gtk_backend & WAYLAND) {
@@ -561,7 +561,6 @@ static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, g
             //printf("mv: x: %d -> %d y: %d -> %d\n",(int)event->x, new_x, (int)event->y, new_y);
           }
           shoes_app_motion(app, new_x, new_y + canvas->slot->scrolly, mods);
-          //shoes_app_motion(app, (int)event->x, (int)event->y + canvas->slot->scrolly, mods);
         }
     }
     return TRUE;
@@ -611,7 +610,6 @@ static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, g
 			&new_x, &new_y);
     if (event->type == GDK_BUTTON_PRESS) {
       if (app->have_menu) {
-        //shoes_app_click(app, event->button, event->x, event->y + canvas->slot->scrolly - app->mb_height, mods);
         shoes_app_click(app, event->button, new_x, new_y + canvas->slot->scrolly, mods);
       } else {
         // TODO: Do not Hardcode offsets. Windows? Different Theme?
@@ -2158,12 +2156,11 @@ void shoes_gtk_set_max(shoes_app *app) {
 
 int shoes_gtk_is_maximized(shoes_app *app, int wid, int hgt) {
   int t = wid >= app->os.maxwidth && hgt >= (app->os.maxheight-65);
-  //fprintf(stderr, "check %d for wid: %d, hgt: %d\n", t, wid, hgt);
   return t; 
 }
 #endif
 
-// called only by **Window** signal handler for *size-allocate*
+// called only by **GtkWindow** signal handler for *size-allocate*
 static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer data) {
     shoes_app *app = (shoes_app *)data;
     int width, height;
@@ -2174,13 +2171,42 @@ static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer dat
     fprintf(stderr,"shoes_app_gtk_size_menu: wid: %d hgt: %d\n", width, height);
 #endif
     app->width = width;
-    app->height = height - app->mb_height;
-    // process a resize & paint of Shoes content widget, i.e. top level canvas
-    GtkWidget *content_widget = app->slot->oscanvas;
-    //gtk_widget_set_size_request(wdg, app->width, app->height); // prevents shrinkage !!
+    // remove height of menubar container. Variable height now mean canvas hgt
+    app->height = height = (height - shoes_gtk_optbox_height(app, height));
+    // process a resize & paint of Shoes content widget, i.e. top level shoes canvas
     shoes_canvas *canvas;
     TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-    shoes_canvas_gtk_size_menu(content_widget, app->width, app->height, canvas);
+    
+    // set new size of the content Widget. We are are a gtk container.
+    GtkAllocation cvs_alloc;
+    cvs_alloc.x = 0; 
+    cvs_alloc.y = app->mb_height;
+    cvs_alloc.width = width;
+    cvs_alloc.height = height + app->mb_height;
+    gtk_widget_size_allocate (app->os.shoes_window, &cvs_alloc); // This works. 
+    
+    if (canvas->slot->vscroll && 
+        (height != canvas->slot->scrollh || width != canvas->slot->scrollw)) {
+      GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(canvas->slot->vscroll));
+      gtk_widget_set_size_request(canvas->slot->vscroll, -1, height);
+      
+      GtkAllocation alloc;
+      gtk_widget_get_allocation((GtkWidget *)canvas->slot->vscroll, &alloc);  
+#ifdef SZBUG
+      fprintf(stderr, "sb alloc: %d %d %d %d\n\n", alloc.x, alloc.y, alloc.width, alloc.height);
+#endif
+      gtk_fixed_move(GTK_FIXED(canvas->slot->oscanvas), canvas->slot->vscroll,
+                     width - alloc.width, 0);
+      gtk_adjustment_set_page_size(adj, height);
+      gtk_adjustment_set_page_increment(adj, height - 32);
+      if (gtk_adjustment_get_page_size(adj) >= gtk_adjustment_get_upper(adj))
+          gtk_widget_hide(canvas->slot->vscroll);
+      else {
+          gtk_widget_show(canvas->slot->vscroll);
+      }
+      canvas->slot->scrollh = height; 
+      canvas->slot->scrollw = width;
+    }
     shoes_canvas_size(app->canvas, app->width, app->height);
 }
 
@@ -2188,10 +2214,14 @@ static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer dat
  *  Called by **canvas->slot** signal handler for *size-allocate*
  *  We can be called twice - for width then for height
 */
-static void shoes_canvas_gtk_size_menu(GtkWidget *widget, int width, int height, shoes_canvas *canvas) {
+static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, gpointer data) {
+    VALUE c = (VALUE)data;
+    shoes_canvas *canvas;
+    TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
 #ifdef SZBUG
-    fprintf(stderr,"shoes_canvas_gtk_size_menu: %d %d\n", width, height);
+    fprintf(stderr,"shoes_canvas_gtk_size_menu: %d %d\n", size->width, size->height);
 #endif
+#if 0
     if (canvas->slot->vscroll) { 
             // && (size->height != canvas->slot->scrollh || size->width != canvas->slot->scrollw)) 
         if (height != canvas->slot->scrollh) {
@@ -2219,6 +2249,7 @@ static void shoes_canvas_gtk_size_menu(GtkWidget *widget, int width, int height,
           canvas->slot->scrollw = width;
       }
     }
+#endif
 }
 
 
@@ -2286,8 +2317,8 @@ void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int widt
   g_signal_connect(G_OBJECT(slot->oscanvas), "draw",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
   
-  //g_signal_connect(G_OBJECT(slot->oscanvas), "size-allocate",
-  //                G_CALLBACK(shoes_canvas_gtk_size_menu), (gpointer)c);
+  g_signal_connect(G_OBJECT(slot->oscanvas), "size-allocate",
+                   G_CALLBACK(shoes_canvas_gtk_size_menu), (gpointer)c);
   INFO("shoes_slot_init_menu(%lu)\n", c);
   
   if (toplevel) {
@@ -2310,7 +2341,6 @@ void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int widt
     gtk_fixed_put(GTK_FIXED(slot->oscanvas), slot->vscroll, -100, -100);
 
     gtk_widget_set_size_request(slot->oscanvas, width, height);
-    //gtk_widget_set_size_request(slot->oscanvas, canvas->app->minwidth, canvas->app->minheight);
 
     if (!toplevel) 
       ATTRSET(canvas->attr, wheel, scrolls);
@@ -2326,20 +2356,42 @@ void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int widt
 }
 
 /*
+ *  compute the height of the vbox containing the menubar and toolbar
+ *  Argument height can be < 0, 0, or > 0. If zero, we guess what the
+ *  height could be. If >0 its the real hgt of the outer window
+ *  if < 0 then we'll grab the real windows height. 
+*/
+int shoes_gtk_optbox_height(shoes_app *app, int height) {
+  int hgt = 0;
+  if (height == 0) { //guess 
+    hgt = 38; // works for me. not really important.
+  } else if (height >  0) {
+    // get the size of the option box from gtk
+    GtkAllocation alloc;
+    gtk_widget_get_allocation(app->os.opt_container, &alloc);
+    hgt = alloc.height;
+  } else {
+    // compute by window.h - shoes_window.h 
+    int width;
+    int height;
+    GtkAllocation alloc;
+    gtk_window_get_size(GTK_WINDOW(app->os.window), &width, &height);
+    gtk_widget_get_allocation(app->os.shoes_window, &alloc);
+    hgt = height - alloc.height;
+  }
+  //fprintf(stderr, "optbox hgt %d -> %d\n", height, hgt);
+  return hgt;
+}
+
+/*
  *  All apps windows can have a menubur and then the old shoes space below. 
  *  it's optional and the default is no menu for backwards compatibilty
  *  That causes some pixel tweaking and redundency. 
  */
  
 shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, shoes_settings *st) {
-#if 0 //!defined(SHOES_GTK_WIN32)
-    char icon_path[SHOES_BUFSIZE];
-    sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
-    gtk_window_set_default_icon_from_file(icon_path, NULL);
-#endif
     GtkWidget *window;       // Root window 
-    shoes_app_gtk *gk = &app->os; //lexical - typing shortcut
-
+    //shoes_app_gtk *gk = &app->os; //lexical - typing shortcut
     
     char icon_path[SHOES_BUFSIZE];
     if (st->icon_path == Qnil)
@@ -2352,13 +2404,32 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
        sprintf(icon_path, "%s/%s", shoes_world->path, ip);
     }
     gtk_window_set_default_icon_from_file(icon_path, NULL);
-
+    /*
+     *       App Window
+     * +-----------------------+ 
+     * | menu .. menu..        |\      
+     * +-----------------------+ \ 
+     * | toolitem...toolitem.. | / Optionbox 
+     * +-----------------------+/           \
+     * |                       |             \
+     * |  shoes content        |  +-----------+ vbox
+     * |                       | /
+     * +-----------------------+/
+     * 
+     * appwindow := vbox
+     * vbox := optbox shoes_window
+     * optbox := [menubar] [toolbar]
+     */
     GtkWidget *vbox;         // contents of root window
-    GtkWidget *menubar;      // top of vbox
+    GtkWidget *optbox;       // contents of option box (menubar, toolbar)
+    GtkWidget *menubar;      // top of optbox
+    GtkWidget *toolbar;      // bottom of optbox
     GtkWidget *shoes_window; // bottom of vbox where shoes does its thing.
     
     menubar = gtk_menu_bar_new();
-    gk->menubar = menubar;
+    toolbar = gtk_toolbar_new();
+    app->os.menubar = menubar;
+    app->os.toolbar = toolbar;
 #if 0 //#ifdef ENABLE_MDI
     window = gtk_application_window_new(shoes_GtkApp);
 #else
@@ -2373,24 +2444,31 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
 
     vbox =  gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER(window), vbox);
-    gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
+
+    optbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_container_add(GTK_CONTAINER(vbox), optbox);
+    gtk_box_pack_start(GTK_BOX(optbox), menubar, FALSE, FALSE, 0);
+    gtk_box_pack_end(GTK_BOX(optbox), toolbar, FALSE, FALSE, 0);
     // Gtk Container of the fixed variety. Note the alt version!!
     shoes_window = gtkfixed_alt_new(app->width, app->height); 
     gtk_box_pack_start(GTK_BOX(vbox), shoes_window, FALSE, FALSE, 0);
     
-    gk->window = window;
-    gk->vlayout = vbox;
-    gk->shoes_window = shoes_window;
+    app->os.window = window;
+    app->os.vlayout = vbox;
+    app->os.opt_container = optbox;
+    app->os.shoes_window = shoes_window;
     app->slot->oscanvas = shoes_window;
 #ifdef SZBUG
     fprintf(stderr,"shoes_native_app_open slot->canvas %lx\n", (unsigned long)app->slot->oscanvas);
 #endif
-    app->mb_height = 26;  // TODO adhoc (a guess)
+    //guess size since it's not realized yet. Will be fixed up later
+    app->mb_height = shoes_gtk_optbox_height(app, 0);  
 
     // now we can add the default Shoes menus
     VALUE mbv = shoes_native_menubar_setup(app, menubar);
     shoes_native_build_menus(app, mbv);
     app->menubar = mbv;
+    app->toolbar = Qnil;
          
     gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
    // commit https://github.com/shoes/shoes/commit/4e7982ddcc8713298b6959804dab8d20111c0038
@@ -2406,14 +2484,14 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
 #endif
         gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL,
                                       &hints, GDK_HINT_MIN_SIZE);
-        //gtk_window_set_resizable(GTK_WINDOW(window), TRUE); // no help with szbug
     }
     gtk_window_set_default_size(GTK_WINDOW(window), app->width, app->height + app->mb_height);
 
     gtk_window_get_position(GTK_WINDOW(window), &app->x, &app->y);
-    // get memubar height
+    // get optionbox height - still not realized but closer to truth.
     GtkRequisition reqmin, reqnat;
-    gtk_widget_get_preferred_size(menubar, &reqmin, &reqnat);
+    gtk_widget_get_preferred_size(optbox, &reqmin, &reqnat);
+    // fprintf(stderr, "optbox h: %d\n", reqmin.height); // 38 for me. 
     app->mb_height = reqmin.height;
 
     g_signal_connect(G_OBJECT(window), "size-allocate",
