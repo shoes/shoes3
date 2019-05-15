@@ -82,7 +82,6 @@ typedef struct {
 typedef struct {
     GtkWidget *window;        // GtkWindow 
     GtkWidget *menubar;
-    GtkWidget *toolbar;
     GtkWidget *shoes_window;  // GtkFixedAlt, NOT a GtkWindow
     GtkWidget *vlayout;       // vbox contains optbox and shoes_window
     GtkWidget *opt_container; // optbox contains menubar and toolbar

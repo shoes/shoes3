@@ -33,18 +33,17 @@ void shoes_gtk_check_quit(shoes_app *app) {
 #endif
 
 /*
- * Builds a minimal Shoes menu, app->world.os.menubar must be
- * set previously
+ * Builds a minimal Shoes menu.
 */ 
 VALUE shoes_native_menubar_setup(shoes_app *app, void *gtkmb) {
     GtkWidget *menubar = gtkmb;
-    if (gtkmb == NULL) 
-      menubar = gtk_menu_bar_new(); // TODO: Likely to be a problem
-    else 
+    if (gtkmb == NULL) {
+      menubar = gtk_menu_bar_new(); 
+      app->os.menubar = menubar;
+      app->have_menu = TRUE;
+   } else 
       menubar = (GtkWidget *)gtkmb;
   
-    //if (app->have_menu == 0)
-    //  return Qnil;
     if (NIL_P(app->menubar)) {
       // get the GtkWidget for the app window
       shoes_app_gtk *gk = &app->os;
@@ -64,10 +63,29 @@ VALUE shoes_native_menubar_setup(shoes_app *app, void *gtkmb) {
       // save menubar object in app object
       app->menubar = mbv;
     }
+#if 0
+    // Flyby menubar creation: DOES NOT WORK reliably. 
+    // When menubar was not specified at App creation (or not in settings)
+    // but called by canvas method,  then build a minimal menu .
+    if (gtkmb == NULL) {
+      Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
+      VALUE shoestext = st->app_name;
+      VALUE shoesmenu = shoes_menu_new(shoestext);
+      shoes_menubar_append(app->menubar, shoesmenu);
+      gtk_box_pack_start(GTK_BOX(app->os.opt_container), menubar, FALSE, FALSE, 0);
+      GtkRequisition reqmin, reqnat;
+      gtk_widget_get_preferred_size(app->os.opt_container, &reqmin, &reqnat);
+      fprintf(stderr, "optbox h: %d\n", reqmin.height); // 38 for me. 
+      //gtk_widget_set_size_request(app->os.menubar, reqmin.width, reqmin.height); 
+      //gtk_widget_show_all(app->os.menubar); // no effect
+      //app->mb_height = shoes_gtk_optbox_height(app, app->height); // any pos hgt will do
+    }
+#endif
     return app->menubar;
 }
 
-void shoes_native_build_menus(shoes_app *app,VALUE mbv) {
+// Sets up the default Shoes menus
+void shoes_native_build_menus(shoes_app *app, VALUE mbv) {
       
       // Shoes menu
       //VALUE shoestext = rb_str_new2("Shoes");
