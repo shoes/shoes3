@@ -365,8 +365,8 @@ void shoes_native_init() {
 #ifdef SHOES_GTK_WIN32
        gdk_set_allowed_backends("win32,x11");
        // TODO: believe it or not - Gtk3.22.7 has a bug? on win10 
-       if (shoes_win10_gtk3_22_check())
-         shoes_gtk_backend = shoes_gtk_backend | WAYLAND;
+       //if (shoes_win10_gtk3_22_check())
+         //shoes_gtk_backend = shoes_gtk_backend | WAYLAND;
 #endif 
 #ifdef SHOES_QUARTZ
       gdk_set_allowed_backends("quartz,x11");
