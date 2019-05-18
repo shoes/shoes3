@@ -17,6 +17,7 @@ rv =  RUBY_VERSION[/\d.\d/]
 LINUX_CFLAGS << " -DRUBY_HTTP"
 LINUX_CFLAGS << " -DRUBY_1_9"
 LINUX_CFLAGS << " -DSZBUG"
+#LINUX_CFLAGS << " -DSHOES_FORCE_RADIO"
 LINUX_CFLAGS << " -DDEBUG" if ENV['DEBUG']
 LINUX_CFLAGS << " -DSHOES_GTK -fPIC -shared -Wno-unused-but-set-variable"
 # Following line may need handcrafting
@@ -46,6 +47,7 @@ elsif rlib[/\$\/..\/lib/] # fedora does this
 else
   RUBY_LIB = rlib
 end
+puts "rlib: #{RUBY_LIB}"
 CAIRO_CFLAGS = `pkg-config --cflags cairo`.strip
 CAIRO_LIB = `pkg-config --libs cairo`.strip
 PANGO_CFLAGS = `pkg-config --cflags pango`.strip

@@ -33,6 +33,12 @@ end
 # use target ruby
 require_relative '../../switch_ruby'
 
+# hack if user gives a gem location inside rvm or rbenv
+if APP['GEMLOC'] =~ /(\.rvm)|(\.rbenv)/
+   $stderr.puts "Copying all gems from rvbm/rbenv"
+   APP['RVMGEM'] = APP['GEMLOC']
+end
+
 arch_2_file = {
   'x86_64-darwin17' => 'x86_64-darwin17',
   'x86_64-darwin14' => 'x86_64-darwin14',
@@ -88,7 +94,10 @@ LINUX_CFLAGS << " -DRUBY_1_9 "
 
 DLEXT = "dylib"
 #LINUX_CFLAGS << " -DSHOES_QUARTZ -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -fpascal-strings #{RbConfig::CONFIG["CFLAGS"]} -x objective-c -fobjc-exceptions"
-LINUX_CFLAGS << " -DVIDEO -DSHOES_QUARTZ -Wall -fpascal-strings -x objective-c -fobjc-exceptions"
+LINUX_CFLAGS << " -DVIDEO -DSHOES_QUARTZ -DSHOES_FORCE_RADIO -Wall -fpascal-strings -x objective-c -fobjc-exceptions"
+if ENV['CDEFS']
+  LINUX_CFLAGS << " #{ENV['CDEFS']}"
+end
 LINUX_LDFLAGS = "-framework Cocoa -framework QuartzCore -framework Carbon -dynamiclib -Wl,-single_module INSTALL_NAME"
 LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 

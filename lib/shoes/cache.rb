@@ -4,7 +4,7 @@ include FileUtils
 require_relative 'download.rb'
 # locate ~/.shoes
 require 'tmpdir'
-require 'rubygems' # Loads a Gem class
+#require 'rubygems' # Loads a Gem class
 
 lib_dir = nil
 homes = []
@@ -26,7 +26,7 @@ LIB_DIR.gsub!(/\\/, '/') # should not be needed?
 tight_shoes = Shoes::RELEASE_TYPE =~ /TIGHT/
 rbv = RbConfig::CONFIG['ruby_version']
 if tight_shoes 
-  require 'rbconfig'
+  #require 'rbconfig'
   SITE_LIB_DIR = File.join(LIB_DIR, '+lib')
   GEM_DIR = File.join(LIB_DIR, '+gem')
   $:.unshift SITE_LIB_DIR
@@ -34,10 +34,10 @@ if tight_shoes
   ENV['GEM_HOME'] = GEM_DIR
   np = []
   ENV['PATH'].split(':').each do |p|
-    np << p unless p =~ /\/.(rvm|rbenv)\//
+    np << p unless p =~ /(\.rvm)|(\.rbenv)/
   end
   ENV['PATH'] = np.join(':')
-  #$stderr.puts "replaced $PATH with #{ENV['PATH']}"
+  $stderr.puts "replaced $PATH with #{ENV['PATH']}"
 else
   #puts "LOOSE Shoes #{RUBY_VERSION} #{DIR}"
   $:.unshift ENV['GEM_HOME'] if ENV['GEM_HOME']
@@ -97,7 +97,7 @@ if tight_shoes
   # Add paths to Shoes builtin Gems TODO: may not be needed
   GEM_CENTRAL_DIR = File.join(DIR, 'lib/ruby/gems/' + RbConfig::CONFIG['ruby_version'])
   Dir[GEM_CENTRAL_DIR + "/gems/*"].each do |gdir|
-    $: << "#{gdir}/lib"
+    $: << "#{gdir}/lib"  # needed for OSX ?
   end
   #jloc = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}/getoutofjail.card"
   jloc = File.join(LIB_DIR, Shoes::RELEASE_NAME, 'getoutofjail.card')
@@ -122,6 +122,7 @@ if tight_shoes
       ENV['GEM_PATH'] = "#{GEM_DIR}:#{GEM_CENTRAL_DIR}"
       Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
       Gem.refresh
+      $stderr.puts "GEM_PATH: #{ENV['GEM_PATH']}"
     end
     ShoesGemJailBreak = false
   end
@@ -163,4 +164,12 @@ end
 require_relative 'vlcpath'
 yamlp = File.join(LIB_DIR, Shoes::RELEASE_NAME, 'vlc.yaml')
 Vlc_path.load yamlp
+if ENV['GEM_HOME'] && !ShoesGemJailBreak
+	$stderr.puts "Killing rvm in paths"
+	$:.each do |p| 
+	  if p =~ /(\.rvm)|(\.rbenv)/
+			$:.delete(p)
+		end
+	end
+end
 

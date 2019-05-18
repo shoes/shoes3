@@ -116,12 +116,15 @@ int win_current_tmo = 10; // unused in OSX
 {
   ShoesMenuItem *wr = [sender representedObject];
   shoes_menuitem *mi = wr->wrapped;
-  // We may have to find 'context' via shoes_world->apps[]
+  // We have to find 'context' via shoes_world->apps[]
   if (mi->context == Qnil) {
     VALUE appv = rb_ary_entry(shoes_world->apps, 0);
-    shoes_app *app;
-    Data_Get_Struct(appv, shoes_app, app);
-    mi->context = app->canvas;
+    // Do we have an app (window?) - use it's context
+    if (!NIL_P(appv)) {
+			shoes_app *app;
+			Data_Get_Struct(appv, shoes_app, app);
+			mi->context = app->canvas;
+		}
   }
   //fprintf(stderr, "menu %s triggered\n", mi->title);
   shoes_safe_block(mi->context, mi->block, rb_ary_new3(1, mi->context));

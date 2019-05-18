@@ -74,8 +74,9 @@ typedef struct {
 } shoes_slot_gtk, SHOES_SLOT_OS;
 
 typedef struct {
-    GtkWidget *layout;
-    GtkWidget *radios;
+    //GtkWidget *layout;
+    //GtkWidget *radios;
+    int nada;
 } shoes_group_gtk, SHOES_GROUP_OS;
 
 typedef struct {

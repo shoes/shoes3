@@ -141,7 +141,7 @@ class Shoes
 
   def self.package_app
     require_relative 'shoes/shybuilder'
-    fname = ask_open_file
+    fname = ask_open_file 
     return false unless fname
     start_shy_builder fname
   end

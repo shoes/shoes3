@@ -2452,8 +2452,8 @@ pixels high.
 
 Adds a radio button.  If a `group name` is given, the radio button is
 considered part of a group.  Among radio buttons in the same group, only one
-may be checked.  (If no group name is given, the radio button is grouped with
-any other radio buttons in the same slot.)
+may be checked.  (If no group name is given, one is created that only
+contains this radio button. 
 
 === span(text) » Shoes::Span ===
 
@@ -4178,21 +4178,15 @@ Well, list boxes only show one highlighted item unless you click on the box and
 the drop-down appears. But radio buttons are all shown, regardless of which is
 marked.
 
-{{{
- #!ruby
- Shoes.app do
-   para "Among these films, which do you prefer?\n"
-   radio; para strong("The Taste of Tea"), " by Katsuhito Ishii\n"
-   radio; para strong("Kin-Dza-Dza"), " by Georgi Danelia\n"
-   radio; para strong("Children of Heaven"), " by Majid Majidi\n"
- end
-}}}
+Radios have been rewritten and the rules clarified: You want to use the group 
+arguement for radios. Group names are unique to the App (a window) and not the slot 
+as previously versions of Shoes tried (and failed). Radios without a group name
+act like checkboxes and may not be unselectable. You really want to use a group name!
+Further, radios in a group do not have a default button selected (particularly on osx) so 
+you should always designate one of them as 'checked'
 
-Only one of these three radios can be checked at a time, since they are grouped
-together in the same slot (along with a bunch of `para`.)
 
-If we move them each into their own slot, the example breaks.
-
+Here is three radios w/o a group name.
 {{{
  #!ruby
  Shoes.app do
@@ -4208,7 +4202,8 @@ If we move them each into their own slot, the example breaks.
 This can be fixed, though. You can group together radios from different slots,
 you just have to give them all the same group name.
 
-Here, let's group all these radios in the `:films` group.
+Here, let's group all these radios in the `:films` group. Note how the 
+second item is set to checked.
 
 {{{
  #!ruby
@@ -4220,7 +4215,7 @@ Here, let's group all these radios in the `:films` group.
        para "The Taste of Tea by Katsuhito Ishii"
      end
      flow do
-       radio :films
+       radio :films, checked: true
        para "Kin-Dza-Dza by Georgi Danelia"
      end
      flow do
@@ -5952,8 +5947,7 @@ a running Shoes app when the user double clicks on a file the desktop manager
 believes your application will handle. Linux uses the registered `dbus` name,
 See below.
 
-By not implemented, I mean that we don't get open requests. We do get a dbus
-name. 
+May not be implemented. 
 
 === settings.rdomain » string ===
 
@@ -5986,14 +5980,14 @@ Shoes.app do
 end
 }}}
 
-=== settings.wintmo » integer
+=== settings.wintmo » integer ===
 
 Only usable for Windows and only until the problem is fixed. See next paragraph.
 Returns the current setting.
 
-=== settings.wintmo = integer
+=== settings.wintmo = integer ===
 
-Only for Window. Integer is the number of milliseconds for the mainloop
+Only for the Windows platform. Integer is the number of milliseconds for the mainloop
 timeout (tmo). This controls how frequently time is given to backgound Ruby
 threads. The default value is 10 which is a good balance of responsiveness for things
 like animating a progress bar with a download - download use threads. If you have a long
@@ -6007,6 +6001,28 @@ a very silly thing to do, so don't do it. Don't pass in floating point numbers.
 
 Generally speaking, don't use this call. There is no setting in the startup.yaml
 file for this.
+
+=== settings.display_backend » string ===
+
+For Linux, this is the value from the startup.yaml `Display_Backend` field. It contains the
+names , comma separated, of the backends. 'x11' is the default. Unless you
+know better, this field should not be set and 'wayland' is the only value
+that works. If you have a wayland backend. 
+
+
+=== settings Image_Cache ===
+
+The Image_Cache: setting in startup.yaml does not have a Settings class method. You
+can use the app.methods to get or change the value. The only value is  `Image_Cache: false`
+to turn off the default.
+
+=== settings OSX_Menu_Trim ===
+
+This only exists in startup.yaml. There is no method to query the setting.
+`OSX_Menu_Trim: true` in startup.yaml will not display the Shoes entries of
+Open, Manual, Cobbler, Package and Profile" in the global menubar for OSX. This
+might be useful when your packaged app doesn't want to to show all that could be
+done.
 
 == Terminal ==
 

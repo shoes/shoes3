@@ -5,8 +5,9 @@
 # (3) 10.10 SDK is installed (ln -s if need) in Xcode.app/....
 include FileUtils
 ignore_deprecations = true
-cf =(ENV['ENV_CUSTOM'] || "#{TGT_ARCH}-custom.yaml")
+cf =(ENV['ENV_CUSTOM'] || "#{APP['VAGRANT']}#{TGT_ARCH}-custom.yaml")
 if File.exists? cf
+  puts "custom file: #{cf}"
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']
   EXT_RUBY = custmz['Ruby'] ? custmz['Ruby'] : RbConfig::CONFIG['prefix']

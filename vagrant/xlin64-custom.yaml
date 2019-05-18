@@ -1,0 +1,29 @@
+Ruby: /shoesdeps/u16.04/ruby238
+Deps: /shoesdeps/u16.04
+Gemloc: /shoesdeps/gems/rb23
+Exts:
+Gems:
+InclGems: 
+  - chipmunk*
+  - sqlite3*
+  - mini_portile2*
+  - nokogiri*
+  - rb-readline*
+  - byebug*
+  - ffi*
+    # picky needs:
+  - activesupport*
+  - concurrent-ruby*
+  - i18n*
+  - multi_json*
+  - picky*
+  - rack_fast_escape*
+  - thread_safe*
+  - tzinfo*
+  - url_escape*
+  - yajl-ruby*
+  # typhoeus
+  - ethon*
+  - typhoeus*
+Debug: false
+Deprecations: false

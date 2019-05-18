@@ -56,6 +56,9 @@ static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, g
 #define SGPOLL 
 #endif
 
+#ifdef SHOES_GTK_WIN32
+int shoes_win10_gtk3_22_check();  // forward declare
+#endif
 /* 
  * Sigh. We need to accommodate Gnome Shells that "augment* the title bar
  * and/or provide a half baked global menu bar. Like Fedora 29 - but it's not
@@ -85,13 +88,13 @@ int shoes_gtk_set_desktop() {
 
 static VALUE shoes_make_font_list(FcFontSet *fonts, VALUE ary) {
     int i = 0;
-    printf("fontconfig says %d fonts\n", fonts->nfont);
+    //printf("fontconfig says %d fonts\n", fonts->nfont);
     for (i = 0; i < fonts->nfont; i++) {
         FcValue val;
         FcPattern *p = fonts->fonts[i];
         if (FcPatternGet(p, FC_FAMILY, 0, &val) == FcResultMatch) {
             rb_ary_push(ary, rb_str_new2((char *)val.u.s));
-            printf("fc says %s\n", (char *)val.u.s);
+            //printf("fc says %s\n", (char *)val.u.s);
         }    
     }
     rb_funcall(ary, rb_intern("uniq!"), 0);
@@ -351,6 +354,8 @@ void shoes_native_init() {
       sprintf(app_id, "%s%d", rdom, getpid()); // TODO: Windows?
     }
     // set the gdk_backend 
+    //char *csd = getenv("GTK_CSD");
+    //printf("csd = %s\n", csd);
     if (st->backend != Qnil) {
       char *backend = RSTRING_PTR(st->backend);
       gdk_set_allowed_backends(backend);
@@ -361,12 +366,15 @@ void shoes_native_init() {
     } else {
        // defaults to shoes_gtk_backend == OLD_SCHOOL
 #ifdef SHOES_GTK_WIN32
-      gdk_set_allowed_backends("win32,x11");
+       gdk_set_allowed_backends("win32,x11");
+       // TODO: believe it or not - Gtk3.22.7 has a bug? on win10 
+       if (shoes_win10_gtk3_22_check())
+         shoes_gtk_backend = shoes_gtk_backend | WAYLAND;
 #endif 
 #ifdef SHOES_QUARTZ
       gdk_set_allowed_backends("quartz,x11");
 #endif 
-#ifdef SHOES_GTK
+#if defined(SHOES_GTK) && !defined(SHOES_GTK_WIN32)
       gdk_set_allowed_backends("x11,wayland,mir");
 #endif
     }
@@ -1479,8 +1487,8 @@ void shoes_cairo_destroy(shoes_canvas *canvas) {
 }
 
 void shoes_group_clear(SHOES_GROUP_OS *group) {
-    group->radios = NULL;
-    group->layout = NULL;
+    //group->radios = NULL;
+    //group->layout = NULL;
 }
 
 void shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc) {
@@ -1670,7 +1678,8 @@ VALUE shoes_native_dialog_color(shoes_app *app) {
 
 VALUE shoes_dialog_alert(int argc, VALUE *argv, VALUE self) {
     GTK_APP_VAR(app);
-    char atitle[50];
+    //char atitle[50]; // bug432 
+    char atitle[192];
     g_sprintf(atitle, "%s says", title_app);
     rb_arg_list args;
     rb_parse_args(argc, argv, "S|h", &args);
@@ -1702,7 +1711,7 @@ VALUE shoes_dialog_alert(int argc, VALUE *argv, VALUE self) {
 }
 
 VALUE shoes_dialog_ask(int argc, VALUE *argv, VALUE self) {
-    char atitle[50];
+    char atitle[192];
     GTK_APP_VAR(app);
 
     VALUE answer = Qnil;
@@ -1760,7 +1769,7 @@ VALUE shoes_dialog_ask(int argc, VALUE *argv, VALUE self) {
 
 VALUE shoes_dialog_confirm(int argc, VALUE *argv, VALUE self) {
     VALUE answer = Qfalse;
-    char atitle[50];
+    char atitle[192];
     GTK_APP_VAR(app);
     //char *apptitle = RSTRING_PTR(app->title);
     rb_arg_list args;
@@ -1839,7 +1848,38 @@ VALUE shoes_dialog_color(VALUE self, VALUE title) {
 
 VALUE shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, const gchar *button, VALUE attr) {
     VALUE path = Qnil;
-    GTK_APP_VAR(app);
+#if 0
+  GTK_APP_VAR(app);
+#else
+  //VALUE clsv = rb_funcall2(self, rb_intern("inspect"), 0, Qnil);
+  //char *clsname = RSTRING_PTR(clsv);
+  //printf("self is %s - > ", clsname);
+  char * title_app = "Shoes"; 
+  GtkWindow *window_app = NULL; 
+  shoes_app *app = NULL; 
+  if ( rb_obj_is_kind_of(self,cApp)) {
+      // Normal 
+      Data_Get_Struct(self, shoes_app, app);
+      title_app = RSTRING_PTR(app->title); 
+      window_app = APP_WINDOW(app);
+  } else {
+    // Is it Shoes splash? 
+    if (RARRAY_LEN(shoes_world->apps) > 0) { 
+      VALUE actual_app = rb_ary_entry(shoes_world->apps, 0);
+      Data_Get_Struct(actual_app, shoes_app, app); 
+      title_app = RSTRING_PTR(app->title); 
+      window_app = APP_WINDOW(app);
+    } else {
+      // outside an app and not splash - no window. Gtk complains but runs. 
+      /*
+      VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); // this creates a window
+      Data_Get_Struct(actual_app, shoes_app, app); 
+      title_app = RSTRING_PTR(app->title); 
+      window_app = APP_WINDOW(app);
+      */
+    }
+  }
+#endif
     if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("title"))))
         title = strdup(RSTRING_PTR(shoes_hash_get(attr, rb_intern("title"))));
     GtkWidget *dialog = gtk_file_chooser_dialog_new(title, window_app, act,
@@ -1933,6 +1973,7 @@ VALUE shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self) {
 #include <io.h>
 #include <fcntl.h>
 
+
 // called from main.c(skel) on Windows - works fine
 static FILE* shoes_console_out = NULL;
 static FILE* shoes_console_in = NULL;
@@ -1978,6 +2019,28 @@ int shoes_native_terminal() {
         printf("failed dup2 of stdin\n");
     printf("created win32 console\n");
     return 1;
+}
+
+// For bug #428 
+int shoes_win10_gtk3_22_check() {
+    if (gtk_get_minor_version() < 22)
+      return 0;
+    // borrowed from
+    // https://stackoverflow.com/questions/32115255/c-how-to-detect-windows-10
+    int ret = 0;
+    NTSTATUS(WINAPI *RtlGetVersion)(LPOSVERSIONINFOEXW);
+    OSVERSIONINFOEXW osInfo;
+
+    *(FARPROC*)&RtlGetVersion = GetProcAddress(GetModuleHandleA("ntdll"), "RtlGetVersion");
+
+    if (NULL != RtlGetVersion)
+    {
+        osInfo.dwOSVersionInfoSize = sizeof(osInfo);
+        RtlGetVersion(&osInfo);
+        ret = osInfo.dwMajorVersion;
+    }
+    //printf("windows version %i\n", ret); // win 7 returns '6' go figure
+    return ret == 10;
 }
 #else
 /*
@@ -2157,8 +2220,8 @@ static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, g
 }
 
 
-/* TODO sort of fixes bug #349 depends on gtk 3.12 or higher (Boo Windows)
- * seems like overkill or incomplete 
+/* TODO: sort of fixes bug #349 depends on gtk 3.12 or higher (Boo Windows)
+ * seems like overkill or incomplete - it gets called a lot. 
 */
 gboolean shoes_app_gtk_configure_menu(GtkWidget *widget, GdkEvent *evt, gpointer data) {
   shoes_app *app = (shoes_app *)data;
@@ -2335,13 +2398,14 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
         gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
     } else if (app->minwidth < app->width || app->minheight < app->height + app->mb_height) {
         GdkGeometry hints;
-        hints.min_width = app->minwidth;
-        hints.min_height = app->minheight + app->mb_height;
+        hints.min_width = max(app->minwidth, 100);
+        hints.min_height = max(app->minheight + app->mb_height, 100);
 #ifdef SZBUG
         fprintf(stderr,"resize hints: %d, %d\n", hints.min_width, hints.min_height);
 #endif
         gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL,
                                       &hints, GDK_HINT_MIN_SIZE);
+        //gtk_window_set_resizable(GTK_WINDOW(window), TRUE); // no help with szbug
     }
     gtk_window_set_default_size(GTK_WINDOW(window), app->width, app->height + app->mb_height);
 

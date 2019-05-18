@@ -17,8 +17,11 @@ build_os = case RUBY_PLATFORM
   when /bsd/
     :bsd
 end
-
 APP = YAML.load_file(File.join(ENV['APP'] || ".", "app.yaml"))
+# detect vagrant user with different custom files
+if ENV['USER'] == 'vagrant'
+  APP['VAGRANT'] = 'vagrant/' 
+end
 # APP['version'] = APP['major'] # for historical reasons
 # populate APP[] with uppercase names and string values
 APP['VERSION'] = "#{APP['major']}.#{APP['minor']}.#{APP['tiny']}"
@@ -494,22 +497,22 @@ task :installer => ["#{NAMESPACE}:installer"]
 
 namespace :setup do
   if build_os == :osx
-	desc "Setup for osx 10.10+ from OSX"
-	task :osx do
-	  puts "Selected 'yosemite'"
+    desc "Setup for osx 10.10+ from OSX"
+    task :osx do
+      puts "Selected 'yosemite'"
       sh "echo 'TGT_ARCH=yosemite' >build_target"
-	end
-	   
-	desc "Setup for Win7+ from OSX using MXE"
-	task :win32 do
-	   puts "Selected 'mxe_osx'"
-       sh "echo 'TGT_ARCH=mxe_osx' >build_target"
-	 end
-	 
-	 desc "Setup for OSX - not distributable"
-	 task :minosx do
-       sh "echo 'TGT_ARCH=minosx' >build_target"
-	 end
+    end
+       
+    desc "Setup for Win7+ from OSX using MXE"
+    task :win32 do
+      puts "Selected 'mxe_osx'"
+      sh "echo 'TGT_ARCH=mxe_osx' >build_target"
+     end
+     
+    desc "Setup for OSX - not distributable"
+    task :minosx do
+      sh "echo 'TGT_ARCH=minosx' >build_target"
+    end
   end
   
   if build_os == :win32 
@@ -537,7 +540,36 @@ namespace :setup do
   end
   
   if build_os == :linux 
-    if RUBY_PLATFORM =~ /x86_64/
+    if APP['VAGRANT']      
+      if File.exist? "/shoesdeps/u16.04"
+        desc "lin : Linux x86_64"
+        task :xlin64 do
+          sh "echo 'TGT_ARCH=xlin64' >build_target"
+        end
+      end
+      
+      if File.exist? "/shoesdeps/mxe"
+        desc "win : Windows 7+"
+        task :mxe do
+          sh "echo 'TGT_ARCH=mxe' >build_target"
+        end
+      end
+      
+      if File.exist? "/shoesdeps/darwin14"
+        desc "osx : Yosmite+ akd Darwin14"
+        task :darwin14 do
+          sh "echo 'TGT_ARCH=darwin14' >build_target"
+        end
+      end
+      
+      if File.exist? "/shoesdeps/rpi"
+        desc "rpi : raspberry pi"
+        task :xrpi do
+          sh "echo 'TGT_ARCH=xrpi' >build_target"
+        end
+      end
+    
+    elsif RUBY_PLATFORM =~ /x86_64/
       desc "Minimal Shoes for linux (default)"
       task :minlin do
         sh "echo 'TGT_ARCH=minlin' >build_target"

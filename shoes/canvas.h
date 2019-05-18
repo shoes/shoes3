@@ -238,7 +238,7 @@ typedef struct {
 } shoes_plot;
 
 //
-// not very temporary canvas (used internally for painting)
+// not very temporary canvas (used internally for painting and slots)
 //
 typedef struct {
     VALUE parent;
@@ -257,7 +257,7 @@ typedef struct {
     char hover;
     struct _shoes_app *app;
     SHOES_SLOT_OS *slot;
-    SHOES_GROUP_OS group;
+    SHOES_GROUP_OS group;     
 } shoes_canvas;
 
 VALUE shoes_app_main(int, VALUE *, VALUE);

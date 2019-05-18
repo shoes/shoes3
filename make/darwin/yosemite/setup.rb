@@ -22,6 +22,10 @@ module Make
 	cp_r "#{EXT_RUBY}/lib/ruby", "#{TGT_DIR}/lib"
 	# copy and link libruby.dylib
 	cp "#{EXT_RUBY}/lib/libruby.#{rbvt}.dylib", "#{TGT_DIR}"
+	Dir.chdir(TGT_DIR) do
+		 ln_s "libruby.#{rbvt}.dylib", "libruby.#{rbvm}.dylib"
+		 ln_s "libruby.#{rbvt}.dylib", "libruby.dylib"
+	end
 	# copy include files - it might help build gems
 	mkdir_p "#{TGT_DIR}/lib/ruby/include/ruby-#{rbvt}"
 	cp_r "#{EXT_RUBY}/include/ruby-#{rbvt}/", "#{TGT_DIR}/lib/ruby/include"
