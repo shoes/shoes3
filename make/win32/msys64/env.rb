@@ -30,7 +30,7 @@ SHOES_TGT_ARCH = RbConfig::CONFIG['arch']
 SHOES_GEM_ARCH = arch_2_gem[RbConfig::CONFIG['arch']]
 APP['RUBY_V'] = RbConfig::CONFIG['ruby_version']
 
-WINVERSION = "#{APP['VERSION']}-gtk3-32"
+WINVERSION = "#{APP['VERSION']}-gtk3-64"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
 WIN32_CFLAGS = []
 WIN32_LDFLAGS = []
