@@ -1302,9 +1302,9 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_s
     shoes_app_gtk *gk = &app->os; //lexical - typing shortcut
 
    char icon_path[SHOES_BUFSIZE];
-    if (st->icon_path == Qnil)
+    if (st->icon_path == Qnil) {
       sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
-    else {
+    } else {
       char *ip = RSTRING_PTR(st->icon_path);
       if (*ip == '/' || ip[1] ==':')  
         strcpy(icon_path, ip);
@@ -1312,7 +1312,7 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_s
        sprintf(icon_path, "%s/%s", shoes_world->path, ip);
     }
     gtk_window_set_default_icon_from_file(icon_path, NULL);
-
+    
     // The Good old way, menu-less
 #if 0 //#ifdef ENABLE_MDI
     // don't do this if gtk_init() is used.
@@ -1872,7 +1872,8 @@ VALUE shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, co
     // Is it Shoes splash? 
     if (RARRAY_LEN(shoes_world->apps) > 0) { 
       VALUE actual_app = rb_ary_entry(shoes_world->apps, 0);
-      app = Get_TypedStruct3(self, shoes_app);
+      //app = Get_TypedStruct3(self, shoes_app); // dies here
+      app = Get_TypedStruct3(actual_app, shoes_app); 
       title_app = RSTRING_PTR(app->title); 
       window_app = APP_WINDOW(app);
     } else {
@@ -2188,8 +2189,8 @@ static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer dat
     // set new size of the content Widget. We are are a gtk container.
     GtkAllocation cvs_alloc;
     if (shoes_Windows_Version && (gtk_minor_version == 24)) {
-      cvs_alloc.x = 26;
-      cvs_alloc.y = app->mb_height + 26;    // TODO: wrong
+      cvs_alloc.x = 0;
+      cvs_alloc.y = app->mb_height;    // TODO: may not be needed 
     } else {
       cvs_alloc.x = 0; 
       cvs_alloc.y = app->mb_height;
@@ -2406,8 +2407,7 @@ int shoes_gtk_optbox_height(shoes_app *app, int height) {
  
 shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, shoes_settings *st) {
     GtkWidget *window;       // Root window 
-    //shoes_app_gtk *gk = &app->os; //lexical - typing shortcut
-    
+        
     char icon_path[SHOES_BUFSIZE];
     if (st->icon_path == Qnil)
       sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
