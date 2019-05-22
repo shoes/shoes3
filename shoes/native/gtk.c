@@ -302,7 +302,8 @@ void shoes_gtk_load_css(shoes_settings *st) {
     FILE *df = fopen(dflt, "r");
     if (df) {
       char ln[60];
-      fgets(ln, 59, df);
+      char *rtn;
+      rtn = fgets(ln, 59, df);
       // Trim \n from ln
       char *p = strrchr(ln, '\n');
       if (p) *p = '\0';
@@ -370,13 +371,14 @@ void shoes_native_init() {
        // defaults to shoes_gtk_backend == OLD_SCHOOL
 #ifdef SHOES_GTK_WIN32
        gdk_set_allowed_backends("win32,x11");
-       // TODO: believe it or not - Gtk3.22.7 has a bug? on win10 
-       // and gtk3.24.1 has 
        shoes_Windows_Version = shoes_win10_gtk3_22_check();
+       //  Gtk3 on windows should be patched to not set CSD
+#if 0
        if (shoes_Windows_Version) {
          //shoes_gtk_backend = shoes_gtk_backend | WAYLAND;
          fprintf(stderr, "win10 detected: %d\n", shoes_Windows_Version);
        }
+#endif
 #endif 
 #ifdef SHOES_QUARTZ
       gdk_set_allowed_backends("quartz,x11");
@@ -1994,12 +1996,12 @@ int shoes_win32_console() {
     }
 
     HANDLE handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
-    int hCrt = _open_osfhandle((long) handle_out, _O_TEXT);
+    int hCrt = _open_osfhandle((intptr_t) handle_out, _O_TEXT);
     FILE* hf_out = _fdopen(hCrt, "w");
     setvbuf(hf_out, NULL, _IONBF, 1);
     *stdout = *hf_out;
     HANDLE handle_in = GetStdHandle(STD_INPUT_HANDLE);
-    hCrt = _open_osfhandle((long) handle_in, _O_TEXT);
+    hCrt = _open_osfhandle((intptr_t) handle_in, _O_TEXT);
     FILE* hf_in = _fdopen(hCrt, "r");
     setvbuf(hf_in, NULL, _IONBF, 128);
     *stdin = *hf_in;
@@ -2016,7 +2018,7 @@ void shoes_native_terminal(char *dir_path, int monitor, int columns, int row,
     // has a console been setup by --console flag?
     if (shoes_console_out == NULL) {
         if (shoes_win32_console() == 0) // cshoes.exe can do this
-            return 1;
+            return;
     }
     // convert the (cached) FILE * for what ruby wants for fd[0], [1]...
     if (dup2(_fileno(shoes_console_out), 1) == -1)
@@ -2026,7 +2028,7 @@ void shoes_native_terminal(char *dir_path, int monitor, int columns, int row,
     if (dup2(_fileno(shoes_console_in), 0) == -1)
         printf("failed dup2 of stdin\n");
     printf("created win32 console\n");
-    return 1;
+    return;
 }
 
 // For bug #428 
@@ -2070,14 +2072,49 @@ int shoes_native_console(char *app_path)
  *    Screen width is the sum of all monitors. Height is the max of all 
  *    monitors. Do not address monitors just set x. 
 */
+#if GTK_MINOR_VERSION >= 22
+GdkMonitor *shoes_gtk_monitors[8] = {NULL};
+
+// Fill in the table;
+void shoes_gtk_check_monitors() {
+  GdkDisplay *display;
+  display = gdk_display_get_default();
+  int cnt = gdk_display_get_n_monitors(display);
+  for (int i=0; i < cnt; i++) {
+    shoes_gtk_monitors[i] = gdk_display_get_monitor(display, i);
+  }
+}
+
+int shoes_gtk_get_monitor(GdkMonitor *mon) {
+  GdkDisplay *display;
+  display = gdk_display_get_default();
+  int n;
+  for (n = 0; n < gdk_display_get_n_monitors(display); n++) {
+    if (shoes_gtk_monitors[n] == mon)
+      return n;
+  }
+  // error if we get here.
+  return 0;
+}
+#endif
+
 int shoes_native_monitor_default() {
   GdkScreen *screen;
   GdkDisplay *display;
   display = gdk_display_get_default();
+#if GTK_MINOR_VERSION >= 22
+  if (shoes_gtk_monitors[0] == NULL) shoes_gtk_check_monitors();
+  GdkMonitor *monitor;
+  monitor = gdk_display_get_primary_monitor(display);
+  int mon;
+  mon = shoes_gtk_get_monitor(monitor);
+  return mon;
+#else
   screen = gdk_display_get_default_screen(display);
   int mon;
   mon = gdk_screen_get_primary_monitor(screen);
   return mon;
+#endif
 }
 
 void shoes_native_monitor_geometry(int idx, shoes_monitor_t *geo) {
@@ -2086,8 +2123,15 @@ void shoes_native_monitor_geometry(int idx, shoes_monitor_t *geo) {
   screen = gdk_screen_get_default();
   GdkRectangle r;
   // workarea approximates visibleFrame on OSX
+#if GTK_MINOR_VERSION >= 22
+  if (shoes_gtk_monitors[0] == NULL) shoes_gtk_check_monitors();
+  GdkMonitor *mon = shoes_gtk_monitors[idx];
+  //gdk_monitor_get_geometry(mon, &r);
+  gdk_monitor_get_workarea(mon, &r);
+#else
   //gdk_screen_get_monitor_geometry(screen, idx,  &r);
   gdk_screen_get_monitor_workarea(screen, idx, &r);
+#endif
   geo->x = r.x;
   geo->y = r.y;
   geo->width = r.width;
@@ -2095,10 +2139,16 @@ void shoes_native_monitor_geometry(int idx, shoes_monitor_t *geo) {
 }
 
 int shoes_native_monitor_count() {
+  int cnt = 0;
+#if GTK_MINOR_VERSION >= 22
+  GdkDisplay *display;
+  display = gdk_display_get_default();
+  cnt = gdk_display_get_n_monitors(display);
+#else
   GdkScreen *screen;
   screen = gdk_screen_get_default();
-  int cnt = 0;
   cnt = gdk_screen_get_n_monitors(screen);
+#endif
   return cnt;
 }
 
@@ -2109,9 +2159,14 @@ void shoes_native_monitor_set(shoes_app *app) {
   GdkScreen *screen;
   screen = gdk_screen_get_default();  
   display = gdk_screen_get_display(screen);
-  // sanity checks
+  // sanity check
   int cnt = 0;
+#if GTK_MINOR_VERSION >= 22
+  if (shoes_gtk_monitors[0] == NULL) shoes_gtk_check_monitors();
+  cnt = gdk_display_get_n_monitors(display);
+#else
   cnt = gdk_screen_get_n_monitors(screen);
+#endif
   int realmon; 
   if (app->monitor < cnt && app->monitor >= 0)
     realmon = app->monitor;
@@ -2124,7 +2179,12 @@ void shoes_native_monitor_set(shoes_app *app) {
   fprintf(stderr, "Switch to monitor %d of %d\n", realmon, cnt);
   */ 
   GdkRectangle r;
+#if GTK_MINOR_VERSION >= 22
+  GdkMonitor *mon = shoes_gtk_monitors[realmon];
+  gdk_monitor_get_geometry(mon, &r);
+#else
   gdk_screen_get_monitor_geometry(screen, realmon,  &r);
+#endif
   gtk_window_move(window, app->x + r.x, app->y);
   // TODO: do a better job of positioning. Worth the effort?
 }
@@ -2138,6 +2198,20 @@ int shoes_native_monitor_get(shoes_app *app) {
   // determine which monitor that is. Remember: Gtk screen holds Gtk monitors
   int x, y, cnt, i;
   gtk_window_get_position (window, &x, &y);
+#if GTK_MINOR_VERSION >= 22
+  if (shoes_gtk_monitors[0] == NULL) shoes_gtk_check_monitors();
+  display = gdk_display_get_default();
+  cnt = gdk_display_get_n_monitors(display);
+  for (i = 0; i < cnt; i++) {
+    GdkRectangle r;
+    GdkMonitor *mon = shoes_gtk_monitors[i];
+    gdk_monitor_get_geometry(mon, &r);
+    if ((x >= r.x) && (x <= (r.x +r.width)) && (y >= r.y) && (y <= (r.y +r.height)))
+      return i;
+  // should never get here, but if it does:
+  return shoes_gtk_get_monitor(shoes_gtk_monitors[0]);
+  }
+#else
   cnt = gdk_screen_get_n_monitors(screen);
   for (i = 0; i < cnt; i++) {
     GdkRectangle r;
@@ -2147,6 +2221,7 @@ int shoes_native_monitor_get(shoes_app *app) {
   }
   // should never get here, but if it does:
   return gdk_screen_get_primary_monitor(screen);
+#endif
 }
 
 

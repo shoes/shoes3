@@ -269,6 +269,7 @@ VALUE shoes_layout_append_constraints(int argc, VALUE *argv, VALUE self)
   shoes_canvas *canvas;
   TypedData_Get_Struct(lay->canvas, shoes_canvas, &shoes_canvas_type, canvas);
   shoes_vfl_add_contraints(lay, canvas, argv[0]);
+  return Qtrue;
 }
 
 

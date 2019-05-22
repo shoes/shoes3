@@ -1,5 +1,6 @@
 # build Shoes gems to be copied later. Fluff is not copied - Just the
 # gemspec, LICENSE lib/ and the right arch so/dll/dylib
+# NOTE: in Shoes 3.3.8 gem handling
 require 'rubygems'
 require 'rubygems/dependency_installer'
 
@@ -43,7 +44,6 @@ module Make
       installer.install(spec.name, spec.version)
     end
     # now extract the (new) gem to abbreviated Shoes version in Gemloc
-
   end
 
     def build_shoes_ext xdir
@@ -66,7 +66,6 @@ module Make
        end
       end
       cp_r "#{xdir}/lib/", dest if File.exists? "#{xdir}/lib"
-
     end
 
     def build_gem xdir
@@ -169,7 +168,14 @@ module Make
       # newer gempack compatible directory layout ?
       if spec.full_name == gemn #newer if true
         mkdir_p "#{gdir}/gems/#{spec.full_name}"
-        if File.exists? File.join(gemp, 'gem.build_complete')
+        if File.exists? File.join(gemp, 'extensions')
+          # new style with shoes 3.3.8
+          rubyv = APP['RUBY_V'][/\d.\d/]+'.0'
+          gemcompl = File.join(gdir, 'extensions', SHOES_GEM_ARCH,
+              rubyv)
+          mkdir_p gemcompl
+          cp_r File.join(gemp, 'extensions', spec.full_name), gemcompl
+        elsif File.exists? File.join(gemp, 'gem.build_complete')
           #rubyv = RUBY_VERSION[/\d.\d/]+'.0'
           rubyv = APP['RUBY_V'][/\d.\d/]+'.0'
           gemcompl = File.join(gdir, 'extensions', SHOES_GEM_ARCH,
@@ -218,7 +224,7 @@ module Make
     end
   end
   
-  # argument has slop.
+  # str may have digits and such in it.
   def self.copy_to_gemloc(str)
     name = str[/\w+/]
     gems = Dir.glob("gemtemp/specifications/#{name}*")
@@ -241,14 +247,19 @@ module Make
     mkdir_p destpath
     # copy spec
     cp    File.join(gemtemp,'specifications', gemname), File.join(destpath,'gemspec')
-    # deal with gem.build_complete 
+    
+    # deal with gem.build_complete. 
+    # In shoes 3.3.8 we copy all of the extention dir
     rubyv = RUBY_VERSION[/\d.\d/]+'.0'
     gemcompl = File.join(gemtemp, 'extensions', "#{Gem::Platform.local}",
-         rubyv, spec.full_name, 'gem.build_complete')
-    #puts "Check for #{gemcompl}"
-    if File.exist? gemcompl
-        cp gemcompl, File.join(destpath,'gem.build_complete')
+         rubyv, spec.full_name)
+    #puts "Check for #{gemcompl}" 
+    if File.exist? File.join(gemcompl,'gem.build_complete')
+        #cp File.join(gemcompl,'gem.build_complete'), File.join(destpath,'gem.build_complete')
+        mkdir_p File.join(destpath, 'extensions')
+        cp_r gemcompl, File.join(destpath, 'extensions')
     end 
+
     # now copy the lib/ and any native library 
     # require paths is an array
     reqpath = spec.require_paths
@@ -309,11 +320,11 @@ namespace :gems do
       Make::build_shoes_gem(ARGV[1], ARGV[2])
     end
     Make::copy_to_gemloc(ARGV[1])
-    # TODO: I use abort here because ARGV[1]+ is already in Rakes task list. 
+    # TODO: I use abort here because ARGV[1]+ is already in Rake's task list. 
     abort
   end
   
-  desc "clean all gem for platform"
+  desc "clean all gems for platform"
   task :clean do
    Make::clean_all_gems
   end

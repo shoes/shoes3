@@ -94,6 +94,7 @@ Section "MainSection" SEC01
    ${registerExtension} "$INSTDIR\${SHOES_NAME}.exe" ".shy" "Shoes Application"
    DetailPrint "Building Icon cache, this may take a while..."
    ExecWait '"$INSTDIR\gtk-update-icon-cache.exe" "$INSTDIR\share\icons\Adwaita"'
+   ExecWait '"$INSTDIR\gtk-update-icon-cache.exe" "$INSTDIR\share\icons\hicolor"'
 SectionEnd
 
 Section -AdditionalIcons

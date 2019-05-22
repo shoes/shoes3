@@ -26,7 +26,7 @@
 ID cCassowaryconstraint;
 
 void shoes_cassowary_constraint_init() {
-  fprintf(stderr, "init constraint class\n");
+  //fprintf(stderr, "init constraint class\n");
   cCassowaryconstraint = rb_define_class_under(cShoes, "Constraint", cShoes);
   rb_define_method(cCassowaryconstraint, "initialize", CASTHOOK(shoes_cassowary_constraint_new), -1);
 }

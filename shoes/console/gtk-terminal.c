@@ -45,8 +45,9 @@ static gboolean keypress_event(GtkWidget *widget, GdkEventKey *event, gpointer d
     if (event->keyval == GDK_KEY_BackSpace) {
         s = 010;
     }
-    write(tobj->fd_input, &s, 1);
-    return TRUE;
+    int cnt;
+    cnt = write(tobj->fd_input, &s, 1);
+    return (cnt > 0 ? TRUE : FALSE);
 }
 
 static gboolean clear_console(GtkWidget *widget, GdkEvent *event, gpointer data) {
@@ -316,6 +317,7 @@ static void initattr(GtkTextBuffer *buffer) {
     capture.open = 0;
 }
 
+#if 0
 static void initgame(int columns, int rows) {
     blank_line = malloc(columns+2);
     int i;
@@ -343,6 +345,7 @@ static void initgame(int columns, int rows) {
     // below returns 1 line more than I inserted. Documented behaviour.
     //int nlines = gtk_text_buffer_get_line_count(buffer);
 }
+#endif
 
 void terminal_attreset(struct tesiObject *tobj) {
     // reset all attibutes (color, bold,...)
@@ -659,7 +662,7 @@ void shoes_native_terminal(char *app_dir, int monitor, int columns, int rows,
         log_buffer = buffer = gtk_text_view_get_buffer(view);
         initattr(log_buffer);
     }
-#lse
+#else
     log_buffer = buffer = gtk_text_view_get_buffer(view);
     initattr(log_buffer);
 #endif

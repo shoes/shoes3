@@ -57,7 +57,8 @@ module Make
       File.open "#{ini_path}/settings.ini", mode: 'w' do |f|
         f.write "[Settings]\n"
         f.write "#gtk-theme-name=win32"
-      end
+        f.write "gtk-theme-name=Adwaita"
+     end
     end
     #mkdir_p "#{TGT_DIR}/lib"
     #cp_r "#{ShoesDeps}/lib/gtk-3.0", "#{TGT_DIR}/lib" 
