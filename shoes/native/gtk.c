@@ -281,7 +281,7 @@ void shoes_gtk_css_error(GtkCssProvider *provider,
 }
 
 // Process the setting for Theme and css 
-// TODO: path handling is not unicode friendly
+// TODO: path handling is not unicode friendly - use glib routines.
 void shoes_gtk_load_css(shoes_settings *st) {
   char theme_path[100];
   if (! NIL_P(st->theme)) {
