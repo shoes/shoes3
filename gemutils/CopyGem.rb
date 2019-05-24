@@ -2,7 +2,7 @@
 # for Shoes purposes (only lib, spec, and ext..../gem.build_complete
 require 'rubygems/dependency_installer'
 # Don't use gems ?
-Shoes.app do
+Shoes.app scroll: false, resizeable: true, width: 520, height: 640 do
   stack do
     flow do
       para "Load gems from:"
@@ -30,7 +30,7 @@ Shoes.app do
         @msglog.text = ''
         gem_refresh_local
       end
-      @tgzfld = check; para "tgz"
+      @tgzfld = check state: "disabled" ; para "tgz"
       @cpbtn = button "Copy" do
         copy_gem_files
       end
@@ -39,7 +39,7 @@ Shoes.app do
       end
     end
     @msglog = edit_box width: 500, height: 200
-    @panel = flow do
+    @panel = stack height: 300, scroll: true do
         @gemlist = stack
     end
   end
@@ -137,7 +137,12 @@ Shoes.app do
         rubyv = RUBY_VERSION[/\d.\d/]+'.0'
       end
       # TODO figure out arch from srcpath, not from current ruby!
-      gemcompl = File.join(srcpath, 'extensions', "#{Gem::Platform.local}",
+      archs = Dir.glob(File.join(srcpath, 'extensions', '*'))
+      arch = File.basename(archs[0])
+      if archs[0] != Gem::Platform.local 
+         return if !confirm "Do you want to use #{arch} ?"
+      end
+      gemcompl = File.join(srcpath, 'extensions', "#{arch}",
          rubyv, use_spec_name)
       #puts "bin check: #{gemcompl}"
       if File.exist? File.join(gemcompl,'gem.build_complete')

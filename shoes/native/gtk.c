@@ -343,7 +343,15 @@ void shoes_gtk_load_css(shoes_settings *st) {
   }
 }
 
-void shoes_native_init() {
+/* 
+ * We have a multitude of env vars we could (need) to set for Windows
+ * See https://developer.gnome.org/gtk3/stable/gtk-running.html
+ * NOTE: not everything on that pages is true. 
+ * Note that the shoes settings file may have preferences
+ * and we are dependent on who compiled gtk3 and how.
+ */
+#include <stdlib.h>
+void shoes_native_init(char *start) {
 #if !defined(RUBY_HTTP) && !defined(SHOES_GTK_WIN32)
     curl_global_init(CURL_GLOBAL_ALL);
 #endif
@@ -387,6 +395,21 @@ void shoes_native_init() {
       gdk_set_allowed_backends("x11,wayland,mir");
 #endif
     }
+#if defined(SHOES_GTK_WIN32) && defined(SHOES_GDKMODS)
+    /* Windows: Gdk uses loadable modules - msys2' gtk is built this way
+     * set GDK_PIXBUF_MODULE_FILE - in theory the installer did this too.
+     * Execpt it's nice to run shoes w/o installing it. 
+     */
+    gchar *dirp = g_path_get_dirname(start);
+    gchar *moddir = g_build_filename(dirp, "lib", "gdk-pixbuf-2.0", "2.10.0",
+	"loaders.cache",NULL);
+    g_setenv("GDK_PIXBUF_MODULE_FILE", moddir, TRUE);
+    //char *tp = g_getenv("GDK_PIXBUF_MODULE_FILE");
+    //fprintf(stderr,"GDK_PIXBUF_MODULE_FILE = %s\n", tp);
+    g_free(dirp);
+    g_free(moddir);
+
+#endif
     //fprintf(stderr,"launching %s\n", app_id);
     shoes_GtkApp = gtk_application_new (app_id, G_APPLICATION_HANDLES_COMMAND_LINE);
     // register with dbus
@@ -403,7 +426,7 @@ void shoes_native_init() {
     shoes_gtk_load_css(st);
 
 #ifndef ENABLE_MDI
-    gtk_init(NULL,NULL); // This starts the gui w/o triggering signals - complains but works.
+    gtk_init(NULL,NULL); // This starts the gui w/o triggering signals
 #else
     g_application_run(G_APPLICATION(shoes_GtkApp), 0, NULL); // doesn't work but could?
 #endif

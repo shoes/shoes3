@@ -732,7 +732,7 @@ shoes_native_load_font(const char *filename)
   return families;
 }
 
-void shoes_native_init()
+void shoes_native_init(char *start)
 {
   INIT;
   NSTimer *idle;

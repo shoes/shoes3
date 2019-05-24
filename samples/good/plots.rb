@@ -1,5 +1,7 @@
 # good-plots.rb
 Shoes.app width: 620, height: 480 do
+  font "#{DIR}/fonts/DejaVuSans.ttf" unless Shoes::FONTS.include? "DejaVu Sans"
+  font "#{DIR}/fonts/Coolvetica.ttf" unless Shoes::FONTS.include? "Coolvetica"
   stack do 
     flow do
       # button "quit" do Shoes.quit end
@@ -10,7 +12,7 @@ Shoes.app width: 620, height: 480 do
           @values2 = [200, 150, 75, 125, 75, 225, 125]
           @x_axis2 = ['a','b','c','d','e','f', 'g']
           @grf = plot 600, 400, title: "Line Graph", caption: "Not that hard to do",
-              font: "Helvetica", auto_grid: true, default: "skip", background: honeydew
+              font: "DejaVu Sans", auto_grid: true, default: "skip", background: honeydew
           @grf.add values: @values1, labels: @x_axis1, name: "foobar", 
               min: 6, max: 26 , desc: "foobar Yy", color: dodgerblue,
               points: true
@@ -43,7 +45,7 @@ Shoes.app width: 620, height: 480 do
           @values1 = [14,13,15,27,17,18,33,25,21] # x values - Wind speed
           @values2 = [11,17,23,39,22,31,47,48,41] # y values - Cloud cover
           @grf = plot 600, 400, title: "Weather Conditions", caption: 
-              "Scatter along, Children" , font: "Helvetica", auto_grid: true,
+              "Scatter along, Children" , font: "Arial", auto_grid: true,
               default: "skip", background: honeydew, chart: "scatter"
           cs1 = @grf.add  values: @values1, 
               name: "Wind", min: 12.5, max: 35 , color: dodgerblue,
@@ -62,7 +64,7 @@ Shoes.app width: 620, height: 480 do
           @obs1 = ["gtk3-32.exe", "gtk3-x86_64.install", "osx-10.9.tgz", "/",
               "3.2.25.exe", "robots.txt", "gtk3-i686,install,", "gtk3-armhf.install"]
           @grf = plot 600, 400, title: "Shoes Https downloads", caption: 
-              "popularity " , font: "Helvetica", auto_grid: true,
+              "popularity " , font: "Coolvetica", auto_grid: true,
               default: "skip", background: white, chart: "pie", pie_percent: false,
               colors: [yellow, olive]
           cs = chart_series values: @values1, labels: @obs1,
@@ -82,7 +84,7 @@ Shoes.app width: 620, height: 480 do
                ["Magazine", 0, 200, "%3.0f k"]
              ]
           @grf = plot 600, 400, title: "Advertising", caption: 
-            "Budget Spend" , font: "Helvetica", auto_grid: true,
+            "Budget Spend" , font: "Coolvetica", auto_grid: true,
             default: "skip", background: cornsilk, chart: "radar", column_settings: @columns
           @grf.add values: @values1, labels: @xobs,
             name: "Year 1", min: 0, max: 200, color: dodgerblue,

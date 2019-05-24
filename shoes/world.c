@@ -89,8 +89,6 @@ int shoes_ruby_embed() {
     //ruby_sysinit(0, 0);
 #endif
     /* in ruby 2.3+ we need to give ruby_sysinit something nullish  */
-    //int zedc = 0;
-    //int *zeda = &zedc;
     int zedc = 0;
     char *zedb = (char *)&zedc;
     char **zeda = &zedb;
@@ -122,7 +120,7 @@ shoes_code shoes_init(SHOES_INIT_ARGS) {
     // parse shoes.yaml file and update settings class/object
     shoes_init_load_yaml(path);
     
-    shoes_native_init();
+    shoes_native_init(path);
 
     rb_const_set(cShoes, rb_intern("FONTS"), shoes_native_font_list());
     return SHOES_OK;
