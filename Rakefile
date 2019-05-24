@@ -547,9 +547,9 @@ namespace :setup do
       sh "echo TGT_ARCH=win7 >build_target"
 	  end
 	
-	  desc "Setup for Window7+ using MSYS2 (recommended)"
-	  task :msys2 do
-      sh "echo TGT_ARCH=msys2 >build_target"
+	  desc "Setup for Window7+ using MSYS32 (recommended)"
+	  task :msys32 do
+      sh "echo TGT_ARCH=msys32 >build_target"
 	  end
     
     desc "Setup for Windows (32) Native Widgets"

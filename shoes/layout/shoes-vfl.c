@@ -210,11 +210,12 @@ void shoes_vfl_add_contraints(shoes_layout *lay, shoes_canvas *canvas, VALUE arg
   shoes_cassowary_constraint *cs;
   TypedData_Get_Struct(arg, shoes_cassowary_constraint, &shoes_cassowary_constraint_type, cs);
   EmeusConstraintLayout *layout = (EmeusConstraintLayout *)lay->root;
-  gpointer source, target;
+  gpointer source, target = NULL;
 	EmeusConstraintAttribute source_attr, target_attr;
 	EmeusConstraintRelation relation;
-  double multiplier,constant;
-  int strength;
+  double multiplier = 1.0;
+  double constant = 0.0;
+  int strength = 0;
   
   // target 
   if (NIL_P(cs->target_object))

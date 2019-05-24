@@ -80,7 +80,7 @@ Section "MainSection" SEC01
       CreateDirectory "$SMPROGRAMS\${SHOES_NAME}"
       CreateShortCut "$SMPROGRAMS\${SHOES_NAME}\${SHOES_NAME}.lnk" "$INSTDIR\${SHOES_NAME}.exe"
       CreateShortCut "$SMPROGRAMS\${SHOES_NAME}\Manual.lnk" "$INSTDIR\${SHOES_NAME}.exe" "--manual"
-      CreateShortCut "$SMPROGRAMS\${SHOES_NAME}\Packager.lnk" "$INSTDIR\${SHOES_NAME}.exe" "--package"
+      CreateShortCut "$SMPROGRAMS\${SHOES_NAME}\Cobbler.lnk" "$INSTDIR\${SHOES_NAME}.exe" "--cobbler"
    !insertmacro MUI_STARTMENU_WRITE_END
    
    CreateShortCut "$DESKTOP\${SHOES_NAME}.lnk" "$INSTDIR\${SHOES_NAME}.exe"
@@ -88,12 +88,16 @@ Section "MainSection" SEC01
    File /r /x nsis ..\*.*
    
    ;${EnvVarUpdate} $0 "PATH" "A" HKLM $INSTDIR
+   ${EnvVarUpdate} $0 "GDK_PIXBUF_MODULEDIR" "A" HKLM "$INSTDIR\lib\gdk-pixbuf-2.0\loaders"
+   ${EnvVarUpdate} $0 "GDK_PIXBUF_MODULE_FILE" "A" HKLM "$INSTDIR\lib\gdk-pixbuf-2.0\loaders.cache"
    Push $INSTDIR
    Call AddToPath
 
    ${registerExtension} "$INSTDIR\${SHOES_NAME}.exe" ".shy" "Shoes Application"
    DetailPrint "Building Icon cache, this may take a while..."
    ExecWait '"$INSTDIR\gtk-update-icon-cache.exe" "$INSTDIR\share\icons\Adwaita"'
+   ExecWait '"$INSTDIR\gtk-update-icon-cache.exe" "$INSTDIR\share\icons\hicolor"'
+   ExecWait '"$INSTDIR\gdk-pixbuf-query-loaders.exe" "--update-cache"'
 SectionEnd
 
 Section -AdditionalIcons

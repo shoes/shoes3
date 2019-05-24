@@ -45,14 +45,14 @@ typedef struct _shoes_app {
     VALUE nesting;
     VALUE extras;
     VALUE styles;
-    VALUE groups;     // #391 radao groups belong to App not canvas/slot
+    VALUE groups;     // #391 radio groups belong to App not canvas/slot
     ID cursor;
     VALUE title;
     VALUE location;
     VALUE owner;
     int use_event_handler; 
     int have_menu;
-    int mb_height;
+    int mb_height;  // actually, the height of menubar and toolbar (both optional)
     VALUE menubar;
     int monitor;    // -1 means default
     int id;         // from global serial number

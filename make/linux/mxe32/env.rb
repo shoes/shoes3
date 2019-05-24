@@ -1,7 +1,7 @@
 # mxe cross  build  
 # TODO: missing curl
 # TODO: massage for mxe deps and locations. (basedll..)
-cf =(ENV['ENV_CUSTOM'] || "#{APP['VAGRANT']}mxe-custom.yaml")
+cf =(ENV['ENV_CUSTOM'] || "#{APP['VAGRANT']}mxe32-custom.yaml")
 gtk_version = '3'
 if File.exists? cf
   custmz = YAML.load_file(cf)

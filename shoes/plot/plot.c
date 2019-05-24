@@ -191,7 +191,7 @@ VALUE shoes_plot_new(int argc, VALUE *argv, VALUE parent) {
     if (! NIL_P(fontreq)) {
         self_t->fontname = RSTRING_PTR(fontreq);
     } else {
-        self_t->fontname = "Helvitica";
+        self_t->fontname = "Arial";
     }
 
     if (!NIL_P(title)) {

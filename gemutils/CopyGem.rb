@@ -2,7 +2,7 @@
 # for Shoes purposes (only lib, spec, and ext..../gem.build_complete
 require 'rubygems/dependency_installer'
 # Don't use gems ?
-Shoes.app do
+Shoes.app scroll: false, resizeable: true, width: 520, height: 640 do
   stack do
     flow do
       para "Load gems from:"
@@ -27,9 +27,10 @@ Shoes.app do
         @panel.append do
           @gemlist = stack
         end
+        @msglog.text = ''
         gem_refresh_local
       end
-      @tgzfld = check; para "tgz"
+      @tgzfld = check state: "disabled" ; para "tgz"
       @cpbtn = button "Copy" do
         copy_gem_files
       end
@@ -38,9 +39,8 @@ Shoes.app do
       end
     end
     @msglog = edit_box width: 500, height: 200
-
-    @panel = stack do
-        @gemlist = stack {}
+    @panel = stack height: 300, scroll: true do
+        @gemlist = stack
     end
   end
   
@@ -114,11 +114,11 @@ Shoes.app do
       srcpath.gsub!(/\\/, '/')  
       destpath.gsub!(/\\/, '/')  
     end
-    @msglog.text = ""
+    @msglog.append "------ COPY ------\n"
     @deplist.each do |name, spec|
       # deal with spec version numbers that are different  - it happens
-      # can be multiples - use the last one
-      gnm = spec.full_name.gsub(/-\d+.\d+.\d+$/,'')
+      # can be multiples - use the last one  TODO: better matching or error
+      gnm = spec.full_name#.gsub(/-\d+.\d+.\d+$/,'')
       lst = Dir.glob("#{srcpath}/specifications/#{gnm}*.gemspec").sort
       #puts "specs #{lst}"
       spec_path = lst[-1]
@@ -131,14 +131,27 @@ Shoes.app do
       cp spec_path, File.join(destpath, use_spec_name, 'gemspec')
       
       # check for binary code
-      rubyv = RUBY_VERSION[/\d.\d/]+'.0'
-      gemcompl = File.join(srcpath, 'extensions', "#{Gem::Platform.local}",
-         rubyv, use_spec_name, 'gem.build_complete')
+      if srcpath[/gems\/ruby-\d+.\d+/] || srcpath[/gems\/\d+.\d+/]
+        rubyv = srcpath[/\d+.\d+/]+'.0'
+      else
+        rubyv = RUBY_VERSION[/\d.\d/]+'.0'
+      end
+      # TODO figure out arch from srcpath, not from current ruby!
+      archs = Dir.glob(File.join(srcpath, 'extensions', '*'))
+      arch = File.basename(archs[0])
+      if archs[0] != Gem::Platform.local 
+         return if !confirm "Do you want to use #{arch} ?"
+      end
+      gemcompl = File.join(srcpath, 'extensions', "#{arch}",
+         rubyv, use_spec_name)
       #puts "bin check: #{gemcompl}"
-      if File.exist? gemcompl
+      if File.exist? File.join(gemcompl,'gem.build_complete')
+        #cp File.join(gemcompl,'gem.build_complete'), File.join(destpath,'gem.build_complete')
+        mkdir_p File.join(destpath, spec.full_name, 'extensions')
+        cp_r gemcompl, File.join(destpath, spec.full_name, 'extensions', spec.full_name)
         @msglog.append "binary #{gemcompl}\n"
-        cp gemcompl, File.join(destpath, use_spec_name,'gem.build_complete')
       end 
+      
       # copy lib/ or ext/ or whatever the spec says.
       # caution: spec is modified by the eval() so it's filled in with stuff
       @msglog.append "Require paths #{spec.require_paths}\n"
@@ -148,14 +161,14 @@ Shoes.app do
         src = File.join(skip1)
         dest = File.join(destpath, use_spec_name, skip1[1])
         mkdir_p dest
-        @msglog.append "weird ext copy #{src} -> #{dest}\n"
+        @msglog.append "Ext copy #{src} -> #{dest}\n"
         cp_r src, dest
       elsif (skip1.length > 1) &&  (skip1.include? 'lib')
-        @msglog.append "weird lib copy  #{}\n"
+        @msglog.append "Lib copy  #{}\n"
         cp_r File.join(srcpath,'gems', use_spec_name, 'lib'), File.join(destpath, use_spec_name)
       else
         skip1.each do |rqp| 
-          @msglog.append "copy this  #{rqp}\n"
+          @msglog.append "Copy unknown dir  #{rqp}\n"
           cp_r File.join(srcpath,'gems', use_spec_name, rqp), File.join(destpath, use_spec_name)
         end
       end

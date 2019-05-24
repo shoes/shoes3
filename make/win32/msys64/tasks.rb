@@ -115,20 +115,32 @@ class MakeMinGW
       $stderr.puts "make_installer #{`pwd`} moving tmp/"
       tp = "#{TGT_DIR}/#{APP['Bld_Tmp']}"
       mp = "#{TGT_DIR}-#{APP['Bld_Tmp']}"
-      mv tp, mp
+      nfs = APP['Bld_Pre']
+      if nfs
+        # $NFS_ALTP - move tmp out of the package tree
+	mv "#{TGT_DIR}/tmp", "../ptmp"
+      else
+	mv tp, mp
+      end
       mkdir_p "pkg"
       cp_r "VERSION.txt", "#{TGT_DIR}/VERSION.txt"
       rm_rf "#{TGT_DIR}/nsis"
       cp_r  "platform/msw", "#{TGT_DIR}/nsis"
       cp APP['icons']['win32'], "#{TGT_DIR}/nsis/setup.ico"
+
       rewrite "#{TGT_DIR}/nsis/base.nsi", "#{TGT_DIR}/nsis/#{WINFNAME}.nsi"
       Dir.chdir("#{TGT_DIR}/nsis") do
         #sh "\"c:\\Program Files (x86)\\NSIS\\Unicode\\makensis.exe\" #{WINFNAME}.nsi" 
         sh "#{exe_path} #{WINFNAME}.nsi" 
       end
       mv "#{TGT_DIR}/nsis/#{WINFNAME}.exe", "pkg/"
+
       $stderr.puts "restore tmp/"
-      mv mp, tp
+      if nfs 
+        mv "../ptmp", "#{TGT_DIR}/tmp"
+      else
+	mv mp, tp
+      end
    end
     
     #Allow diffrent installers

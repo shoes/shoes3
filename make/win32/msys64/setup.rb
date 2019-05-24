@@ -50,6 +50,7 @@ module Make
     sh "#{WINDRES} -I. shoes/appwin32.rc shoes/appwin32.o"
     cp_r "#{ShoesDeps}/etc", TGT_DIR
     if ENABLE_MS_THEME
+      # Not available in later Gtk3's. Harmless
       ini_path = "#{TGT_DIR}/etc/gtk-3.0"
       mkdir_p ini_path
       File.open "#{ini_path}/settings.ini", mode: 'w' do |f|
@@ -57,8 +58,17 @@ module Make
         f.write "#gtk-theme-name=win32\n"
       end
     end
-    #mkdir_p "#{ShoesDeps}/lib"
-    #cp_r "#{ShoesDeps}/lib/gtk-3.0", "#{TGT_DIR}/lib" 
+    # BECAUSE we are using deps from msys2 and pacman, we need
+    # to copy some dlls and update the gdk-pixbuf info. 
+    # Update also needs to be run at install time.
+    mkdir_p "#{TGT_DIR}/lib"
+    cp_r "#{ShoesDeps}/lib/gdk-pixbuf-2.0", "#{TGT_DIR}/lib"
+    ENV['GDK_PIXBUF_MODULEDIR'] = "#{TGT_DIR}\\lib\\gdk-pixbuf-2.0\\2.10.0/loaders"
+    ENV['GDK_PIXBUF_MODULE_FILE'] = "#{TGT_DIR}\\lib/gdk-pixbuf-2.0\\2.10.0\\loaders.cache"
+    rm "#{TGT_DIR}/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache"
+    sh "gdk-pixbuf-query-loaders.exe --update-cache"
+    
+    cp_r "#{ShoesDeps}/lib/gtk-3.0", "#{TGT_DIR}/lib" 
     bindir = "#{ShoesDeps}/bin"
     if File.exist?("#{bindir}/gtk-update-icon-cache-3.0.exe")
       cp "#{bindir}/gtk-update-icon-cache-3.0.exe",
@@ -66,6 +76,8 @@ module Make
     else 
       cp  "#{bindir}/gtk-update-icon-cache.exe", TGT_DIR
     end
+    cp "#{bindir}/gdk-pixbuf-query-loaders.exe", TGT_DIR
+
     cp APP['icons']['win32'], "shoes/appwin32.ico"
   end
 end

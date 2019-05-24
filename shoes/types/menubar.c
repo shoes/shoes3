@@ -57,8 +57,7 @@ VALUE shoes_menubar_new(VALUE canvas) {
     TypedData_Get_Struct(canvas, shoes_canvas, &shoes_canvas_type, cvs);
     app = cvs->app;
     if (NIL_P(app->menubar)) {
-      // Should not happen in real life, but
-      app->menubar = shoes_native_menubar_setup(app, NULL);
+       app->menubar = shoes_native_menubar_setup(app, NULL);
     }
     return app->menubar;
 }
@@ -188,7 +187,7 @@ VALUE shoes_menubar_remove(VALUE self, VALUE arg) {
 }
 
 /*
- *  canvas - The returned menu bar always has contents 
+ * canvas - The returned menu bar always has contents 
  * The Shoes menu in the menubar is special. 
 */
 VALUE shoes_canvas_menubar(int argc, VALUE *argv, VALUE self) {

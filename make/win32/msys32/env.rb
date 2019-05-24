@@ -1,6 +1,6 @@
-# msys2 native build 
-# NOTE this assumes the deps are from an mxe build. 
-cf =(ENV['ENV_CUSTOM'] || "msys2-custom.yaml")
+# msys32 native build 
+# NOTE this assumes the deps are from an msys32 pacman
+cf =(ENV['ENV_CUSTOM'] || "msys32-custom.yaml")
 gtk_version = '3'
 if File.exists? cf
   custmz = YAML.load_file(cf)
@@ -114,25 +114,26 @@ LINUX_LIBS = wIN32_LIBS.join(' ')
 bindll = "#{ShoesDeps}/bin"
 basedll = `cygpath -m /mingw32/bin`.chomp
 gtkdll = "#{GtkDeps}/bin"
-APP['LIBPATHS'] = [bindll, basedll, gtkdll, "#{EXT_RUBY}/bin"]
+APP['LIBPATHS'] = ["#{EXT_RUBY}/bin/ruby_builtin_dlls", bindll, basedll, gtkdll, "#{EXT_RUBY}/bin"]
 
 # keys for SOLOCS are globed so libgio libgio-2 libgio-2.0 are the same
 # see win_dep_find_and_copy() in Rakefile. Values in hash are not used
 SOLOCS = {
   "#{RbConfig::CONFIG["RUBY_SO_NAME"]}"    => "#{EXT_RUBY}/foobar-not-here/msvcrt-ruby230.dll",
   'libgif-7'     => "#{bindll}/libgif-7.dll",
-  'libjpeg-9'    => "#{bindll}/libjpeg-9.dll",
+  'libjpeg-8'    => "#{bindll}/libjpeg-8.dll",
+  #'libjpeg-9'    => "#{bindll}/libjpeg-9.dll",
   'libyaml-0-2' => "#{bindll}/libyaml-0-2.dll",
   'libiconv-2'   => "#{bindll}/libiconv-2.dll",
   'libeay32'     => "#{bindll}/libeay32.dll",
   'libgdbm-6'    => "#{bindll}/libgdbm-4.dll", 
   'ssleay32'     => "#{bindll}/ssleay32.dll",
   'libepoxy-0'   => "#{bindll}/libepoxy-0.dll", 
-  #'libgmp-10'     => "#{basedll}/libgmp-10.dll", # ruby 2.2.6 needs this
+  'libgmp-10'     => "#{basedll}/libgmp-10.dll", # ruby 2.2.6 needs this
   'libgcc_s_dw2-1'  => "#{basedll}/libgcc_s_dw2-1.dll",
-  'libgcc_s_sjlj-1' => "{basedll}/libgcc_s_sjlj-1.dll", 
+  #'libgcc_s_sjlj-1' => "{basedll}/libgcc_s_sjlj-1.dll", 
   'libsqlite3-0'  => "#{bindll}/libsqlite3-0.dll",
-  'libbz2'        => '',
+  'libbz2-1'        => '',
   'libpcre-1'     => '',
   'libtiff-5'     => '',
   'liblzma-5'     => '',
@@ -148,25 +149,25 @@ SOLOCS.merge!(
     'libexpat-1'  => '',
     'libfontconfig-1'  => "#{bindll}/libfontconfig-1.dll",
     'libfreetype-6'    => "#{bindll}/libfreetype-6.dll",
-    'libgdk_pixbuf-2.'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
+    'libgdk_pixbuf-2.0-0'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
     'libgio-2.0-0'         => "#{bindll}/libgio-2.0-0.dll",
     'libglib-2.0-0'        => "#{bindll}/libglib-2.0-0.dll",
-    'libgmodule-2'     => "#{bindll}/libgmodule-2.0-0.dll",
-    'libgobject-2'     => "#{bindll}/libgobject-2.0-0.dll",
+    'libgmodule-2.0-0'     => "#{bindll}/libgmodule-2.0-0.dll",
+    'libgobject-2.0-0'     => "#{bindll}/libgobject-2.0-0.dll",
     'libgdk-3-0'        => "#{gtkdll}/libgdk-3-0.dll", 
     'libgtk-3-0'        => "#{gtkdll}/libgtk-3-0.dll",
     'libpixman-1-0'      => "#{bindll}/libpixman-1-0.dll", 
     'libintl-8'       => "#{bindll}/libintl-8.dll",
     'libpango-1.0-0'       => "#{bindll}/libpango-1.0-0.dll",
-    'libpangocairo-1'  => "#{bindll}/libpangocairo-1.0-0.dll",
-    'libpangoft2-1'     => "#{bindll}/libpangoft2-1.0-0.dll",
-    'libpangowin32-1'     => "#{bindll}/libpangowin32-1.0-0.dll",
+    'libpangocairo-1.0-0'  => "#{bindll}/libpangocairo-1.0-0.dll",
+    'libpangoft2-1.0-0'     => "#{bindll}/libpangoft2-1.0-0.dll",
+    'libpangowin32-1.0-0'     => "#{bindll}/libpangowin32-1.0-0.dll",
     'libharfbuzz-0'    => "#{bindll}/libharfbuzz-0.dll",
     'libpng16-16'       => "#{bindll}/libpng16-16.dll",
     'libcroco-0.6-3'       => "#{bindll}/libcroco-0.6-3.dll",
     'librsvg-2-2'        => "#{bindll}/librsvg-2-2.dll",
-    'libxml2'        => "#{bindll}/libxml2-2.dll",
-    'libgthread-2'     => "#{bindll}/libgthread-2.0-0.dll",
+    'libxml2-2'        => "#{bindll}/libxml2-2.dll",
+    'libgthread-2.0-0'     => "#{bindll}/libgthread-2.0-0.dll",
     'zlib1'       => "#{bindll}/zlib1.dll",
     'libwinpthread-1'     => "#{basedll}/libwinpthread-1.dll",
   }

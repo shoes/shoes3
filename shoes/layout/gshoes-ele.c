@@ -3,7 +3,8 @@
 /*
  * Thin GObject Wrapper for Shoes elements (widgets, textblocks...)
 
-/* Private structure definition. */
+ * Private structure definition. 
+ */
 typedef struct {
   gchar *name;        // Private not needed?
   /* stuff */
