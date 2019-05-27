@@ -47,7 +47,7 @@
 
 /* forward declares in this file */
 static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer data);
-static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, gpointer data);
+//static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, gpointer data);
 int shoes_gtk_optbox_height(shoes_app *app, int height);
 void shoes_gtk_attach_menubar(shoes_app *app, shoes_settings *st);
 void shoes_gtk_attach_toolbar(shoes_app *app, shoes_settings *st);
@@ -214,8 +214,14 @@ VALUE shoes_native_font_list() {
 VALUE shoes_native_load_font(const char *filename) {
     FcConfig *fc = FcConfigGetCurrent();
     FcFontSet *fonts = FcFontSetCreate();
-    if (!FcFileScan(fonts, NULL, NULL, NULL, (const FcChar8 *)filename, FcTrue))
-        return Qnil;
+    // issue 441 - can't be a directory or FcFileScan crashes
+    if (!g_file_test(filename, G_FILE_TEST_EXISTS))
+      return Qnil;
+    if (g_file_test(filename, G_FILE_TEST_IS_DIR))
+      return Qnil;
+    if (FcFileScan(fonts, NULL, NULL, NULL, (const FcChar8 *)filename, FcTrue) 
+        == FcFalse)
+      return Qnil;
 
     VALUE ary = rb_ary_new();
     // should have a pango version below, eh?
@@ -281,66 +287,60 @@ void shoes_gtk_css_error(GtkCssProvider *provider,
 }
 
 // Process the setting for Theme and css 
-// TODO: path handling is not unicode friendly - use glib routines.
 void shoes_gtk_load_css(shoes_settings *st) {
-  char theme_path[100];
+  gchar *theme_path = NULL;
   if (! NIL_P(st->theme)) {
-      // A theme was requested in shoes.yaml
-      sprintf(theme_path, "themes/%s/gtk-3.0/gtk.css", RSTRING_PTR(st->theme));
+      // A theme was requested in startup.yaml
+      theme_path = g_build_filename("themes", RSTRING_PTR(st->theme), 
+          "gtk-3.0", "gtk.css", NULL);
       st->theme_path = rb_str_new2(theme_path);
   } else { 
-    // user space theme?
-    char dflt[100];
+    // do we have a user theme in $HOME ?
+    gchar *dflt;
+    const gchar *home = g_getenv("HOME");
 #ifdef SHOES_GTK_WIN32
-    // TODO (home and appdata and ) Beware the file.separator in mingw C
-    char *home = getenv("HOME");
-    sprintf(dflt,"%s/AppData/Local/Shoes/themes/default", home);
+    dflt = g_build_filename(home, "AppData", "Local", "Shoes", "themes",
+        "default", NULL);
 #else
-    char *home = getenv("HOME");
-    sprintf(dflt,"%s/.shoes/themes/default", home);
+    dflt = g_build_filename(home, ".shoes", "themes", "default", NULL);
 #endif
-    FILE *df = fopen(dflt, "r");
-    if (df) {
-      char ln[60];
-      char *rtn;
-      rtn = fgets(ln, 59, df);
-      // Trim \n from ln
-      char *p = strrchr(ln, '\n');
-      if (p) *p = '\0';
-      st->theme = rb_str_new2(ln);
-      fclose(df);
-      // now build the path to gtk.css
-      char *pos = strrchr(dflt, '/');
-      *pos = '\0';
-      char css[100];
-      sprintf(css,"%s/%s/gtk-3.0/gtk.css",dflt,ln);
-      st->theme_path = rb_str_new2(css);
-    } else {
-      // this is expected for most users - no themes
+    GFile *df = g_file_new_for_path(dflt);
+    GError *err = NULL;
+    gchar *ln;
+    if (FALSE == g_file_load_contents(df, NULL, &ln, NULL,NULL, &err)) {
+      // This is the expected path for most people - no theme specified
+      g_free(dflt);
+      g_free(theme_path);
+      g_object_unref(df);
       return;
     }
+    gchar *p = g_strrstr(ln, "\n");
+    if (p)
+      p = '\0';
+    st->theme = rb_str_new2(ln);
+    // build path to <theme-name>/gtk-3.0/gtk.css
+    gchar *dir = g_path_get_dirname(dflt);  // without 'default'
+    gchar *css = g_build_filename(dir, ln, "gtk-3.0", "gtk.css", NULL);
+    st->theme_path = rb_str_new2(css);
+    g_free(ln);
+    g_free(css);
+    g_free(dir);
+    g_object_unref(df);
   }
   if (!NIL_P(st->theme) && !NIL_P(st->theme_path)) {
-    strcpy(theme_path, RSTRING_PTR(st->theme_path));
-    FILE *th = fopen(theme_path, "r");
-    if (th) {
-      printf("make a css provider from %s\n", theme_path);
-      fclose(th);
-      // gtk_css_provider_load_from_path(...)
-      GError *gerr = NULL;
-      shoes_css_provider = gtk_css_provider_new();
-      g_signal_connect(G_OBJECT(shoes_css_provider), "parsing-error",
-                       G_CALLBACK(shoes_gtk_css_error), NULL);
- 
-      int err = gtk_css_provider_load_from_path(shoes_css_provider, theme_path, &gerr);
-      if (gerr != NULL) {
-        fprintf(stderr, "Failed css load:css %s\n", gerr->message);
-        g_error_free(gerr);
-      }
-    } else {
-      fprintf(stderr, "theme %s not found\n",theme_path);
+    g_free(theme_path);
+    theme_path = strdup(RSTRING_PTR(st->theme_path));
+    GError *gerr = NULL;
+    shoes_css_provider = gtk_css_provider_new();
+    g_signal_connect(G_OBJECT(shoes_css_provider), "parsing-error",
+                     G_CALLBACK(shoes_gtk_css_error), NULL);
+    gtk_css_provider_load_from_path(shoes_css_provider, theme_path, &gerr);
+    if (gerr != NULL) {
+      fprintf(stderr, "Failed css loading:css %s\n", gerr->message);
+      g_error_free(gerr);
     }
-  }
+    g_free(theme_path);
+ }
 }
 
 /* 
@@ -356,7 +356,6 @@ void shoes_native_init(char *start) {
     curl_global_init(CURL_GLOBAL_ALL);
 #endif
 
-    int status;
     Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
     char app_id[100];
     char *rdom = RSTRING_PTR(st->rdomain);
@@ -365,9 +364,8 @@ void shoes_native_init(char *start) {
     } else {
       sprintf(app_id, "%s%d", rdom, getpid()); // TODO: Windows?
     }
-    // set the gdk_backend 
-    //char *csd = getenv("GTK_CSD");
-    //printf("csd = %s\n", csd);
+    // set the gdk_backend ?
+
     if (st->backend != Qnil) {
       char *backend = RSTRING_PTR(st->backend);
       gdk_set_allowed_backends(backend);
@@ -381,13 +379,19 @@ void shoes_native_init(char *start) {
        gdk_set_allowed_backends("win32,x11");
 
        shoes_Windows_Version = shoes_win10_gtk3_22_check();
-       // Gtk3 on windows must be patched to not set CSD
+       // Gtk3 on windows should be patched to not set CSD
 #endif 
 #ifdef SHOES_QUARTZ
-      gdk_set_allowed_backends("quartz,x11");
+        gdk_set_allowed_backends("quartz,x11");
 #endif 
 #if defined(SHOES_GTK) && !defined(SHOES_GTK_WIN32)
-      gdk_set_allowed_backends("x11,wayland,mir");
+        gdk_set_allowed_backends("x11,wayland,mir");
+        const char *csd = g_getenv("GTK_CSD");
+        if (csd && strcmp(csd, "1") == 0) {
+          // Turn it off. TODO: be more complex with settings?
+          // TODO - try actually supporting CSD menus. 
+          g_setenv("GTK_CSD", "0", TRUE);
+        }
 #endif
     }
 #if defined(SHOES_GTK_WIN32) && defined(SHOES_GDKMODS)
@@ -565,7 +569,6 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c) {
 static gboolean shoes_app_gtk_motion(GtkWidget *widget, GdkEventMotion *event, gpointer data) {
     GdkModifierType state;
     shoes_app *app = (shoes_app *)data;
-    char *current_desktop_session = getenv("XDG_SESSION_TYPE");
 
     if (!event->is_hint) {
         shoes_canvas *canvas;
@@ -664,7 +667,6 @@ static gboolean shoes_app_gtk_button(GtkWidget *widget, GdkEventButton *event, g
 static gboolean shoes_app_gtk_wheel(GtkWidget *widget, GdkEventScroll *event, gpointer data) {
     ID wheel;
     shoes_app *app = (shoes_app *)data;
-    char *current_desktop_session = getenv("XDG_SESSION_TYPE");
 
     switch (event->direction) {
         case GDK_SCROLL_UP:
@@ -2117,7 +2119,6 @@ int shoes_gtk_get_monitor(GdkMonitor *mon) {
 #endif
 
 int shoes_native_monitor_default() {
-  GdkScreen *screen;
   GdkDisplay *display;
   display = gdk_display_get_default();
 #if GTK_MINOR_VERSION >= 22
@@ -2128,6 +2129,7 @@ int shoes_native_monitor_default() {
   mon = shoes_gtk_get_monitor(monitor);
   return mon;
 #else
+  GdkScreen *screen;
   screen = gdk_display_get_default_screen(display);
   int mon;
   mon = gdk_screen_get_primary_monitor(screen);
@@ -2226,9 +2228,9 @@ int shoes_native_monitor_get(shoes_app *app) {
     gdk_monitor_get_geometry(mon, &r);
     if ((x >= r.x) && (x <= (r.x +r.width)) && (y >= r.y) && (y <= (r.y +r.height)))
       return i;
+  }
   // should never get here, but if it does:
   return shoes_gtk_get_monitor(shoes_gtk_monitors[0]);
-  }
 #else
   cnt = gdk_screen_get_n_monitors(screen);
   for (i = 0; i < cnt; i++) {
@@ -2318,6 +2320,7 @@ static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer dat
     shoes_canvas_size(app->canvas, app->width, app->height);
 }
 
+#if 0
 /*
  *  Called by **canvas->slot** signal handler for *size-allocate*
  *  We _can_ be called twice - for width then for height
@@ -2359,7 +2362,7 @@ static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, g
     }
 #endif
 }
-
+#endif // hide from compiler
 
 /* TODO: sort of fixes bug #349 depends on gtk 3.12 or higher (Boo Windows)
  * seems like overkill or incomplete - it gets called a lot. 
@@ -2420,7 +2423,7 @@ void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int widt
   else
     slot->oscanvas = gtkfixed_alt_new(width, height);
 #ifdef SZBUG
-  fprintf(stderr,"shoes_slot_init_menu toplevel: %d, slot->oscanvas %lx\n", toplevel, (unsigned long)slot->oscanvas); 
+  fprintf(stderr,"shoes_slot_init_menu toplevel: %d, slot->oscanvas: %lx\n", toplevel, (unsigned long)slot->oscanvas); 
 #endif
   g_signal_connect(G_OBJECT(slot->oscanvas), "draw",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
@@ -2455,9 +2458,11 @@ void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int widt
       ATTRSET(canvas->attr, wheel, scrolls);
   }
   
-  if (toplevel)
+  if (toplevel) {
+    gtk_widget_show_all(slot->oscanvas);
     shoes_canvas_size(c, width, height);
-  else {
+    //shoes_canvas_repaint_all(slot->oscanvas); //crash
+  } else {
     gtk_widget_show_all(slot->oscanvas);
     canvas->width = 100;
     canvas->height = 100;

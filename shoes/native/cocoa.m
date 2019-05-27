@@ -673,8 +673,13 @@ shoes_native_load_font(const char *filename)
   bool ok;
   CFErrorRef err;
   cfuref = CFURLCreateFromFileSystemRepresentation (NULL, (UInt8 *)filename, strlen(filename), false);
+  if ((! cfuref) || (! CFURLResourceIsReachable(cfuref, &err))) {
+    return Qnil;
+  }
   // Get array of CTFontDescriptorRef's
   CFArrayRef arrayref = CTFontManagerCreateFontDescriptorsFromURL(cfuref);
+  if (arrayref == NULL)
+    return Qnil;
   CFIndex count = CFArrayGetCount(arrayref);
   CFIndex i;
   if (count == 0)
