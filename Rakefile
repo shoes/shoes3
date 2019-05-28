@@ -80,21 +80,21 @@ if File.exists? "build_target"
     #if RUBY_PLATFORM  =~ /darwin/
     if TGT_ARCH =~ /yosemite|mavericks|minosx|darwin14/
       # osx is just different. It needs build performance optimizations 
-	    # is the build output directory outside the shoes3 dir?    
-	    if APP['Bld_Pre']
+      # is the build output directory outside the shoes3 dir?    
+      if APP['Bld_Pre']
         TOP_DIR = APP['Bld_Pre'] + TGT_ARCH
-	      TGT_DIR = TOP_DIR + "/#{APPNAME}.app/Contents/MacOS"
-	    else
-	      TOP_DIR = TGT_ARCH
+	TGT_DIR = TOP_DIR + "/#{APPNAME}.app/Contents/MacOS"
+      else
+	TOP_DIR = TGT_ARCH
         TGT_DIR = TGT_ARCH+"/#{APPNAME}.app/Contents/MacOS"
-	    end
+      end
     else 
-	    # is the build output directory outside the shoes3 dir?    
-	    if APP['Bld_Pre']
-	      TGT_DIR = APP['Bld_Pre']+TGT_ARCH
-	    else
-	      TGT_DIR = TGT_ARCH
-	    end
+      # is the build output directory outside the shoes3 dir?    
+      if APP['Bld_Pre']
+	TGT_DIR = APP['Bld_Pre']+TGT_ARCH
+      else
+	TGT_DIR = TGT_ARCH
+      end
       TOP_DIR = TGT_DIR
     end
     mkdir_p "#{TGT_DIR}"

@@ -712,7 +712,12 @@ VALUE shoes_log(VALUE self) {
 
 VALUE shoes_font(VALUE self, VALUE path) {
     StringValue(path);
-    return shoes_native_load_font(RSTRING_PTR(path));
+    VALUE rtn;
+    rtn = shoes_native_load_font(RSTRING_PTR(path));
+    if (NIL_P(rtn)) {
+			rb_raise(rb_eArgError, "Font \"%s\" not found", RSTRING_PTR(path));
+		}
+		return rtn;
 }
 
 //

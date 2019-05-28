@@ -132,16 +132,18 @@ SHOES_CONTROL_REF
 shoes_native_button(VALUE self, shoes_canvas *canvas, shoes_place *place, char *msg)
 {
   int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot->controls);
-  WCHAR *buffer = shoes_wchar(msg);
-  SHOES_CONTROL_REF ref = CreateWindowExW(0, L"BUTTON", buffer,
+  //WCHAR *buffer = shoes_wchar(msg);
+  //SHOES_CONTROL_REF ref = CreateWindowExW(0, L"BUTTON", buffer,
+  SHOES_CONTROL_REF ref = CreateWindowExW(0, L"BUTTON", NULL,
       WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
       place->ix + place->dx, place->iy + place->dy, place->iw, place->ih,
       canvas->slot->window, (HMENU)cid, 
       (HINSTANCE)GetWindowLong(canvas->slot->window, GWLP_HINSTANCE),
       NULL);
-  if (buffer != NULL)
-    SHOE_FREE(buffer);
+  //if (buffer != NULL)
+  //  SHOE_FREE(buffer);
   shoes_win32_control_font(cid, canvas->slot->window);
+  shoes_native_edit_line_set_text(ref, msg);
   rb_ary_push(canvas->slot->controls, self);
   return ref;
 }

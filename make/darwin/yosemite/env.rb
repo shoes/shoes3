@@ -25,6 +25,7 @@ if File.exists? cf
   APP['STRIP'] = custmz['STRIP'] if custmz['STRIP']
   OTOOL = APP['TOOLPRE'] + (custmz['OTOOL'] ?  custmz['OTOOL'] : 'otool')
   INTOOL = APP['TOOLPRE'] + (custmz['INTOOL'] ? custmz['INTOOL'] : 'install_name_tool')
+  APP['SDK'] = custmz['SDK'] if custmz['SDK']
   ignore_deprecations = (!custmz['Deprecations']) if custmz['Deprecations']
 else
   abort "You must have a #{TGT_ARCH}-custom.yaml"
@@ -101,6 +102,7 @@ LINUX_LDFLAGS = "-framework Cocoa -framework QuartzCore -framework Carbon -dynam
 LINUX_LIB_NAMES << 'pixman-1' << 'jpeg.8'
 
 #OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk'
+xcode_path = `xcode-select -p`
 OSX_SDK = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk'
 ENV['MACOSX_DEPLOYMENT_TARGET'] = '10.10'
 LINUX_CFLAGS << ' -mmacosx-version-min=10.10'

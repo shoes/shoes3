@@ -21,6 +21,8 @@ module Make
     cp_r "lib/shoes", "#{TGT_DIR}/lib"
     cp_r "lib/exerb", "#{TGT_DIR}/lib"
     cp_r "lib/package", "#{TGT_DIR}/lib"
+    cp_r "lib/layout", "#{TGT_DIR}/lib"
+    cp_r "lib/cassowary", "#{TGT_DIR}/lib"
     cp_r "samples", "#{TGT_DIR}/samples"
     cp_r "static", "#{TGT_DIR}/static"
     cp   "README.md", "#{TGT_DIR}/README.txt"

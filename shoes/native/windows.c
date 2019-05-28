@@ -11,7 +11,9 @@
 #include "shoes/internal.h"
 #include "shoes/appwin32.h"
 #include "shoes/native/windows.h"
-
+#include "shoes/types/button.h"
+#include "shoes/types/download.h"
+#include "shoes/types/timerbase.h"
 
 int win_current_tmo = 10; // TODO: settings can poke this. May not be needed/used 
 
@@ -129,7 +131,7 @@ shoes_native_font_list()
   return ary;
 }
 
-void shoes_native_init()
+void shoes_native_init(char *path)
 {
   INITCOMMONCONTROLSEX InitCtrlEx;
   InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
@@ -288,7 +290,7 @@ shoes_slot_win32proc(
   int mods = 0;         // key state for mouse events
   VALUE c = (VALUE)GetWindowLong(win, GWLP_USERDATA);
 
-  if (c != NULL) {
+  if (c != (VALUE)NULL) {
     TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
     //Data_Get_Struct(c, shoes_canvas, canvas);
     int x = 0, y = 0;

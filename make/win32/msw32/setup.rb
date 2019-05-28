@@ -21,6 +21,7 @@ module Make
     cp_r "lib/shoes", "#{TGT_DIR}/lib"
     cp_r "lib/exerb", "#{TGT_DIR}/lib"
     cp_r "lib/package", "#{TGT_DIR}/lib"
+    cp_r "lib/cassowary", "#{TGT_DIR}/lib"
     cp_r "samples", "#{TGT_DIR}/samples"
     cp_r "static", "#{TGT_DIR}/static"
     cp   "README.md", "#{TGT_DIR}/README.txt"
@@ -75,7 +76,9 @@ module Make
   def ssl_copy()
     if File.exist? "#{EXT_RUBY}/lib/engines"
       puts "SSL copying from RubyInstaller #{ShoesDeps} - NOT from mxe"
-      abort
+      Dir.glob("#{EXT_RUBY}/lib/engines/*") do |dll| 
+        cp dll, TGT_DIR
+      end
     elsif File.exist? "#{ShoesDeps}/bin/engines"
       puts "SSL copying from MXE"
       mkdir_p "#{TGT_DIR}/lib"

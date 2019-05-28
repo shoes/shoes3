@@ -1,7 +1,7 @@
 # xmsw cross  build  
 # TODO: missing curl
 # TODO: massage for mxe deps and locations. (basedll..)
-cf =(ENV['ENV_CUSTOM'] || "#{APP['VAGRANT']}msw-custom.yaml")
+cf =(ENV['ENV_CUSTOM'] || "#{APP['VAGRANT']}msw32-custom.yaml")
 gtk_version = '3'
 if File.exists? cf
   custmz = YAML.load_file(cf)
@@ -117,7 +117,7 @@ LINUX_CFLAGS = wIN32_CFLAGS.join(' ')
 LINUX_LDFLAGS = wIN32_LDFLAGS.join(' ')
 LINUX_LIBS = wIN32_LIBS.join(' ')
 
-APP['LIBPATHS'] = ["#{EXT_RUBY}/bin/ruby_builtin_dlls", bindll, basedll, gtkdll, "#{EXT_RUBY}/bin"]
+APP['LIBPATHS'] = ["#{EXT_RUBY}/bin/ruby_builtin_dlls", bindll, basedll, "#{EXT_RUBY}/bin"]
 
 
 # keys for SOLOCS are globed so libgio libgio-2 libgio-2.0 are the same
@@ -130,7 +130,7 @@ SOLOCS = {
   'libiconv-2'   => "#{bindll}/libiconv-2.dll",
   'libgdbm-6'    => "#{bindll}/libgdbm-4.dll",
   'libepoxy-0'   => "#{bindll}/libepoxy-0.dll",  
-  'libgcc_s_seh-1' => '',
+  'libgcc_s_dw2-1' => '',
   'libsqlite3-0'  => "#{bindll}/libsqlite3-0.dll",
   'libexpat-1' => "",
   'libbz2-1' => "",
@@ -143,6 +143,8 @@ SOLOCS = {
   'libthai-0' => '',
   'libstdc++-6' => '',
   'libdatrie-1' => '',
+  'libeay32' => '',
+  'ssleay32' => '',
 }
 
 

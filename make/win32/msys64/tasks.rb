@@ -45,22 +45,24 @@ class MakeMinGW
     end
     
     def new_so (name) 
-      $stderr.puts "new so: #{name}"
-      tgtd = File.dirname(name)
-      #tgts = name.split('/')
-      #tgtd = tgts[0]
-      #$stderr.puts "new_so: #{tgtd}"
+      $stderr.puts "new_so: #{name}"
+      abort
+      tgts = name.split('/')
+      tgtd = tgts[0]
+      $stderr.puts "new_so: #{tgtd}"
       objs = []
       SubDirs.each do |f|
         d = File.dirname(f)
+        #$stderr.puts "collecting .o from #{d}"
         objs = objs + FileList["#{d}/*.o"]      
       end
+      # TODO  fix: gtk - needs to dig deeper vs osx
       objs = objs + FileList["shoes/native/gtk/*.o"]
       main_o = 'shoes/main.o'
       objs = objs - [main_o]
       sh "#{CC} -o #{tgtd}/libshoes.#{DLEXT} #{objs.join(' ')} #{LINUX_LDFLAGS} #{LINUX_LIBS}"
     end
-
+    
     def new_link(name)
       dpath = File.dirname(name)
       fname = File.basename(name)

@@ -1,6 +1,6 @@
 # msys2 native build 
 # NOTE this assumes the deps are from an mxe build. 
-cf =(ENV['ENV_CUSTOM'] || "msys64-custom.yaml")
+cf =(ENV['ENV_CUSTOM'] || "msw64-custom.yaml")
 gtk_version = '3'
 if File.exists? cf
   custmz = YAML.load_file(cf)
@@ -62,9 +62,6 @@ else
 end
 
 
-#gtk_pkg_path = "#{GtkDeps}/lib/pkgconfig/gtk+-3.0.pc"
-GTK_CFLAGS = `#{PKG_CONFIG} --cflags gtk+-3.0 --define-variable=prefix=#{ShoesDeps}`.chomp
-GTK_LDFLAGS = `#{PKG_CONFIG} --libs gtk+-3.0 --define-variable=prefix=#{ShoesDeps}`.chomp
 CAIRO_CFLAGS = `#{PKG_CONFIG} --cflags glib-2.0 --define-variable=prefix=#{ShoesDeps}`.chomp +
     `#{PKG_CONFIG} --cflags cairo --define-variable=prefix=#{ShoesDeps}`.chomp
 CAIRO_LDFLAGS = `#{PKG_CONFIG} --libs cairo --define-variable=prefix=#{ShoesDeps}`.chomp
@@ -74,11 +71,9 @@ PANGO_LDFLAGS = `#{PKG_CONFIG} --libs pango --define-variable=prefix=#{ShoesDeps
 RUBY_LDFLAGS = "-L#{RbConfig::CONFIG["bindir"]} #{RbConfig::CONFIG["LIBRUBYARG"]} "
 RUBY_LDFLAGS << "-Wl,-export-all-symbols "
 
-WIN32_CFLAGS << "-DSHOES_GTK -DSHOES_GTK_WIN32 -DRUBY_HTTP -DVIDEO"
-WIN32_CFLAGS << "-DGTK3 -DGTK_APP_SIZE -DSHOES_GDKMODS"
+WIN32_CFLAGS << "-DRUBY_HTTP -DVIDEO"
 WIN32_CFLAGS << "-Wno-unused-but-set-variable -Wno-attributes"
 WIN32_CFLAGS << "-D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS"
-WIN32_CFLAGS << GTK_CFLAGS
 WIN32_CFLAGS << CAIRO_CFLAGS
 WIN32_CFLAGS << PANGO_CFLAGS
 WIN32_CFLAGS << "-I#{ShoesDeps}/include/librsvg-2.0/librsvg "
@@ -92,7 +87,6 @@ WIN32_LDFLAGS << "-lgif -ljpeg -lfontconfig"
 # following line probably not needed.
 WIN32_LDFLAGS << "-L#{ENV['RI_DEVKIT']}/mingw/bin".gsub('\\','/').gsub(/^\//,'//')
 WIN32_LDFLAGS << "-fPIC -shared"
-WIN32_LDFLAGS << GTK_LDFLAGS
 WIN32_LDFLAGS << CAIRO_LDFLAGS
 WIN32_LDFLAGS << PANGO_LDFLAGS
 WIN32_LDFLAGS << RUBY_LDFLAGS
@@ -114,8 +108,7 @@ LINUX_LIBS = wIN32_LIBS.join(' ')
 # hash of dlls to copy in setup.rb
 bindll = "#{ShoesDeps}/bin"
 basedll = `cygpath -m /mingw32/bin`.chomp
-gtkdll = "#{GtkDeps}/bin"
-APP['LIBPATHS'] = ["#{EXT_RUBY}/bin/ruby_builtin_dlls", bindll, basedll, gtkdll, "#{EXT_RUBY}/bin"]
+APP['LIBPATHS'] = ["#{EXT_RUBY}/bin/ruby_builtin_dlls", bindll, basedll, "#{EXT_RUBY}/bin"]
 
 # keys for SOLOCS are globed so libgio libgio-2 libgio-2.0 are the same
 # see win_dep_find_and_copy() in Rakefile. Values in hash are not used
@@ -156,7 +149,6 @@ SOLOCS.merge!(
     'libgmodule-2.0-0'     => "#{bindll}/libgmodule-2.0-0.dll",
     'libgobject-2.0-0'     => "#{bindll}/libgobject-2.0-0.dll",
     'libgdk-3-0'        => "#{gtkdll}/libgdk-3-0.dll", 
-    'libgtk-3-0'        => "#{gtkdll}/libgtk-3-0.dll",
     'libpixman-1-0'      => "#{bindll}/libpixman-1-0.dll", 
     'libintl-8'       => "#{bindll}/libintl-8.dll",
     'libpango-1.0-0'       => "#{bindll}/libpango-1.0-0.dll",
