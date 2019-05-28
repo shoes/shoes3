@@ -17,10 +17,12 @@ class << Gem::Ext::ExtConfBuilder
 	  alias_method :make__, :make
 	  def make(dest_path, results)
 	    raise unless File.exist?('Makefile')
+      xpath = `xcode-select -p`.chomp  # xcode doesn't have to be in Applications/Xcode
 	    mf = File.read('Makefile')
 	    mf = mf.gsub(/^V\ =\ 0/, "V = 1")
 	    mf = mf.gsub(/^ARCH_FLAG =/, "ARCH_FLAG = #{RbConfig::CONFIG['ARCH_FLAG']}")
 	    mf = mf.gsub(/MacOSX10\.\d+\.sdk/, 'MacOSX.sdk')
+      mf = mf.gsub("/Applications/Xcode.app/Contents/Developer", xpath)
 	    #mf = mf.gsub(/^INSTALL\s*=\s*.*$/, "INSTALL = $(RUBY) -run -e install -- -vp")
 	    #mf = mf.gsub(/^INSTALL_PROG\s*=\s*.*$/, "INSTALL_PROG = $(INSTALL) -m 0755")
 	    #mf = mf.gsub(/^INSTALL_DATA\s*=\s*.*$/, "INSTALL_DATA = $(INSTALL) -m 0644")
