@@ -20,6 +20,7 @@ class << Gem::Ext::ExtConfBuilder
 	    mf = File.read('Makefile')
 	    mf = mf.gsub(/^V\ =\ 0/, "V = 1")
 	    mf = mf.gsub(/^ARCH_FLAG =/, "ARCH_FLAG = #{RbConfig::CONFIG['ARCH_FLAG']}")
+	    mf = mf.gsub(/MacOSX10\.\d+\.sdk/, 'MacOSX.sdk')
 	    #mf = mf.gsub(/^INSTALL\s*=\s*.*$/, "INSTALL = $(RUBY) -run -e install -- -vp")
 	    #mf = mf.gsub(/^INSTALL_PROG\s*=\s*.*$/, "INSTALL_PROG = $(INSTALL) -m 0755")
 	    #mf = mf.gsub(/^INSTALL_DATA\s*=\s*.*$/, "INSTALL_DATA = $(INSTALL) -m 0644")
