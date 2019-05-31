@@ -27,5 +27,8 @@ extern char *shoes_utf8(WCHAR *buffer);
 extern void shoes_win32_center(HWND hwnd);
 extern void shoes_win32_control_font(int id, HWND hwnd);
 extern void shoes_native_edit_line_set_text(SHOES_CONTROL_REF ref, char *msg);
+LRESULT CALLBACK shoes_app_win32proc(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK shoes_slot_win32proc(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK shoes_edit_line_win32proc(HWND, UINT, WPARAM, LPARAM);
 
 #endif

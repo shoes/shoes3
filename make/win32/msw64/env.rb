@@ -41,7 +41,7 @@ basedll = "#{ShoesDeps}/basedll"
 gtkdll = "#{GtkDeps}/bin"
 #APP['LIBPATHS'] = [bindll, "#{EXT_RUBY}/bin"]
 
-WINVERSION = "#{APP['VERSION']}-msw-32"
+WINVERSION = "#{APP['VERSION']}-msw-64"
 WINFNAME = "#{APPNAME}-#{WINVERSION}"
 
 RUBY_HTTP = true
@@ -149,19 +149,19 @@ SOLOCS = {
 
 SOLOCS.merge!(
   {
-    'libatk-1.0-0'         => "#{bindll}/libatk-1.0-0.dll",
+    #'libatk-1.0-0'         => "#{bindll}/libatk-1.0-0.dll",
     'libcairo-2'       => "#{bindll}/libcairo-2.dll",
     'libcairo-gobject-2'  => "#{bindll}/libcairo-gobject-2.dll",
     'libffi-6'         => "#{bindll}/libffi-6.dll",
     'libfontconfig-1'  => "#{bindll}/libfontconfig-1.dll",
     'libfreetype-6'    => "#{bindll}/libfreetype-6.dll",
-    'libgdk_pixbuf-2.0-0'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
+    #'libgdk_pixbuf-2.0-0'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
     'libgio-2.0-0'         => "#{bindll}/libgio-2.0-0.dll",
     'libglib-2.0-0'        => "#{bindll}/libglib-2.0-0.dll",
     'libgmodule-2.0-0'     => "#{bindll}/libgmodule-2.0-0.dll",
     'libgobject-2.0-0'     => "#{bindll}/libgobject-2.0-0.dll",
-    'libgdk-3-0'        => "#{gtkdll}/libgdk-3-0.dll", 
-    'libgtk-3-0'        => "#{gtkdll}/libgtk-3-0.dll",
+    #'libgdk-3-0'        => "#{gtkdll}/libgdk-3-0.dll", 
+    #'libgtk-3-0'        => "#{gtkdll}/libgtk-3-0.dll",
     'libpixman-1-0'      => "#{bindll}/libpixman-1-0.dll", 
     'libintl-8'       => "#{bindll}/libintl-8.dll",
     'libpango-1.0-0'       => "#{bindll}/libpango-1.0-0.dll",

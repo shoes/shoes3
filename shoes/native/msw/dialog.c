@@ -91,8 +91,9 @@ shoes_dialog_ask(int argc, VALUE *argv, VALUE self)
   GLOBAL_APP(app);
   win32_dialog_label = shoes_wchar(RSTRING_PTR(args.a[0]));
   int confirm = DialogBox(shoes_world->os.instance,
-    MAKEINTRESOURCE(RTEST(ATTR(args.a[1], secret)) ? ASKSECRETDLG : ASKDLG),
-    APP_WINDOW(app), shoes_ask_win32proc);
+	MAKEINTRESOURCE(RTEST(ATTR(args.a[1],secret)) ? ASKSECRETDLG : ASKDLG),
+	APP_WINDOW(app),
+	shoes_ask_win32proc);
   if (confirm == IDOK) {
     if (win32_dialog_answer != NULL) {
       char *ans8 = shoes_utf8(win32_dialog_answer);

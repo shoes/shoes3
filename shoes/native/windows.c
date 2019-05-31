@@ -37,8 +37,6 @@ void shoes_video_init() {
 
 
 shoes_code shoes_classex_init();
-LRESULT CALLBACK shoes_app_win32proc(HWND, UINT, WPARAM, LPARAM);
-LRESULT CALLBACK shoes_slot_win32proc(HWND, UINT, WPARAM, LPARAM);
 
 WCHAR *
 shoes_wchar(char *utf8)
@@ -94,6 +92,27 @@ int shoes_win32_cmdvector(const char *cmdline, char ***argv)
 }
 
 
+static int CALLBACK
+shoes_font_list_iter(const ENUMLOGFONTEX *font, const NEWTEXTMETRICA *pfont, DWORD type, LPARAM l)
+{
+  VALUE ary = (VALUE)l;
+  rb_ary_push(l, rb_str_new2(font->elfLogFont.lfFaceName));
+  return TRUE;
+}
+
+VALUE
+shoes_native_font_list()
+{
+  LOGFONT font = {0, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, ""};
+  VALUE ary = rb_ary_new();
+  HDC dc = GetDC(NULL);
+  EnumFontFamiliesEx(dc, &font, (FONTENUMPROC)shoes_font_list_iter, (LPARAM)ary, 0);
+  ReleaseDC(NULL, dc);
+  rb_funcall(ary, rb_intern("uniq!"), 0);
+  rb_funcall(ary, rb_intern("sort!"), 0);
+  return ary;
+}
+
 VALUE
 shoes_native_load_font(const char *filename)
 {
@@ -106,29 +125,6 @@ shoes_native_load_font(const char *filename)
   newfonts = rb_funcall(allfonts, rb_intern("-"), 1, oldfonts);
   shoes_update_fonts(allfonts);
   return newfonts;
-}
-
-int CALLBACK
-shoes_font_list_iter(const LOGFONTA *font, const TEXTMETRICA *pfont, DWORD type, LPARAM l)
-{
-  VALUE ary = (VALUE)l;
-  rb_ary_push(l, rb_str_new2(font->lfFaceName));
-  return 1;
-}
-
-VALUE
-shoes_native_font_list()
-{
-  LOGFONT font;
-  VALUE ary = rb_ary_new();
-  HDC dc = GetDC(shoes_world->os.hidden);
-  SHOE_MEMZERO(&font, LOGFONT, 1);
-  font.lfCharSet = DEFAULT_CHARSET;
-  EnumFontFamiliesEx(dc, &font, shoes_font_list_iter, (LPARAM)ary, 0);
-  ReleaseDC(shoes_world->os.hidden, dc);
-  rb_funcall(ary, rb_intern("uniq!"), 0);
-  rb_funcall(ary, rb_intern("sort!"), 0);
-  return ary;
 }
 
 void shoes_native_init(char *path)
@@ -208,6 +204,8 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
     long i = rb_ary_index_of(slot->controls, item);
     if (i >= 0)
       rb_ary_insert_at(slot->controls, i, 1, Qnil);
+      if (item == slot->focus)
+        slot->focus = Qnil;
   }
 }
 
@@ -215,6 +213,7 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
 // Window-level events
 //
 #define WINDOW_STYLE WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX
+#define WINDOW_STYLE_FULLSCREEN WS_POPUP | WS_VSCROLL | ES_AUTOVSCROLL
 
 #define WM_POINTS() \
   POINT p; \
@@ -238,6 +237,147 @@ void shoes_native_remove_item(SHOES_SLOT_OS *slot, VALUE item, char c)
     shoes_app_keypress(app, v); \
   }
 
+#define KEYUPDOWN \
+  VALUE v; \
+  char letter = w; \
+  if (w == VK_LCONTROL) \
+    v = ID2SYM(rb_intern("left_ctrl")); \
+  else if (w == VK_RCONTROL) \
+    v = ID2SYM(rb_intern("right_ctrl")); \
+  else if (w == VK_CONTROL) \
+    v = ID2SYM(rb_intern("ctrl")); \
+  else if (w == VK_LMENU) \
+    v = ID2SYM(rb_intern("left_alt")); \
+  else if (w == VK_RMENU) \
+    v = ID2SYM(rb_intern("right_alt")); \
+  else if (w == VK_MENU) \
+    v = ID2SYM(rb_intern("alt")); \
+  else if (w == VK_LSHIFT) \
+    v = ID2SYM(rb_intern("left_shift")); \
+  else if (w == VK_RSHIFT) \
+    v = ID2SYM(rb_intern("right_shift")); \
+  else if (w == VK_SHIFT) \
+    v = ID2SYM(rb_intern("shift")); \
+  else if (w == VK_ESCAPE) \
+    v = ID2SYM(rb_intern("escape")); \
+  else if (w == VK_INSERT) \
+    v = ID2SYM(rb_intern("insert")); \
+  else if (w == VK_DELETE) \
+    v = ID2SYM(rb_intern("delete")); \
+  else if (w == VK_PRIOR) \
+    v = ID2SYM(rb_intern("page_up")); \
+  else if (w == VK_NEXT) \
+    v = ID2SYM(rb_intern("page_down")); \
+  else if (w == VK_HOME) \
+    v = ID2SYM(rb_intern("home")); \
+  else if (w == VK_END) \
+    v = ID2SYM(rb_intern("end")); \
+  else if (w == VK_LEFT) \
+    v = ID2SYM(rb_intern("left")); \
+  else if (w == VK_UP) \
+    v = ID2SYM(rb_intern("up")); \
+  else if (w == VK_RIGHT) \
+    v = ID2SYM(rb_intern("right")); \
+  else if (w == VK_DOWN) \
+    v = ID2SYM(rb_intern("down")); \
+  else if (w == VK_F1) \
+    v = ID2SYM(rb_intern("f1")); \
+  else if (w == VK_F2) \
+    v = ID2SYM(rb_intern("f2")); \
+  else if (w == VK_F2) \
+    v = ID2SYM(rb_intern("f2")); \
+  else if (w == VK_F3) \
+    v = ID2SYM(rb_intern("f3")); \
+  else if (w == VK_F4) \
+    v = ID2SYM(rb_intern("f4")); \
+  else if (w == VK_F5) \
+    v = ID2SYM(rb_intern("f5")); \
+  else if (w == VK_F6) \
+    v = ID2SYM(rb_intern("f6")); \
+  else if (w == VK_F7) \
+    v = ID2SYM(rb_intern("f7")); \
+  else if (w == VK_F8) \
+    v = ID2SYM(rb_intern("f8")); \
+  else if (w == VK_F9) \
+    v = ID2SYM(rb_intern("f9")); \
+  else if (w == VK_F10) \
+    v = ID2SYM(rb_intern("f10")); \
+  else if (w == VK_F11) \
+    v = ID2SYM(rb_intern("f11")); \
+  else if (w == VK_F12) \
+    v = ID2SYM(rb_intern("f12")); \
+  else if (w == 186) \
+  { \
+    letter = ':'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 187) \
+  { \
+    letter = ';'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 188) \
+  { \
+    letter = ','; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 189) \
+  { \
+    letter = '-'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 190) \
+  { \
+    letter = '.'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 191) \
+  { \
+    letter = '/'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 192) \
+  { \
+    letter = '@'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 219) \
+  { \
+    letter = '['; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 220) \
+  { \
+    letter = '_'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 221) \
+  { \
+    letter = ']'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 222) \
+  { \
+    letter = '^'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 226) \
+  { \
+    letter = '\\'; \
+    v = rb_str_new(&letter, 1); \
+  } \
+  else if (w == 0x08) \
+    v = ID2SYM(rb_intern("backspace")); \
+  else if (w == 0x09) \
+    v = ID2SYM(rb_intern("tab")); \
+  else if (w == 0x0D) \
+    v = ID2SYM(rb_intern("enter")); \
+  else \
+  { \
+    letter = tolower(letter); \
+    v = rb_str_new(&letter, 1); \
+  }
+
 static void
 shoes_canvas_win32_vscroll(shoes_canvas *canvas, int code, int pos)
 {
@@ -247,7 +387,8 @@ shoes_canvas_win32_vscroll(shoes_canvas *canvas, int code, int pos)
   si.fMask = SIF_POS | SIF_RANGE | SIF_PAGE;
   GetScrollInfo(canvas->slot->window, SB_VERT, &si);
 
-  switch (code) {
+  switch (code)
+  {
     case SB_LINEUP:
       si.nPos -= 16;
     break;
@@ -274,9 +415,8 @@ shoes_canvas_win32_vscroll(shoes_canvas *canvas, int code, int pos)
 
   SetScrollInfo(canvas->slot->window, SB_VERT, &si, TRUE);
   canvas->slot->scrolly = si.nPos;
-  if (DC(canvas->app->slot) == DC(canvas->slot))
-    canvas->app->slot->scrolly = si.nPos;
-  InvalidateRect(canvas->slot->window, NULL, TRUE);
+  if (DC(canvas->app->slot) == DC(canvas->slot)) canvas->app->slot->scrolly = si.nPos;
+  shoes_native_slot_paint(canvas->slot);
 }
 
 LRESULT CALLBACK
@@ -287,15 +427,15 @@ shoes_slot_win32proc(
   LPARAM l)
 {
   shoes_canvas *canvas;
-  int mods = 0;         // key state for mouse events
-  VALUE c = (VALUE)GetWindowLong(win, GWLP_USERDATA);
+  VALUE c = (VALUE)GetWindowLongPtr(win, GWLP_USERDATA);
 
-  if (c != (VALUE)NULL) {
+  if (c != (VALUE)NULL)
+  {
     TypedData_Get_Struct(c, shoes_canvas, &shoes_canvas_type, canvas);
-    //Data_Get_Struct(c, shoes_canvas, canvas);
     int x = 0, y = 0;
-
-    switch (msg) {
+    int mods = 0; // TODO: keys pressed for motion events
+    switch (msg)
+    {
       case WM_ERASEBKGND:
         return 1;
 
@@ -303,12 +443,12 @@ shoes_slot_win32proc(
         INFO("WM_PAINT(slot, %lu)\n", win);
         if (c != canvas->app->canvas)
           shoes_canvas_paint(c);
-        return 1;
+      return 1;
 
       case WM_VSCROLL:
         shoes_canvas_win32_vscroll(canvas, LOWORD(w), HIWORD(w));
-        break;
-// TODO: events wants at key flag for clicks
+      break;
+
       case WM_LBUTTONDOWN:
       {
         WM_POINTS2();
@@ -359,33 +499,64 @@ shoes_slot_win32proc(
       return 1;
 
       case WM_ACTIVATE:
-        if (LOWORD(w) == WA_INACTIVE) {
+        if (LOWORD(w) == WA_INACTIVE)
+        {
           int i;
           HWND newFocus = GetFocus();
-          for (i = 0; i < RARRAY_LEN(canvas->slot->controls); i++) {
+          for (i = 0; i < RARRAY_LEN(canvas->slot->controls); i++)
+          {
             VALUE ctrl = rb_ary_entry(canvas->slot->controls, i);
-            if (rb_obj_is_kind_of(ctrl, cNative)) {
+            if (rb_obj_is_kind_of(ctrl, cNative))
+            {
               shoes_control *self_t;
               TypedData_Get_Struct(ctrl, shoes_control, &shoes_control_type, self_t);
-              //Data_Get_Struct(ctrl, shoes_control, self_t);
-              if (self_t->ref == newFocus) {
+              if (self_t->ref == newFocus)
+              {
                 canvas->slot->focus = ctrl;
                 break;
               }
             }
           }
         }
-        break;
+      break;
 
       case WM_SETFOCUS:
-        if (!NIL_P(canvas->slot->focus)) {
+        if (!NIL_P(canvas->slot->focus))
+        {
           shoes_control_focus(canvas->slot->focus);
         }
-        break;
+      break;
+
+      /* TODO: use to make controls clear
+      case WM_CTLCOLOREDIT:
+      case WM_CTLCOLORSTATIC:
+        {
+          HDC hdc = (HDC) w;
+          HBRUSH hbrBkcolor = (HBRUSH)GetStockObject(NULL_BRUSH);
+
+          SetBkMode(hdc, TRANSPARENT);
+          return (LRESULT) hbrBkcolor;
+        }
+      break;
+      */
+
+      case WM_HSCROLL:
+      {
+        if (LOWORD(w) == TB_THUMBTRACK)
+        {
+          int id = GetDlgCtrlID((HWND)l);
+          VALUE control = rb_ary_entry(canvas->slot->controls, id - SHOES_CONTROL1);
+          if (!NIL_P(control))
+            shoes_control_send(control, s_change);
+        }
+      }
+      break;
 
       case WM_COMMAND:
-        if ((HWND)l) {
-          switch (HIWORD(w)) {
+        if ((HWND)l)
+        {
+          switch (HIWORD(w))
+          {
             case BN_CLICKED:
             {
               int id = LOWORD(w);
@@ -412,6 +583,17 @@ shoes_slot_win32proc(
   return DefWindowProc(win, msg, w, l);
 }
 
+// TODO: this needs a rename - right?
+static void
+shoes_app_decor(HWND win, int *width, int *height)
+{
+   RECT rect, wrect;
+   GetClientRect(win, &rect);
+   GetWindowRect(win, &wrect);
+   *width = ((wrect.right - wrect.left) - (rect.right - rect.left)) - 2;
+   *height = ((wrect.bottom - wrect.top) - (rect.bottom - rect.top)) - 2;
+}
+
 LRESULT CALLBACK
 shoes_hidden_win32proc(HWND win, UINT msg, WPARAM w, LPARAM l)
 {
@@ -427,10 +609,11 @@ shoes_app_win32proc(
   WPARAM w,
   LPARAM l)
 {
-  shoes_app *app = (shoes_app *)GetWindowLong(win, GWLP_USERDATA);
+  shoes_app *app = (shoes_app *)GetWindowLongPtr(win, GWLP_USERDATA);
   int x = 0, y = 0;
-  int mods = 0;   // TODO: keys pressed for motion events
-  switch (msg) {
+  int mods;
+  switch (msg)
+  {
     case WM_DESTROY:
       if (shoes_app_remove(app))
         PostQuitMessage(0);
@@ -447,11 +630,12 @@ shoes_app_win32proc(
     //
     case WM_PAINT:
     {
-      RECT rect, wrect;
+      RECT rect;
+      int edgew, edgeh;
       int scrollwidth = GetSystemMetrics(SM_CXVSCROLL);
-      GetClientRect(app->slot->window, &rect);
-      GetWindowRect(app->slot->window, &wrect);
-      if (wrect.right - wrect.left > rect.right + scrollwidth)
+      GetClientRect(win, &rect);
+      shoes_app_decor(win, &edgew, &edgeh);
+      if (edgew > scrollwidth)
         rect.right += scrollwidth;
       app->width = rect.right;
       app->height = rect.bottom;
@@ -461,11 +645,24 @@ shoes_app_win32proc(
     }
     break;
 
+    case WM_GETMINMAXINFO:
+      if (app != NULL)
+      {
+        int edgew, edgeh;
+        int scrollwidth = GetSystemMetrics(SM_CXVSCROLL);
+        MINMAXINFO *size = (MINMAXINFO *)l;
+        shoes_app_decor(win, &edgew, &edgeh);
+        if (edgew > scrollwidth)
+          edgew -= scrollwidth;
+        size->ptMinTrackSize.x = app->minwidth + edgew;
+        size->ptMinTrackSize.y = app->minheight + edgeh;
+      }
+    return 0;
+
     case WM_LBUTTONDOWN:
     {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-      //Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
       shoes_app_click(app, 1, p.x, p.y + canvas->slot->scrolly, mods);
     }
@@ -475,7 +672,6 @@ shoes_app_win32proc(
     {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-      //Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
       shoes_app_click(app, 2, p.x, p.y + canvas->slot->scrolly, mods);
     }
@@ -485,7 +681,6 @@ shoes_app_win32proc(
     {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-      //Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
       shoes_app_click(app, 3, p.x, p.y + canvas->slot->scrolly, mods);
     }
@@ -495,7 +690,6 @@ shoes_app_win32proc(
     {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-      //Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
       shoes_app_release(app, 1, p.x, p.y + canvas->slot->scrolly, mods);
     }
@@ -505,7 +699,6 @@ shoes_app_win32proc(
     {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-      //Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
       shoes_app_release(app, 2, p.x, p.y + canvas->slot->scrolly, mods);
     }
@@ -515,7 +708,6 @@ shoes_app_win32proc(
     {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-      //Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
       shoes_app_release(app, 3, p.x, p.y + canvas->slot->scrolly, mods);
     }
@@ -525,14 +717,14 @@ shoes_app_win32proc(
     {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-      //Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       WM_POINTS();
       shoes_app_motion(app, p.x, p.y + canvas->slot->scrolly, mods);
     }
     return 1;
 
     case WM_CHAR:
-      switch(w) {
+      switch(w)
+      {
         case 0x08:
           KEY_SYM(backspace);
         break;
@@ -556,16 +748,24 @@ shoes_app_win32proc(
           shoes_app_keypress(app, v);
         }
       }
-    break; // WM_CHAR
+    break;
 
-    case WM_SYSKEYDOWN:
     case WM_KEYDOWN:
+      app->os.altkey = false;
+    case WM_SYSKEYDOWN:
+      {
+        KEYUPDOWN
+        shoes_app_keydown(app, v);
+      }
       if (w == VK_CONTROL)
         app->os.ctrlkey = true;
       else if (w == VK_MENU)
         app->os.altkey = true;
       else if (w == VK_SHIFT)
         app->os.shiftkey = true;
+      KEYPRESS(ESCAPE, escape)
+      KEYPRESS(INSERT, insert)
+      KEYPRESS(DELETE, delete)
       KEYPRESS(PRIOR, page_up)
       KEYPRESS(NEXT, page_down)
       KEYPRESS(HOME, home)
@@ -589,17 +789,22 @@ shoes_app_win32proc(
       else if ((w >= 'A' && w <= 'Z') || w == 191 || w == 190) {
         VALUE v;
         char letter = w;
-        if (w == 191) {
+        if (w == 191)
+        {
           if (app->os.shiftkey)
             letter = '?';
           else
             letter = '/';
-        } else if (w == 190) {
+        }
+        else if (w == 190)
+        {
           if (app->os.shiftkey)
             letter = '>';
           else
             letter = '.';
-        } else {
+        }
+        else
+        {
           if (!app->os.shiftkey)
             letter += 32;
         }
@@ -613,6 +818,10 @@ shoes_app_win32proc(
 
     case WM_SYSKEYUP:
     case WM_KEYUP:
+      {
+        KEYUPDOWN
+        shoes_app_keyup(app, v);
+      }
       if (w == VK_CONTROL)
         app->os.ctrlkey = false;
       else if (w == VK_MENU)
@@ -629,7 +838,8 @@ shoes_app_win32proc(
       SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0, &lines, 0);
       if (lines == WHEEL_PAGESCROLL)
         scode = (int)w < 0 ? SB_PAGEDOWN : SB_PAGEUP;
-      else {
+      else
+      {
         scode = (int)w < 0 ? SB_LINEDOWN : SB_LINEUP;
         notch *= lines;
       }
@@ -637,7 +847,6 @@ shoes_app_win32proc(
       INFO("WM_MOUSEWHEEL: %d (%d, %d) %lu\n", w, scode, notch, lines);
       notch = abs(notch);
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-      //Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       while (notch--)
         shoes_canvas_win32_vscroll(canvas, scode, 0);
     }
@@ -647,7 +856,6 @@ shoes_app_win32proc(
     {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
-      //Data_Get_Struct(app->canvas, shoes_canvas, canvas);
       shoes_canvas_win32_vscroll(canvas, LOWORD(w), HIWORD(w));
     }
     break;
@@ -656,7 +864,8 @@ shoes_app_win32proc(
     {
       int id = LOWORD(w);
       VALUE timer = rb_ary_entry(app->extras, id - SHOES_CONTROL1);
-      if (!NIL_P(timer)) {
+      if (!NIL_P(timer))
+      {
         if (rb_obj_is_kind_of(timer, cTimer))
           KillTimer(win, id);
         shoes_timer_call(timer);
@@ -665,16 +874,19 @@ shoes_app_win32proc(
     break;
 
     case WM_ACTIVATE:
-      if (LOWORD(w) == WA_INACTIVE) {
+      if (LOWORD(w) == WA_INACTIVE)
+      {
         int i;
         HWND newFocus = GetFocus();
-        for (i = 0; i < RARRAY_LEN(app->slot->controls); i++) {
+        for (i = 0; i < RARRAY_LEN(app->slot->controls); i++)
+        {
           VALUE ctrl = rb_ary_entry(app->slot->controls, i);
-          if (rb_obj_is_kind_of(ctrl, cNative)) {
+          if (rb_obj_is_kind_of(ctrl, cNative))
+          {
             shoes_control *self_t;
             TypedData_Get_Struct(ctrl, shoes_control, &shoes_control_type, self_t);
-            //Data_Get_Struct(ctrl, shoes_control, self_t);
-            if (self_t->ref == newFocus) {
+            if (self_t->ref == newFocus)
+            {
               app->slot->focus = ctrl;
               break;
             }
@@ -684,14 +896,29 @@ shoes_app_win32proc(
     break;
 
     case WM_SETFOCUS:
-      if (!NIL_P(app->slot->focus)) {
+      if (!NIL_P(app->slot->focus))
+      {
         shoes_control_focus(app->slot->focus);
       }
-      break;
+    break;
+
+    case WM_HSCROLL:
+    {
+      if (LOWORD(w) == TB_THUMBTRACK)
+      {
+        int id = GetDlgCtrlID((HWND)l);
+        VALUE control = rb_ary_entry(app->slot->controls, id - SHOES_CONTROL1);
+        if (!NIL_P(control))
+          shoes_control_send(control, s_change);
+      }
+    }
+    break;
 
     case WM_COMMAND:
-      if ((HWND)l) {
-        switch (HIWORD(w)) {
+      if ((HWND)l)
+      {
+        switch (HIWORD(w))
+        {
           case BN_CLICKED:
           {
             int id = LOWORD(w);
@@ -718,15 +945,27 @@ shoes_app_win32proc(
   return DefWindowProc(win, msg, w, l);
 }
 
+extern ID s_hand;
 shoes_code
 shoes_native_app_cursor(shoes_app *app, ID cursor)
 {
   HCURSOR c;
-  if (cursor == s_hand_cursor|| cursor == s_link) {
+  if (app->slot == NULL || app->slot->window == NULL || app->cursor == cursor)
+    goto done;
+
+  if (cursor == s_hand_cursor || cursor == s_link)
+  {
     c = LoadCursor(NULL, IDC_HAND);
-  } else if (cursor == s_arrow) {
+  }
+  else if (cursor == s_arrow)
+  {
     c = LoadCursor(NULL, IDC_ARROW);
-  } else
+  }
+  else if (cursor == s_text)
+  {
+    c = LoadCursor(NULL, IDC_IBEAM);
+  }
+  else
     goto done;
 
   SetCursor(c);
@@ -824,13 +1063,26 @@ shoes_native_app_title(shoes_app *app, char *msg)
   }
 }
 
+void
+shoes_native_app_fullscreen(shoes_app *app, char yn)
+{
+  if (yn)
+    GetWindowRect(app->slot->window, &app->os.normal);
+  SetWindowLong(app->slot->window, GWL_STYLE, yn ? WINDOW_STYLE_FULLSCREEN : app->os.style);
+  ShowWindow(FindWindow("Shell_TrayWnd", NULL), yn ? SW_HIDE : SW_SHOW);
+  if (!yn)
+    MoveWindow(app->slot->window, app->os.normal.left, app->os.normal.top,
+      app->os.normal.right - app->os.normal.left, app->os.normal.bottom - app->os.normal.top, TRUE);
+  ShowWindow(app->slot->window, yn ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL);
+}
+
 // TODO: settings and SHOES_APPNAME
 #define SHOES_APPNAME "Shoes"
 shoes_code
 shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_settings *st)
 {
   shoes_code code = SHOES_OK;
-  RECT rect;
+  LONG style;
   DWORD exStyle = dialog ? WS_EX_WINDOWEDGE : WS_EX_CLIENTEDGE;
 
   app->slot->controls = Qnil;
@@ -840,26 +1092,28 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_settings *st
   app->os.shiftkey = false;
 
   // remove the menu
-  rect.left = 0;
-  rect.top = 0;
-  rect.right = app->width;
-  rect.bottom = app->height;
-  AdjustWindowRectEx(&rect, WINDOW_STYLE, FALSE, exStyle);
+  app->os.normal.left = 0;
+  app->os.normal.top = 0;
+  app->os.normal.right = app->width;
+  app->os.normal.bottom = app->height;
+  AdjustWindowRectEx(&app->os.normal, WINDOW_STYLE, FALSE, exStyle);
 
+  exStyle |= WS_EX_COMPOSITED;
+  style = app->os.style = WINDOW_STYLE |
+    (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME) |
+    WS_VSCROLL | ES_AUTOVSCROLL;
+  if (app->fullscreen)
+    style = WINDOW_STYLE_FULLSCREEN;
   app->slot->window = CreateWindowEx(
-      exStyle, SHOES_SHORTNAME, SHOES_APPNAME,
-      WINDOW_STYLE | WS_CLIPCHILDREN |
-        (app->resizable ? (WS_THICKFRAME | WS_MAXIMIZEBOX) : WS_DLGFRAME) |
-        WS_VSCROLL | ES_AUTOVSCROLL,
-      CW_USEDEFAULT, CW_USEDEFAULT,
-      rect.right-rect.left, rect.bottom-rect.top,
-      HWND_DESKTOP,
-      NULL,
-      shoes_world->os.instance,
-      NULL
-  );
+    exStyle, SHOES_SHORTNAME, SHOES_APPNAME, style,
+    CW_USEDEFAULT, CW_USEDEFAULT,
+    app->os.normal.right-app->os.normal.left, app->os.normal.bottom-app->os.normal.top,
+    HWND_DESKTOP,
+    NULL,
+    shoes_world->os.instance,
+    NULL);
 
-  SetWindowLong(app->slot->window, GWLP_USERDATA, (long)app);
+  SetWindowLongPtr(app->slot->window, GWLP_USERDATA, (long)app);
   shoes_win32_center(app->slot->window);
 
   SCROLLINFO si;
@@ -891,32 +1145,42 @@ shoes_native_app_show(shoes_app *app)
 void
 shoes_native_loop() {
   MSG msgs;
-  while (msgs.message != WM_QUIT) {
+  while (msgs.message != WM_QUIT)
+  {
     BOOL msg = PeekMessage(&msgs, NULL, 0, 0, PM_REMOVE);
-    if (msg) {
+    if (msg)
+    {
       HWND focused = GetForegroundWindow();
-      if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP) {
-        shoes_app *appk = (shoes_app *)GetWindowLong(focused, GWLP_USERDATA);
+      if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP)
+      {
+        shoes_app *appk = (shoes_app *)GetWindowLongPtr(focused, GWLP_USERDATA);
         ATOM wndatom = GetClassLong(focused, GCW_ATOM);
-        if (appk != NULL && wndatom == shoes_world->os.classatom && RARRAY_LEN(appk->slot->controls) > 0) {
-          switch (msgs.wParam) {
+        if (appk != NULL && wndatom == shoes_world->os.classatom && RARRAY_LEN(appk->slot->controls) > 0)
+        {
+          switch (msgs.wParam)
+          {
             case VK_TAB: case VK_UP: case VK_LEFT: case VK_DOWN:
             case VK_RIGHT: case VK_PRIOR: case VK_NEXT:
               break;
             default:
               msg = false;
           }
-        } else msg = false;
-      } else if (msgs.message == WM_SYSCHAR || msgs.message == WM_CHAR)
+        }
+        else msg = false;
+      }
+      else if (msgs.message == WM_SYSCHAR || msgs.message == WM_CHAR)
         msg = false;
       if (msg)
         msg = IsDialogMessage(focused, &msgs);
 
-      if (!msg) {
+      if (!msg)
+      {
         TranslateMessage(&msgs);
         DispatchMessage(&msgs);
       }
-    } else { // no message TODO: run the next ruby thread that's ready
+    }
+    else
+    {
       rb_eval_string("sleep(0.001)");
     }
   }
@@ -944,21 +1208,24 @@ shoes_native_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, 
   slot = shoes_slot_alloc(canvas, parent, toplevel);
   slot->vscroll = scrolls;
 
-  if (toplevel) {
+  if (toplevel)
+  {
     slot->dc = parent->dc;
     slot->window = parent->window;
     slot->controls = parent->controls;
-  } else {
+  }
+  else
+  {
     slot->controls = rb_ary_new();
     slot->dc = NULL;
-    slot->window = CreateWindowEx(0, SHOES_SLOTCLASS, "Shoes Slot Window",
-      WS_CHILD | WS_CLIPCHILDREN | WS_TABSTOP | WS_VISIBLE,
+    slot->window = CreateWindowEx(WS_EX_TRANSPARENT, SHOES_SLOTCLASS, "Shoes Slot Window",
+      WS_CHILD | WS_TABSTOP | WS_VISIBLE,
       x, y, width, height, parent->window, NULL, 
-      (HINSTANCE)GetWindowLong(parent->window, GWLP_HINSTANCE), NULL);
+      (HINSTANCE)GetWindowLongPtr(parent->window, GWLP_HINSTANCE), NULL);
+    SetWindowPos(slot->window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
     SetWindowLong(slot->window, GWLP_USERDATA, (long)c);
   }
-  if (toplevel)
-    shoes_canvas_size(c, width, height);
+  if (toplevel) shoes_canvas_size(c, width, height);
 }
 
 void
@@ -978,35 +1245,14 @@ shoes_native_cairo_create(shoes_canvas *canvas)
     return NULL;
 
   HBITMAP bitmap, bitold;
-  if (DC(canvas->slot) != DC(canvas->app->slot))
-    canvas->slot->dc2 = BeginPaint(canvas->slot->window, &canvas->slot->ps);
-  else
-    canvas->slot->dc2 = GetDC(canvas->slot->window);
-  if (canvas->slot->dc != NULL) {
-    DeleteObject(GetCurrentObject(canvas->slot->dc, OBJ_BITMAP));
-    DeleteDC(canvas->slot->dc);
-  }
-  canvas->slot->dc = CreateCompatibleDC(canvas->slot->dc2);
-  bitmap = CreateCompatibleBitmap(canvas->slot->dc2, canvas->width, canvas->height);
-  bitold = (HBITMAP)SelectObject(canvas->slot->dc, bitmap);
-  DeleteObject(bitold);
-  if (DC(canvas->slot) == DC(canvas->app->slot)) {
+  canvas->slot->dc = BeginPaint(canvas->slot->window, &canvas->slot->ps);
+  if (DC(canvas->slot) == DC(canvas->app->slot))
+  {
     RECT rc;
     HBRUSH bg = CreateSolidBrush(GetSysColor(COLOR_WINDOW));
     GetClientRect(canvas->slot->window, &rc);
     FillRect(canvas->slot->dc, &rc, bg);
     DeleteObject(bg);
-  } else {
-    shoes_canvas *parent;
-    TypedData_Get_Struct(canvas->parent, shoes_canvas, &shoes_canvas_type, parent);
-    //Data_Get_Struct(canvas->parent, shoes_canvas, parent);
-
-    if (parent != NULL && parent->slot->dc != NULL) {
-      RECT r;
-      GetClientRect(canvas->slot->window, &r);
-      BitBlt(canvas->slot->dc, 0, 0, r.right - r.left, r.bottom - r.top,
-        parent->slot->dc, canvas->place.ix, canvas->place.iy, SRCCOPY);
-    }
   }
 
   canvas->slot->surface = cairo_win32_surface_create(canvas->slot->dc);
@@ -1018,13 +1264,9 @@ shoes_native_cairo_create(shoes_canvas *canvas)
 
 void shoes_native_cairo_destroy(shoes_canvas *canvas)
 {
-  BitBlt(canvas->slot->dc2, 0, 0, canvas->width, canvas->height, canvas->slot->dc, 0, 0, SRCCOPY);
   cairo_surface_destroy(canvas->slot->surface);
   canvas->slot->surface = NULL;
-  if (DC(canvas->slot) != DC(canvas->app->slot))
-    EndPaint(canvas->slot->window, &canvas->slot->ps);
-  else
-    ReleaseDC(canvas->slot->window, canvas->slot->dc2);
+  EndPaint(canvas->slot->window, &canvas->slot->ps);
 }
 
 void
@@ -1046,6 +1288,11 @@ shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc)
       (self_t->place.iy + self_t->place.dy) - pc->slot->scrolly, self_t->place.iw, 
       self_t->place.ih, TRUE);
   }
+}
+
+void
+shoes_native_canvas_resize(shoes_canvas *canvas)
+{
 }
 
 VALUE
@@ -1102,13 +1349,13 @@ shoes_native_window_color(shoes_app *app)
 
 // calls from app.c functions. 
 
-// Is this needed for winodws?
+// Is this needed for windows?
 shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, shoes_settings *st) {
   fprintf(stderr, "shoes_native_app_open_menu called\n");
   return shoes_native_app_open(app, path, dialog, st);
 }
 
-// Is this needed for winodws?
+// Is this needed for windows?
 void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width,
     int height, int scrolls, int toplevel) {
   fprintf(stderr, "shoes_slot_init_menu called\n");
@@ -1132,9 +1379,6 @@ VALUE shoes_native_get_resizable(shoes_app *app) {
 }
 
 void shoes_native_set_resizable(shoes_app *app, int resizable) {
-}
-
-void shoes_native_app_fullscreen(shoes_app *app, char yn) {
 }
 
 void shoes_native_app_set_opacity(shoes_app *app, double opacity) {
