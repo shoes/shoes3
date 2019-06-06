@@ -103,6 +103,9 @@ VALUE shoes_video_new(VALUE attr, VALUE parent) {
  */
 VALUE shoes_video_get_drawable(VALUE self) {
     Get_TypedStruct2(self, shoes_video, self_t);
+#ifdef SHOES_WIN32
+    return ULONG2NUM((unsigned long)self_t->ref);
+#endif
 #ifdef SHOES_GTK_WIN32
     return ULONG2NUM((unsigned long)GDK_WINDOW_HWND(gtk_widget_get_window(self_t->ref)));
 #else

@@ -23,6 +23,7 @@ typedef struct {
     char *key;     // accelerator key . flags in state var above
     VALUE block;   // ruby block to call
     VALUE context; // app->canvas 
+    int   extra;   // Native windows uses this.
 } shoes_menuitem;
 
 

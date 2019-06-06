@@ -20,6 +20,9 @@
 #include "shoes/types/list_box.h"
 #include "shoes/types/radio.h"
 #include "shoes/types/slider.h"
+#include "shoes/types/progress.h"
+#include "shoes/types/slider.h"
+#include "shoes/types/video.h"
 
 /*
  * Hard to believe but we cast (HMENU)(UINT_PTR)intvar to fit into a void *
@@ -98,6 +101,8 @@ shoes_native_control_free(SHOES_CONTROL_REF ref)
 {
 }
 
+// Used by video widget 
+#if 0
 SHOES_SURFACE_REF
 shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
 {
@@ -112,6 +117,27 @@ shoes_native_surface_new(shoes_canvas *canvas, VALUE self, shoes_place *place)
   rb_ary_push(canvas->slot->controls, self);
   return ref;
 }
+#else
+SHOES_CONTROL_REF shoes_native_surface_new(VALUE attr, VALUE video) {
+  shoes_video *vidobj;
+  shoes_canvas *canvas;
+  int width = NUM2INT(ATTR(attr, width));
+  int height = NUM2INT(ATTR(attr, height));
+  TypedData_Get_Struct(video, shoes_video, &shoes_video_type, vidobj);
+  TypedData_Get_Struct(vidobj->parent, shoes_canvas, &shoes_canvas_type, canvas);
+  int cid = SHOES_CONTROL1 + RARRAY_LEN(canvas->slot->controls);
+  SHOES_SURFACE_REF ref = CreateWindowEx(WS_EX_TRANSPARENT, SHOES_VLCLASS, "Shoes VLC Window",
+      WS_CHILD | WS_TABSTOP | WS_VISIBLE,
+      0, 0,
+      width, height,
+      canvas->slot->window, (HMENU)(UINT_PTR)cid, 
+      (HINSTANCE)GetWindowLongPtr(canvas->slot->window, GWLP_HINSTANCE), NULL);
+  //SetWindowPos(ref, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
+  rb_ary_push(canvas->slot->controls, video);
+  vidobj->realized = Qtrue;
+  return ref;
+}
+#endif
 
 void
 shoes_native_surface_position(SHOES_SURFACE_REF ref, shoes_place *p1, 
@@ -133,9 +159,9 @@ shoes_native_surface_show(SHOES_SURFACE_REF ref)
 }
 
 void
-shoes_native_surface_remove(shoes_canvas *canvas, SHOES_SURFACE_REF ref)
+shoes_native_surface_remove(SHOES_SURFACE_REF ref)
 {
-  DestroyWindow(ref);
+  //DestroyWindow(ref);
 }
 
 SHOES_CONTROL_REF
@@ -169,7 +195,7 @@ shoes_native_edit_line(VALUE self, shoes_canvas *canvas, shoes_place *place, VAL
       NULL);
   
   shoes_original_edit_line_proc = (WNDPROC)GetWindowLongPtr(ref, GWLP_WNDPROC);
-  SetWindowLongPtr(ref, GWLP_WNDPROC, shoes_edit_line_win32proc); 
+  SetWindowLongPtr(ref, GWLP_WNDPROC, (LONG)shoes_edit_line_win32proc); 
   
   SetWindowPos(ref, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
   shoes_win32_control_font(cid, canvas->slot->window);

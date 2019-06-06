@@ -151,7 +151,7 @@ when :win32
 when :osx
   if CROSS
     case TGT_ARCH
-    when /yosemite/, /mxe_osx/
+    when /yosemite/, /mxe_osx/, /gtkosx/
       # Building tight shoes on OSX for OSX
       require File.expand_path("make/darwin/#{TGT_ARCH}/env")
       require File.expand_path("make/darwin/#{TGT_ARCH}/tasks")
@@ -539,6 +539,11 @@ namespace :setup do
     task :minosx do
       sh "echo 'TGT_ARCH=minosx' >build_target"
     end
+    
+    desc "Setup for Gtk OSX"
+    task :gtkosx do
+			sh "echo 'TGT_ARCH=gtkosx' >build_target"
+		end
   end
   
   if build_os == :win32 

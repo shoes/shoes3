@@ -63,7 +63,7 @@ WIN32_LDFLAGS = []
 WIN32_LIBS = []
 
 if APP['GDB']
-  WIN32_CFLAGS << "-g3 -O0 -DDEBUG"
+  WIN32_CFLAGS << "-g3 -O0"
 else
   WIN32_CFLAGS << "-O -Wall"
 end
@@ -78,6 +78,7 @@ PANGO_CFLAGS = `#{PKG_CONFIG} --cflags pango --define-variable=prefix=#{ShoesDep
 PANGO_LDFLAGS = `#{PKG_CONFIG} --libs pango --define-variable=prefix=#{ShoesDeps}`.chomp
 PANGOCAIRO_CFLAGS = `#{PKG_CONFIG} --cflags pangocairo --define-variable=prefix=#{ShoesDeps}`.chomp
 PANGOCAIRO_LDFLAGS = `#{PKG_CONFIG} --libs pangocairo --define-variable=prefix=#{ShoesDeps}`.chomp
+RSVG_CFLAGS = `#{PKG_CONFIG} --cflags librsvg-2.0 --define-variable=prefix=#{ShoesDeps}`.chomp
 
 #RUBY_LDFLAGS = " -Wl,-export-all-symbols -L#{EXT_RUBY}/lib -lmsvcrt-ruby230 "
 RUBY_LDFLAGS = " -Wl,-export-all-symbols -L#{EXT_RUBY}/lib -l#{RbConfig::CONFIG["RUBY_SO_NAME"]} "
@@ -85,10 +86,11 @@ RUBY_LDFLAGS = " -Wl,-export-all-symbols -L#{EXT_RUBY}/lib -l#{RbConfig::CONFIG[
 WIN32_CFLAGS << "-DSHOES_WIN32 -DRUBY_HTTP -DVIDEO"
 WIN32_CFLAGS << "-Wno-unused-but-set-variable -Wno-attributes"
 WIN32_CFLAGS << "-D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32_WINNT=0x0501 -DWINVER=0x0501 -DCOBJMACROS"
-#WIN32_CFLAGS << GTK_CFLAGS
+
 WIN32_CFLAGS << CAIRO_CFLAGS
 WIN32_CFLAGS << PANGO_CFLAGS
 WIN32_CFLAGS << PANGOCAIRO_CFLAGS
+WIN32_CFLAGS << RSVG_CFLAGS
 WIN32_CFLAGS << "-I#{ShoesDeps}/include/librsvg-2.0/librsvg "
 WIN32_CFLAGS << `pkg-config --cflags #{pkgruby} --define-variable=prefix=#{EXT_RUBY}`.chomp
 WIN32_CFLAGS << "-Ishoes"
@@ -97,7 +99,7 @@ WIN32_LDFLAGS << "-lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32"
 WIN32_LDFLAGS << "-lgif -ljpeg -lfontconfig"
 WIN32_LDFLAGS << "-L#{ShoesDeps}/bin"
 WIN32_LDFLAGS << "-fPIC -shared"
-#WIN32_LDFLAGS << GTK_LDFLAGS
+
 WIN32_LDFLAGS << CAIRO_LDFLAGS
 WIN32_LDFLAGS << PANGO_LDFLAGS
 WIN32_LDFLAGS << PANGOCAIRO_LDFLAGS
@@ -148,7 +150,7 @@ SOLOCS.merge!(
     'libffi-6'         => "#{bindll}/libffi-6.dll",
     'libfontconfig-1'  => "#{bindll}/libfontconfig-1.dll",
     'libfreetype-6'    => "#{bindll}/libfreetype-6.dll",
-    #'libgdk_pixbuf-2.0-0'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
+    'libgdk_pixbuf-2.0-0'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
     'libgio-2.0-0'         => "#{bindll}/libgio-2.0-0.dll",
     'libglib-2.0-0'        => "#{bindll}/libglib-2.0-0.dll",
     'libgmodule-2.0-0'     => "#{bindll}/libgmodule-2.0-0.dll",

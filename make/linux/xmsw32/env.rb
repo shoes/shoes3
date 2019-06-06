@@ -78,6 +78,7 @@ PANGO_CFLAGS = `#{PKG_CONFIG} --cflags pango --define-variable=prefix=#{ShoesDep
 PANGO_LDFLAGS = `#{PKG_CONFIG} --libs pango --define-variable=prefix=#{ShoesDeps}`.chomp
 PANGOCAIRO_CFLAGS = `#{PKG_CONFIG} --cflags pangocairo --define-variable=prefix=#{ShoesDeps}`.chomp
 PANGOCAIRO_LDFLAGS = `#{PKG_CONFIG} --libs pangocairo --define-variable=prefix=#{ShoesDeps}`.chomp
+RSVG_CFLAGS = `#{PKG_CONFIG} --cflags librsvg-2.0 --define-variable=prefix=#{ShoesDeps}`.chomp
 
 #RUBY_LDFLAGS = " -Wl,-export-all-symbols -L#{EXT_RUBY}/lib -lmsvcrt-ruby230 "
 RUBY_LDFLAGS = " -Wl,-export-all-symbols -L#{EXT_RUBY}/lib -l#{RbConfig::CONFIG["RUBY_SO_NAME"]} "
@@ -89,6 +90,7 @@ WIN32_CFLAGS << "-D__MINGW_USE_VC2005_COMPAT -DXMD_H -D_WIN32_IE=0x0500 -D_WIN32
 WIN32_CFLAGS << CAIRO_CFLAGS
 WIN32_CFLAGS << PANGO_CFLAGS
 WIN32_CFLAGS << PANGOCAIRO_CFLAGS
+WIN32_CFLAGS << RSVG_CFLAGS
 WIN32_CFLAGS << "-I#{ShoesDeps}/include/librsvg-2.0/librsvg "
 WIN32_CFLAGS << `pkg-config --cflags #{pkgruby} --define-variable=prefix=#{EXT_RUBY}`.chomp
 WIN32_CFLAGS << "-Ishoes"
@@ -148,7 +150,7 @@ SOLOCS.merge!(
     'libffi-6'         => "#{bindll}/libffi-6.dll",
     'libfontconfig-1'  => "#{bindll}/libfontconfig-1.dll",
     'libfreetype-6'    => "#{bindll}/libfreetype-6.dll",
-    #'libgdk_pixbuf-2.0-0'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
+    'libgdk_pixbuf-2.0-0'   => "#{bindll}/libgdk_pixbuf-2.0-0.dll",
     'libgio-2.0-0'         => "#{bindll}/libgio-2.0-0.dll",
     'libglib-2.0-0'        => "#{bindll}/libglib-2.0-0.dll",
     'libgmodule-2.0-0'     => "#{bindll}/libgmodule-2.0-0.dll",

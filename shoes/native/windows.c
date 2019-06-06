@@ -14,6 +14,7 @@
 #include "shoes/types/button.h"
 #include "shoes/types/download.h"
 #include "shoes/types/timerbase.h"
+#include "shoes/native/msw/menus.h"
 
 int win_current_tmo = 10; // TODO: settings can poke this. May not be needed/used 
 
@@ -26,16 +27,6 @@ unsigned long shoes_diff_time(SHOES_TIME *start, SHOES_TIME *end)
 {
   return *end - *start;
 }
-
-
-// calls from ruby.c - stubbed out until written for windows - see subsys.rb
-void shoes_svg_init() {
-}
-
-void shoes_video_init() {
-}
-
-
 shoes_code shoes_classex_init();
 
 WCHAR *
@@ -915,10 +906,8 @@ shoes_app_win32proc(
     break;
 
     case WM_COMMAND:
-      if ((HWND)l)
-      {
-        switch (HIWORD(w))
-        {
+      if ((HWND)l) {
+        switch (HIWORD(w)) {
           case BN_CLICKED:
           {
             int id = LOWORD(w);
@@ -939,7 +928,26 @@ shoes_app_win32proc(
           break;
         }
       }
-    break;
+      // Assumes no menus have a zero id
+      if (LOWORD(w)) {
+        fprintf(stderr, "WM_COMMAND: %d\n", LOWORD(w));
+        shoes_win32_menu_lookup(app, LOWORD(w));
+      }
+      break; // from WM_COMMAND
+    
+    case WM_CREATE:
+      shoes_win32_menubar_setup(app, win); // TODO: neccessary?
+      break;
+    case WM_MENUSELECT:
+#if 0
+      { int item = LOWORD(w);
+        if (item) {
+          fprintf(stderr, "WM_MENUSELECT: %d\n", item);
+          shoes_win32_menu_lookup(app, item);
+        }
+      }
+#endif
+      break;
   }
 
   return DefWindowProc(win, msg, w, l);
@@ -1076,6 +1084,21 @@ shoes_native_app_fullscreen(shoes_app *app, char yn)
   ShowWindow(app->slot->window, yn ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL);
 }
 
+
+void shoes_win32_attach_menubar(shoes_app *app, shoes_settings *st) {
+  HMENU menubar;   
+  
+  menubar = CreateMenu();
+  app->os.menubar = menubar;
+  app->have_menu = TRUE;
+  
+  // now we can add the default Shoes menus
+  VALUE mbv = shoes_native_menubar_setup(app, menubar);
+  shoes_native_build_menus(app, mbv);
+  app->menubar = mbv;
+  SetMenu(app->slot->window, menubar);
+}
+
 // TODO: settings and SHOES_APPNAME
 #define SHOES_APPNAME "Shoes"
 shoes_code
@@ -1115,6 +1138,9 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_settings *st
 
   SetWindowLongPtr(app->slot->window, GWLP_USERDATA, (long)app);
   shoes_win32_center(app->slot->window);
+  if (app->have_menu) {
+      shoes_win32_attach_menubar(app, st); 
+  }
 
   SCROLLINFO si;
   si.cbSize = sizeof(SCROLLINFO);
@@ -1148,39 +1174,40 @@ shoes_native_loop() {
   while (msgs.message != WM_QUIT)
   {
     BOOL msg = PeekMessage(&msgs, NULL, 0, 0, PM_REMOVE);
-    if (msg)
-    {
+
+    if (msg) {
       HWND focused = GetForegroundWindow();
-      if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP)
-      {
-        shoes_app *appk = (shoes_app *)GetWindowLongPtr(focused, GWLP_USERDATA);
+      shoes_app *appk = (shoes_app *)GetWindowLongPtr(focused, GWLP_USERDATA);
+#if 0
+      if (!TranslateAccelerator(focused, appk->os.accel, &msgs)) {
+        TranslateMessage(&msgs);
+        DispatchMessage(&msgs);
+      }
+      else
+#endif
+       if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP) {
         ATOM wndatom = GetClassLong(focused, GCW_ATOM);
-        if (appk != NULL && wndatom == shoes_world->os.classatom && RARRAY_LEN(appk->slot->controls) > 0)
-        {
-          switch (msgs.wParam)
-          {
+        if (appk != NULL && wndatom == shoes_world->os.classatom && RARRAY_LEN(appk->slot->controls) > 0) {
+          switch (msgs.wParam) {
             case VK_TAB: case VK_UP: case VK_LEFT: case VK_DOWN:
             case VK_RIGHT: case VK_PRIOR: case VK_NEXT:
               break;
             default:
               msg = false;
           }
-        }
-        else msg = false;
+        } else 
+          msg = false;
       }
       else if (msgs.message == WM_SYSCHAR || msgs.message == WM_CHAR)
         msg = false;
       if (msg)
         msg = IsDialogMessage(focused, &msgs);
 
-      if (!msg)
-      {
+      if (!msg) {
         TranslateMessage(&msgs);
         DispatchMessage(&msgs);
       }
-    }
-    else
-    {
+    } else {
       rb_eval_string("sleep(0.001)");
     }
   }

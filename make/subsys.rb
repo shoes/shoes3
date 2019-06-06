@@ -24,8 +24,8 @@ end
 mkdir_p "#{tp}/types", verbose: false
 rbwidget_src = FileList["shoes/types/*.c"]
 if TGT_ARCH =~ /xmsw|msw/
-  rbwidget_src -= ['shoes/types/svg.c']
-  rbwidget_src -= ['shoes/types/video.c']
+  #rbwidget_src -= ['shoes/types/svg.c']
+  #rbwidget_src -= ['shoes/types/video.c']
 end
 rbwidget_obj = []
 rbwidget_hdr = []

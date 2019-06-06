@@ -251,6 +251,9 @@ typedef struct {
     RECT normal;
     BOOL ctrlkey, altkey, shiftkey;
     HWND window;
+    HMENU menubar;
+    int   acc_cnt; // number of accels
+    HACCEL accel;
 } shoes_app_win32, SHOES_APP_OS;
 
 typedef struct {
