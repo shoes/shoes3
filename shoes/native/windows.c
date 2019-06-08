@@ -574,9 +574,8 @@ shoes_slot_win32proc(
   return DefWindowProc(win, msg, w, l);
 }
 
-// TODO: this needs a rename - right?
 static void
-shoes_app_decor(HWND win, int *width, int *height)
+shoes_win32_app_decor(HWND win, int *width, int *height)
 {
    RECT rect, wrect;
    GetClientRect(win, &rect);
@@ -597,18 +596,20 @@ LRESULT CALLBACK
 shoes_app_win32proc(
   HWND win,
   UINT msg,
-  WPARAM w,
+  WPARAM wParam,
   LPARAM l)
 {
   shoes_app *app = (shoes_app *)GetWindowLongPtr(win, GWLP_USERDATA);
   int x = 0, y = 0;
   int mods;
-  switch (msg)
-  {
+  int wmId = LOWORD(wParam);
+  int wmEvent = HIWORD(wParam);
+  int w = wParam;  //macro KEYUPDOWN uses 'w', sigh. TODO.
+  switch (msg) {
     case WM_DESTROY:
       if (shoes_app_remove(app))
         PostQuitMessage(0);
-    return 0; 
+      return 0; 
 
     case WM_ERASEBKGND:
       return 1;
@@ -619,13 +620,12 @@ shoes_app_win32proc(
     // always obscured by the scrollbar when it appears, rather than
     // resizing the width of the slot->
     //
-    case WM_PAINT:
-    {
+    case WM_PAINT: {
       RECT rect;
       int edgew, edgeh;
       int scrollwidth = GetSystemMetrics(SM_CXVSCROLL);
       GetClientRect(win, &rect);
-      shoes_app_decor(win, &edgew, &edgeh);
+      shoes_win32_app_decor(win, &edgew, &edgeh);
       if (edgew > scrollwidth)
         rect.right += scrollwidth;
       app->width = rect.right;
@@ -642,7 +642,7 @@ shoes_app_win32proc(
         int edgew, edgeh;
         int scrollwidth = GetSystemMetrics(SM_CXVSCROLL);
         MINMAXINFO *size = (MINMAXINFO *)l;
-        shoes_app_decor(win, &edgew, &edgeh);
+        shoes_win32_app_decor(win, &edgew, &edgeh);
         if (edgew > scrollwidth)
           edgew -= scrollwidth;
         size->ptMinTrackSize.x = app->minwidth + edgew;
@@ -650,8 +650,7 @@ shoes_app_win32proc(
       }
     return 0;
 
-    case WM_LBUTTONDOWN:
-    {
+    case WM_LBUTTONDOWN: {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
       WM_POINTS();
@@ -659,8 +658,7 @@ shoes_app_win32proc(
     }
     break;
 
-    case WM_RBUTTONDOWN:
-    {
+    case WM_RBUTTONDOWN: {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
       WM_POINTS();
@@ -668,8 +666,7 @@ shoes_app_win32proc(
     }
     break;
 
-    case WM_MBUTTONDOWN:
-    {
+    case WM_MBUTTONDOWN: {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
       WM_POINTS();
@@ -677,8 +674,7 @@ shoes_app_win32proc(
     }
     break;
 
-    case WM_LBUTTONUP:
-    {
+    case WM_LBUTTONUP: {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
       WM_POINTS();
@@ -686,8 +682,7 @@ shoes_app_win32proc(
     }
     break;
 
-    case WM_RBUTTONUP:
-    {
+    case WM_RBUTTONUP: {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
       WM_POINTS();
@@ -695,8 +690,7 @@ shoes_app_win32proc(
     }
     break;
 
-    case WM_MBUTTONUP:
-    {
+    case WM_MBUTTONUP: {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
       WM_POINTS();
@@ -704,8 +698,7 @@ shoes_app_win32proc(
     }
     break;
 
-    case WM_MOUSEMOVE:
-    {
+    case WM_MOUSEMOVE: {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
       WM_POINTS();
@@ -714,8 +707,7 @@ shoes_app_win32proc(
     return 1;
 
     case WM_CHAR:
-      switch(w)
-      {
+      switch(wParam) {
         case 0x08:
           KEY_SYM(backspace);
         break;
@@ -728,10 +720,9 @@ shoes_app_win32proc(
           shoes_app_keypress(app, rb_str_new2("\n"));
         break;
 
-        default:
-        {
+        default: {
           VALUE v;
-          WCHAR _str = w;
+          WCHAR _str = wParam;
           CHAR str[10];
           DWORD len = WideCharToMultiByte(CP_UTF8, 0, &_str, 1, (LPSTR)str, 10, NULL, NULL);
           str[len] = '\0';
@@ -743,7 +734,7 @@ shoes_app_win32proc(
 
     case WM_KEYDOWN:
       app->os.altkey = false;
-    case WM_SYSKEYDOWN:
+    case WM_SYSKEYDOWN: 
       {
         KEYUPDOWN
         shoes_app_keydown(app, v);
@@ -780,22 +771,18 @@ shoes_app_win32proc(
       else if ((w >= 'A' && w <= 'Z') || w == 191 || w == 190) {
         VALUE v;
         char letter = w;
-        if (w == 191)
-        {
+        if (w == 191) {
           if (app->os.shiftkey)
             letter = '?';
           else
             letter = '/';
         }
-        else if (w == 190)
-        {
+        else if (w == 190) {
           if (app->os.shiftkey)
             letter = '>';
           else
             letter = '.';
-        }
-        else
-        {
+        } else {
           if (!app->os.shiftkey)
             letter += 32;
         }
@@ -808,8 +795,7 @@ shoes_app_win32proc(
     break;
 
     case WM_SYSKEYUP:
-    case WM_KEYUP:
-      {
+    case WM_KEYUP: {
         KEYUPDOWN
         shoes_app_keyup(app, v);
       }
@@ -821,16 +807,14 @@ shoes_app_win32proc(
         app->os.shiftkey = false;
     break;
 
-    case WM_MOUSEWHEEL:
-    {
+    case WM_MOUSEWHEEL: {
       shoes_canvas *canvas;
       int lines = 0, scode = 0;
       int notch = ((int)w >> 16) / WHEEL_DELTA;
       SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0, &lines, 0);
       if (lines == WHEEL_PAGESCROLL)
         scode = (int)w < 0 ? SB_PAGEDOWN : SB_PAGEUP;
-      else
-      {
+      else {
         scode = (int)w < 0 ? SB_LINEDOWN : SB_LINEUP;
         notch *= lines;
       }
@@ -843,16 +827,14 @@ shoes_app_win32proc(
     }
     break;
 
-    case WM_VSCROLL:
-    {
+    case WM_VSCROLL: {
       shoes_canvas *canvas;
       TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
       shoes_canvas_win32_vscroll(canvas, LOWORD(w), HIWORD(w));
     }
     break;
 
-    case WM_TIMER:
-    {
+    case WM_TIMER: {
       int id = LOWORD(w);
       VALUE timer = rb_ary_entry(app->extras, id - SHOES_CONTROL1);
       if (!NIL_P(timer))
@@ -865,19 +847,15 @@ shoes_app_win32proc(
     break;
 
     case WM_ACTIVATE:
-      if (LOWORD(w) == WA_INACTIVE)
-      {
+      if (LOWORD(w) == WA_INACTIVE) {
         int i;
         HWND newFocus = GetFocus();
-        for (i = 0; i < RARRAY_LEN(app->slot->controls); i++)
-        {
+        for (i = 0; i < RARRAY_LEN(app->slot->controls); i++) {
           VALUE ctrl = rb_ary_entry(app->slot->controls, i);
-          if (rb_obj_is_kind_of(ctrl, cNative))
-          {
+          if (rb_obj_is_kind_of(ctrl, cNative)) {
             shoes_control *self_t;
             TypedData_Get_Struct(ctrl, shoes_control, &shoes_control_type, self_t);
-            if (self_t->ref == newFocus)
-            {
+            if (self_t->ref == newFocus) {
               app->slot->focus = ctrl;
               break;
             }
@@ -887,16 +865,13 @@ shoes_app_win32proc(
     break;
 
     case WM_SETFOCUS:
-      if (!NIL_P(app->slot->focus))
-      {
+      if (!NIL_P(app->slot->focus)) {
         shoes_control_focus(app->slot->focus);
       }
     break;
 
-    case WM_HSCROLL:
-    {
-      if (LOWORD(w) == TB_THUMBTRACK)
-      {
+    case WM_HSCROLL: {
+      if (LOWORD(w) == TB_THUMBTRACK) {
         int id = GetDlgCtrlID((HWND)l);
         VALUE control = rb_ary_entry(app->slot->controls, id - SHOES_CONTROL1);
         if (!NIL_P(control))
@@ -908,8 +883,7 @@ shoes_app_win32proc(
     case WM_COMMAND:
       if ((HWND)l) {
         switch (HIWORD(w)) {
-          case BN_CLICKED:
-          {
+          case BN_CLICKED: {
             int id = LOWORD(w);
             VALUE control = rb_ary_entry(app->slot->controls, id - SHOES_CONTROL1);
             if (!NIL_P(control))
@@ -918,8 +892,7 @@ shoes_app_win32proc(
           break;
 
           case CBN_SELCHANGE:
-          case EN_CHANGE:
-          {
+          case EN_CHANGE: {
             int id = LOWORD(w);
             VALUE control = rb_ary_entry(app->slot->controls, id - SHOES_CONTROL1);
             if (!NIL_P(control))
@@ -927,26 +900,19 @@ shoes_app_win32proc(
           }
           break;
         }
-      }
-      // Assumes no menus have a zero id
-      if (LOWORD(w)) {
-        fprintf(stderr, "WM_COMMAND: %d\n", LOWORD(w));
-        shoes_win32_menu_lookup(app, LOWORD(w));
+      } else {
+        // arg lParam was empty.
+        if (wmEvent == 1) 
+          fprintf(stderr, "Menu accel\n");  // According to $MSFT Docs. Never happens?
+        if (wmId) {
+          fprintf(stderr, "WM_COMMAND: %d\n", wmId);
+          shoes_win32_menu_lookup(app, wmId);
+        }
       }
       break; // from WM_COMMAND
     
     case WM_CREATE:
       shoes_win32_menubar_setup(app, win); // TODO: neccessary?
-      break;
-    case WM_MENUSELECT:
-#if 0
-      { int item = LOWORD(w);
-        if (item) {
-          fprintf(stderr, "WM_MENUSELECT: %d\n", item);
-          shoes_win32_menu_lookup(app, item);
-        }
-      }
-#endif
       break;
   }
 

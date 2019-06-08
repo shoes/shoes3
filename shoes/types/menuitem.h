@@ -23,7 +23,7 @@ typedef struct {
     char *key;     // accelerator key . flags in state var above
     VALUE block;   // ruby block to call
     VALUE context; // app->canvas 
-    int   extra;   // Native windows uses this.
+    int extra;     // Native windows uses this. it's an 'id' not an index
 } shoes_menuitem;
 
 
@@ -31,7 +31,7 @@ typedef struct {
 #define MENUITEM_SHIFT 2
 #define MENUITEM_CONTROL 4
 #define MENUITEM_ALT 8
-#define NO_NATIVE 16
+#define NO_NATIVE 16      // something cocoa/menu.m uses
  
 #ifdef NEW_MACRO_MENUITEM
 extern const rb_data_type_t shoes_menuitem_type;

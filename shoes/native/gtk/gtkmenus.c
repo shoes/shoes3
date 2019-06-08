@@ -376,7 +376,3 @@ void shoes_native_menuitem_set_key(shoes_menuitem *mi, int newflags, char *newke
 
   }
 }
-
-int shoes_native_menuitem_get_key(shoes_menuitem *mi) {
-  return mi->state;
-}

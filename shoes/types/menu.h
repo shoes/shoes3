@@ -1,3 +1,6 @@
+#ifndef SHOES_MENU_TYPE_H
+#define SHOES_MENU_TYPE_H
+
 #include "shoes/ruby.h"
 #include "shoes/canvas.h"
 #include "shoes/app.h"
@@ -5,8 +8,6 @@
 #include "shoes/world.h"
 #include "shoes/native/native.h"
 #include "shoes/types/menuitem.h"
-#ifndef SHOES_MENU_TYPE_H
-#define SHOES_MENU_TYPE_H
 
 #define NEW_MACRO_MENU
 
@@ -16,12 +17,12 @@ extern shoes_app _shoes_app;
 
 // The shoes_menubar object has references to this object
 typedef struct {
-    void *native; //Gtk uses two GtkWidgets - menuitem
-    void *extra;  //  and menu
-    void *context; // a canvas - gtk needs this
-    void *parent; // not used - for submenus? 
-    char *title;  // C string utf8
-    VALUE items;  // ruby array of menuitem Objects
+    void *native;   //Gtk uses two GtkWidgets - menuitem
+    void *extra;    //  and menu
+    void *context;  // a canvas 
+    void *parent;   // not used - for submenus? 
+    char *title;    // C string utf8
+    VALUE items;    // ruby array of menuitem Objects
 } shoes_menu;
 
 #ifdef NEW_MACRO_MENU

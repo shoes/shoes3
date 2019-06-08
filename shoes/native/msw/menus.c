@@ -21,15 +21,16 @@
 // TODO: a lot
 
 WCHAR *shoes_win32_mi_create_str(shoes_menuitem *mi);
+void shoes_win32_mi_redraw(shoes_menuitem *mi);
 
 // This is called from a shoes script via types/menubar.c
 // Returns a  Shoes menubar object but the natives are created
 // later (or sooner?) in shoes_win32_menubar_setup
-// WARNING! it's also called 
+// WARNING! 
 VALUE shoes_native_menubar_setup(shoes_app *app, void *nothing) {
   HMENU hMenubar = (HMENU)nothing;
   if (nothing == NULL) {
-    fprintf(stderr,"shoes_native_menubar_setup: creating mb\n");
+    //fprintf(stderr,"shoes_native_menubar_setup: creating mb\n");
     hMenubar = CreateMenu();
     app->os.menubar = hMenubar;
     app->have_menu = TRUE;
@@ -50,10 +51,10 @@ VALUE shoes_native_menubar_setup(shoes_app *app, void *nothing) {
 // message loop for 'hwnd'? Why? MAYBE NOT - app isn't set.
 void shoes_win32_menubar_setup(shoes_app *app, HWND hwnd) {
   if (! app) {
-    fprintf(stderr, "shoes_win32_menubar_setup: app is nil\n");
+    //fprintf(stderr, "shoes_win32_menubar_setup: app is nil\n");
     return;
   }
-  fprintf(stderr, "shoes_win32_menubar_setup: have an app!");
+  //fprintf(stderr, "shoes_win32_menubar_setup: have an app!");
   shoes_menubar *mb;
   TypedData_Get_Struct(app->menubar, shoes_menubar, &shoes_menubar_type, mb);
   SetMenu(hwnd, (HMENU)mb->native);
@@ -141,101 +142,148 @@ void shoes_win32_menu_lookup(shoes_app *app, int menuitem_number) {
 void shoes_native_menubar_append(shoes_menubar *mb, shoes_menu *mn) {
   HMENU menubar = (HMENU)mb->native;
   HMENU menu = (HMENU)mn->native;
-  //fprintf(stderr, "mbar: append %s to mbar\n", mn->title);
-  // add the app accel group to the menu
   shoes_canvas *canvas;
   TypedData_Get_Struct(mb->context, shoes_canvas, &shoes_canvas_type, canvas);
   shoes_app *app = canvas->app;
-  //gtk_menu_set_accel_group((GtkMenu *)mn->extra, app->os.accel_group);
-  //gtk_menu_shell_append(GTK_MENU_SHELL(menubar), menu);
-  //shoes_native_menubar_update(mb->context);
   WCHAR *wstr = shoes_wchar(mn->title);
   AppendMenuW(menubar, MF_POPUP, (UINT_PTR) menu, wstr);
   BOOL rtn = DrawMenuBar(app->slot->window);
   char errstr[20];
-  if (rtn == 0) 
-    sprintf(errstr, "%d", GetLastError());
-  fprintf(stderr,"mb append %s : %s\n", mn->title, rtn? "OK" : errstr);
+  if (rtn == 0)
+    rb_raise(rb_eArgError,"Menubar append of %s failed: %d\n", mn->title, GetLastError());
 }
 
 void shoes_native_menubar_insert(shoes_menubar *mb, shoes_menu *mn, int pos) {
+  int err;
+  err = InsertMenuW((HMENU)mb->native, pos, 
+      (MF_POPUP|MF_BYPOSITION | MF_ENABLED | MF_STRING),
+      (UINT_PTR)mn->native, shoes_wchar(mn->title));  
+  if (err == 0) {
+    rb_raise(rb_eArgError,"Failed to insert into menubar: %d", GetLastError());
+  }
+  if (mb->context != Qnil) {
+    shoes_canvas *canvas;
+    TypedData_Get_Struct(mb->context, shoes_canvas, &shoes_canvas_type, canvas);
+    shoes_app *app = canvas->app;
+    DrawMenuBar(app->slot->window);
+  }
 }
 
 void shoes_native_menubar_remove(shoes_menubar *mb, int pos) {
+  int err;
+  err = DeleteMenu((HMENU)mb->native, pos, MF_BYPOSITION);
+  if (err == 0) {
+    rb_raise(rb_eArgError,"Failed to remove menu: %d", GetLastError());
+  }
+  if (mb->context != Qnil) {
+    shoes_canvas *canvas;
+    TypedData_Get_Struct(mb->context, shoes_canvas, &shoes_canvas_type, canvas);
+    shoes_app *app = canvas->app;
+    DrawMenuBar(app->slot->window);
+  }
 }
 
 void *shoes_native_menu_new(shoes_menu *mn) {
   HMENU menu = CreateMenu();
   mn->native = (void *)menu; 
   mn->extra = (void *)menu;
-  //char path[100];
-  //sprintf(path, "<AppID%d>/%s", shoes_app_serial_num, mn->title);
-  //gtk_menu_set_accel_path((GtkMenu *)menu, path);
-  fprintf(stderr, "menu new: %s\n", mn->title);
+  //fprintf(stderr, "menu new: %s\n", mn->title);
   return mn->native;
 }
 
 void shoes_native_menu_append(shoes_menu *mn, shoes_menuitem *mi) {
   HMENU menu = (HMENU)mn->native;
   HMENU menuitem = (HMENU)mi->native;
-  AppendMenuW(menu, MF_STRING, mi->extra, shoes_win32_mi_create_str(mi));
-  fprintf(stderr, "menu_append: %s << %s\n", mn->title, mi->title);
+  if (mi->extra == -1) {
+    AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+  } else {
+    AppendMenuW(menu, MF_STRING, mi->extra, shoes_win32_mi_create_str(mi));
+    // Wacky: enable or disable the menuitem in a separate call. Why?
+    if (mi->state & MENUITEM_ENABLE)
+      EnableMenuItem(menu, mi->extra, MF_BYCOMMAND | MF_ENABLED);
+    else
+      EnableMenuItem(menu, mi->extra, MF_BYCOMMAND | MF_GRAYED);
+    //fprintf(stderr, "menu_append: %s << %s\n", mn->title, mi->title);
+  }
 }
 
 void shoes_native_menu_insert(shoes_menu *mn, shoes_menuitem *mi, int pos) {
+  // create an MENUITEMINFO from a shoes_menuitem.
+  MENUITEMINFO *wmi = malloc(sizeof(MENUITEMINFO));
+  memset(wmi,'\0',sizeof(MENUITEMINFO));
+  wmi->cbSize = sizeof(MENUITEMINFO);
+  wmi->fMask = MIIM_FTYPE;
+  if (mi->extra == -1) {
+    wmi->fType | MFT_SEPARATOR;
+  } else {
+    wmi->fMask |= (MIIM_ID | MIIM_STRING | MIIM_STATE);
+    wmi->fType = MFT_STRING;
+    wmi->dwTypeData = (LPSTR)shoes_win32_mi_create_str(mi);
+    wmi->wID = mi->extra;
+    wmi->fState = (mi->state & MENUITEM_ENABLE) ? MFS_ENABLED : MFS_GRAYED;
+  }
+  // TODO unclear if Windows copies the item. LPCMENUITEMINFOW cast seems wrong
+  InsertMenuItemW((HMENU)mn->native, pos, true, (LPCMENUITEMINFOW)wmi);
+  // Trigger redraw
+  shoes_win32_mi_redraw(mi);
 }
 
 void shoes_native_menu_remove(shoes_menu *mn, int pos) {
+  int err;
+  err = DeleteMenu((HMENU)mn->native, pos, MF_BYPOSITION);
+  if (err == 0) {
+    rb_raise(rb_eArgError,"Failed to remove menuitem: %d", GetLastError());
+  }
+  // redraw menuber
+  if ((VALUE)mn->context != Qnil) {
+    shoes_canvas *canvas;
+    TypedData_Get_Struct((VALUE)mn->context, shoes_canvas, &shoes_canvas_type, canvas);
+    DrawMenuBar(canvas->app->os.window);
+  }
 }
 
 WCHAR* shoes_win32_mi_create_str(shoes_menuitem *mi) {
-  // TODO use glib functions. 
-  // "\t[Shift+][ALT+][CTRL+]<char>"
   char tmp[200];
   strcpy(tmp, mi->title);
-  int pos = strlen(tmp);   // bless the wonders of newer C compilers!
-  if (mi->state & MENUITEM_CONTROL) {
-    strcpy(tmp+pos,"\tCtrl+");
-    pos = strlen(tmp);
-    char up[2] = {mi->key[0], 0};
-    if (up[0] > 'Z')
-      up[0] = up[0] - 32;
-    strcpy(tmp+pos, up);
+  int pos = strlen(tmp);   
+  if (mi->state & (MENUITEM_CONTROL | MENUITEM_ALT | MENUITEM_SHIFT)) {
+    strcat(tmp,"\t");
+    if (mi->state & MENUITEM_SHIFT)
+      strcat(tmp, "Shift+");
+    if (mi->state & MENUITEM_ALT)
+      strcat(tmp, "Alt+");
+    if (mi->state & MENUITEM_CONTROL)
+      strcat(tmp, "Crtl+");
+    strcat(tmp, strupr(mi->key));
   }
   return shoes_wchar(tmp);
 }
 
 void shoes_win32_setaccel(ACCEL *nacc, VALUE canvas) {
   // Find the app that has the canvas (shoes_menuitem.context)
-  VALUE apps = shoes_world->apps;
   shoes_app *app = NULL;
-  VALUE appv = Qnil;
   HACCEL hacc; 
-  for (int i = 0; i < RARRAY_LEN(apps); i++) {
-    appv = rb_ary_entry(apps, i);
-    TypedData_Get_Struct(appv, shoes_app, &shoes_app_type, app);
-    if (app->canvas == canvas)
-      break;
-  }
+  shoes_canvas *cvs;
+  TypedData_Get_Struct(canvas, shoes_canvas, &shoes_canvas_type, cvs);
+  app = cvs->app;
   if (app == NULL) {
     fprintf(stderr, "No app for accelerator?\n");
     return;
   }
-  //fprintf(stderr, "Found an app for accel table\n");
+  
   int cnt = app->os.acc_cnt;
-  ACCEL tbl[(cnt + 1) * sizeof(ACCEL)]; 
+  ACCEL tbl[(cnt + 1)]; 
   if (cnt == 0) {
-    tbl[0] = *nacc;   // Should be a struct copy
+    tbl[0] = *nacc;   // struct copy
   } else {
-    CopyAcceleratorTableW(app->os.accel, tbl, cnt);
+    CopyAcceleratorTable(app->os.accel, tbl, cnt);
     tbl[cnt+1] = *nacc;    
     DestroyAcceleratorTable(app->os.accel);
   }
   app->os.acc_cnt++;
-  app->os.accel = CreateAcceleratorTableW(tbl, app->os.acc_cnt);
+  app->os.accel = CreateAcceleratorTable(tbl, app->os.acc_cnt);
 }
 
-// Returns a Windows string (utf-16) formatted with accelators
 void *shoes_native_menuitem_new(shoes_menuitem *mi) {
   HMENU gmi;
   gmi = CreateMenu();
@@ -251,7 +299,10 @@ void *shoes_native_menuitem_new(shoes_menuitem *mi) {
       nacc.fVirt |= FALT;
     if (mi->state & MENUITEM_SHIFT)
       nacc.fVirt |= FSHIFT;
-    nacc.key = (WORD)mi->key[0];
+    unsigned char c = mi->key[0];
+    c = toupper(c);
+    nacc.key = c;  //TODO: is this a char or a string, 8 or 16?
+    nacc.cmd = mi->extra;
     shoes_win32_setaccel(&nacc, mi->context);
   }
   fprintf(stderr, "mi new: %d => %s\n", mi->extra, mi->title);
@@ -259,17 +310,99 @@ void *shoes_native_menuitem_new(shoes_menuitem *mi) {
 }
 
 void *shoes_native_menusep_new(shoes_menuitem *mi) {
+  HMENU gmi;
+  gmi = CreateMenu();
+  mi->native = (void *)gmi;
+  mi->extra = -1;    // Windows API is not a friendly creature
+  return (void *)mi->native;
+}
+
+void shoes_win32_mi_redraw(shoes_menuitem *mi) {
+    VALUE micxt = mi->context;
+    shoes_canvas *canvas;
+    TypedData_Get_Struct(micxt, shoes_canvas, &shoes_canvas_type, canvas);
+    DrawMenuBar(canvas->app->os.window);
+}
+
+int shoes_win32_menu_pos(shoes_menuitem *mi) {
+  shoes_menu *menu = mi->parent;
+  if (menu) {
+    int cnt = RARRAY_LEN(menu->items);
+    // Find the position (0..n)
+    int pos;
+    for (pos = 0; pos < cnt; pos++) {
+      VALUE miv = rb_ary_entry(menu->items, pos);
+      shoes_menuitem *mivl;
+      TypedData_Get_Struct(miv, shoes_menuitem, &shoes_menuitem_type, mivl);
+      if (mivl == mi)
+        return pos;
+    }
+  }
+  return -1;
 }
 
 void shoes_native_menuitem_enable(shoes_menuitem *mi, int ns) {
+  shoes_menu *menu = mi->parent;
+  int olds;
+  if (menu) {
+    int pos = shoes_win32_menu_pos(mi);
+    if (pos < 0) 
+      rb_raise(rb_eArgError, "could not find menuitem to enable");
+    if (ns)
+      olds = EnableMenuItem((HMENU)menu->native, pos, MF_BYPOSITION | MF_ENABLED);
+    else
+      olds = EnableMenuItem((HMENU)menu->native, pos, MF_BYPOSITION | MF_GRAYED);
+    mi->state = ns;
+    shoes_win32_mi_redraw(mi);
+    //printf("EnableMenuItem rtn: %x\n", olds);
+  } else {
+    // unattached menuitem. 
+    mi->state = ns;
+  }
 }
 
 void shoes_native_menuitem_set_title(shoes_menuitem *mi) {
+  shoes_menu *menu = mi->parent;
+  int pos = shoes_win32_menu_pos(mi);
+  if (pos < 0)
+    rb_raise(rb_eArgError, "could not find menuitem to set");
+  int err;
+  char buf[80];
+  if (mi->state & (MENUITEM_SHIFT | MENUITEM_CONTROL | MENUITEM_ALT)) {
+    // we need to deal with the damn accelerator in the native title.
+    strcpy(buf, mi->title);
+    strcat(buf,"\t");
+    if (mi->state & MENUITEM_SHIFT) 
+      strcat(buf,"Shift+");
+    if (mi->state & MENUITEM_CONTROL) 
+      strcat(buf,"Ctrl+");
+    if (mi->state & MENUITEM_ALT) 
+      strcat(buf,"Alt+");
+    strcat(buf, strupr(mi->key));   // assumes null term string.
+  } else {
+    strcpy(buf, mi->title);
+  }
+#if 0
+  // I can't get the sucky, newer Get/SetItemInfo api to work. Win 7.
+  MENUITEMINFOW wmenuinfo;
+  memset(&wmenuinfo, '\0', sizeof(MENUITEMINFOW));
+  wmenuinfo.cbSize = sizeof(MENUITEMINFOW);
+  wmenuinfo.dwTypeData = NULL;
+  err = GetMenuItemInfoW((HMENU)menu->native, pos, true, &wmenuinfo);
+  if (err == 0)
+    fprintf(stderr, "Fail getmenuinfo: %d\n", GetLastError());
+#endif
+  // ModifyMenuW works
+  err = ModifyMenuW((HMENU)menu->native, pos, MF_BYPOSITION | MF_STRING,
+      0, shoes_wchar(buf));
+  if (err == 0)
+    rb_raise(rb_eArgError, "Windows failed to update title, code: %d", GetLastError());
+  err = EnableMenuItem((HMENU)menu->native, pos, 
+      MF_BYPOSITION | (mi->state | MENUITEM_ENABLE ? MF_ENABLED: MF_GRAYED));
+  shoes_win32_mi_redraw(mi);
 }
 
 void shoes_native_menuitem_set_key(shoes_menuitem *mi, int newflags, char *newkey) {
+  // This needs to change the title and change the accellerator table
 }
 
-int shoes_native_menuitem_get_key(shoes_menuitem *mi) {
-  return 0;
-}
