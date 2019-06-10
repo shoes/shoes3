@@ -292,7 +292,7 @@ shoes_dialog_color(VALUE self, VALUE title)
   [colorPanel _setUseModalAppearance:YES]; // must do but undocumented!!
 #pragma clang diagnostic pop
   returnCode = [NSApp runModalForWindow: colorPanel];
-  if (returnCode == NSOKButton) {
+  if (returnCode == NSModalResponseOK) {
 	  nscolor = [[colorPanel color] colorUsingColorSpace:
 		        [NSColorSpace genericRGBColorSpace]];
 	  CGFloat components[4];
@@ -316,11 +316,17 @@ shoes_dialog_chooser(VALUE self, NSString *title, BOOL directories, VALUE attr)
     [openDlg setCanChooseFiles: !directories];
     [openDlg setCanChooseDirectories: directories];
     [openDlg setAllowsMultipleSelection: NO];
+		//  [panel setDirectoryURL:[NSURL fileURLWithPath:lastPath]];
+
     if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("title"))))
       real_title = [NSString stringWithUTF8String: (RSTRING_PTR(shoes_hash_get(attr, rb_intern("title"))))];
     [openDlg setTitle: real_title];
+		if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("dir")))) {
+			NSString *fp = [NSString stringWithUTF8String: (RSTRING_PTR(shoes_hash_get(attr, rb_intern("title"))))];
+			[openDlg setDirectoryURL: [NSURL fileURLWithPath: fp]];
+     }
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
-    if ( [openDlg runModal] == NSOKButton )
+    if ( [openDlg runModal] == NSModalResponseOK )
     {
       NSArray *urls = [openDlg URLs];
       const char *filename = [[[urls objectAtIndex: 0] path] UTF8String];
