@@ -253,7 +253,8 @@ typedef struct {
     HWND window;
     HMENU menubar;
     int   acc_cnt; // number of accels
-    HACCEL accel;
+    LPACCEL accel_tbl; // We modify this 
+    HACCEL accelH;    // probaby points to the above 
 } shoes_app_win32, SHOES_APP_OS;
 
 typedef struct {

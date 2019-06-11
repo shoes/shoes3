@@ -18,7 +18,10 @@
 #include <commdlg.h>
 #include <shlobj.h>
 
-// TODO: a lot
+
+extern HACCEL shoes_win32_init_accels;
+
+// Forward decls
 
 WCHAR *shoes_win32_mi_create_str(shoes_menuitem *mi);
 void shoes_win32_mi_redraw(shoes_menuitem *mi);
@@ -44,27 +47,27 @@ VALUE shoes_native_menubar_setup(shoes_app *app, void *nothing) {
     mb->native = (void *)hMenubar;
     // save menubar object in app object
     app->menubar = mbv;
-  }
+   }
   return app->menubar;
 }
-// A bit tricky in Windows. We create the native menus from inside the 
+// A bit tricky in Windows. We create the native menus from inside the _
 // message loop for 'hwnd'? Why? MAYBE NOT - app isn't set.
 void shoes_win32_menubar_setup(shoes_app *app, HWND hwnd) {
   if (! app) {
     //fprintf(stderr, "shoes_win32_menubar_setup: app is nil\n");
     return;
   }
-  //fprintf(stderr, "shoes_win32_menubar_setup: have an app!");
   shoes_menubar *mb;
   TypedData_Get_Struct(app->menubar, shoes_menubar, &shoes_menubar_type, mb);
   SetMenu(hwnd, (HMENU)mb->native);
+  fprintf(stderr, "shoes_win32_menubar_setup: have an app!");
 }
 
 void shoes_native_build_menus(shoes_app *app, VALUE mbv) {
       // Shoes menu
-      //VALUE shoestext = rb_str_new2("Shoes");
+      VALUE shoestext = rb_str_new2("File");
       Get_TypedStruct2(shoes_world->settings, shoes_settings, st);
-      VALUE shoestext = st->app_name;
+      //VALUE shoestext = st->app_name;
       VALUE shoesmenu = shoes_menu_new(shoestext);
       int flags = MENUITEM_ENABLE;
       char *key = "";
@@ -253,7 +256,7 @@ WCHAR* shoes_win32_mi_create_str(shoes_menuitem *mi) {
     if (mi->state & MENUITEM_ALT)
       strcat(tmp, "Alt+");
     if (mi->state & MENUITEM_CONTROL)
-      strcat(tmp, "Crtl+");
+      strcat(tmp, "Ctrl+");
     strcat(tmp, strupr(mi->key));
   }
   return shoes_wchar(tmp);
@@ -262,7 +265,6 @@ WCHAR* shoes_win32_mi_create_str(shoes_menuitem *mi) {
 void shoes_win32_setaccel(ACCEL *nacc, VALUE canvas) {
   // Find the app that has the canvas (shoes_menuitem.context)
   shoes_app *app = NULL;
-  HACCEL hacc; 
   shoes_canvas *cvs;
   TypedData_Get_Struct(canvas, shoes_canvas, &shoes_canvas_type, cvs);
   app = cvs->app;
@@ -270,18 +272,32 @@ void shoes_win32_setaccel(ACCEL *nacc, VALUE canvas) {
     fprintf(stderr, "No app for accelerator?\n");
     return;
   }
-  
-  int cnt = app->os.acc_cnt;
-  ACCEL tbl[(cnt + 1)]; 
-  if (cnt == 0) {
-    tbl[0] = *nacc;   // struct copy
-  } else {
-    CopyAcceleratorTable(app->os.accel, tbl, cnt);
-    tbl[cnt+1] = *nacc;    
-    DestroyAcceleratorTable(app->os.accel);
-  }
-  app->os.acc_cnt++;
-  app->os.accel = CreateAcceleratorTable(tbl, app->os.acc_cnt);
+#if 0 // debugging - use resource based table. WORKS.
+  if (app->os.accelH)
+    DestroyAcceleratorTable(app->os.accelH);
+  app->os.acc_cnt = 1;
+  ACCEL tbl[1];
+  CopyAcceleratorTable(shoes_win32_init_accels, tbl, 1);
+  app->os.accelH = CreateAcceleratorTable(tbl, app->os.acc_cnt);
+  return;
+#endif
+  LPACCEL tmpP;
+  int cnt = 0;
+  if (app->os.accelH)
+    cnt = CopyAcceleratorTable(app->os.accelH, NULL, 0);
+  tmpP = (LPACCEL) LocalAlloc(LPTR, (cnt + 1) * sizeof(ACCEL)); 
+  CopyAcceleratorTable(app->os.accelH, tmpP, cnt);
+#if 0
+  tmpP[cnt].fVirt = nacc->fVirt;
+  tmpP[cnt].key = nacc->key;
+  tmpP[cnt].cmd = nacc->cmd;
+#else
+  tmpP[cnt] = *nacc;
+#endif
+  cnt++;
+  DestroyAcceleratorTable(app->os.accelH);
+  app->os.accelH = CreateAcceleratorTable(tmpP, cnt);
+  app->os.acc_cnt = cnt; //unused ?
 }
 
 void *shoes_native_menuitem_new(shoes_menuitem *mi) {
@@ -292,7 +308,7 @@ void *shoes_native_menuitem_new(shoes_menuitem *mi) {
   if (mi->state & (MENUITEM_SHIFT | MENUITEM_CONTROL | MENUITEM_ALT)) {
     // need to (re)create an ACCEL table to include this item
     ACCEL nacc;
-    nacc.fVirt = 0;
+    nacc.fVirt = FVIRTKEY;
     if (mi->state & MENUITEM_CONTROL)
       nacc.fVirt |= FCONTROL;
     if (mi->state & MENUITEM_ALT)
@@ -300,8 +316,8 @@ void *shoes_native_menuitem_new(shoes_menuitem *mi) {
     if (mi->state & MENUITEM_SHIFT)
       nacc.fVirt |= FSHIFT;
     unsigned char c = mi->key[0];
-    c = toupper(c);
-    nacc.key = c;  //TODO: is this a char or a string, 8 or 16?
+    c = toupper(c); // TODO: NOT UTF-8 or 16 
+    nacc.key = c;  // it's a WORD
     nacc.cmd = mi->extra;
     shoes_win32_setaccel(&nacc, mi->context);
   }
@@ -382,16 +398,6 @@ void shoes_native_menuitem_set_title(shoes_menuitem *mi) {
   } else {
     strcpy(buf, mi->title);
   }
-#if 0
-  // I can't get the sucky, newer Get/SetItemInfo api to work. Win 7.
-  MENUITEMINFOW wmenuinfo;
-  memset(&wmenuinfo, '\0', sizeof(MENUITEMINFOW));
-  wmenuinfo.cbSize = sizeof(MENUITEMINFOW);
-  wmenuinfo.dwTypeData = NULL;
-  err = GetMenuItemInfoW((HMENU)menu->native, pos, true, &wmenuinfo);
-  if (err == 0)
-    fprintf(stderr, "Fail getmenuinfo: %d\n", GetLastError());
-#endif
   // ModifyMenuW works
   err = ModifyMenuW((HMENU)menu->native, pos, MF_BYPOSITION | MF_STRING,
       0, shoes_wchar(buf));
@@ -403,6 +409,49 @@ void shoes_native_menuitem_set_title(shoes_menuitem *mi) {
 }
 
 void shoes_native_menuitem_set_key(shoes_menuitem *mi, int newflags, char *newkey) {
-  // This needs to change the title and change the accellerator table
+  // This needs to change the title AND change the accelerator table
+  shoes_app *app = NULL;
+  shoes_canvas *cvs;
+  TypedData_Get_Struct(mi->context, shoes_canvas, &shoes_canvas_type, cvs);
+  app = cvs->app;
+  if (app == NULL) {
+    fprintf(stderr, "No app for modified accelerator?\n");
+    return;
+  }  
+  WORD oldkey = (WORD)mi->key[0];
+  mi->state = newflags;
+  if (mi->key) {
+    free(mi->key);
+    mi->key = strdup(strupr(newkey));
+  }
+  // find and replace accel  
+  LPACCEL tmpP;
+  int cnt = 0;
+  if (app->os.accelH)
+    cnt = CopyAcceleratorTable(app->os.accelH, NULL, 0);
+  if (cnt > 0) {
+    tmpP = (LPACCEL) LocalAlloc(LPTR, cnt * sizeof(ACCEL)); 
+    CopyAcceleratorTable(app->os.accelH, tmpP, cnt);
+    int i;
+    for (i = 0; i < cnt; i++) {
+      if (tmpP[i].key == oldkey) {
+        tmpP[i].key = (WORD)newkey[0];
+        tmpP[i].fVirt = FVIRTKEY;
+        if (newflags & MENUITEM_CONTROL)
+          tmpP[i].fVirt |= FCONTROL;
+        if (newflags & MENUITEM_ALT)
+          tmpP[i].fVirt |= FALT;
+        if (newflags & MENUITEM_SHIFT)
+          tmpP[i].fVirt |= FSHIFT;
+        break;
+      }
+    }
+    if (i <= cnt) {
+      DestroyAcceleratorTable(app->os.accelH);
+      app->os.accelH = CreateAcceleratorTable(tmpP, cnt);
+    }
+  }
+  // now update the visual menu string. Also redraws menubar.
+  shoes_native_menuitem_set_title(mi);
 }
 

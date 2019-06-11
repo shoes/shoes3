@@ -10,4 +10,8 @@
 #define IDQUIZ 111
 #define IDQUED 112
 
+// Basic menu for debugging
+#define IDM_QUIT 6    // ID number, position happens to be 7 
+                      // since two uncounted seperators, zero pased pos.
+
 #endif

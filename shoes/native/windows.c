@@ -118,6 +118,7 @@ shoes_native_load_font(const char *filename)
   return newfonts;
 }
 
+HACCEL shoes_win32_init_accels;     //TODO for debugging
 void shoes_native_init(char *path)
 {
   INITCOMMONCONTROLSEX InitCtrlEx;
@@ -127,6 +128,11 @@ void shoes_native_init(char *path)
   shoes_classex_init();
   shoes_world->os.hidden = CreateWindow(SHOES_HIDDENCLS, SHOES_HIDDENCLS, WS_OVERLAPPEDWINDOW,
     CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, shoes_world->os.instance, NULL);
+    
+  shoes_win32_init_accels = LoadAccelerators(shoes_world->os.instance, 
+      "ShoesAccel");
+  if (shoes_win32_init_accels == NULL)
+    fprintf(stderr, "Failed to load Shoes accel resource: %d\n", GetLastError());
 }
 
 void shoes_native_cleanup(shoes_world_t *world)
@@ -902,8 +908,8 @@ shoes_app_win32proc(
         }
       } else {
         // arg lParam was empty.
-        if (wmEvent == 1) 
-          fprintf(stderr, "Menu accel\n");  // According to $MSFT Docs. Never happens?
+        if (wmEvent != 0 ) 
+          fprintf(stderr, "Menu accel %d\n", wmEvent);  // According to $MSFT Docs. Never happens?
         if (wmId) {
           fprintf(stderr, "WM_COMMAND: %d\n", wmId);
           shoes_win32_menu_lookup(app, wmId);
@@ -1102,7 +1108,7 @@ shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_settings *st
     shoes_world->os.instance,
     NULL);
 
-  SetWindowLongPtr(app->slot->window, GWLP_USERDATA, (long)app);
+  SetWindowLongPtr(app->slot->window, GWLP_USERDATA, (LONG_PTR)app);
   shoes_win32_center(app->slot->window);
   if (app->have_menu) {
       shoes_win32_attach_menubar(app, st); 
@@ -1139,19 +1145,20 @@ shoes_native_loop() {
   MSG msgs;
   while (msgs.message != WM_QUIT)
   {
-    BOOL msg = PeekMessage(&msgs, NULL, 0, 0, PM_REMOVE);
+    BOOL dispatch = PeekMessage(&msgs, NULL, 0, 0, PM_REMOVE);
 
-    if (msg) {
+    if (dispatch) {
       HWND focused = GetForegroundWindow();
       shoes_app *appk = (shoes_app *)GetWindowLongPtr(focused, GWLP_USERDATA);
-#if 0
-      if (!TranslateAccelerator(focused, appk->os.accel, &msgs)) {
-        TranslateMessage(&msgs);
-        DispatchMessage(&msgs);
+      // dispatch has many meanings
+#if 1
+      if (appk && appk->os.accelH && focused && 
+          TranslateAccelerator(focused, appk->os.accelH, &msgs) != 0) {
+        printf("translate accel returns\n");
+        continue;
       }
-      else
 #endif
-       if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP) {
+      if (msgs.message == WM_KEYDOWN || msgs.message == WM_KEYUP) {
         ATOM wndatom = GetClassLong(focused, GCW_ATOM);
         if (appk != NULL && wndatom == shoes_world->os.classatom && RARRAY_LEN(appk->slot->controls) > 0) {
           switch (msgs.wParam) {
@@ -1159,17 +1166,18 @@ shoes_native_loop() {
             case VK_RIGHT: case VK_PRIOR: case VK_NEXT:
               break;
             default:
-              msg = false;
+              dispatch = false;
           }
         } else 
-          msg = false;
+          dispatch = false;
       }
       else if (msgs.message == WM_SYSCHAR || msgs.message == WM_CHAR)
-        msg = false;
-      if (msg)
-        msg = IsDialogMessage(focused, &msgs);
+        dispatch = false;
+      if (dispatch)
+        dispatch = IsDialogMessage(focused, &msgs);
 
-      if (!msg) {
+      if (!dispatch) {
+         // is false
         TranslateMessage(&msgs);
         DispatchMessage(&msgs);
       }
