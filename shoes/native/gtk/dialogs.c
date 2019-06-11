@@ -11,6 +11,9 @@
 #include "shoes/native/native.h"
 #include "shoes/types/native.h"
 #include "shoes/types/color.h"
+#include <glib.h>
+#include <glib/gprintf.h>
+#if 0
 #include "shoes/types/text.h"
 #include "shoes/types/text_link.h"
 #include "shoes/types/download.h"
@@ -18,11 +21,11 @@
 #include "shoes/internal.h"
 #include "shoes/types/menubar.h"
 #include "shoes/native/gtk/gtkmenus.h"
-
+#endif
 
 /* --------------- dialogs -----------*/
 extern GtkCssProvider *shoes_css_provider; // user provided theme
-
+extern void shoes_native_secrecy(SHOES_CONTROL_REF ref);
 
 #if defined(GTK3)
 VALUE shoes_native_window_color(shoes_app *app) {
@@ -279,22 +282,41 @@ VALUE shoes_dialog_chooser(VALUE self, char *title, GtkFileChooserAction act, co
     }
     if (act == GTK_FILE_CHOOSER_ACTION_SAVE)
         gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
-    if(RTEST(shoes_hash_get(attr, rb_intern("save"))))
+    if (RTEST(shoes_hash_get(attr, rb_intern("save"))))
         gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog),
                                           RSTRING_PTR(shoes_hash_get(attr, rb_intern("save"))));
-    if(RTEST(shoes_hash_get(attr, rb_intern("types"))) && TYPE(shoes_hash_get(attr, rb_intern("types"))) == T_HASH) {
+    if (RTEST(shoes_hash_get(attr, rb_intern("types"))) && TYPE(shoes_hash_get(attr, rb_intern("types"))) == T_HASH) {
         VALUE hsh = shoes_hash_get(attr, rb_intern("types"));
-        VALUE keys = rb_funcall(hsh, s_keys, 0);
-        int i;
-        for(i = 0; i < RARRAY_LEN(keys); i++) {
-            VALUE key = rb_ary_entry(keys, i);
-            VALUE val = rb_hash_aref(hsh, key);
-            GtkFileFilter *ff = gtk_file_filter_new();
-            gtk_file_filter_set_name(ff, RSTRING_PTR(key));
-            gtk_file_filter_add_pattern(ff, RSTRING_PTR(val));
-            gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), ff);
+        if (!NIL_P(hsh)) {
+          VALUE keys = rb_funcall(hsh, s_keys, 0);
+          int i;
+          for(i = 0; i < RARRAY_LEN(keys); i++) {
+              VALUE key = rb_ary_entry(keys, i);
+              VALUE val = rb_hash_aref(hsh, key);
+              if (TYPE(key) != T_STRING || TYPE(val) != T_STRING)
+                rb_raise(rb_eArgError,"Both key and value must be strings");
+              GtkFileFilter *ff = gtk_file_filter_new();
+              gtk_file_filter_set_name(ff, RSTRING_PTR(key));
+              gtk_file_filter_add_pattern(ff, RSTRING_PTR(val));
+              gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), ff);
+          }
         }
     }
+    // Issue 444
+    const gchar *dirpath = NULL;
+    if (RTEST(shoes_hash_get(attr, rb_intern("dir")))) {
+      dirpath = RSTRING_PTR(shoes_hash_get(attr, rb_intern("dir")));
+    }
+    if (dirpath == NULL || strlen(dirpath) == 0)
+      dirpath = g_getenv("HOME");
+    gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), dirpath);
+    
+    if (RTEST(shoes_hash_get(attr, rb_intern("hidden")))) {
+      VALUE hidev = shoes_hash_get(attr, rb_intern("hidden"));
+      int showhidden = hidev == Qtrue ? TRUE: FALSE;
+      gtk_file_chooser_set_show_hidden(GTK_FILE_CHOOSER(dialog), showhidden);
+    }
+    
     gint result = gtk_dialog_run(GTK_DIALOG(dialog));
     if (result == GTK_RESPONSE_ACCEPT) {
         char *filename;

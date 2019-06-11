@@ -697,6 +697,19 @@ ask_save_file, ask_open_folder and ask_save_folder as well as ask_open_file.
  end
 }}}
 
+There are additional options beside title: that you can use in the file dialogs:
+
+'dir: "directory path" will start the dialog in the specified directory.
+
+'hidden: <boolean>` when 'true' will show the hidden (.dot) files.
+
+'types: { "Ruby" => "*.rb" } will only allow you to select files ending in
+'.rb' You can have multiples like {"MyFiles" => "*xzzy", "All" => "*"}. Please
+note that types will be ignored on OSX.
+
+'save: "filename" in an ask_save_file will use 'filename' as the default
+file to save to. 
+
 === ask_save_file() » a string ===
 
 Pops up a "Save file..." window, similiar to `ask_open_file`, described

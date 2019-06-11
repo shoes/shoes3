@@ -316,15 +316,49 @@ shoes_dialog_chooser(VALUE self, NSString *title, BOOL directories, VALUE attr)
     [openDlg setCanChooseFiles: !directories];
     [openDlg setCanChooseDirectories: directories];
     [openDlg setAllowsMultipleSelection: NO];
-		//  [panel setDirectoryURL:[NSURL fileURLWithPath:lastPath]];
-
+    //[openDlg setShowsHiddenFiles: YES];
+    //[openDlg setCanSelectHiddenExtension: YES];
     if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("title"))))
       real_title = [NSString stringWithUTF8String: (RSTRING_PTR(shoes_hash_get(attr, rb_intern("title"))))];
-    [openDlg setTitle: real_title];
+    [openDlg setTitle: real_title];\
+    
+    //NSString *dirpath; 
+    char *dirpath = NULL;
 		if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("dir")))) {
-			NSString *fp = [NSString stringWithUTF8String: (RSTRING_PTR(shoes_hash_get(attr, rb_intern("title"))))];
-			[openDlg setDirectoryURL: [NSURL fileURLWithPath: fp]];
-     }
+		  NSString *dirPath;
+		  dirpath = RSTRING_PTR(shoes_hash_get(attr, rb_intern("dir")));
+		  if (dirpath == NULL || strlen(dirpath) == 0) 
+		    dirPath = NSHomeDirectory();
+		  else
+			 dirPath = [NSString stringWithUTF8String: dirpath];
+		[openDlg setDirectoryURL: [NSURL fileURLWithPath: dirPath]];
+    }
+    
+    if (RTEST(shoes_hash_get(attr, rb_intern("hidden")))) {
+      VALUE hidev = shoes_hash_get(attr, rb_intern("hidden"));
+     [openDlg setShowsHiddenFiles: hidev == Qtrue ? YES: NO];
+    }
+
+#if 0 // Doesn't do what we want for open
+		if (!NIL_P(attr) && !NIL_P(shoes_hash_get(attr, rb_intern("types")))) {
+			VALUE hsh = shoes_hash_get(attr, rb_intern("types"));
+			if (!NIL_P(hsh)) {
+				VALUE keys = rb_funcall(hsh, s_keys, 0);
+				NSMutableArray *types = [NSMutableArray arrayWithCapacity: RARRAY_LEN(keys)];
+				int i;
+				for(i = 0; i < RARRAY_LEN(keys); i++) {
+						VALUE key = rb_ary_entry(keys, i);
+						VALUE val = rb_hash_aref(hsh, key);
+						if (TYPE(key) != T_STRING || TYPE(val) != T_STRING)
+							rb_raise(rb_eArgError,"Both key and value must be strings");
+						NSString *str = [NSString stringWithUTF8String: RSTRING_PTR(val)];
+						types[i] = str;
+				}
+				if ([types count])
+					[openDlg setAllowedFileTypes: types];
+			}
+		}
+#endif
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
     if ( [openDlg runModal] == NSModalResponseOK )
     {
@@ -372,7 +406,7 @@ shoes_dialog_save(int argc, VALUE *argv, VALUE self)
     }
     NSSavePanel* saveDlg = [NSSavePanel savePanel];
     [saveDlg setTitle: real_title];
-    if ( [saveDlg runModal] == NSOKButton )
+    if ( [saveDlg runModal] == NSModalResponseOK )
     {
       NSURL *url = [saveDlg URL];
       const char *filename = [[url path] UTF8String];
@@ -411,7 +445,7 @@ shoes_dialog_save_folder(int argc, VALUE *argv, VALUE self)
     [saveDlg setTitle: real_title];
     [saveDlg setPrompt: @"Save here"];
     [saveDlg setNameFieldStringValue: @"Any Name"];
-    if ( [saveDlg runModal] == NSOKButton )
+    if ( [saveDlg runModal] == NSModalResponseOK )
     {
       NSURL *durl = [saveDlg directoryURL];
       const char *dirname = [[durl path] UTF8String];
