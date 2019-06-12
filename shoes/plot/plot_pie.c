@@ -12,13 +12,13 @@
 // called when the data series is added to the chart.
 // Trying very hard to not pollute Shoes C name space and h files with plot stuff
 void shoes_plot_pie_init(shoes_plot *plot) {
-    pie_chart_t *piechart = malloc(sizeof(pie_chart_t));
+    pie_chart_t *piechart = g_malloc(sizeof(pie_chart_t));
     plot->c_things = (void *)piechart;
     VALUE cs = rb_ary_entry(plot->series, 0);
     Get_TypedStruct2(cs, shoes_chart_series, ser);
     int numobs = RARRAY_LEN(ser->values);
     piechart->count = numobs;
-    pie_slice_t *slices = (pie_slice_t *)malloc(sizeof(pie_slice_t) * numobs);
+    pie_slice_t *slices = (pie_slice_t *)g_malloc(sizeof(pie_slice_t) * numobs);
     piechart->slices = slices;
     int i;
     piechart->maxv = 0.0;
@@ -52,8 +52,8 @@ void shoes_plot_pie_init(shoes_plot *plot) {
 void shoes_plot_pie_dealloc(shoes_plot *plot) {
     if (plot->c_things) {
         pie_chart_t *piechart = (pie_chart_t *) plot->c_things;
-        free(piechart->slices);
-        free(piechart);
+        g_free(piechart->slices);
+        g_free(piechart);
     }
 }
 
@@ -244,6 +244,7 @@ void shoes_plot_pie_tick_position(cairo_t *cr, pie_chart_t * chart, pie_slice_t 
     slice->lh = text_height;
 }
 
+
 void shoes_plot_draw_pie_ticks(cairo_t *cr, shoes_plot *plot) {
     if (plot->seriescnt != 1)
         return; //  just in case
@@ -252,14 +253,20 @@ void shoes_plot_draw_pie_ticks(cairo_t *cr, shoes_plot *plot) {
     PangoRectangle logical;
     for (i = 0; i < chart->count; i++) {
         pie_slice_t *slice = &chart->slices[i];
+#if 1
+        if (chart->percent)
+          slice->label = g_strdup_printf("%i%%", (int)((slice->value / (chart->maxv - chart->minv))*100.0));
+        else
+          slice->label = g_strdup_printf("%i", (int)slice->value);
+#else
         char vstr[10];
         if (chart->percent)
             sprintf(vstr, "%i%%", (int)((slice->value / (chart->maxv - chart->minv))*100.0));
         else
             sprintf(vstr, "%i", (int)slice->value);
-
-        slice->label = malloc(strlen(vstr));
+        slice->label = g_malloc(strlen(vstr)+1);
         strcpy(slice->label, vstr);
+#endif
         slice->layout = pango_cairo_create_layout (cr);
         pango_layout_set_font_description (slice->layout, plot->legend_pfd);
         pango_layout_set_text (slice->layout, slice->label, -1);
@@ -279,7 +286,7 @@ void shoes_plot_draw_pie_ticks(cairo_t *cr, shoes_plot *plot) {
         cairo_move_to(cr, slice->lx, slice->ly);
         // set color?
         pango_cairo_show_layout(cr, slice->layout);
-        free(slice->label);
+        g_free(slice->label);
         g_object_unref(slice->layout);
     }
 }

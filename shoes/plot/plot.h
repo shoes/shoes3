@@ -145,7 +145,7 @@ enum {
 };
 
 // Pie charts are sufficently complex that we need some structs for the
-// internal stuff. Probably should be done for the other types to
+// internal stuff. Probably should be done for the other types too
 typedef struct {
     double value;
     double startAngle;

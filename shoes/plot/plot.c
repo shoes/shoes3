@@ -546,7 +546,7 @@ cairo_surface_function_t *get_vector_surface(char *format) {
     return NULL;
 }
 
-cairo_surface_t *build_surface(VALUE self, double scale, int *result, char *filename, char *format) {
+cairo_surface_t *shoes_plot_build_surface(VALUE self, double scale, int *result, char *filename, char *format) {
     Get_TypedStruct2(self, shoes_plot, self_t);
     shoes_canvas *canvas;
     TypedData_Get_Struct(self_t->parent, shoes_canvas, &shoes_canvas_type, canvas);
@@ -573,43 +573,37 @@ cairo_surface_t *build_surface(VALUE self, double scale, int *result, char *file
 }
 int shoes_plot_save_png(VALUE self, char *filename) {
     int result;
-    cairo_surface_t *surf = build_surface(self, 1.0, &result, NULL, NULL);
+    cairo_surface_t *surf = shoes_plot_build_surface(self, 1.0, &result, NULL, NULL);
     cairo_status_t r = cairo_surface_write_to_png(surf, filename);
     cairo_surface_destroy(surf);
 
     return r == CAIRO_STATUS_SUCCESS ? Qtrue : Qfalse;
 }
 
+
 int shoes_plot_save_vector(VALUE self, char *filename, char *format) {
     int result;
-    cairo_surface_t *surf = build_surface(self, 1.0, &result, filename, format);
+    cairo_surface_t *surf = shoes_plot_build_surface(self, 1.0, &result, filename, format);
     cairo_surface_destroy(surf);
 
     return 1;
 }
 
+// TODO: filename handling should be glib based? 
 VALUE shoes_plot_save_as(int argc, VALUE *argv, VALUE self) {
     if (argc == 0) {
         shoes_plot_save_png(self, NULL);
         printf("save to clipboard\n");
     } else if (TYPE(argv[0]) == T_STRING) {
         char *rbstr = RSTRING_PTR(argv[0]);
-        char *lastslash = strrchr(rbstr,'/');
-        char *basename = NULL;
-        char *lastdot;
-        char *ext  = NULL;
-        if (lastslash) {
-            lastslash++;
-            basename = malloc(strlen(lastslash)+1);
-            strcpy(basename, lastslash);
-            lastdot = strrchr(basename, '.');
-            if (lastdot == 0) {
-                rb_raise(rb_eArgError,"save_as does not have an extension");
-            }
-            // replace dot with null (EOS)
-            *lastdot = '\0';
-            ext = lastdot + 1;
-        }
+        gchar *basename = g_path_get_basename(rbstr);
+        gchar *baselower = g_utf8_strdown(basename, -1);
+        gchar *ext = g_strrstr(baselower, ".");
+        if (ext) 
+          ext++;
+        if (ext == NULL || ! (!strcmp(ext, "ps") || !strcmp(ext,"pdf") ||
+              !strcmp(ext,"svg") || !strcmp(ext, "png")))
+          rb_raise(rb_eArgError,"save_as: %s does not have an valid extension", rbstr);
         //printf("save to: %s %s (long: %s)\n", basename, ext, rbstr);
         int result = 0;
         if (strcmp(ext, "png") == 0) {
@@ -617,7 +611,8 @@ VALUE shoes_plot_save_as(int argc, VALUE *argv, VALUE self) {
         } else {
             result = shoes_plot_save_vector(self, rbstr, ext);
         }
-        if (basename) free(basename);
+        g_free(basename);
+        g_free(baselower);
         return (result ? Qtrue : Qnil);
     }
     return Qnil;

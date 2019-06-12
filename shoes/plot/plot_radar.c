@@ -32,19 +32,19 @@ void shoes_plot_radar_init(shoes_plot *plot) {
     int i;
     if (plot->seriescnt == 1) {
         // one init time
-        rdrchart = malloc(sizeof(radar_chart_t));
+        rdrchart = g_malloc(sizeof(radar_chart_t));
         plot->c_things = (void *)rdrchart;
         VALUE outer_ary = plot->column_opts;
         rdrchart->count = RARRAY_LEN(outer_ary);
-        rdrchart->colmax = malloc(sizeof(double) * numcols);
-        rdrchart->colmin = malloc(sizeof(double) * numcols);
-        rdrchart->labels = malloc(sizeof(char *) * numcols);
-        rdrchart->fmt_strs = malloc(sizeof(char *) * numcols);
-        rdrchart->lw = malloc(sizeof(double) * numcols);
-        rdrchart->lh = malloc(sizeof(double) * numcols);
-        rdrchart->lx = malloc(sizeof(double) * numcols);
-        rdrchart->ly = malloc(sizeof(double) * numcols);
-        rdrchart->layouts = malloc(sizeof(PangoLayout *) * numcols);
+        rdrchart->colmax = g_malloc(sizeof(double) * numcols);
+        rdrchart->colmin = g_malloc(sizeof(double) * numcols);
+        rdrchart->labels = g_malloc(sizeof(char *) * numcols);
+        rdrchart->fmt_strs = g_malloc(sizeof(char *) * numcols);
+        rdrchart->lw = g_malloc(sizeof(double) * numcols);
+        rdrchart->lh = g_malloc(sizeof(double) * numcols);
+        rdrchart->lx = g_malloc(sizeof(double) * numcols);
+        rdrchart->ly = g_malloc(sizeof(double) * numcols);
+        rdrchart->layouts = g_malloc(sizeof(PangoLayout *) * numcols);
         for (i = 0; i < numcols; i++) {
             // unwrap the Ruby array of arrays
             VALUE inner_ary = rb_ary_entry(outer_ary, i);
@@ -52,16 +52,16 @@ void shoes_plot_radar_init(shoes_plot *plot) {
             VALUE rbval;
             cnt = RARRAY_LEN(inner_ary);
             rbval = rb_ary_entry(inner_ary, RADAR_LABEL);
-            rdrchart->labels[i] = RSTRING_PTR(rbval); // should be safe from gc
+            rdrchart->labels[i] = g_strdup(RSTRING_PTR(rbval)); 
             rbval = rb_ary_entry(inner_ary, RADAR_MIN);
             rdrchart->colmin[i] = NUM2DBL(rbval);
             rbval = rb_ary_entry(inner_ary, RADAR_MAX);
             rdrchart->colmax[i] = NUM2DBL(rbval);
             rbval = rb_ary_entry(inner_ary, RADAR_EXTRA); // format [optional]
             if (NIL_P(rbval)) {
-                rdrchart->fmt_strs[i] = strdup("%4.2f");
+                rdrchart->fmt_strs[i] = g_strdup("%4.2f");
             } else {
-                rdrchart->fmt_strs[i] = strdup(RSTRING_PTR(rbval));
+                rdrchart->fmt_strs[i] = g_strdup(RSTRING_PTR(rbval));
             }
             // layout fun for outer labels
             rdrchart->lw[i] = 0.0;
@@ -76,17 +76,20 @@ void shoes_plot_radar_init(shoes_plot *plot) {
 void shoes_plot_radar_dealloc(shoes_plot *plot) {
     if (plot->c_things) {
         radar_chart_t *rdrchart = (radar_chart_t *) plot->c_things;
-        free(rdrchart->colmax);
-        free(rdrchart->lw);
-        free(rdrchart->lh);
-        free(rdrchart->lx);
-        free(rdrchart->ly);
-        free(rdrchart->labels); // an array of RSTRING_PTRs
+        g_free(rdrchart->colmax);
+        g_free(rdrchart->colmin);
+        g_free(rdrchart->labels); 
+        g_free(rdrchart->lw);
+        g_free(rdrchart->lh);
+        g_free(rdrchart->lx);
+        g_free(rdrchart->ly);
         int i;
-        for (i = 0; i < rdrchart->count; i++)
-            free(rdrchart->fmt_strs[i]);
-        free(rdrchart->fmt_strs);
-        free(rdrchart);
+        for (i = 0; i < rdrchart->count; i++) {
+          g_free(rdrchart->fmt_strs[i]);
+        }
+        g_free(rdrchart->layouts);  // individuals in table are ref counted
+        g_free(rdrchart->fmt_strs);
+        g_free(rdrchart);
     }
 }
 

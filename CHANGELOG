@@ -14,6 +14,8 @@
   * Windows 64 bit. 
   * Updated versions of Gems (byebug, nokogiri, etc)
   * User written layout class. 
+  * New options for ask_open_file
+    https://github.com/shoes/shoes3/issues/444
   
 === Fixed with 3.3.8
   * osx: improved building of gems if user has homebrew. 
@@ -24,14 +26,15 @@
   * some little unseen bugs
   * A bad file or a folder name would crash font() call.
     https://github.com/shoes/shoes3/issues/441
+  * crash after drawing pie chart. Sometimes.
+    crash saving plots with unknown file extensions. 
   
 === Developer Issues with 3.3.8
   * Better cross building of gems (Windows gems from Linux)
   * Ruby 2.4+ compatible. Tested with 2.5.5
   * Support for 64 bit on Windows 10
-  * Can build Shoes for native windows api. Not working well enough but 
-    it loads fast!
-  * better integration for gtk3.22 and beyond.
+  * Can build Shoes for native windows api. Not working well enough.
+  * better integration for gtk version 3.22 and beyond.
   * better building on Windows for Windows. 
  
 -------------- Shoes 3.3.7 ------------------------------
