@@ -316,7 +316,7 @@ void shoes_gtk_load_css(shoes_settings *st) {
     }
     gchar *p = g_strrstr(ln, "\n");
     if (p)
-      p = '\0';
+      *p = '\0';
     st->theme = rb_str_new2(ln);
     // build path to <theme-name>/gtk-3.0/gtk.css
     gchar *dir = g_path_get_dirname(dflt);  // without 'default'
