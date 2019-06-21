@@ -28,10 +28,16 @@ void shoes_plot_mark(shoes_plot *self_t) {
 }
 
 void shoes_plot_free(shoes_plot *self_t) {
-    pango_font_description_free (self_t->title_pfd);
-    pango_font_description_free (self_t->caption_pfd);
-    pango_font_description_free (self_t->legend_pfd);
-    pango_font_description_free (self_t->label_pfd);
+    if (self_t->title_pfd)
+      pango_font_description_free (self_t->title_pfd);
+    if (self_t->caption_pfd)
+      pango_font_description_free (self_t->caption_pfd);
+    if (self_t->legend_pfd)
+      pango_font_description_free (self_t->legend_pfd);
+    if (self_t->label_pfd)
+      pango_font_description_free (self_t->label_pfd);
+    if (self_t->tiny_pfd)
+      pango_font_description_free(self_t->tiny_pfd);
     shoes_transform_release(self_t->st);
     if (self_t->c_things) {
         switch (self_t-> chart_type) {
@@ -66,7 +72,7 @@ VALUE shoes_plot_alloc(VALUE klass) {
     plot->chart_type = LINE_CHART;
     plot->background = Qnil;
     plot->default_colors = rb_ary_new();
-    shoes_plot_util_default_colors(plot);
+    shoes_plot_util_default_colors(plot);  
     plot->c_things = NULL;
     return obj;
 }

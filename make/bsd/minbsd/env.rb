@@ -19,7 +19,7 @@ rv =  RUBY_VERSION[/\d.\d/]
 LINUX_CFLAGS << " -DRUBY_HTTP -DBSD"
 LINUX_CFLAGS << " -DRUBY_1_9"
 LINUX_CFLAGS << " -DDEBUG" if ENV['DEBUG']
-LINUX_CFLAGS << " -DSHOES_GTK -fPIC"
+LINUX_CFLAGS << " -DSHOES_GTK -fPIC -DSZBUG -DGTK_CANVAS_SIZE"
 # Following line may need handcrafting
 LINUX_CFLAGS << " -I/usr/include/"
 LINUX_CFLAGS << " #{`pkgconf --cflags gtk+-3.0`.strip}"

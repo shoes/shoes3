@@ -7,10 +7,10 @@ module Make
     $stderr.puts "setup: dir=#{`pwd`}"
     rbvt = RUBY_V
     rbvm = RUBY_V[/^\d+\.\d+/]
-    rbvm = '23'  # TODO hack
+    rbvm = '25'  # TODO hack
     mkdir_p "#{TGT_DIR}/lib"
     mkdir_p "#{TGT_DIR}/fonts"
-    cp_r "fonts", "#{TGT_DIR}/fonts"
+    cp_r "fonts", "#{TGT_DIR}"
     mkdir_p "#{TGT_DIR}/lib"
     cp   "lib/shoes.rb", "#{TGT_DIR}/lib"
     cp_r "lib/shoes", "#{TGT_DIR}/lib"

@@ -29,7 +29,7 @@ larch = "#{ShoesDeps}/lib/#{arch}"
 lcllib = "/usr/local/lib"
 # Set appropriately
 CC = "cc"
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.3.pc"
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.5.pc"
 pkggtk ="/usr/local/libdata/pkgconfig/gtk+-3.0.pc" 
 # Use Ruby or curl for downloads
 RUBY_HTTP = true

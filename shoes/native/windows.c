@@ -1048,7 +1048,7 @@ shoes_native_app_fullscreen(shoes_app *app, char yn)
 {
   if (yn)
     GetWindowRect(app->slot->window, &app->os.normal);
-  SetWindowLong(app->slot->window, GWL_STYLE, yn ? WINDOW_STYLE_FULLSCREEN : app->os.style);
+  SetWindowLongPtr(app->slot->window, GWL_STYLE, yn ? WINDOW_STYLE_FULLSCREEN : app->os.style);
   ShowWindow(FindWindow("Shell_TrayWnd", NULL), yn ? SW_HIDE : SW_SHOW);
   if (!yn)
     MoveWindow(app->slot->window, app->os.normal.left, app->os.normal.top,
@@ -1224,7 +1224,7 @@ shoes_native_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int width, 
       x, y, width, height, parent->window, NULL, 
       (HINSTANCE)GetWindowLongPtr(parent->window, GWLP_HINSTANCE), NULL);
     SetWindowPos(slot->window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOREDRAW);
-    SetWindowLong(slot->window, GWLP_USERDATA, (long)c);
+    SetWindowLongPtr(slot->window, GWLP_USERDATA, (long)c);
   }
   if (toplevel) shoes_canvas_size(c, width, height);
 }

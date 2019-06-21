@@ -52,7 +52,7 @@ ENV['TGT_RUBY_SO'] = "msvcrt-ruby230"
 EXT_RBCONFIG = "#{EXT_RUBY}/lib/ruby/#{TGT_RUBY_V}/#{SHOES_TGT_ARCH}/rbconfig.rb"
 ENV['EXT_RBCONFIG'] = EXT_RBCONFIG 
 
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.3.pc"
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.4.pc"
 pkggtk ="#{uldir}/pkgconfig/gtk+-3.0.pc" 
 # winhttp or RUBY?
 RUBY_HTTP = true
@@ -112,7 +112,7 @@ LINUX_LDFLAGS << `pkg-config --libs "#{pkggtk}"`.strip+" "
 
 # dont use the ruby link info
 RUBY_LDFLAGS = "-Wl,-export-all-symbols "
-RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby230 "
+RUBY_LDFLAGS << "-L#{EXT_RUBY}/lib -lmsvcrt-ruby240 "
 
 LINUX_LDFLAGS << "-lwinpthread-1 "
 LINUX_LDFLAGS << "-lwinhttp -lshell32 -lkernel32 -luser32 -lgdi32 -lcomdlg32 -lcomctl32 "
@@ -125,7 +125,7 @@ LINUX_LIBS << " #{RUBY_LDFLAGS} #{CAIRO_LIB} #{PANGO_LIB} "
 # This is used in pre_build/setup
 
 SOLOCS = {
-  'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby230.dll",
+  'ruby'    => "#{EXT_RUBY}/bin/msvcrt-ruby240.dll",
   'gif'     => "#{bindll}/libgif-7.dll",
   'jpeg'    => "#{bindll}/libjpeg-9.dll",
   'libyaml' => "#{bindll}/libyaml-0-2.dll",
