@@ -27,7 +27,7 @@ ularch = "#{ShoesDeps}/usr/lib/#{arch}"
 larch = "#{ShoesDeps}/lib/#{arch}"
 # Set appropriately
 CC = "gcc"
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.3.pc"
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.5.pc"
 pkggtk ="#{ularch}/pkgconfig/gtk+-3.0.pc" 
 # Use Ruby or curl for downloads
 RUBY_HTTP = true
@@ -89,6 +89,7 @@ SOLOCS['sqlite'] = "#{ularch}/libsqlite3.so.0.8.6"
 SOLOCS['ffi'] = "#{ularch}/libffi.so.6.0.4" 
 SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so.2.40.16"
 SOLOCS['curl'] = "#{EXT_RUBY}/lib/libcurl.so.4.4.0"
+SOLOCS['curl'] = "#{ularch}/libcurl.so.4.4.0"
 
 # sigh, curl and tyhpoeus - processed in setup.rb
 

@@ -675,6 +675,11 @@ namespace :setup do
 	    task :rpi do
 	      sh "echo 'TGT_ARCH=rpi' >build_target"
 	    end
+	    
+	    desc "Setup minlin for PI"
+	    task :minlin do
+		  sh "echo 'TGT_ARCH=minlin' >build_target"
+		end
 	  end
     
     task :build => [:new_build]
