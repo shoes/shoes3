@@ -63,9 +63,64 @@ class MakeLinux
       sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH gdb $APPPATH/#{File.basename(bin)} "$@"' >> #{TGT_DIR}/debug}
       chmod 0755, "#{TGT_DIR}/debug" 
     end
+    
+    def make_installer
+      if APP['INSTALLER'] == 'appimage'
+        make_installer_appimage
+      else
+        make_installer_makeself
+      end
+    end
+    
+    def make_installer_appimage
+      puts "Creating AppImage Appdir"
+      pkg = ""
+      if APP['Bld_Pre']
+        pkg = "#{APP['Bld_Pre']}pkg/#{TGT_ARCH}/AppDir"
+        mkdir_p pkg
+      else
+        pkg = "pkg/#{TGT_ARCH}/AppDir"
+      end
+      rm_rf pkg
+      mkdir_p pkg               
+      # 'AppRun' link to launch shoes script
+      Dir.chdir(pkg) do
+        ln_s "usr/lib/#{TGT_ARCH}/shoes", "AppRun"
+     end
+      #cp "static/app-icon.png", pkg
+      mkdir_p "#{pkg}/usr/bin"
+      mkdir_p "#{pkg}/usr/lib"
+      mkdir_p "#{pkg}/usr/share/applications"
+      mkdir_p "#{pkg}/usr/share/icons/hicolor/256x256"
+      sh "cp -r #{TGT_DIR} #{pkg}/usr/lib"
+      make_desktop_appimg pkg
+      cp "#{pkg}/Shoes.desktop", "#{pkg}/usr/share/applications/"
+      cp "#{TGT_DIR}/static/app-icon.png", "#{pkg}/Shoes.png"
+      cp "#{TGT_DIR}/static/app-icon.png", "#{pkg}/usr/share/icons/hicolor/256x256/Shoes.png"
+      dest = "pkg/Shoes-#{APP['VERSION']}-armhf.appimage"
+      rm_rf dest
+      sh "appimagetool #{pkg} #{dest} --runtime-file bin/runtime.armhf"
+      rm_rf pkg
+    end
+
+   def make_desktop_appimg(dir)
+      File.open("#{dir}/Shoes.desktop",'w') do |f|
+        f << "[Desktop Entry]\n"
+        f << "Name=Shoes #{APP['NAME'].capitalize}\n"
+        f << "Exec=shoes %f\n"
+        f << "StartupNotify=true\n"
+        f << "Terminal=false\n"
+        f << "Type=Application\n"
+        f << "Comment=Ruby Graphical Programming\n"
+        f << "Icon=Shoes\n"
+        f << "Categories=Development;\n"
+        f << "X-AppImage-Integrate=false\n"
+      end
+    end
+    
 
     # make a .install with all the bits and peices. 
-    def make_installer
+    def make_installer_makeself
       gtkv = '3'
       arch = 'armhf'
       appname =  "#{APP['name'].downcase}"
@@ -85,7 +140,7 @@ class MakeLinux
       Dir.chdir "#{pkg}/#{rlname}" do
         rm_r "#{APP['Bld_Tmp']}"
         rm_r "pkg" if File.exist? "pkg"
-        make_desktop 
+        make_desktop_makeself
         make_uninstall_script
         make_install_script
         make_smaller unless APP['GDB']
@@ -100,7 +155,7 @@ class MakeLinux
       end
     end
     
-    def make_desktop
+    def make_desktop_makeself
       File.open("Shoes.desktop.tmpl",'w') do |f|
         f << "[Desktop Entry]\n"
         f << "Name=Shoes #{APP['NAME'].capitalize}\n"

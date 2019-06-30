@@ -5,6 +5,7 @@ rm -rf build_target
 rake linux:setup:lin64
 rake
 rake package
-rake clobber
+#rake clobber # don't clobber we need the files.
+rm build_target
 ls -ld pkg/*-x86_64.install
 

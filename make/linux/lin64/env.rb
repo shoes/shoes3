@@ -1,8 +1,8 @@
 # Build a 64 bit Linux Tight Shoes (from a 64 bit host)
-# In this case Unbuntu 14.04 to debian 7.2 in a chroot.
-# You should modify your custom.yaml
-ignore_deprecations = true
+# Technically, this is a cross build using Unbuntu 16.04 dependencies.
+
 cf =(ENV['ENV_CUSTOM'] || "#{APP['VAGRANT']}#{TGT_ARCH}-custom.yaml")
+ignore_deprecations = true
 if File.exists? cf
   custmz = YAML.load_file(cf)
   ShoesDeps = custmz['Deps']
@@ -13,35 +13,46 @@ if File.exists? cf
   APP['EXTLIST'] = custmz['Exts'] if custmz['Exts']
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
+  APP['THEME'] = custmz['Theme'] if custmz['Theme']
+  APP['INSTALLER'] = custmz['Installer'] if custmz['Installer']
   ignore_deprecations = (!custmz['Deprecations']) if custmz['Deprecations']
 else
-  abort "missing custom.yaml"
+  abort "missing #{TGT_ARCH}-custom.yaml"
 end
 
+require_relative '../../switch_ruby'
+
 APP['GTK'] = 'gtk+-3.0' # installer needs this to name the output
-SHOES_TGT_ARCH = 'x86_64-linux'
-SHOES_GEM_ARCH = "#{Gem::Platform.local}"
+arch_2_file = {'x86_64-linux' => 'x86_64-linux-gnu'}
+# Match what Gem:: does (not what you think it should do)
+arch_2_gem =  {'x86_64-linux' => "x86_64-linux"}
+
+SHOES_TGT_ARCH = RbConfig::CONFIG['arch']
+SHOES_GEM_ARCH = arch_2_gem[RbConfig::CONFIG['arch']]
+#SHOES_TGT_ARCH = 'x86_64-linux'
+#SHOES_GEM_ARCH = "#{Gem::Platform.local}"
+APP['RUBY_V'] = RbConfig::CONFIG['ruby_version']
+APP['PLATFORM'] = RbConfig::CONFIG['arch'] # now correct for cross compile
 # Setup some shortcuts for the library locations
-arch = 'x86_64-linux-gnu'
+#arch = 'x86_64-linux-gnu'
+arch = arch_2_file[RbConfig::CONFIG["arch"]]
 uldir = "#{ShoesDeps}/usr/lib"
 ularch = "#{ShoesDeps}/usr/lib/#{arch}"
 larch = "#{ShoesDeps}/lib/#{arch}"
 lcllib = "/usr/local/lib"
 APP['LIBPATHS'] = [ularch, larch]
 
-# Set appropriately
-CC = "gcc"
-pkgruby ="#{EXT_RUBY}/lib/pkgconfig/ruby-2.3.pc"
+# Cross Compiler and friends 
+CC = RbConfig::CONFIG["CC"]
+RANLIB = RbConfig::CONFIG['RANLIB']
+STRIP = RbConfig::CONFIG["STRIP"]
+pkgruby ="#{EXT_RUBY}/lib/pkgconfig/#{RbConfig::CONFIG["ruby_pc"]}"
 pkggtk ="#{ularch}/pkgconfig/gtk+-3.0.pc" 
 # Use Ruby or curl for downloads
 RUBY_HTTP = true
 
-ADD_DLL = []
-
 # Target environment
-#CAIRO_CFLAGS = `pkg-config --cflags cairo`.strip
 CAIRO_LIB = `pkg-config --libs cairo`.strip
-#PANGO_CFLAGS = `pkg-config --cflags pango`.strip
 PANGO_LIB = `pkg-config --libs pango`.strip
 
 png_lib = 'png'
@@ -63,7 +74,7 @@ if ignore_deprecations
 end
 MISC_LIB = ' /usr/lib/x86_64-linux-gnu/librsvg-2.so'
 
-#LINUX_LIB_NAMES = %W[ungif jpeg]
+
 LINUX_LIB_NAMES = %W[gif jpeg yaml]
 
 DLEXT = "so"
@@ -84,13 +95,13 @@ SOLOCS = {}
 SOLOCS['libgif'] = "#{ularch}/libgif.so.7.0.0" 
 SOLOCS['libjpeg'] = "#{ularch}/libjpeg.so.8.0.2"
 SOLOCS['libyaml-0'] = "#{ularch}/libyaml-0.so.2.0.4"
-SOLOCS['libpcre'] = "#{larch}/libpcre.so.3"  # TODO: is this needed? 
+SOLOCS['libpcre'] = "#{larch}/libpcre.so.3"
 SOLOCS['libcrypto'] = "#{larch}/libcrypto.so.1.0.0"
 SOLOCS['libssl'] = "#{larch}/libssl.so.1.0.0"
 SOLOCS['libsqlite3'] = "#{ularch}/libsqlite3.so.0.8.6"
 SOLOCS['libffi'] = "#{ularch}/libffi.so.6.0.4"
 SOLOCS['librsvg-2'] = "#{ularch}/librsvg-2.so.2.40.13"
-if APP['VAGRANT']
+if nil #APP['VAGRANT']
   SOLOCS['libcurl-gnutls'] = ""
 else
   SOLOCS['libcurl'] = "#{ularch}/libcurl.so.4.4.0"
@@ -99,6 +110,7 @@ end
 # sigh, we need symlinks on some linux distros and curl is just difficult
 # every where. See setup.rb
 SYMLNK = {}
+=begin
 SYMLNK['libcurl.so.4.4.0'] = ['libcurl.so', 'libcurl.so.4']
 SYMLNK['libgif.so.7.0.0'] = ['libgif.so', 'libgif.so.7']
 SYMLNK['libjpeg.so.8.0.2'] = ['libjpeg.so', 'libjpeg.so.8']
@@ -108,4 +120,4 @@ SYMLNK['libssl.so.1.0.0'] = ['libssl.so']
 SYMLNK['libsqlite3.so.0.8.6'] = ['libsqlite3.so', 'libsqlite3.so.0']
 SYMLNK['libffi.so.6.0.4'] = ['libffi.so', 'libffi.so.6']
 SYMLNK['librsvg-2.so.2.40.13'] = ['librsvg-2.so', 'librsvg-2.so.2']
-
+=end

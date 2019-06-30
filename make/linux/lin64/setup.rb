@@ -9,7 +9,7 @@ module Make
     rbvm = RUBY_V[/^\d+\.\d+/]
     mkdir_p "#{TGT_DIR}/lib"
     mkdir_p "#{TGT_DIR}/fonts"
-    cp_r "fonts", "#{TGT_DIR}/fonts"
+    cp_r "fonts", "#{TGT_DIR}"
     mkdir_p "#{TGT_DIR}/lib"
     cp   "lib/shoes.rb", "#{TGT_DIR}/lib"
     cp_r "lib/shoes", "#{TGT_DIR}/lib"

@@ -1,10 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 echo "Build Shoes X86_64 for Linux"
 cd /home/ccoupe/Projects/shoes3
 rm -rf build_target
 rake setup:xlin64
 rake
 rake package
-rake clobber
+#rake clobber # we want the files
+rm build_target
 ls -ld pkg/*-x86_64.install
 

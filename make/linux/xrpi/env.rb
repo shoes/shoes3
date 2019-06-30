@@ -14,6 +14,7 @@ if File.exists? cf
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
   APP['THEME'] = custmz['Theme'] if custmz['Theme']
+  APP['INSTALLER'] = custmz['Installer'] if custmz['Installer']
   ignore_deprecations = (!custmz['Deprecations']) if custmz['Deprecations']
 else
   abort "missing #{TGT_ARCH}-custom.yaml"

@@ -140,6 +140,12 @@ Shoes.app :title => "Shoes Cobbler", menus: true do
       end
       @pfmenu << csitem
     end
+    if RUBY_PLATFORM =~/linux/ && DIR =~/\/tmp\/.mount/
+      cinst_item = menuitem "Install to .shoes" do
+        linux_install_screen
+      end
+      @pfmenu << cinst_item
+    end
     @mb << @gemmenu
     @mb << @pfmenu
     if RUBY_PLATFORM =~ /linux|bsd|mingw/
@@ -924,6 +930,36 @@ Also some patience: dmgs are not the quickest thing to build and its done silent
         # should check and only perform on Tight Shoes.
         button "Merge" do
           require "package/build-bsd"
+        end
+      end
+    end
+  end
+  
+  def linux_install_screen
+    @panel.clear
+    @panel.append do
+      stack do
+        tagline "Install from AppImage"
+        flow do
+          para "You are running from an AppImage container. It can be used to install \
+Shoes into #{ENV['HOME']}/.shoes. This will give you desktop menus and make things \
+a tiny bit easier for long term usage"
+        end
+        button "Install" do
+          userp = "#{ENV['HOME']}/.shoes/#{Shoes::RELEASE_NAME}"
+          @overwrite = true
+          if File.exist? userp 
+            @verwrite = confirm "#{userp} exists - do you want to write over it?"
+          end
+          if @overwrite
+            rm_rf userp
+            mkdir_p userp
+            `cp -r #{DIR}/* #{userp}`
+            ENV['DESK_PATH'] = userp
+            rewrite_with_env  File.join(DIR,"static/stubs/desktop.templ"), "#{userp}/Shoes.desktop"
+            `xdg-desktop-menu install --novendor #{userp}/Shoes.desktop\n`
+            alert "You should quit Shoes\nand restart from the menu"
+          end
         end
       end
     end

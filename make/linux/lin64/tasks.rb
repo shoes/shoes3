@@ -68,8 +68,71 @@ class MakeLinux
     end
 
 
-    # make a .install with all the bits and pieces. 
     def make_installer
+      if APP['INSTALLER'] == 'appimage'
+        make_installer_appimage
+      else
+        make_installer_makeself
+      end
+    end
+    
+    # appstream metadata is not use. glibc dependcies on my system
+    def make_installer_appimage
+      puts "Creating AppImage Appdir"
+      pkg = ""
+      if APP['Bld_Pre']
+        pkg = "#{APP['Bld_Pre']}pkg/#{TGT_ARCH}/AppDir"
+        mkdir_p pkg
+      else
+        pkg = "pkg/#{TGT_ARCH}/AppDir"
+      end
+      rm_rf pkg
+      mkdir_p pkg               
+      # 'AppRun' link to launch shoes script
+      Dir.chdir(pkg) do
+        ln_s "usr/lib/#{TGT_ARCH}/shoes", "AppRun"
+      end
+      #cp "static/app-icon.png", pkg
+      mkdir_p "#{pkg}/usr/bin"
+      mkdir_p "#{pkg}/usr/lib"
+      mkdir_p "#{pkg}/usr/share/applications"
+      mkdir_p "#{pkg}/usr/share/icons/hicolor/256x256"
+      #mkdir_p "#{pkg}/usr/share/metainfo"
+      sh "cp -r #{TGT_DIR} #{pkg}/usr/lib"
+      make_desktop_appimg pkg
+      cp "#{pkg}/Shoes.desktop", "#{pkg}/usr/share/applications/"
+      cp "#{TGT_DIR}/static/app-icon.png", "#{pkg}/Shoes.png"
+      cp "#{TGT_DIR}/static/app-icon.png", "#{pkg}/usr/share/icons/hicolor/256x256/Shoes.png"
+      #cp "bin/Shoes.appdata.xml", "#{pkg}/usr/share/metainfo"
+      dest = "pkg/Shoes-#{APP['VERSION']}-x86_64.appimage"
+      rm_rf dest
+      #sh "mksquashfs #{pkg} pkg/shoes.squashfs -root-owned -noappend"
+      #sh "cat bin/runtime.x86_64 >>#{dest}"
+      #sh "cat pkg/shoes.squashfs >>#{dest}"
+      #rm_rf "pkg/shoes.squashfs"
+      #sh "chmod +x #{dest}"
+      sh "appimagetool #{pkg} #{dest}"
+      #rm_rf pkg
+   end
+
+   def make_desktop_appimg(dir)
+      File.open("#{dir}/Shoes.desktop",'w') do |f|
+        f << "[Desktop Entry]\n"
+        f << "Name=Shoes #{APP['NAME'].capitalize}\n"
+        f << "Exec=shoes %f\n"
+        f << "StartupNotify=true\n"
+        f << "Terminal=false\n"
+        f << "Type=Application\n"
+        f << "Comment=Ruby Graphical Programming\n"
+        f << "Icon=Shoes\n"
+        f << "Categories=Development;\n"
+        f << "X-AppImage-Integrate=false\n"
+      end
+    end
+     
+
+    # make a .install with all the bits and pieces. 
+    def make_installer_makeself
       gtkv = '3'
       arch = 'x86_64'
       appname =  "#{APP['name'].downcase}"
@@ -89,7 +152,7 @@ class MakeLinux
       Dir.chdir "#{pkg}/#{rlname}" do
         rm_r "#{APP['Bld_Tmp']}"
         rm_r "pkg" if File.exist? "pkg"
-        make_desktop 
+        make_desktop_makeself
         make_uninstall_script
         make_install_script
         make_smaller unless APP['GDB']
@@ -104,7 +167,7 @@ class MakeLinux
       end
     end
     
-    def make_desktop
+    def make_desktop_makeself
       File.open("Shoes.desktop.tmpl",'w') do |f|
         f << "[Desktop Entry]\n"
         f << "Name=Shoes #{APP['NAME'].capitalize}\n"
@@ -114,7 +177,7 @@ class MakeLinux
         f << "Type=Application\n"
         f << "Comment=Ruby Graphical Programming\n"
         f << "Icon={hdir}/.shoes/#{APP['NAME']}/static/app-icon.png\n"
-        f << "Categories=Application;Development;Education;\n"
+        f << "Categories=Development;\n"
       end
       File.open("Shoes.remove.tmpl",'w') do |f|
         f << "[Desktop Entry]\n"
@@ -125,7 +188,7 @@ class MakeLinux
         f << "Type=Application\n"
         f << "Comment=Delete Shoes\n"
         f << "Icon={hdir}/.shoes/#{APP['NAME']}/static/app-icon.png\n"
-        f << "Categories=Application;Development;Education;\n"
+        f << "Categories=Development;\n"
       end
     end
     

@@ -14,6 +14,7 @@ if File.exists? cf
   APP['GEMLIST'] = custmz['Gems'] if custmz['Gems']
   APP['INCLGEMS'] = custmz['InclGems'] if custmz['InclGems']
   APP['THEME'] = custmz['Theme'] if custmz['Theme']
+  APP['INSTALLER'] = custmz['Installer'] if custmz['Installer']
   ignore_deprecations = (!custmz['Deprecations']) if custmz['Deprecations']
 else
   abort "missing #{TGT_ARCH}-custom.yaml"
@@ -94,7 +95,7 @@ SOLOCS = {}
 SOLOCS['libgif'] = "#{ularch}/libgif.so.7.0.0" 
 SOLOCS['libjpeg'] = "#{ularch}/libjpeg.so.8.0.2"
 SOLOCS['libyaml-0'] = "#{ularch}/libyaml-0.so.2.0.4"
-SOLOCS['libpcre'] = "#{larch}/libpcre.so.3"  # TODO: is this needed? 
+SOLOCS['libpcre'] = "#{larch}/libpcre.so.3"
 SOLOCS['libcrypto'] = "#{larch}/libcrypto.so.1.0.0"
 SOLOCS['libssl'] = "#{larch}/libssl.so.1.0.0"
 SOLOCS['libsqlite3'] = "#{ularch}/libsqlite3.so.0.8.6"
