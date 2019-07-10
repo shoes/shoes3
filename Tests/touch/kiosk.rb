@@ -2,7 +2,7 @@
 # https://startingelectronics.org/projects/raspberry-PI-projects/kiosk-gtk-glade/
 # issue #447
 $shops = [
-    { name: "Joes Shoes", picture: "res/shop1.png", point: [104, 92]},
+    { name: "Joe's Shoes", picture: "res/shop1.png", point: [104, 92]},
     { name: "Coffee Shop", picture: "res/shop2.png", point: [485, 92]},
     { name: "Post Office", picture: "res/shop3.png", point: [104, 307]},
     { name: "Meg's Clothing", picture: "res/shop4.png", point: [485,307]}
@@ -49,6 +49,7 @@ Shoes.app width: 800, height: 400 do
   
   @panel = stack do
     mall_view
+    # could be 'touch do'?
     click do |btn,x,y,mods|
       idx = hit_detect(x,y)
       if idx 
