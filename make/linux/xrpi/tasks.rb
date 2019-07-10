@@ -54,7 +54,7 @@ class MakeLinux
       dpath = File.dirname(name)
       fname = File.basename(name)
       bin = "#{fname}-bin"
-      sh "#{CC} -o #{dpath}/#{bin} #{dpath}/tmp/main.o  -L#{dpath} -lshoes -L#{TGT_DIR}  #{LINUX_LIBS} --sysroot=#{ShoesDeps}"
+      sh "#{CC} -o #{dpath}/#{bin} #{dpath}/tmp/main.o -lpthread -lresolv -L#{dpath} -lshoes -L#{TGT_DIR}  #{LINUX_LIBS} --sysroot=#{ShoesDeps}"
       rewrite "platform/nix/shoes.launch", name, %r!/shoes-bin!, "/#{NAME}-bin"
       sh %{echo 'cd "$OLDPWD"\nLD_LIBRARY_PATH=$APPPATH $APPPATH/#{File.basename(bin)} "$@"' >> #{name}}
       chmod 0755, "#{name}" 

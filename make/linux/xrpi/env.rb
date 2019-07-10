@@ -66,6 +66,7 @@ end
 LINUX_CFLAGS << "-DRUBY_HTTP -DSHOES_GTK -fPIC "
 LINUX_CFLAGS << "-Wno-unused-but-set-variable -Wno-unused-variable "
 LINUX_CFLAGS << "-I#{ShoesDeps}/usr/include "
+
 RUBY_CFLAGS =  `#{pkgconfig} --cflags "#{pkgruby}"`.strip+" "
 GTK_CFLAGS = `#{pkgconfig} --cflags "#{pkggtk}" --define-variable=prefix="#{ShoesDeps}/usr"`.strip+" "
 if false # boo to raspberry librsvg-2.0.pc
