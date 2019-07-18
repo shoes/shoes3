@@ -825,7 +825,6 @@ static gboolean shoes_app_gtk_keypress(GtkWidget *widget, GdkEventKey *event, gp
             if (event->keyval == GDK_KEY_Return)
                 if ((event->state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK | GDK_MOD1_MASK)) != 0)
                     v = ID2SYM(rb_intern("enter"));
-
             if (SYMBOL_P(v)) {
                 if (modifiers & GDK_MOD1_MASK)
                     KEY_STATE(alt);
@@ -842,6 +841,24 @@ static gboolean shoes_app_gtk_keypress(GtkWidget *widget, GdkEventKey *event, gp
     }
 
     return FALSE;
+}
+
+static gboolean shoes_canvas_gtk_touch(GtkWidget *widget, GdkEvent *event, gpointer data) {
+    shoes_app *app = (shoes_app *)data;
+    char *evt_type;
+    if (event->type == GDK_TOUCH_BEGIN) {
+      evt_type = "Touch Begin: ";
+    } else if (event->type == GDK_TOUCH_END) {
+      evt_type = "Touch End: ";
+    } else if (event->type == GDK_TOUCH_UPDATE) {
+      evt_type == "Touch Update: ";
+    } else if (event->type == GDK_TOUCH_CANCEL) {
+      evt_type == "Touch Cancel: ";
+    } else {
+      evt_type == "Touch UNKNOWN";
+    }
+    fprintf(stderr, "Dispatch %s\n", evt_type);
+    return TRUE; // We did something with the event.
 }
 
 static gboolean shoes_app_gtk_quit(GtkWidget *widget, GdkEvent *event, gpointer data) {
@@ -1462,9 +1479,10 @@ void shoes_native_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int wi
 #endif
     g_signal_connect(G_OBJECT(slot->oscanvas), "draw",
                      G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
-
     g_signal_connect(G_OBJECT(slot->oscanvas), "size-allocate",
                      G_CALLBACK(shoes_canvas_gtk_size), (gpointer)c);
+    g_signal_connect(G_OBJECT(slot->oscanvas), "touch-event",
+                     G_CALLBACK(shoes_canvas_gtk_touch), (gpointer)c);
     INFO("shoes_native_slot_init(%lu)\n", c);
 
     if (toplevel) {
@@ -2125,6 +2143,8 @@ void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int widt
 #ifdef GTK_CANVAS_SIZE  
   g_signal_connect(GTK_WIDGET(slot->oscanvas), "size-allocate",
                    G_CALLBACK(shoes_gtk_content_size), (gpointer)c);
+  g_signal_connect(GTK_WIDGET(slot->oscanvas), "touch-event",
+                   G_CALLBACK(shoes_canvas_gtk_touch), (gpointer)c);
 #endif
   INFO("shoes_slot_init_menu(%lu)\n", c);
   

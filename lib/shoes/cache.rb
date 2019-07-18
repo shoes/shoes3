@@ -4,7 +4,6 @@ include FileUtils
 require_relative 'download.rb'
 # locate ~/.shoes
 require 'tmpdir'
-
 lib_dir = nil
 homes = []
 homes << [ENV['LOCALAPPDATA'], File.join( ENV['LOCALAPPDATA'], 'Shoes')] if ENV['LOCALAPPDATA']

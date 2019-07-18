@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+	<id>APPID</id>
+	<metadata_license>CC0-1.0</metadata_license>
+	<project_license>MIT</project_license>
+	<name>Shoes</name>
+	<summary>Run graphical Ruby programs</summary>
+	<description>
+		<p>Shoes is a with cross platform GUI with an embedded Ruby interpreter. Originally from _why_the_lucky_stiff, it has been modernized and extended to cover a larger range of programs. Shoes make GUI's easy and fun. </p>
+	</description>
+	<launchable type="desktop-id">APPID.desktop</launchable>
+	<url type="homepage">https://shoes.mvmanila.com/</url>
+	<screenshots>
+		<screenshot type="default">
+			<image>https://shoes.mvmanila.com/public/images/splash.png</image>
+		</screenshot>
+	</screenshots>
+	<provides>
+		<id>shoes.desktop</id>
+	</provides>
+</component>

@@ -63,7 +63,7 @@ CC = APP['TOOLPRE'] + (APP['CC'] ? APP['CC'] : RbConfig::CONFIG["CC"])
 RANLIB =APP['TOOLPRE'] + ( APP['RANLIB'] ? APP['RANLIB'] :  RbConfig::CONFIG['RANLIB'])
 STRIP = APP['TOOLPRE'] + (APP['STRIP'] ? APP['STRIP'] : RbConfig::CONFIG["STRIP"])
 pkgruby ="#{EXT_RUBY}/lib/pkgconfig/#{RbConfig::CONFIG["ruby_pc"]}"
-
+RUBY_SO = RbConfig::CONFIG['RUBY_SO_NAME']
 if APP['GDB']
   LINUX_CFLAGS = " -g"
 else

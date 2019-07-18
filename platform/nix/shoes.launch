@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 REALPATH=`readlink -f $0`
-
+OLDPWD=`pwd`
 APPPATH="${REALPATH%/*}"
 if [ "$APPPATH" = "shoes" ]; then
   APPPATH="."

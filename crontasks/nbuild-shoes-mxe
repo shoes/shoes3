@@ -4,8 +4,8 @@ echo "Build Shoes GTK Widgets for MinGW32 Windows"
 source ~/.rvm/scripts/rvm
 cd /home/ccoupe/Projects/shoes3
 rm -f build_target
-rvm use 2.4.5
-rake setup:mxe32
+rvm use 2.5.5
+rake setup:mxe64
 rake
 rake package
 rake clobber
