@@ -115,3 +115,4 @@ gtkfixed_alt_get_preferred_height(GtkWidget *widget, int *minimal, int *natural)
     fprintf(stderr,"fixed_pref_hgt %d, %d\n",*minimal,*natural);
 #endif
 }
+

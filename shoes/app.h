@@ -56,6 +56,8 @@ typedef struct _shoes_app {
     VALUE menubar;
     int monitor;    // -1 means default
     int id;         // from global serial number
+    double touch_x;
+    double touch_y;
 } shoes_app;
 
 #ifdef NEW_MACRO_APP

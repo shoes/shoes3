@@ -843,23 +843,61 @@ static gboolean shoes_app_gtk_keypress(GtkWidget *widget, GdkEventKey *event, gp
     return FALSE;
 }
 
-static gboolean shoes_canvas_gtk_touch(GtkWidget *widget, GdkEvent *event, gpointer data) {
-    shoes_app *app = (shoes_app *)data;
-    char *evt_type;
-    if (event->type == GDK_TOUCH_BEGIN) {
-      evt_type = "Touch Begin: ";
-    } else if (event->type == GDK_TOUCH_END) {
-      evt_type = "Touch End: ";
-    } else if (event->type == GDK_TOUCH_UPDATE) {
-      evt_type == "Touch Update: ";
-    } else if (event->type == GDK_TOUCH_CANCEL) {
-      evt_type == "Touch Cancel: ";
-    } else {
-      evt_type == "Touch UNKNOWN";
+// data arg is a VALUE - an App or a Canvas
+static gboolean shoes_canvas_gtk_touch(GtkWidget *widget, GdkEventTouch *event, gpointer data) {
+    shoes_app *app; 
+    shoes_canvas *canvas;
+    if (data == NULL || (VALUE)data == Qnil) {
+      fprintf(stderr," Touch: NIL for app/canavas\n");
+      return FALSE;
     }
-    fprintf(stderr, "Dispatch %s\n", evt_type);
-    return TRUE; // We did something with the event.
+    if (rb_obj_is_kind_of((VALUE)data, cApp)) {
+      TypedData_Get_Struct((VALUE)data, shoes_app, &shoes_app_type, app);
+      TypedData_Get_Struct(app->canvas, shoes_canvas, &shoes_canvas_type, canvas);
+    } else if (rb_obj_is_kind_of((VALUE)data, cCanvas)) {
+      TypedData_Get_Struct((VALUE)data, shoes_canvas, &shoes_canvas_type, canvas);
+    } else {
+      return FALSE;
+    }
+    // Is the scrollbar showing ? 
+    shoes_slot_gtk *slot = canvas->slot;
+    GtkWidget *sb = slot->vscroll;
+    if (sb == NULL) {
+      fprintf(stderr, "Touch: No scrollbar\n");
+      return FALSE;
+    }
+    if (event->type == GDK_TOUCH_BEGIN) {
+      //fprintf(stderr, "Touch Begin:\n");
+      app->touch_x = event->x;
+      app->touch_y = event->y;
+    } else if (event->type == GDK_TOUCH_END) {
+      app->touch_x = 0.0;
+      app->touch_y = 0.0;
+      //fprintf(stderr, "Touch End:\n");
+    } else if (event->type == GDK_TOUCH_UPDATE) {
+      GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(sb));
+      gdouble adjv = gtk_adjustment_get_value(adj);
+      //gdouble dy = (int)event->y - app->touch_y;
+      gdouble dy = (gdouble)app->touch_y - event->y;
+      gdouble newp = adjv + dy;
+      if (dy)
+        gtk_adjustment_set_value(adj, newp);
+      //fprintf(stderr, "Touch_Update: %f: %f %f\n", adjv, event->y, dy);
+    } else if (event->type == GDK_TOUCH_CANCEL) {
+      app->touch_x = 0.0;
+      app->touch_y = 0.0;
+      fprintf(stderr, "Touch Cancel:\n");
+    } else {
+      fprintf(stderr, "Touch UNKNOWN\n");
+    }
+    return FALSE; // false => We did not handle the event?
 }
+
+static void shoes_gtk_app_drag_begin(GtkGestureDrag *gesture,
+    gdouble x, gdouble y, gpointer data) {
+    shoes_app *app = (shoes_app *)data;
+    fprintf(stderr, "Drag Begin, %d,%d\n", (int)x, (int)y);
+ }
 
 static gboolean shoes_app_gtk_quit(GtkWidget *widget, GdkEvent *event, gpointer data) {
     shoes_app *app = (shoes_app *)data;
@@ -1413,7 +1451,14 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_s
                        G_CALLBACK(shoes_app_gtk_quit), app);
     g_signal_connect(G_OBJECT(window), "configure-event",   // bug #349
                      G_CALLBACK(shoes_app_gtk_configure_event), app);
-    
+#if 1   
+    g_signal_connect(G_OBJECT(window), "touch-event",
+                     G_CALLBACK(shoes_canvas_gtk_touch), (gpointer)app->self);
+#endif
+#if 0
+    g_signal_connect(GTK_WIDGET(window), "drag-begin",
+                    G_CALLBACK(shoes_gtk_app_drag_begin), app);
+#endif                     
     if (app->fullscreen) shoes_native_app_fullscreen(app, 1);
 
     gtk_window_set_decorated(GTK_WINDOW(window), app->decorated);
@@ -1481,8 +1526,10 @@ void shoes_native_slot_init(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int wi
                      G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
     g_signal_connect(G_OBJECT(slot->oscanvas), "size-allocate",
                      G_CALLBACK(shoes_canvas_gtk_size), (gpointer)c);
+#if 1   
     g_signal_connect(G_OBJECT(slot->oscanvas), "touch-event",
                      G_CALLBACK(shoes_canvas_gtk_touch), (gpointer)c);
+#endif
     INFO("shoes_native_slot_init(%lu)\n", c);
 
     if (toplevel) {
@@ -2140,11 +2187,13 @@ void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int widt
 #endif
   g_signal_connect(GTK_WIDGET(slot->oscanvas), "draw",
                    G_CALLBACK(shoes_canvas_gtk_paint), (gpointer)c);
+#if 1
+    g_signal_connect(GTK_WIDGET(slot->oscanvas), "touch-event",
+                    G_CALLBACK(shoes_canvas_gtk_touch), (gpointer)c);
+#endif
 #ifdef GTK_CANVAS_SIZE  
   g_signal_connect(GTK_WIDGET(slot->oscanvas), "size-allocate",
                    G_CALLBACK(shoes_gtk_content_size), (gpointer)c);
-  g_signal_connect(GTK_WIDGET(slot->oscanvas), "touch-event",
-                   G_CALLBACK(shoes_canvas_gtk_touch), (gpointer)c);
 #endif
   INFO("shoes_slot_init_menu(%lu)\n", c);
   
@@ -2166,7 +2215,6 @@ void shoes_slot_init_menu(VALUE c, SHOES_SLOT_OS *parent, int x, int y, int widt
     g_signal_connect(GTK_WIDGET(slot->vscroll), "value-changed",
                      G_CALLBACK(shoes_canvas_gtk_scroll), (gpointer)c);
     gtk_fixed_put(GTK_FIXED(slot->oscanvas), slot->vscroll, -100, -100);
-
     gtk_widget_set_size_request(slot->oscanvas, width, height);
 
     if (!toplevel) 
@@ -2211,6 +2259,19 @@ int shoes_gtk_optbox_height(shoes_app *app, int height) {
   }
   //fprintf(stderr, "optbox hgt %d -> %d\n", height, hgt);
   return hgt;
+}
+
+static void
+shoes_gtk_swipe_gesture_swept (GtkGestureSwipe *gesture,
+                     gdouble          velocity_x,
+                     gdouble          velocity_y,
+                     gpointer       *data)
+{
+  shoes_app *app = (shoes_app *)data;
+  gdouble swipe_x = velocity_x / 10;
+  gdouble swipe_y = velocity_y / 10;
+  //gtk_widget_queue_draw (widget);
+  fprintf(stderr, "Gesture: swipe\n");
 }
 
 /*
@@ -2332,7 +2393,22 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
                      G_CALLBACK(shoes_app_gtk_quit), app);
     g_signal_connect(GTK_WINDOW(window), "configure-event",   // bug #349
                      G_CALLBACK(shoes_app_gtk_configure_menu), app);
-       
+#if 1
+    g_signal_connect(GTK_WIDGET(window), "touch-event",
+                    G_CALLBACK(shoes_canvas_gtk_touch), app);
+#endif
+#if 0
+    g_signal_connect(GTK_WIDGET(window), "drag-begin",
+                    G_CALLBACK(shoes_gtk_app_drag_begin), app);
+#endif
+#if 0
+     // swipe setup
+    GtkGesture *gesture = gtk_gesture_swipe_new (shoes_window);       
+    g_signal_connect (gesture, "swipe",
+                        G_CALLBACK (shoes_gtk_swipe_gesture_swept), app);
+    gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (gesture),
+                                                  GTK_PHASE_CAPTURE ); 
+#endif    
     if (app->fullscreen) shoes_native_app_fullscreen(app, 1);
 
     gtk_window_set_decorated(GTK_WINDOW(window), app->decorated);
