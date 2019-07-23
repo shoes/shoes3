@@ -8,7 +8,13 @@ $shops = [
     { name: "Meg's Clothing", picture: "res/shop4.png", point: [485,307]}
   ]
 
-Shoes.app width: 800, height: 400, menus: true  do
+Shoes.app width: 800, height: 400, menus: false  do
+  app.decorated = false 
+  keypress do |k|
+    if k == 'q' || k == 'Q'
+      Shoes.quit
+    end
+  end
   background lightpink
   
   # returns a layout with buttons that change the panel

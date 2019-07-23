@@ -8,10 +8,12 @@ Shoes.app width: 600, height: 400, menus: false do
     end
     @eb = edit_box "First"
     30.times.each do |i|
-      @eb.append "\nline #{i+1}"
-    end
-    30.times.each do |i|
       para "Line #{i+11}"
+    end
+  end
+  start do
+    30.times.each do |i|
+      @eb.append "\nline #{i+1}"
     end
   end
 end

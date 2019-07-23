@@ -139,12 +139,12 @@ VALUE shoes_event_create_event(shoes_app *app, ID etype, int button, int x, int 
   if (NIL_P(ps_widget)) {
     evt = shoes_event_new(cShoesEvent, etype, Qnil, x, y, button, modifiers,key);
   } else {
-    // TODO: ASSUME all the ps_widget have the canvas place
+    // TODO: ASSUME all the ps_widget have the canvas place fields
     int w,h; 
-    shoes_canvas *cvs;
-    TypedData_Get_Struct(nobj, shoes_canvas, &shoes_canvas_type, cvs);
-    w = cvs->place.w;
-    h = cvs->place.h;
+    shoes_element *element;
+    element = (shoes_element*)RTYPEDDATA_DATA(nobj);
+    w = element->place.w;
+    h = element->place.h;
     evt = shoes_event_new_widget(cShoesEvent, etype, nobj, button, x, y, w, h, modifiers, key);
   }
   return evt;
