@@ -14,7 +14,7 @@ class Shy
   MAGIC   = "_shy".freeze
   LAYOUT = "A4vV".freeze #Force to Little Endian for all platforms
 
-  yaml_as 'tag:hackety.org,2007:shy'
+  yaml_tag 'tag:hackety.org,2007:shy'
   attr_accessor :name, :creator, :version, :launch
 
   def self.launchable(d)
