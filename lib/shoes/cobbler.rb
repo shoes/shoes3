@@ -176,6 +176,13 @@ Shoes.app :title => "Shoes Cobbler", menus: true do
     end
     osxitem.enable = false unless RUBY_PLATFORM =~ /darwin/
     @pkgmenu << osxitem
+    
+    appiitem = menuitem "Linux Merge AppImage" do
+      appimage_merge_screen
+    end
+    appiitem.enable = false unless RUBY_PLATFORM =~ /linux/
+    @pkgmenu << appiitem
+    
     debitem = menuitem "Linux Merge .deb" do
       deb_merge_screen
     end
@@ -827,6 +834,7 @@ but it needs to know where Shoes is"
               mkdir_p File.dirname(utilp)
               downloader "https://shoes.mvmanila.com/public/util/#{nsexe}",
                 "#{LIB_DIR}/package/#{nsexe}"
+              chmod 0755, "#{LIB_DIR}/package/#{nsexe}"
              end
             button "install" do
               cmdl = Shoes.winpath "#{LIB_DIR}/package/#{nsexe}"
@@ -934,6 +942,49 @@ Also some patience: dmgs are not the quickest thing to build and its done silent
       end
     end
   end
+
+  def appimage_merge_screen
+    @panel.clear
+    @panel.append do
+      stack do
+        tagline "Merge your app with Shoes, creating an AppImage"
+        para "Appimages are a little complex so you'll want to modify what \
+Shoes produces. You may need to install a few things on this Linux system\n"
+        para "If you want your appimage to be available to 'stores' then you SHOULD \
+provide an AppStream Metadata XML file. Formatted correctly (sigh) AND you \
+need to install appstreamcli using your package manager."
+        fn = 'appimagetool-x86_64.AppImage'
+        if RUBY_PLATFORM =~ /armv/
+          fn = 'appimagetool-armhf.AppImage'
+        end
+        wantp = "#{ENV['HOME']}/.shoes/package/#{fn}"
+        if !File.exist? "#{ENV['HOME']}/.shoes/package/#{fn}"
+         flow do
+            para "AppImageTool"
+            button "Download", margin_left: 2  do
+              downloader "https://shoes.mvmanila.com/public/util/#{fn}", wantp
+            end
+          end
+        else
+          para "Will use #{wantp}"
+        end
+        appstream = "#{DIR}/static/stubs/shoes.appdata.xml"
+        flow do 
+          para "AppData.xml"
+          edit_line appstream, margin_left: 4
+          para "Select your xml"
+          button "Locate", margin_left: 4 do
+          end
+        end #flow
+        button "Merge" do
+          require "package/build-appimage"
+        end
+
+        @info_panel = stack do
+        end
+      end #stack
+    end #append
+  end #method
   
   def linux_install_screen
     @panel.clear
