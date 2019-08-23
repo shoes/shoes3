@@ -61,7 +61,7 @@ RUN /bin/bash -c "source $HOME/.rvm/scripts/rvm && gem install yajl-ruby"
 
 COPY . ./
 
-# for some reason the directories cannot be written to by run unless I do this:
+# for some reason the directories cannot be written to by Ruby unless I do this:
 RUN sudo chmod 777 ./ -R
 
 RUN /bin/bash -c "source $HOME/.rvm/scripts/rvm && rake setup:minlin"
