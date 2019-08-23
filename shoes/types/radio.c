@@ -125,7 +125,7 @@ static int shoes_radio_group_keys(VALUE key, VALUE val, VALUE arg) {
     for (i = 0; i < RARRAY_LEN(val); i++) {
       shoes_control *ctrl;
       VALUE entry = rb_ary_entry(val, i);
-      Get_TypedStruct2(entry, shoes_control, ctrl);
+      TypedData_Get_Struct(entry, shoes_control, &shoes_control_type, ctrl);
       if ( ctrl->ref == ref) {
         //printf("FOUND RADIO in group\n");
         rb_ary_delete_at(val, i);
