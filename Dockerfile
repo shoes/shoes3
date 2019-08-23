@@ -40,16 +40,10 @@ RUN apt-get install -y \
 	git \
 	sqlite3
 
-# download & compile ruby:
-# RUN curl -O http://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.7.tar.bz2 > ruby-2.3.7.tar.bz2
-# RUN tar xvfj ruby-2.3.7.tar.bz2
-# RUN cd ruby-2.3.7 &&./configure --enable-load-relative && make -j6 && sudo make install -j6
-
-RUN adduser --disabled-password --gecos '' zach
-RUN adduser zach sudo
+RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-USER zach 
-ENV HOME /home/zach
+USER docker 
+ENV HOME /home/docker
 
 RUN gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
 RUN curl -sSL https://get.rvm.io | bash -s stable
@@ -65,8 +59,14 @@ RUN /bin/bash -c "source $HOME/.rvm/scripts/rvm && gem install chipmunk"
 RUN /bin/bash -c "source $HOME/.rvm/scripts/rvm && gem install yajl-ruby"
 # RUN gem install picky --no-ri --no-rdoc
 
-COPY . .
+COPY . ./
+
+# for some reason the directories cannot be written to by run unless I do this:
+RUN sudo chmod 777 ./ -R
 
 RUN /bin/bash -c "source $HOME/.rvm/scripts/rvm && rake setup:minlin"
 
-CMD ["minlin/shoes"]
+RUN /bin/bash -c "source $HOME/.rvm/scripts/rvm && rake"
+
+
+ENTRYPOINT ["minlin/shoes"]
