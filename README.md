@@ -38,4 +38,13 @@ The latest stable version is 3.3.6; you can read about it [here](https://walkabo
 Remember, no one is happy if the Shoes don't fit so [report your bug.](https://github.com/Shoes3/shoes3/issues)
   
   
+# Docker
 
+IF you haven't already add your user to the docker group:
+	`sudo usermod -aG docker $USER`
+
+ to build docker:
+  `sudo docker build -t shoes-dev .`
+
+ To Run from docker:
+	`sudo docker run -it --rm -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v $HOME/$HOME --name shoes-dev`
