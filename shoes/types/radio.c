@@ -121,7 +121,9 @@ static int shoes_radio_group_keys(VALUE key, VALUE val, VALUE arg) {
   if (RB_TYPE_P(val, T_ARRAY)) {
     //printf("Array len: %d\n",  (int)RARRAY_LEN(val));
     SHOES_CONTROL_REF ref = (SHOES_CONTROL_REF)arg;
-    for (int i = 0; i < RARRAY_LEN(val); i++) {
+    int i;
+    for (i = 0; i < RARRAY_LEN(val); i++) {
+      shoes_control *ctrl;
       VALUE entry = rb_ary_entry(val, i);
       Get_TypedStruct2(entry, shoes_control, ctrl);
       if ( ctrl->ref == ref) {
