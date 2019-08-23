@@ -38,4 +38,13 @@ The latest stable version is 3.3.6; you can read about it [here](https://walkabo
 Remember, no one is happy if the Shoes don't fit so [report your bug.](https://github.com/Shoes3/shoes3/issues)
   
   
+# Run, Build Shoes with Docker!
 
+If you haven't already add your user to the docker group:
+	`sudo usermod -aG docker $USER`
+
+ `cd` into your the cloned shoes3 repo to build docker:
+  `cd shoes3/` then run `docker build -t shoes-dev .`
+
+ To run shoes apps from docker simple run:
+  `docker run --net=host --env="DISPLAY" --volume="$HOME/.Xauthority:/root/.Xauthority:rw" shoes-dev samples/simple/calc.rb`

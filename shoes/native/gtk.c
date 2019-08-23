@@ -68,6 +68,7 @@ enum {
   OLD_SCHOOL,
   WAYLAND,
 };
+
 static int shoes_gtk_backend = OLD_SCHOOL;
 /*
 int shoes_gtk_set_desktop() {
@@ -80,6 +81,7 @@ int shoes_gtk_set_desktop() {
   if (backend && strcmp(backend,"wayland") == 0)
     shoes_gtk_desktop |= WAYLAND;
   printf("desktop: %s %s %d\n", backend, session, shoes_gtk_desktop);
+>>>>>>> ddb8dccbbc29d3cdb3100f564804abd54aaeb5ec
 }
 */
 // ---------- fonts ------------
