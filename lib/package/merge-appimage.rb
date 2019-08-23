@@ -17,7 +17,8 @@ module PackShoes
   end
   
   def PackShoes.merge_appimage opts, &blk
-    # setup defaults if not in the opts
+    # setup defaults if not in the opts. Setup other things used
+    # below
     #puts opts.inspect
     opts['publisher'] = 'shoerb' unless opts['publisher']
     opts['website'] = 'http://shoesrb.com/' unless opts['website']
@@ -191,8 +192,17 @@ SCR
     
     dest = "#{opts['packdir']}/#{opts['app_name']}.appimage"
     rm_rf dest
-    if opts['useXML'] 
-      `cp #{opts['useXML']} #{appdir}/usr/share/metainfo/#{id}.appdata.xml`
+    if opts['usexml'] # will use AppStream metadata
+      if opts['xmlpath'] 
+        `cp #{opts['xmlpath']} #{appdir}/usr/share/metainfo/#{id}.appdata.xml`
+      else
+        puts "Using default xml. Please copy it and change it"
+        newx = File.open("#{appdir}/usr/share/metainfo/#{id}.appdata.xml", 'w')
+        rewrite(newx, "#{DIR}/static/stubs/template.appdata.xml", {
+         'ID' => id, 'NAME' => opts['app_name'], 'PURPOSE' => opts['purpose'],
+         'WEBSITE' => opts['website'], 'NAME_ARCH' => opts['app_name']+'_'+arch })
+        newx.close 
+      end
       result = `#{appimgtool} #{appdir} #{dest}`
       if result && result != ''
         # TODO: check for running from Shoes, if so use alert
@@ -200,7 +210,7 @@ SCR
         puts "Error::  #{result}"
       end
     else
-    `#{appimgtool} -n #{appdir} #{dest}`
+      `#{appimgtool} -n #{appdir} #{dest}`
     end
     yield "Done" if blk
   end
@@ -216,7 +226,9 @@ SCR
       f << "Comment=\"#{opts['purpose']}\"\n"
       f << "Icon=#{File.basename(opts['app_png'], '.png')}\n"
       f << "Categories=#{opts['category']};\n"
-      f << "X-AppImage-Integrate=false\n"
+      if opts['no_integrate'] 
+        f << "X-AppImage-Integrate=false\n"
+      end
     end
   end
 end
