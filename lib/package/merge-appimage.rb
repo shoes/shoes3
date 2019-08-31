@@ -32,7 +32,7 @@ module PackShoes
     # local var packdir points to where Shoes is copied - 
     imagedir = "#{opts['packdir']}/#{lc_name}"
     appdir = "#{imagedir}/AppDir"
-    packdir = "#{appdir}/usr/lib" 
+    packdir = "#{appdir}/usr/lib/#{lc_name}" 
     rm_rf imagedir
     mkdir_p appdir 
     mkdir_p "#{appdir}/usr/bin"
@@ -40,6 +40,7 @@ module PackShoes
     mkdir_p "#{appdir}/usr/share/applications"
     mkdir_p "#{appdir}/usr/share/icons/hicolor/256x256"
     mkdir_p "#{appdir}/usr/share/metainfo"
+    mkdir_p packdir
     # id is very important for appimage and a bit confusing
     arch = 'x86_64'
     if RUBY_PLATFORM =~ /armv/ 
@@ -87,6 +88,7 @@ module PackShoes
     app_contents.each do |p|
      cp_r p, packdir
     end
+
     #create new lib/shoes.rb with rewrite
     newf = File.open("#{packdir}/lib/shoes.rb", 'w')
     rewrite newf, "#{DIR}/lib/package/min-shoes.rb", {'APP_START' => opts['app_start'] }
@@ -95,6 +97,7 @@ module PackShoes
     logf = File.open("#{packdir}/lib/shoes/log.rb", 'w')
     rewrite logf, "#{DIR}/lib/package/min-log.rb", {'CONSOLE_HDR' => "#{opts['app_name']} Errors"}
     logf.close
+
     # copy/remove gems - tricksy - pay attention
     # remove the Shoes built-in gems if NOT IN the list 
     yield "Copy gems" if blk
@@ -113,16 +116,7 @@ module PackShoes
       end
     end
     sgpath = "#{packdir}/lib/ruby/gems/#{rbmm}.0"
-=begin
-    # sqlite is a special case so delete it differently - trickery
-    if !incl_gems.include?('sqlite3')
-      spec = Dir.glob("#{sgpath}/specifications/sqlite3*.gemspec")
-      rm spec[0]
-      rm_gems << File.basename(spec[0],'.gemspec')
-    else
-      incl_gems.delete("sglite3")
-    end
-=end
+
     rm_gems.each do |g|
       puts "Deleting #{g}"
       rm_rf "#{sgpath}/specifications/#{g}.gemspec"
@@ -145,7 +139,7 @@ module PackShoes
       end
       cp_r "#{gloc}/gems/#{name}", "#{sgpath}/gems"
     end
-        
+      
     # hide shoes-bin and shoes launch script names
     yield "Finishing AppImage" if blk
     #after_install = "#{opts['app_name']}_install.sh"
@@ -182,7 +176,7 @@ SCR
       chmod 0755, lc_name
     end
     Dir.chdir(appdir) do
-      ln_s "usr/lib/#{lc_name}", "AppRun"
+      ln_s "usr/lib/#{lc_name}/#{lc_name}", "AppRun"
     end
     appimgtool = "#{ENV['HOME']}/.shoes/package/appimagetool-#{arch}.AppImage"
     self.make_desktop_appimg appdir, id, opts
@@ -200,7 +194,8 @@ SCR
         newx = File.open("#{appdir}/usr/share/metainfo/#{id}.appdata.xml", 'w')
         rewrite(newx, "#{DIR}/static/stubs/template.appdata.xml", {
          'ID' => id, 'NAME' => opts['app_name'], 'PURPOSE' => opts['purpose'],
-         'WEBSITE' => opts['website'], 'NAME_ARCH' => opts['app_name']+'_'+arch })
+         'WEBSITE' => opts['website'], 'NAME_ARCH' => opts['app_name']+'_'+arch,
+         'LICENSE' => opts['license_tag'] })
         newx.close 
       end
       result = `#{appimgtool} #{appdir} #{dest}`

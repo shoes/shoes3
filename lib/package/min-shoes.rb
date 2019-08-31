@@ -249,7 +249,8 @@ class Shoes
     #Shoes.splash if RUBY_PLATFORM !~ /darwin/ && ARGV.empty?
     #OPTS.parse! ARGV
     #ARGV[0] || true
-    font "#{DIR}/fonts/Lacuna.ttf"
+    #font "#{DIR}/fonts/Lacuna.ttf"
+    font "#{DIR}/fonts/DejaVuSans.ttf"
     real_path = "#{DIR}"
     app_path = "#{real_path}/#{APP_START}"
   end
