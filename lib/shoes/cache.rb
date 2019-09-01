@@ -125,7 +125,12 @@ if tight_shoes
       Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
       Gem.refresh
     else
-      # GEM_HOME and GEM_PATH is kind of a rvm unixy thing?
+      # GEM_HOME and GEM_PATH is kind of a rvm unixy thing
+      if RUBY_PLATFORM =~ /mingw/
+				ENV['GEM_PATH'] = "#{GEM_DIR};#{GEM_CENTRAL_DIR}"
+      else     
+				ENV['GEM_PATH'] = "#{GEM_DIR}:#{GEM_CENTRAL_DIR}"
+      end
       Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
       Gem.refresh
     end
