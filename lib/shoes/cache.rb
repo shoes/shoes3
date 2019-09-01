@@ -124,6 +124,10 @@ if tight_shoes
       end
       Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
       Gem.refresh
+    else
+      # GEM_HOME and GEM_PATH is kind of a rvm unixy thing?
+      Gem.use_paths(GEM_DIR, [GEM_DIR, GEM_CENTRAL_DIR])
+      Gem.refresh
     end
     ShoesGemJailBreak = false
   end
