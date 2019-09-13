@@ -64,6 +64,7 @@ else
 end
 LINUX_CFLAGS << " -DRUBY_HTTP " 
 LINUX_CFLAGS << " -DSHOES_GTK -fPIC -Wno-unused-but-set-variable -Wno-unused-variable"
+LINUX_CFLAGS << " -DGTK_CANVAS_SIZE"
 LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkggtk}"`.strip+" "

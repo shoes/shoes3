@@ -569,7 +569,7 @@ END
 	        relative_file = file.sub(/^#{Regexp::escape indir}\/?/, '')
 	        mode = modes[relative_file] 
 	        if !mode
-	          puts "Failed #{relative_file} #{file}"
+	          puts "Failed to find mode: #{relative_file} #{file}"
 	          mode = File.stat(file).mode
 	        end
 	        if File.directory?(file)

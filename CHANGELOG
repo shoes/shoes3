@@ -10,7 +10,7 @@
 -------------- Shoes 3.3.8 ------------------------------
 
 === New with 3.3.8
-  * Ruby 2.4.5, Gems 3.03
+  * Ruby 2.5.5, Gems 3.03
   * Windows 64 bit. 
   * Updated versions of Gems (byebug, nokogiri, etc)
   * User written layout class. 
@@ -19,6 +19,8 @@
   * limited support for touch screens (Linux, Windows)
     https://github.com/shoes/shoes3/issues/447
   * Linux: Merge packaging creates AppImages
+  * Packaging: Download if needed is no longer offered
+    Future: only merge packaging will be available.
 
 === Fixed with 3.3.8
   * osx: improved building of gems if user has homebrew. 

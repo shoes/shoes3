@@ -9,8 +9,8 @@ class Shoes
     attr_reader :progress, :response, :content_length, :gui, :transferred 
     # length and percent is preserved for Shoes3 compatibility
     attr_reader :length , :percent
-    # thread is used by packager to sync download
-    attr_reader :thread
+    # thread is used by packager to sync download ?
+    #attr_reader :thread
     UPDATE_STEPS = 100
     
     def initialize(url, opts = {}, &blk)
@@ -25,8 +25,7 @@ class Shoes
 
     
     def start_download(url)
-      puts "download method: starting for #{url}"
-      #require 'open-uri'
+      #puts "download method: starting for #{url}"
       @thread = Thread.new do
         uri_opts = {}
         uri_opts[:content_length_proc] = content_length_proc
@@ -40,9 +39,9 @@ class Shoes
         open url, uri_opts do |f|
           # everything has been downloaded at this point. f is a tempfile
           finish_download f
-          @thread.join
         end
       end
+      #puts "Thread finished?"
     end
       
     def content_length_proc
@@ -67,7 +66,7 @@ class Shoes
     end
 
     def finish_download(f)
-      puts "download method finishing"
+      #puts "download method finishing"
       @finished = true
       @response.body = f.read
       @response.status = f.status[0]
@@ -86,6 +85,7 @@ class Shoes
         #puts "calling download blk"
         eval_block(@blk, self)
       end
+      #@thread.join # to make synchronous
     end
 
     def eval_block(blk, result)

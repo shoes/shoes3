@@ -866,6 +866,7 @@ but it needs to know where Shoes is"
     end
   end
   
+  # downloader is not synchronous - it does not wait for completion
   def downloader dnlurl, workpath
         @info_panel.clear
         @info_panel.append do 
@@ -977,6 +978,9 @@ need to install appstreamcli using your package manager."
           end
         end #flow
         button "Merge" do
+          if ! File.executable? wantp
+            chmod 0755, wantp           
+          end
           require "package/build-appimage"
         end
 
