@@ -87,163 +87,234 @@ class Gem::CobblerDelFace
  end
 end
 
-Shoes.app :title => "Shoes Cobbler", menus: true do
+#Shoes.app :title => "Shoes Cobbler", menus: true do
+Shoes.app :title => "Shoes Cobbler" do
   @shoes_home = File.join(LIB_DIR, Shoes::RELEASE_NAME)
   stack do
-    @mb = menubar
-    @mb[0].remove "Cobbler"
-    @mb[0].remove "Package"
-    @helpmenu = menu "Help"
-    infoitem = menuitem "Info", key: "control_i" do
-      infoscreen
-    end
-    splashitem = menuitem "Splash" do
-      splash_screen
-    end
-    @helpmenu << infoitem
-    @helpmenu << splashitem
-    @gemmenu = menu "Gems"
-    mgemitem = menuitem "Manage", key: "control_g" do
-      gemscreen
-    end
-    @gemmenu << mgemitem
-    if Shoes::RELEASE_TYPE =~ /TIGHT/
-      jbitem = menuitem "Jail Break" do
-          jailscreen
-      end
-      @gemmenu << jbitem
-    end
-    gpitem = menuitem "Install Gempack" do
-      gempack_screen
-    end
-    @gemmenu << gpitem
-    @pfmenu = menu "Setup"
-    cpitem = menuitem "Copy Samples" do
-      cp_samples_screen
-    end
-    @pfmenu << cpitem
-    pkitem = menuitem "Package URLs" do
-      pack_screen
-    end
-    @pfmenu << pkitem
-    vlcitem = menuitem "VLC setup" do
-      vlc_screen
-    end
-    @pfmenu << vlcitem
-    ccitem = menuitem "Clear Cache" do
-      cachescreen
-    end
-    @pfmenu << ccitem
-    if RUBY_PLATFORM =~ /darwin/
-      csitem = menuitem "Setup ./cshoes" do
-        cshoes_screen
-      end
-      @pfmenu << csitem
-    end
-    if RUBY_PLATFORM =~/linux/ && DIR =~/\/tmp\/.mount/
-      cinst_item = menuitem "Install to .shoes" do
-        linux_install_screen
-      end
-      @pfmenu << cinst_item
-    end
-    @mb << @gemmenu
-    @mb << @pfmenu
-    if RUBY_PLATFORM =~ /linux|bsd|mingw/
-      @thememenu = menu "Themes"
-      switem = menuitem "Switch theme" do
-        swtheme_screen
-      end
-      @thememenu << switem
-      britem = menuitem "Browse Online"
-      britem.enable = false
-      @thememenu << britem
-      @mb << @thememenu
-    end
-    @pkgmenu = menu "Package"
-    shyitem = menuitem "Shy archive"
-    @pkgmenu << shyitem
-    xpitem = menuitem "Cross Platform" do
-      Shoes.app_package & close
-    end
-    @pkgmenu << xpitem
-    exeitem = menuitem "Windows Merge" do
-      win_merge_screen
-    end
-    exeitem.enable = false unless RUBY_PLATFORM =~ /mingw/
-    @pkgmenu << exeitem
-    osxitem = menuitem "Advanced OSX" do
-      osx_merge_screen
-    end
-    osxitem.enable = false unless RUBY_PLATFORM =~ /darwin/
-    @pkgmenu << osxitem
-    
-    appiitem = menuitem "Linux Merge AppImage" do
-      appimage_merge_screen
-    end
-    appiitem.enable = false unless RUBY_PLATFORM =~ /linux/
-    @pkgmenu << appiitem
-    
-    debitem = menuitem "Linux Merge .deb" do
-      deb_merge_screen
-    end
-    debitem.enable = false unless RUBY_PLATFORM =~ /linux/
-    @pkgmenu << debitem
-    bsditem = menuitem "Freebsd Merge" do
-      bsd_merge_screen
-    end
-    bsditem.enable = false unless RUBY_PLATFORM =~ /linux|bsd/
-    @pkgmenu << bsditem
-    @mb << @pkgmenu
-    @mb << @helpmenu
-=begin    
-    @menu = flow do
-      button "Shoes Info" do
+    settings = Shoes.settings
+    if settings.use_menus
+      @mb = menubar
+      @mb[0].remove "Cobbler"
+      @mb[0].remove "Package"
+      @helpmenu = menu "Help"
+      infoitem = menuitem "Info", key: "control_i" do
         infoscreen
       end
-      button "Clear Image Cache" do
-        cachescreen
+      splashitem = menuitem "Splash" do
+        splash_screen
       end
-      if Shoes::RELEASE_TYPE =~ /TIGHT/
-        button "Jail Break Gems" do
-          jailscreen
-        end
-      end
-      button "Manage Gems" do
+      @helpmenu << infoitem
+      @helpmenu << splashitem
+      @gemmenu = menu "Gems"
+      mgemitem = menuitem "Manage", key: "control_g" do
         gemscreen
       end
-      if Shoes::RELEASE_TYPE =~ /TIGHT/ || true # for testing.
-        button "Install Gempack" do
-          gempack_screen
+      @gemmenu << mgemitem
+      if Shoes::RELEASE_TYPE =~ /TIGHT/
+        jbitem = menuitem "Jail Break" do
+            jailscreen
         end
+        @gemmenu << jbitem
       end
-      button "Profile" do
-        require 'shoes/profiler'
-        Shoes.profile(nil)
+      gpitem = menuitem "Install Gempack" do
+        gempack_screen
       end
-      button "Copy Samples" do
+      @gemmenu << gpitem
+      @pfmenu = menu "Setup"
+      cpitem = menuitem "Copy Samples" do
         cp_samples_screen
       end
-      button "Packager URLs" do
+      @pfmenu << cpitem
+      pkitem = menuitem "Package URLs" do
         pack_screen
       end
-      if RUBY_PLATFORM =~ /darwin/
-        button "cshoes" do
-          cshoes_screen
-        end
-      end
-      button "VLC setup" do
+      @pfmenu << pkitem
+      vlcitem = menuitem "VLC setup" do
         vlc_screen
       end
-      button "Manual" do
-        Shoes.show_manual
+      @pfmenu << vlcitem
+      ccitem = menuitem "Clear Cache" do
+        cachescreen
       end
-      button "Splash" do
-        Shoes.splash
+      @pfmenu << ccitem
+      if RUBY_PLATFORM =~ /darwin/
+        csitem = menuitem "Setup ./cshoes" do
+          cshoes_screen
+        end
+        @pfmenu << csitem
       end
-      button "Quit" do
-         Shoes.quit
+      if RUBY_PLATFORM =~/linux/ && DIR =~/\/tmp\/.mount/
+        cinst_item = menuitem "Install to .shoes" do
+          linux_install_screen
+        end
+        @pfmenu << cinst_item
       end
-    end
+      @mb << @gemmenu
+      @mb << @pfmenu
+      if RUBY_PLATFORM =~ /linux|bsd|mingw/
+        @thememenu = menu "Themes"
+        switem = menuitem "Switch theme" do
+          swtheme_screen
+        end
+        @thememenu << switem
+        britem = menuitem "Browse Online"
+        britem.enable = false
+        @thememenu << britem
+        @mb << @thememenu
+      end
+      @pkgmenu = menu "Package"
+      shyitem = menuitem "Shy archive"
+      @pkgmenu << shyitem
+      xpitem = menuitem "Cross Platform" do
+        Shoes.app_package & close
+      end
+      @pkgmenu << xpitem
+      exeitem = menuitem "Windows Merge" do
+        win_merge_screen
+      end
+      exeitem.enable = false unless RUBY_PLATFORM =~ /mingw/
+      @pkgmenu << exeitem
+      osxitem = menuitem "Advanced OSX" do
+        osx_merge_screen
+      end
+      osxitem.enable = false unless RUBY_PLATFORM =~ /darwin/
+      @pkgmenu << osxitem
+      
+      appiitem = menuitem "Linux Merge AppImage" do
+        appimage_merge_screen
+      end
+      appiitem.enable = false unless RUBY_PLATFORM =~ /linux/
+      @pkgmenu << appiitem
+      
+      debitem = menuitem "Linux Merge .deb" do
+        deb_merge_screen
+      end
+      debitem.enable = false unless RUBY_PLATFORM =~ /linux/
+      @pkgmenu << debitem
+      bsditem = menuitem "Freebsd Merge" do
+        bsd_merge_screen
+      end
+      bsditem.enable = false unless RUBY_PLATFORM =~ /linux|bsd/
+      @pkgmenu << bsditem
+      @mb << @pkgmenu
+      @mb << @helpmenu
+    else  
+      def pack_nav
+        flow do
+          para link("Cobbler", click: proc {cobbler_nav})
+          para "Package: " 
+          para link("Cross Platform", click: proc {Shoes.app_package & close})
+          if RUBY_PLATFORM =~ /mingw/
+            para link("Windows Merge", click: proc {win_merge_screen})
+          end
+          if RUBY_PLATFORM =~ /darwin/
+            para link("OSX Merge", click: proc{ osx_merge_screen})
+          end
+          if RUBY_PLATFORM =~ /linux/
+            para link("AppImage Merge", click: proc {appimage_merge_screen})
+          end
+          if RUBY_PLATFORM =~ /linux|bsd/
+            para link(" BSD Merge", click: proc {bsd_merge_screen})
+          end
+        end
+      end
+      
+      def theme_nav
+        flow do
+          para link("Cobbler", click: proc {cobbler_nav})
+          para "Themes: " 
+          para link("Switch theme", click: proc {swtheme_screen})
+         end
+      end
+      
+      def help_nav 
+        #returns a flow 
+        flow do
+          para link("Cobbler", click: proc {cobbler_nav})
+          para "Help: " 
+          para link("Info", click: proc {infoscreen})
+          para link("Splash", click: proc {Shoes.splash})
+        end
+      end
+      def gems_nav
+        flow do
+          para link("Cobbler", click: proc {cobbler_nav})
+          para "Gems: "
+          para link("Manage", click: proc {gemscreen})
+          if Shoes::RELEASE_TYPE =~ /TIGHT/ || true # for testing.
+            para link("Gempack", click: proc {gempack_screen})
+          end
+        end
+      end
+      def setup_nav
+        flow do
+          para link("Cobbler", click: proc {cobbler_nav})
+          para "Setup: "
+          para link("Clear Image Cache", click: proc { cachescreen })
+          if Shoes::RELEASE_TYPE =~ /TIGHT/
+            para link("Jail Break Gems", click: proc {jailscreen})
+          end
+          para link("Copy Samples", click: proc {cp_samples_screen})
+          para link("Packager URLs", click: proc {pack_screen})
+          if RUBY_PLATFORM =~ /darwin/
+            para link("cshoes", click: proc {cshoes_screen})
+          end
+          para link("VLC setup", click: proc {vlc_screen})
+        end
+      end
+      
+      def show_manual
+        
+        require 'shoes/search'
+        require 'shoes/help'
+        Shoes.app(width: 720, height: 640, &Shoes::Help)
+      end
+      
+      # (re)draw top level menu
+      def cobbler_nav
+        @menupanel.clear do
+          flow do
+            para link("Gems", click: proc { @menupanel.clear {gems_nav}})
+            para link("Setup", click: proc { @menupanel.clear {setup_nav}})
+            if RUBY_PLATFORM =~ /linux|bsd|mingw/
+              para link("Themes", click: proc {@menupanel.clear {theme_nav}})
+            end
+            para link("Package", click: proc {@menupanel.clear {pack_nav}})
+            para link("Manual", click: proc {show_manual})
+            para link("Profile", click: proc {require 'shoes/profiler'; Shoes.profile(nil)})
+            para link("Help", click: proc {@menupanel.clear {help_nav}})
+          end
+        end
+      end
+    
+      @menupanel = flow 
+      cobbler_nav
+   end #if else 
+=begin
+     @menupanel = flow do
+        para "Cobbler: "
+        button "Gems" do
+          @menupanel.clear { gems_nav }
+        end
+        button "Setup" do
+          @menupanel.clear do setup_nav end
+        end
+        button "Themes"
+        button "Package"
+        button "Profile" do
+          require 'shoes/profiler'
+          Shoes.profile(nil)
+        end
+        button "Manual" do
+          Shoes.show_manual
+        end
+        button "Help" do
+          @menupanel.clear do help_nav end
+        end
+        button "Quit" do
+           Shoes.quit
+        end
+      end
 =end
     @panel = stack do
       @status = para ""
