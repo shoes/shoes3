@@ -59,13 +59,6 @@ extern SHOES_EXTERN shoes_world_t *shoes_world;
     title_##appvar = RSTRING_PTR(app->title); \
   }\
 
-
-// no longer used - TODO: remove after testing.
-#define ACTUAL_APP_NOPE(appvar) \
-  shoes_app *appvar = NULL; \
-  VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); \
-  Data_Get_Struct(actual_app, shoes_app, appvar);
-
 #define ROUND(x) ((x) >= 0 ? (int)round((x)+0.5) : (int)round((x)-0.5))
 
 //

@@ -100,12 +100,13 @@ VALUE shoes_menubar_index(VALUE self, VALUE arg) {
       VALUE mnv = rb_ary_entry(mb->menus, i);
       shoes_menu *mn;
       Data_Get_Struct(mnv, shoes_menu, mn);
-      if (strcmp(txt,mn->title) == 0)
+      if (strcmp(txt,mn->title) == 0) {
         return INT2NUM(i);
-    
+      }
     }
-  } else
+  } else {
     rb_raise(rb_eArgError, "index must be string or integer");
+  }
   return Qnil;
 }
 VALUE shoes_menubar_at(VALUE self, VALUE arg) {

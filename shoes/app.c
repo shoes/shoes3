@@ -116,7 +116,6 @@ int shoes_app_remove(shoes_app *app) {
 shoes_code shoes_app_resize(shoes_app *app, int width, int height) {
     app->width = width;
     app->height = height;
-    //shoes_native_app_resized(app);
     shoes_native_app_resize_window(app);
     return SHOES_OK;
 }
