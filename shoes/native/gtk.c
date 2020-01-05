@@ -1142,12 +1142,12 @@ done:
 
 void shoes_native_app_title(shoes_app *app, char *msg) {
     gtk_window_set_title(GTK_WINDOW(app->os.window), _(msg));
-    //gtk_window_set_title(GTK_WINDOW(app->os.window), msg);
 }
 
 void shoes_native_app_resize_window(shoes_app *app) {
     if ((app->os.window != NULL) && (app->width > 0 && app->height > 0)) {
-        gtk_widget_set_size_request((GtkWidget *) app->os.window, app->width, app->height);
+        gtk_window_resize(GTK_WINDOW(app->os.window), app->width, app->height );
+        //gtk_widget_set_size_request((GtkWidget *) app->os.window, app->width, app->height);
     }
 }
 
@@ -1158,17 +1158,15 @@ VALUE shoes_native_get_resizable(shoes_app *app) {
 void shoes_native_set_resizable(shoes_app *app, int resizable) {
     gboolean state;
     state = resizable ? TRUE : FALSE;
-    if (gtk_window_get_resizable(GTK_WINDOW(app->os.window)) != state)
+    if (gtk_window_get_resizable(GTK_WINDOW(app->os.window)) != state) {
         gtk_window_set_resizable(GTK_WINDOW(app->os.window), state);
+    }
 }
 
 
 void shoes_native_app_fullscreen(shoes_app *app, char yn) {
     gtk_window_set_keep_above(GTK_WINDOW(app->os.window), (gboolean)yn);
-    if (yn)
-        gtk_window_fullscreen(GTK_WINDOW(app->os.window));
-    else
-        gtk_window_unfullscreen(GTK_WINDOW(app->os.window));
+    yn ? gtk_window_fullscreen(GTK_WINDOW(app->os.window)) : gtk_window_unfullscreen(GTK_WINDOW(app->os.window));
 }
 
 // new in 3.2.19
@@ -1176,10 +1174,13 @@ void shoes_native_app_set_icon(shoes_app *app, char *icon_path) {
     // replace default icon
     gboolean err;
     GtkWindow *win;
-    if (app->have_menu)
-      win = (GtkWindow *)app->os.window;
-    else
-      win = (GtkWindow *) app->slot->oscanvas;  // TODO: needed? 
+    if (app->have_menu) {
+        win = (GtkWindow *)app->os.window;
+    }
+    else {
+        win = (GtkWindow *) app->slot->oscanvas;  // TODO: needed? 
+    }
+    
     err = gtk_window_set_icon_from_file(win, icon_path, NULL);
     err = gtk_window_set_default_icon_from_file(icon_path, NULL);
 }
@@ -1188,17 +1189,21 @@ void shoes_native_app_set_icon(shoes_app *app, char *icon_path) {
 void shoes_native_app_set_wtitle(shoes_app *app, char *wtitle) {
     //gtk_window_set_title(GTK_WINDOW(app->slot->oscanvas), _(wtitle));
     GtkWindow *win;
-    if (app->have_menu)
-      win = (GtkWindow *)app->os.window;
-    else
-      win = (GtkWindow *) app->slot->oscanvas;  // TODO: needed? 
+    if (app->have_menu) {
+        win = (GtkWindow *)app->os.window;
+    }
+    else {
+        win = (GtkWindow *) app->slot->oscanvas;  // TODO: needed? 
+    }
+    
     gtk_window_set_title(GTK_WINDOW(win), _(wtitle));
 }
 
 // new in 3.3.3 - opacity  can use the older api on old Gtk3 
 void shoes_native_app_set_opacity(shoes_app *app, double opacity) {
-  if (gtk_get_minor_version() >= 8)
-    gtk_widget_set_opacity(GTK_WIDGET(app->os.window), opacity);
+  if (gtk_get_minor_version() >= 8) {
+      gtk_widget_set_opacity(GTK_WIDGET(app->os.window), opacity);
+  }
   else 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -1325,7 +1330,7 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_s
         
     gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
     if (!app->resizable) {
-        gtk_widget_set_size_request(window, app->width, app->height);
+        gtk_window_resize(GTK_WINDOW(window), app->width, app->height);
         gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
     } else if (app->minwidth < app->width || app->minheight < app->height) {
         GdkGeometry hints;
@@ -1499,11 +1504,16 @@ void shoes_native_canvas_place(shoes_canvas *self_t, shoes_canvas *pc) {
     gtk_widget_translate_coordinates(self_t->slot->oscanvas, pc->slot->oscanvas, 0, 0, &x, &y);
     newy = (self_t->place.iy + self_t->place.dy) - pc->slot->scrolly;
 
-    if (x != self_t->place.ix + self_t->place.dx || y != newy)
-        gtk_fixed_move(GTK_FIXED(pc->slot->oscanvas), self_t->slot->oscanvas,
-                       self_t->place.ix + self_t->place.dx, newy);
-    if (a.width != self_t->place.iw || a.height != self_t->place.ih)
+    if (x != self_t->place.ix + self_t->place.dx || y != newy) {
+        gtk_fixed_move(
+            GTK_FIXED(pc->slot->oscanvas), 
+            self_t->slot->oscanvas,
+            self_t->place.ix + self_t->place.dx, newy);
+    }
+    
+    if (a.width != self_t->place.iw || a.height != self_t->place.ih) {
         gtk_widget_set_size_request(self_t->slot->oscanvas, self_t->place.iw, self_t->place.ih);
+    }
 }
 
 void shoes_native_canvas_resize(shoes_canvas *canvas) {
@@ -2165,16 +2175,18 @@ int shoes_gtk_is_maximized(shoes_app *app, int wid, int hgt) {
 // called only by **Window** signal handler for *size-allocate*
 static void shoes_app_gtk_size_menu(GtkWidget *widget, cairo_t *cr, gpointer data) {
     shoes_app *app = (shoes_app *)data;
-    if (widget != app->os.window)
+    if (widget != app->os.window) {
       fprintf(stderr, "widget != app->os.window\n");
-    gtk_window_get_size(GTK_WINDOW(app->os.window), &app->width, &app->height);
+      gtk_window_get_size(GTK_WINDOW(app->os.window), app->width, app->height);
+    }
 #ifdef SZBUG
     fprintf(stderr,"shoes_app_gtk_size_menu: wid: %d hgt: %d\n", app->width, app->height);
 #endif
     app->height -= app->mb_height;
     // trigger a resize & paint 
+    
     GtkWidget *wdg = app->slot->oscanvas;
-    gtk_widget_set_size_request(wdg, app->width, app->height);
+    gtk_widget_set_size_request(&wdg, app->width, app->height);
     
     shoes_canvas_size(app->canvas, app->width, app->height);
 }
@@ -2226,7 +2238,7 @@ static void shoes_canvas_gtk_size_menu(GtkWidget *widget, GtkAllocation *size, g
 gboolean shoes_app_gtk_configure_menu(GtkWidget *widget, GdkEvent *evt, gpointer data) {
   shoes_app *app = (shoes_app *)data;
   if (widget == app->os.window) {  // GtkWindow
-    //gtk_widget_set_size_request(widget, evt->configure.width, evt->configure.height);
+    gtk_window_resize(widget, evt->configure.width, evt->configure.height);
     shoes_canvas *canvas;
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
 #if GTK_CHECK_VERSION(3,12,0)
@@ -2338,10 +2350,11 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
     GtkWidget *window;       // Root window 
     shoes_app_gtk *gk = &app->os; //lexical - typing shortcut
 
-    
     char icon_path[SHOES_BUFSIZE];
-    if (st->icon_path == Qnil)
-      sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
+
+    if (st->icon_path == Qnil) {
+        sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
+    }
     else {
       char *ip = RSTRING_PTR(st->icon_path);
       if (*ip == '/' || ip[1] ==':')  
@@ -2349,6 +2362,7 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
       else
        sprintf(icon_path, "%s/%s", shoes_world->path, ip);
     }
+
     gtk_window_set_default_icon_from_file(icon_path, NULL);
 
     GtkWidget *vbox;         // contents of root window
@@ -2394,7 +2408,7 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
     gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
    // commit https://github.com/shoes/shoes/commit/4e7982ddcc8713298b6959804dab8d20111c0038
     if (!app->resizable) {
-        gtk_widget_set_size_request(window, app->width, app->height + app->mb_height);
+        gtk_window_resize(GTK_WINDOW(window), app->width, app->height + app->mb_height);
         gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
     } else if (app->minwidth < app->width || app->minheight < app->height + app->mb_height) {
         GdkGeometry hints;
