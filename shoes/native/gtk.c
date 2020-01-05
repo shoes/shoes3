@@ -1146,8 +1146,7 @@ void shoes_native_app_title(shoes_app *app, char *msg) {
 
 void shoes_native_app_resize_window(shoes_app *app) {
     if ((app->os.window != NULL) && (app->width > 0 && app->height > 0)) {
-        printf("I am being resized...\n");
-        gtk_window_resize(app->os.window, app->width, app->height );
+        gtk_window_resize(GTK_WINDOW(app->os.window), app->width, app->height );
         //gtk_widget_set_size_request((GtkWidget *) app->os.window, app->width, app->height);
     }
 }
@@ -1331,7 +1330,7 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_s
         
     gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
     if (!app->resizable) {
-        gtk_window_resize(window, app->width, app->height);
+        gtk_window_resize(GTK_WINDOW(window), app->width, app->height);
         gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
     } else if (app->minwidth < app->width || app->minheight < app->height) {
         GdkGeometry hints;
@@ -2399,7 +2398,7 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
 #ifdef SZBUG
     fprintf(stderr,"shoes_native_app_open slot->canvas %lx\n", (unsigned long)app->slot->oscanvas);
 #endif
-    //app->mb_height = 26;  // TODO adhoc (a guess)
+    app->mb_height = 26;  // TODO adhoc (a guess)
 
     // now we can add the default Shoes menus
     VALUE mbv = shoes_native_menubar_setup(app, menubar);
