@@ -3,6 +3,6 @@ App_Name: Foobar
 #Theme: XP 
 #Display_Backend: wayland
 MDI: true
-Use_Menus: false
+Use_Menus: true
 Extra1: E:\exe-shoes\build-exe.rb
 #Image_Cache: false
