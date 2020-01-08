@@ -2298,7 +2298,7 @@ gboolean shoes_app_gtk_configure_menu(GtkWidget *widget, GdkEvent *evt, gpointer
     shoes_canvas *canvas;
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
 #if GTK_CHECK_VERSION(3,12,0)
-    if (gtk_window_is_maximized(GTK_WINDOW(widget)) {
+    if (gtk_window_is_maximized(GTK_WINDOW(widget))) {
 #else
     if (shoes_gtk_is_maximized(app, evt->configure.width, evt->configure.height)) {
 #endif
