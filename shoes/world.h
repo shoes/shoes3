@@ -31,7 +31,7 @@ SHOES_EXTERN typedef struct _shoes_world_t {
 } shoes_world_t;
 
 extern SHOES_EXTERN shoes_world_t *shoes_world;
-
+#define NEW_MACRO_APP
 #ifdef NEW_MACRO_APP
 // Dialogs use these macros
 #define GLOBAL_APP(appvar) \
@@ -87,8 +87,8 @@ extern SHOES_EXTERN shoes_world_t *shoes_world;
     Data_Get_Struct(actual_app, shoes_app, appvar); \
     title_##appvar = RSTRING_PTR(app->title); \
   }\
-
 #endif
+
 #define ROUND(x) ((x) >= 0 ? (int)round((x)+0.5) : (int)round((x)-0.5))
 
 //

@@ -87,8 +87,10 @@ VALUE shoes_menubar_index(VALUE self, VALUE arg) {
   if (TYPE(arg) == T_FIXNUM) {
     int pos = NUM2INT(arg);
     int cnt = RARRAY_LEN(mb->menus);
-    if (pos < cnt && pos >= 0)
+    if (pos < cnt && pos >= 0) {
       return arg;
+
+    }
   } else if (TYPE(arg) == T_STRING) {
     char *txt = RSTRING_PTR(arg);
     int cnt = RARRAY_LEN(mb->menus);
@@ -96,19 +98,26 @@ VALUE shoes_menubar_index(VALUE self, VALUE arg) {
     for (i = 0; i < cnt; i++) {
       VALUE mnv = rb_ary_entry(mb->menus, i);
       Get_TypedStruct2(mnv, shoes_menu, mn);
-      if (strcmp(txt,mn->title) == 0)
+      if (strcmp(txt,mn->title) == 0) {
         return INT2NUM(i);
-    
+      }
     }
-  } else
+  } else {
     rb_raise(rb_eArgError, "index must be string or integer");
+  }
   return Qnil;
 }
 VALUE shoes_menubar_at(VALUE self, VALUE arg) {
   VALUE posv = shoes_menubar_index(self, arg);
-  if (NIL_P(posv))
+  if (NIL_P(posv)) {
     return posv;
+<<<<<<< HEAD
   Get_TypedStruct2(self, shoes_menubar, mb);
+=======
+  }
+  shoes_menubar *mb;
+  Data_Get_Struct(self, shoes_menubar, mb);
+>>>>>>> master
   int pos = NUM2INT(posv);
   return rb_ary_entry(mb->menus, pos);
 #if 0  
@@ -120,10 +129,22 @@ VALUE shoes_menubar_at(VALUE self, VALUE arg) {
     int i;
     for (i = 0; i < cnt; i++) {
       VALUE mnv = rb_ary_entry(mb->menus, i);
+<<<<<<< HEAD
       Get_TypedStruct2(mnv, shoes_menu, mn);
       if (mn->title == 0) continue;
       if (strcmp(txt,mn->title) == 0)
         return mnv;    
+=======
+      shoes_menu *mn;
+      Data_Get_Struct(mnv, shoes_menu, mn);
+      if (mn->title == 0) {
+        continue;
+      }
+
+      if (strcmp(txt,mn->title) == 0) {
+        return mnv
+      }
+>>>>>>> master
     }
   } else
     rb_raise(rb_eArgError, "index must be string or integer");
@@ -136,10 +157,12 @@ VALUE shoes_menubar_insert(VALUE self, VALUE mnv, VALUE arg) {
   Get_TypedStruct2(self, shoes_menubar, mb);
   int cnt = RARRAY_LEN(mb->menus);  //cnt before
   VALUE pv = shoes_menubar_index(self, arg);
-  if (NIL_P(pv))
+  if (NIL_P(pv)) {
     pos = -1;
-  else
+  }
+  else {
     pos = NUM2INT(pv);
+  }
   // if pos is < 0 we can call append and return 
   if (pos < 0) {
     shoes_menubar_append(self, mnv);
@@ -173,11 +196,13 @@ VALUE shoes_menubar_insert(VALUE self, VALUE mnv, VALUE arg) {
 VALUE shoes_menubar_remove(VALUE self, VALUE arg) {
     Get_TypedStruct2(self, shoes_menubar, mb);
   VALUE posv = shoes_menubar_index(self, arg);
-  if (NIL_P(posv))
+  if (NIL_P(posv)) {
     rb_raise(rb_eArgError, "menu not found");
+  }
   int pos = NUM2INT(posv);
-  if (pos == 0)
-    return Qnil;        // can't delete Shoes menu
+  if (pos == 0) {
+    return Qnil;
+  }
   // remove the native
   shoes_native_menubar_remove(mb, pos); 
   // include/ruby/intern.h has

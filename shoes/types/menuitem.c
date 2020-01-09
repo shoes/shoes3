@@ -83,8 +83,9 @@ VALUE shoes_menuitem_gettitle(VALUE self) {
 
 VALUE shoes_menuitem_settitle(VALUE self, VALUE text) {
   Get_TypedStruct2(self, shoes_menuitem, mi);
-  if (mi->title)
+  if (mi->title) {
     free(mi->title);
+  }
   mi->title = strdup(RSTRING_PTR(text));
   shoes_native_menuitem_set_title(mi);
   return Qnil;

@@ -65,7 +65,9 @@ MISC_LIB = " -lgif -ljpeg"
 # don't use pkg-config for librsvg-2.0 - a warning.
 MISC_CFLAGS = ' '
 isdebian = true
-if File.exist? '/usr/lib/x86_64-linux-gnu'
+if File.exist? '/usr/lib/arm-linux-gnueabihf/librsvg-2.so.2'
+  ularch = 'arm-linux-gnueabihf'
+elsif File.exist? '/usr/lib/x86_64-linux-gnu'
   ularch = 'x86_64-linux-gnu'
 elsif File.exist? '/usr/lib/arm-linux-gnueabihf'
   ularch = 'arm-linux-gnueabihf'

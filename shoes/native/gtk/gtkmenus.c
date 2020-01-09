@@ -37,13 +37,14 @@ void shoes_gtk_check_quit(shoes_app *app) {
 */ 
 VALUE shoes_native_menubar_setup(shoes_app *app, void *gtkmb) {
     GtkWidget *menubar = gtkmb;
+
     if (gtkmb == NULL) {
       menubar = gtk_menu_bar_new(); 
       app->os.menubar = menubar;
       app->have_menu = TRUE;
-   } else 
+    } else {
       menubar = (GtkWidget *)gtkmb;
-  
+    }
     if (NIL_P(app->menubar)) {
       // get the GtkWidget for the app window
       shoes_app_gtk *gk = &app->os;
