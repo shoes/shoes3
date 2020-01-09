@@ -111,13 +111,8 @@ VALUE shoes_menubar_at(VALUE self, VALUE arg) {
   VALUE posv = shoes_menubar_index(self, arg);
   if (NIL_P(posv)) {
     return posv;
-<<<<<<< HEAD
-  Get_TypedStruct2(self, shoes_menubar, mb);
-=======
   }
-  shoes_menubar *mb;
-  Data_Get_Struct(self, shoes_menubar, mb);
->>>>>>> master
+  Get_TypedStruct2(self, shoes_menubar, mb);
   int pos = NUM2INT(posv);
   return rb_ary_entry(mb->menus, pos);
 #if 0  
@@ -129,22 +124,11 @@ VALUE shoes_menubar_at(VALUE self, VALUE arg) {
     int i;
     for (i = 0; i < cnt; i++) {
       VALUE mnv = rb_ary_entry(mb->menus, i);
-<<<<<<< HEAD
       Get_TypedStruct2(mnv, shoes_menu, mn);
       if (mn->title == 0) continue;
-      if (strcmp(txt,mn->title) == 0)
-        return mnv;    
-=======
-      shoes_menu *mn;
-      Data_Get_Struct(mnv, shoes_menu, mn);
-      if (mn->title == 0) {
-        continue;
-      }
-
       if (strcmp(txt,mn->title) == 0) {
-        return mnv
+        return mnv; 
       }
->>>>>>> master
     }
   } else
     rb_raise(rb_eArgError, "index must be string or integer");

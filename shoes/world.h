@@ -86,7 +86,8 @@ extern SHOES_EXTERN shoes_world_t *shoes_world;
     VALUE actual_app = rb_funcall2(self, rb_intern("app"), 0, NULL); \
     Data_Get_Struct(actual_app, shoes_app, appvar); \
     title_##appvar = RSTRING_PTR(app->title); \
-  }\
+  }
+  
 #endif
 
 #define ROUND(x) ((x) >= 0 ? (int)round((x)+0.5) : (int)round((x)-0.5))
