@@ -1453,27 +1453,27 @@ shoes_code shoes_native_app_open(shoes_app *app, char *path, int dialog, shoes_s
     gtk_window_set_default_icon_from_file(icon_path, NULL);
 #endif
     GtkWidget *window;       // Root window 
-    shoes_app_gtk *gk = &app->os; //lexical - typing shortcut
+    shoes_app_gtk *gk = &app->os; //lexical - typing shortcu
 
-   char icon_path[SHOES_BUFSIZE];
+    GString *icon_path = g_string_new(NULL);
     if (st->icon_path == Qnil) {
-      sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
+      g_string_printf(icon_path, "%s/static/app-icon.png", shoes_world->path);
     } else {
       char *ip = RSTRING_PTR(st->icon_path);
       if (*ip == '/' || ip[1] ==':') {
-        strcpy(icon_path, ip);
+        g_string_append(icon_path, ip);
       }
       else {
-       sprintf(icon_path, "%s/%s", shoes_world->path, ip);
+       g_string_printf(icon_path, "%s/%s", shoes_world->path, ip);
       }
     }
-
-    gtk_window_set_default_icon_from_file(icon_path, NULL);
+    gtk_window_set_default_icon_from_file(icon_path->str, NULL);
+    g_string_free(icon_path, TRUE);
     
     // is the monitor smaller than the requested size - reduce request
     shoes_monitor_t geo;
     int mon = 0;
-    if (app->monitor >= 0)   // requesed a specific monitor ?
+    if (app->monitor >= 0)   // requested a specific monitor ?
       mon = app->monitor;
     shoes_native_monitor_geometry(mon, &geo);
     // TODO: hack for wee screens: the return value isn't small enough
@@ -2140,20 +2140,21 @@ shoes_code shoes_native_app_open_menu(shoes_app *app, char *path, int dialog, sh
     GtkWidget *window;       // Root window 
     shoes_app_gtk *gk = &app->os; //lexical - typing shortcut
 
-    char icon_path[SHOES_BUFSIZE];
-
+    GString *icon_path = g_string_new(NULL);
     if (st->icon_path == Qnil) {
-        sprintf(icon_path, "%s/static/app-icon.png", shoes_world->path);
-    }
-    else {
+      g_string_printf(icon_path, "%s/static/app-icon.png", shoes_world->path);
+    } else {
       char *ip = RSTRING_PTR(st->icon_path);
-      if (*ip == '/' || ip[1] ==':')  
-        strcpy(icon_path, ip);
-      else
-       sprintf(icon_path, "%s/%s", shoes_world->path, ip);
+      if (*ip == '/' || ip[1] ==':') {
+        g_string_append(icon_path, ip);
+      }
+      else {
+       g_string_printf(icon_path, "%s/%s", shoes_world->path, ip);
+      }
     }
+    gtk_window_set_default_icon_from_file(icon_path->str, NULL);
+    g_string_free(icon_path, TRUE);
 
-    gtk_window_set_default_icon_from_file(icon_path, NULL);
     /*
      *       App Window
      * +-----------------------+ 
