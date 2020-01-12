@@ -87,9 +87,11 @@ SOLOCS['crypto'] = "#{ularch}/libcrypto.so.1.0.2"
 SOLOCS['ssl'] = "#{ularch}/libssl.so.1.0.2"
 SOLOCS['sqlite'] = "#{ularch}/libsqlite3.so.0.8.6"
 SOLOCS['ffi'] = "#{ularch}/libffi.so.6.0.4" 
-SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so.2.40.16"
-SOLOCS['curl'] = "#{EXT_RUBY}/lib/libcurl.so.4.4.0"
-SOLOCS['curl'] = "#{ularch}/libcurl.so.4.4.0"
+#SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so.2.40.16"
+SOLOCS['rsvg2'] = "#{ularch}/librsvg-2.so.2.44.10"
+#SOLOCS['curl'] = "#{EXT_RUBY}/lib/libcurl.so.4.4.0"
+#SOLOCS['curl'] = "#{ularch}/libcurl.so.4.4.0"
+SOLOCS['curl'] = "#{ularch}/libcurl.so.4.5.0"
 
 # sigh, curl and tyhpoeus - processed in setup.rb
 
@@ -102,4 +104,5 @@ SYMLNK['libcrypto.so.1.0.2'] = ['libcrypto.so', 'libcrypto.so.1']
 SYMLNK['libssl.so.1.0.2'] = ['libssl.so']
 SYMLNK['libsqlite3.so.0.8.6'] = ['libsqlite3.so', 'libsqlite3.so.0']
 SYMLNK['libffi.so.6.0.4'] = ['libffi.so', 'libffi.so.6']
-SYMLNK['librsvg-2.so.2.40.16'] = ['librsvg-2.so', 'librsvg-2.so.2']
+#SYMLNK['librsvg-2.so.2.40.16'] = ['librsvg-2.so', 'librsvg-2.so.2']
+SYMLNK['librsvg-2.so.2.44.10'] = ['librsvg-2.so', 'librsvg-2.so.2']
