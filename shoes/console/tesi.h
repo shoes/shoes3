@@ -1,8 +1,14 @@
 #ifndef TESI_H
 #define TESI_H
 
-// _XOPEN_SOURCE for posix_openpt() from stdlin and fcntl
+// _XOPEN_SOURCE for posix_openpt() for stdlin and fcntl
+#if defined(__linux__) || defined(__GLIBC__) || defined(__GNU__)
+#ifndef _GNU_SOURCE	
+#define _GNU_SOURCE			/* GNU glibc grantpt() prototypes */
+#endif
+#endif
 #define _XOPEN_SOURCE
+#define __USE_XOPEN_EXTENDED  
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>

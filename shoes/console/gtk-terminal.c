@@ -4,12 +4,12 @@
 #include <sys/types.h>
 #include <signal.h>
 
-#include "tesi.h"
 #include <gdk/gdkkeysyms.h>
 #include "shoes/app.h"
 #include "shoes/ruby.h"
 #include "shoes/config.h"
 #include "shoes/world.h"
+#include "tesi.h"
 
 #include "shoes/native/gtk/gtkcss.h"
 extern char *colorstrings[];

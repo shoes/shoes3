@@ -16,6 +16,8 @@
 #include "shoes/types/native.h"
 #include "shoes/types/event.h"
 
+RUBY_EXTERN ID s_shift_key, s_control_key;
+
 // Global var:
 int shoes_app_serial_num = 0;
 
@@ -637,7 +639,6 @@ shoes_code shoes_app_motion(shoes_app *app, int x, int y, int mods) {
       shoes_canvas_send_motion(app->canvas, x, y, Qnil, modifiers);
     return SHOES_OK;
 }
-EXTERN ID s_shift_key, s_control_key;
 
 shoes_code shoes_app_click(shoes_app *app, int button, int x, int y, int mods) {
     app->mouseb = button;
