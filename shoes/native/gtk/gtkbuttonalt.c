@@ -8,6 +8,10 @@
 
 #include "gtkbuttonalt.h"
 
+/*
+ * Subclass GTK_BUTTON and add some fields to the struct (aka private)
+ * Muy confusing
+ */
 
 /* Private class member */
 #define GTK_BUTTON_ALT_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), \
@@ -28,7 +32,8 @@ static void gtk_button_alt_get_preferred_height(GtkWidget *widget,
         int *minimal, int *natural);
 
 /* Define the GtkButton_Alt type and inherit from GtkButton */
-G_DEFINE_TYPE(GtkButton_Alt, gtk_button_alt, GTK_TYPE_BUTTON);
+//G_DEFINE_TYPE(GtkButton_Alt, gtk_button_alt, GTK_TYPE_BUTTON);
+G_DEFINE_TYPE_WITH_PRIVATE(GtkButton_Alt, gtk_button_alt, GTK_TYPE_BUTTON)
 
 /* Initialize the GtkButton_Alt class */
 static void gtk_button_alt_class_init(GtkButton_AltClass *klass) {
@@ -43,7 +48,7 @@ static void gtk_button_alt_class_init(GtkButton_AltClass *klass) {
     // ...
 
     /* Add private indirection member */
-    g_type_class_add_private(klass, sizeof(GtkButton_AltPrivate));
+    //g_type_class_add_private(klass, sizeof(GtkButton_AltPrivate));
 }
 
 /* Initialize a new GtkButton_Alt instance */
@@ -52,8 +57,6 @@ static void gtk_button_alt_init(GtkButton_Alt *buttontAlt) {
     gtk_widget_set_has_window(GTK_WIDGET(buttontAlt), FALSE);
 
     /* Initialize private members */
-    // TODO: determine whether priv has any use.
-    //GtkButton_AltPrivate *priv = GTK_BUTTON_ALT_PRIVATE(buttontAlt);
 
 }
 

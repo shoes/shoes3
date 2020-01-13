@@ -48,7 +48,7 @@ else
   LINUX_CFLAGS = " -O -Wall"
 end
 LINUX_CFLAGS << " -DRUBY_HTTP -DGNOTE" 
-LINUX_CFLAGS << " -DSHOES_GTK -fPIC -Wno-unused-but-set-variable -Wno-unused-variable"
+LINUX_CFLAGS << " -DSHOES_GTK -fPIC -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function"
 LINUX_CFLAGS << " -I#{ShoesDeps}/usr/include "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkgruby}"`.strip+" "
 LINUX_CFLAGS << `pkg-config --cflags "#{pkggtk}"`.strip+" "

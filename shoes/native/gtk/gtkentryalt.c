@@ -26,7 +26,7 @@ static void gtk_entry_alt_get_preferred_height(GtkWidget *widget,
         int *minimal, int *natural);
 
 /* Define the GtkEntry_Alt type and inherit from GtkEntry */
-G_DEFINE_TYPE(GtkEntry_Alt, gtk_entry_alt, GTK_TYPE_ENTRY);
+G_DEFINE_TYPE_WITH_PRIVATE(GtkEntry_Alt, gtk_entry_alt, GTK_TYPE_ENTRY);
 
 /* Initialize the GtkEntry_Alt class */
 static void
@@ -43,7 +43,7 @@ gtk_entry_alt_class_init(GtkEntry_AltClass *klass) {
     // ...
 
     /* Add private indirection member */
-    g_type_class_add_private(klass, sizeof(GtkEntry_AltPrivate));
+    //g_type_class_add_private(klass, sizeof(GtkEntry_AltPrivate));
 }
 
 /* Initialize a new GtkEntry_Alt instance */

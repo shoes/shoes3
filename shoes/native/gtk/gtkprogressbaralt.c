@@ -26,7 +26,7 @@ static void gtk_progress_bar_alt_get_preferred_height(GtkWidget *widget,
         int *minimal, int *natural);
 
 /* Define the GtkProgressBar_Alt type and inherit from GtkProgressBar */
-G_DEFINE_TYPE(GtkProgressBar_Alt, gtk_progress_bar_alt, GTK_TYPE_PROGRESS_BAR);
+G_DEFINE_TYPE_WITH_PRIVATE(GtkProgressBar_Alt, gtk_progress_bar_alt, GTK_TYPE_PROGRESS_BAR);
 
 /* Initialize the GtkProgressBar_Alt class */
 static void gtk_progress_bar_alt_class_init(GtkProgressBar_AltClass *klass) {
@@ -41,7 +41,7 @@ static void gtk_progress_bar_alt_class_init(GtkProgressBar_AltClass *klass) {
     // ...
 
     /* Add private indirection member */
-    g_type_class_add_private(klass, sizeof(GtkProgressBar_AltPrivate));
+    //g_type_class_add_private(klass, sizeof(GtkProgressBar_AltPrivate));
 }
 
 /* Initialize a new GtkProgressBar_Alt instance */

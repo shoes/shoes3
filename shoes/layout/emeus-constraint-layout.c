@@ -1083,7 +1083,7 @@ create_layout_constraint (EmeusConstraintLayout *layout,
 
   if (constraint->source_object != NULL)
     {
-      EmeusConstraintLayoutChild *source_child;
+      EmeusConstraintLayoutChild *source_child = NULL;
 
       if (EMEUS_IS_CONSTRAINT_LAYOUT_CHILD (constraint->source_object))
         source_child = constraint->source_object;
@@ -1172,7 +1172,7 @@ create_child_constraint (EmeusConstraintLayout      *layout,
     }
   else
     {
-      EmeusConstraintLayoutChild *source_child;
+      EmeusConstraintLayoutChild *source_child = NULL;
 
       if (EMEUS_IS_CONSTRAINT_LAYOUT_CHILD (constraint->source_object))
         source_child = constraint->source_object;
