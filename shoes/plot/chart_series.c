@@ -103,7 +103,7 @@ VALUE shoes_chart_series_new(int argc, VALUE *argv, VALUE self) {
             int i;
             rblabels = rb_ary_new2(l);
             for (i = 0; i < l; i++) {
-                char t[8];
+                char t[16];
                 sprintf(t, "%i", i+1);
                 VALUE foostr = rb_str_new2(t);
                 rb_ary_store(rblabels, i, foostr);
