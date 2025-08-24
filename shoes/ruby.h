@@ -530,12 +530,18 @@ void shoes_ele_remove_all(VALUE);
 void shoes_cairo_rect(cairo_t *, double, double, double, double, double);
 void shoes_cairo_arc(cairo_t *, double, double, double, double, double, double);
 
-// FIXME: Symbols in Shoes are broken in many ways. For example, the symbol 
-// progress is shared amongst types/progress and types/download, which causes
-// Shoes to crash if defined in either ones. It should also be noted that 
-// Shoes crashes even if progress is defined here below. It apparently 
-// has to be defined on top of ruby{.c,.h}. 
-// Image and TextBlock/Text/TextLink are also heavily affected by this.
+// FIXME: Symbol namespace conflicts in Shoes architecture
+// 
+// The symbol system has namespace collision issues where symbols are shared
+// across different component types, leading to crashes. For example:
+// - 'progress' is shared between types/progress and types/download
+// - Image and TextBlock/Text/TextLink components have similar conflicts
+// 
+// Current workaround: Symbols must be defined at the top level in ruby.{c,h}
+// rather than in their respective component files.
+// 
+// TODO: Future refactoring should implement proper symbol namespacing or
+// use a symbol registry pattern to avoid these collisions.
 #define SYMBOL_DEFS(f) f(bind); f(gsub); f(keys); f(update); f(merge); \
   f(new); f(URI); f(now); f(debug); f(info); f(warn); f(error); f(run); \
   f(to_a); f(to_ary); f(to_f); f(to_i); f(to_int); f(to_s); f(to_str); \

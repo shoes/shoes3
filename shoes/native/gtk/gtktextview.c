@@ -56,8 +56,11 @@ VALUE shoes_native_text_view_append(SHOES_CONTROL_REF ref, char *msg) {
     GtkTextIter begin, end;
     gtk_text_buffer_get_bounds(buffer, &begin, &end);
     gtk_text_buffer_insert(buffer, &end, msg, strlen(msg));
+    
+    // Return the updated text content
     gtk_text_buffer_get_bounds(buffer, &begin, &end);
-    // TODO: return something useful
-    return Qnil;
-    //return rb_str_new2(gtk_text_buffer_get_text(buffer, &begin, &end, TRUE));
+    gchar *text = gtk_text_buffer_get_text(buffer, &begin, &end, TRUE);
+    VALUE result = rb_str_new2(text);
+    g_free(text);
+    return result;
 }
