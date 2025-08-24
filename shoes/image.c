@@ -579,20 +579,36 @@ cairo_surface_t *shoes_surface_create_from_jpeg(char *filename, int *width, int 
 #ifdef SHOES_WIN32
     HANDLE hFile;
     hFile = CreateFile( filename, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL );
-    if ( hFile == INVALID_HANDLE_VALUE ) return NULL;
+    if ( hFile == INVALID_HANDLE_VALUE ) {
+        fprintf(stderr, "Shoes: Failed to open JPEG file: %s\n", filename);
+        return NULL;
+    }
 #else
     FILE *f = fopen(filename, "rb");
-    if (!f) return NULL;
+    if (!f) {
+        fprintf(stderr, "Shoes: Failed to open JPEG file: %s\n", filename);
+        return NULL;
+    }
 #endif
 
-    // TODO: error handling
+    // Set up error handling for libjpeg
     cinfo.err = jpeg_std_error(&jerr.pub);
     jerr.pub.error_exit = shoes_jpeg_fatal;
-    // jerr.pub.emit_message = shoes_jpeg_error;
-    // jerr.pub.output_message = shoes_jpeg_error2;
+    
+    // Set up long jump for error recovery
     if (setjmp(jerr.setjmp_buffer)) {
-        // append_jpeg_message(interp, (j_common_ptr) &cinfo);
+        // JPEG library encountered an error
+        char buffer[JMSG_LENGTH_MAX];
+        (*cinfo.err->format_message)((j_common_ptr)&cinfo, buffer);
+        fprintf(stderr, "Shoes: JPEG error: %s (file: %s)\n", buffer, filename);
+        
+        // Clean up and return
         jpeg_destroy_decompress(&cinfo);
+#ifdef SHOES_WIN32
+        CloseHandle(hFile);
+#else
+        fclose(f);
+#endif
         return NULL;
     }
 
@@ -626,8 +642,10 @@ cairo_surface_t *shoes_surface_create_from_jpeg(char *filename, int *width, int 
 
     rgb = SHOE_ALLOC_N(unsigned char, w * JPEG_LINES * 3);
     ptr2 = pixels = SHOE_ALLOC_N(PIXEL, w * h);
-    if (rgb == NULL || pixels == NULL)
+    if (rgb == NULL || pixels == NULL) {
+        fprintf(stderr, "Shoes: Failed to allocate memory for JPEG image (%dx%d)\n", w, h);
         goto done;
+    }
 
     count = 0;
     prevy = 0;
@@ -744,13 +762,30 @@ shoes_cached_image *shoes_cached_image_new(int width, int height, cairo_surface_
 int shoes_cache_lookup(char *imgpath, shoes_cached_image **image) {
     shoes_cache_entry *cached = NULL;
     int ret = st_lookup(shoes_world->image_cache, (st_data_t)imgpath, (st_data_t *)&cached);
-    // if (ret && shoes_file_mtime(imgpath) == cached->image->mtime) {
-    //   st_delete(shoes_world->image_cache, (st_data_t *)&imgpath, 0);
-    //   // TODO: memory leak if an image's mtime changes (it's overwritten)
-    //   // need to free this struct, but only after the surface is out of play
-    //   // shoes_world_free_image_cache(imgpath, cached, NULL);
-    //   ret = 0;
-    // }
+    
+    // Check if cached file has been modified
+    if (ret && cached->type == SHOES_CACHE_FILE) {
+        time_t current_mtime = shoes_file_mtime(imgpath);
+        if (current_mtime != cached->image->mtime) {
+            // File has been modified, invalidate cache entry
+            // Properly free the old cache entry to prevent memory leak
+            shoes_cache_entry old_entry = *cached;
+            st_delete(shoes_world->image_cache, (st_data_t *)&imgpath, 0);
+            
+            // Free the old cached image resources
+            if (old_entry.image != NULL) {
+                if (old_entry.image->pattern != NULL)
+                    cairo_pattern_destroy(old_entry.image->pattern);
+                if (old_entry.image->surface != shoes_world->blank_image)
+                    cairo_surface_destroy(old_entry.image->surface);
+                free(old_entry.image);
+            }
+            free(cached);
+            
+            ret = 0;  // Cache miss - need to reload the image
+        }
+    }
+    
     if (ret) *image = cached->image;
     return ret;
 }
@@ -765,8 +800,25 @@ void shoes_cache_insert(unsigned char type, VALUE imgpath, shoes_cached_image *i
 }
 
 void shoes_cache_delete(char *imgpath) {
-	st_delete(shoes_world->image_cache, (st_data_t *)imgpath, (st_data_t *)0);
-	// FYI st_ functions are defined in rubys ruby/st.h
+    shoes_cache_entry *cached = NULL;
+    char *key = NULL;
+    
+    // Retrieve and delete the cache entry
+    if (st_delete(shoes_world->image_cache, (st_data_t *)&imgpath, (st_data_t *)&cached)) {
+        // Properly free the cached entry if it was found
+        if (cached != NULL) {
+            if (cached->type != SHOES_CACHE_ALIAS && cached->image != NULL) {
+                if (cached->image->pattern != NULL)
+                    cairo_pattern_destroy(cached->image->pattern);
+                if (cached->image->surface != shoes_world->blank_image)
+                    cairo_surface_destroy(cached->image->surface);
+                free(cached->image);
+            }
+            free(cached);
+        }
+        // Note: The key (imgpath) is freed by st_delete internally
+    }
+    // FYI st_ functions are defined in rubys ruby/st.h
 }
 
 shoes_image_format shoes_image_detect(VALUE imgpath, int *width, int *height) {

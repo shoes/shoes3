@@ -38,9 +38,9 @@ static void gtk_button_alt_class_init(GtkButton_AltClass *klass) {
     widget_class->get_preferred_height = gtk_button_alt_get_preferred_height;
 
     /* Override GtkButton methods */
-    // TODO: determine whether gobject_class has any use.
-    //GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-    // ...
+    // GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+    // Note: gobject_class would be used if we needed to override any GObject
+    // virtual methods like finalize, dispose, set_property, get_property, etc.
 
     /* Add private indirection member */
     g_type_class_add_private(klass, sizeof(GtkButton_AltPrivate));
@@ -52,8 +52,8 @@ static void gtk_button_alt_init(GtkButton_Alt *buttontAlt) {
     gtk_widget_set_has_window(GTK_WIDGET(buttontAlt), FALSE);
 
     /* Initialize private members */
-    // TODO: determine whether priv has any use.
-    //GtkButton_AltPrivate *priv = GTK_BUTTON_ALT_PRIVATE(buttontAlt);
+    // GtkButton_AltPrivate *priv = GTK_BUTTON_ALT_PRIVATE(buttontAlt);
+    // Note: priv is not needed here as initialization happens in gtk_button_alt_new()
 
 }
 
