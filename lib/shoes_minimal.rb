@@ -1,16 +1,8 @@
 # Minimal Shoes module for Ruby 3.x compatibility testing
 # This replaces the full shoes.rb temporarily to avoid crashes during initialization
 
-# Define minimal App class
-class App
-  def initialize
-    $stderr.puts "[Ruby] App initialized"
-  end
-end
-
-# Define minimal Dialog class
-class Dialog < App
-end
+# The App and Dialog classes are defined by the C code in shoes_ruby_init
+# We don't define them here to avoid conflicts
 
 class Shoes
   # Define the args! method that shoes_start_begin expects
@@ -29,16 +21,16 @@ class Shoes
   # Define visit method for loading scripts
   def self.visit(path)
     $stderr.puts "Shoes.visit called with: #{path}"
-    # Try to load the script but don't create a window yet
+    # Load and execute the script
     if path && File.exist?(path)
       $stderr.puts "Loading script: #{path}"
       begin
-        # Load the script in the Shoes context
-        # For now, just read it - don't execute to avoid crashes
-        content = File.read(path)
-        $stderr.puts "Script loaded, length: #{content.length} bytes"
+        # Actually execute the script in the main context
+        load path
+        $stderr.puts "Script executed successfully"
       rescue => e
-        $stderr.puts "Error loading script: #{e.message}"
+        $stderr.puts "Error executing script: #{e.message}"
+        $stderr.puts e.backtrace.join("\n")
       end
     end
     # Return nil to prevent further processing
@@ -50,24 +42,26 @@ class Shoes
     puts "Shoes.show_log called"
   end
   
-  # Define app method to create a window
-  def self.app(opts = {}, &block)
-    $stderr.puts "Shoes.app called with opts: #{opts.inspect}"
-    # Create an App instance through the C API
-    begin
-      app = ::App.new
-      # For now, just execute the block without a window
-      if block_given?
-        $stderr.puts "Executing app block"
-        # Don't execute the block yet - it will crash
-        # block.call
-      end
-      app
-    rescue => e
-      $stderr.puts "Error in Shoes.app: #{e.message}"
-      $stderr.puts e.backtrace.join("\n")
+  # The app method is defined in C as shoes_app_main
+  # Let's check what methods are available
+  $stderr.puts "[Ruby] Shoes singleton methods: #{singleton_methods.inspect}"
+  
+  # Check if Shoes module has the App class defined
+  if const_defined?(:App)
+    $stderr.puts "[Ruby] App class is defined"
+  else
+    $stderr.puts "[Ruby] App class is NOT defined"
+  end
+  
+  # Don't override the C implementation if it exists
+  unless singleton_methods.include?(:app)
+    $stderr.puts "[Ruby] Defining fallback Shoes.app method"
+    def self.app(opts = {}, &block)
+      $stderr.puts "[Ruby] Warning: C version of Shoes.app not found, using stub"
       nil
     end
+  else
+    $stderr.puts "[Ruby] Shoes.app method already defined by C"
   end
   
   # Define splash method for the idle timer

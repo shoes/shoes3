@@ -393,10 +393,13 @@ shoes_code shoes_app_start(VALUE allapps, char *uri) {
     shoes_code code;
     shoes_app *app;
 
+    fprintf(stderr, "[SHOES] shoes_app_start: Starting with %ld apps\n", RARRAY_LEN(allapps));
     for (i = 0; i < RARRAY_LEN(allapps); i++) {
         VALUE appobj2 = rb_ary_entry(allapps, i);
+        fprintf(stderr, "[SHOES] shoes_app_start: Processing app %d\n", i);
         Data_Get_Struct(appobj2, shoes_app, app);
         if (!app->started) {
+            fprintf(stderr, "[SHOES] shoes_app_start: Opening app %d\n", i);
             code = shoes_app_open(app, uri);
             app->started = TRUE;
             if (code != SHOES_OK)
@@ -404,13 +407,28 @@ shoes_code shoes_app_start(VALUE allapps, char *uri) {
         }
     }
 
+    fprintf(stderr, "[SHOES] shoes_app_start: Calling shoes_app_loop\n");
     return shoes_app_loop();
 }
 
 shoes_code shoes_app_open(shoes_app *app, char *path) {
     shoes_code code = SHOES_OK;
-    int dialog = (rb_obj_class(app->self) == cDialog);
+    int dialog;
     shoes_settings *st;
+    
+    fprintf(stderr, "[SHOES] shoes_app_open: app=%p, path=%s\n", (void*)app, path);
+    if (!app) {
+        fprintf(stderr, "[SHOES] shoes_app_open: ERROR - app is NULL!\n");
+        return SHOES_QUIT;
+    }
+    
+    if (!app->self) {
+        fprintf(stderr, "[SHOES] shoes_app_open: ERROR - app->self is NULL!\n");
+        return SHOES_QUIT;
+    }
+    
+    dialog = (rb_obj_class(app->self) == cDialog);
+    
     Data_Get_Struct(shoes_world->settings, shoes_settings, st);
     
     if (st->use_menus == Qtrue) {
@@ -422,10 +440,14 @@ shoes_code shoes_app_open(shoes_app *app, char *path) {
       code = shoes_native_app_open_menu(app, path, dialog, st);
     else
 #endif
+      fprintf(stderr, "[SHOES] shoes_app_open: Calling shoes_native_app_open\n");
       code = shoes_native_app_open(app, path, dialog, st);
+      fprintf(stderr, "[SHOES] shoes_app_open: shoes_native_app_open returned %lu\n", code);
       
     if (code != SHOES_OK)
         return code;
+    
+    fprintf(stderr, "[SHOES] shoes_app_open: About to set title, app->title=%p\n", (void*)app->title);
 #ifndef MTITTLE
     shoes_app_title(app, app->title);
 #else
@@ -433,21 +455,35 @@ shoes_code shoes_app_open(shoes_app *app, char *path) {
     Data_Get_Struct(shoes_settings_globalv, shoes_settings, st);
     shoes_app_title(app, st->app_name);
 #endif
-    if (app->slot != NULL)
+    fprintf(stderr, "[SHOES] shoes_app_open: Title set\n");
+    fprintf(stderr, "[SHOES] shoes_app_open: app->slot=%p\n", (void*)app->slot);
+    if (app->slot != NULL) {
+       fprintf(stderr, "[SHOES] shoes_app_open: Calling shoes_native_slot_reset\n");
        shoes_native_slot_reset(app->slot);
+       fprintf(stderr, "[SHOES] shoes_app_open: shoes_native_slot_reset done\n");
+    }
 #ifndef SHOES_QUARTZ
     if (app->have_menu)
       shoes_slot_init_menu(app->canvas, app->slot, 0, 0, app->width, app->height, TRUE, TRUE);
     else
 #endif
+      fprintf(stderr, "[SHOES] shoes_app_open: Calling shoes_slot_init\n");
       shoes_slot_init(app->canvas, app->slot, 0, 0, app->width, app->height, TRUE, TRUE);
+      fprintf(stderr, "[SHOES] shoes_app_open: shoes_slot_init done\n");
 
+    fprintf(stderr, "[SHOES] shoes_app_open: Calling shoes_app_goto with path=%s\n", path);
     code = shoes_app_goto(app, path);
+    fprintf(stderr, "[SHOES] shoes_app_open: shoes_app_goto returned %lu\n", code);
     if (code != SHOES_OK)
         return code;
 
-    if (!app->hidden)
+    fprintf(stderr, "[SHOES] shoes_app_open: app->hidden=%d\n", app->hidden);
+    if (!app->hidden) {
+        fprintf(stderr, "[SHOES] shoes_app_open: Calling shoes_native_app_show\n");
         shoes_native_app_show(app);
+        fprintf(stderr, "[SHOES] shoes_app_open: shoes_native_app_show done\n");
+    }
+    fprintf(stderr, "[SHOES] shoes_app_open: Returning %lu\n", code);
     return code;
 }
 
@@ -536,13 +572,51 @@ shoes_code shoes_app_visit(shoes_app *app, char *path) {
     shoes_exec exec;
     shoes_canvas *canvas;
     VALUE meth;
+    
+    fprintf(stderr, "[SHOES] shoes_app_visit: app=%p, path=%s\n", (void*)app, path);
+    fprintf(stderr, "[SHOES] shoes_app_visit: app->canvas=%p\n", (void*)app->canvas);
+    
     Data_Get_Struct(app->canvas, shoes_canvas, canvas);
+    fprintf(stderr, "[SHOES] shoes_app_visit: canvas=%p\n", (void*)canvas);
+    
+    if (!canvas) {
+        fprintf(stderr, "[SHOES] shoes_app_visit: ERROR - canvas is NULL!\n");
+        return SHOES_QUIT;
+    }
+    
+    fprintf(stderr, "[SHOES] shoes_app_visit: canvas->slot=%p\n", (void*)canvas->slot);
+    if (!canvas->slot) {
+        fprintf(stderr, "[SHOES] shoes_app_visit: ERROR - canvas->slot is NULL!\n");
+        return SHOES_QUIT;
+    }
 
     canvas->slot->scrolly = 0;
+    fprintf(stderr, "[SHOES] shoes_app_visit: Set scrolly to 0\n");
+    
+    fprintf(stderr, "[SHOES] shoes_app_visit: Calling shoes_native_slot_clear\n");
     shoes_native_slot_clear(canvas);
+    fprintf(stderr, "[SHOES] shoes_app_visit: shoes_native_slot_clear done\n");
+    
+    fprintf(stderr, "[SHOES] shoes_app_visit: Calling shoes_app_clear\n");
     shoes_app_clear(app);
+    fprintf(stderr, "[SHOES] shoes_app_visit: shoes_app_clear done\n");
+    
+    fprintf(stderr, "[SHOES] shoes_app_visit: Calling shoes_app_reset_styles\n");
     shoes_app_reset_styles(app);
-    meth = rb_funcall(cShoes, s_run, 1, app->location = rb_str_new2(path));
+    fprintf(stderr, "[SHOES] shoes_app_visit: shoes_app_reset_styles done\n");
+    
+    fprintf(stderr, "[SHOES] shoes_app_visit: cShoes=%p, s_run=%ld\n", (void*)cShoes, (long)s_run);
+    fprintf(stderr, "[SHOES] shoes_app_visit: Calling rb_funcall(cShoes, s_run, ...)\n");
+    
+    // Check if cShoes responds to 'run'
+    if (!rb_respond_to(cShoes, s_run)) {
+        fprintf(stderr, "[SHOES] ERROR: cShoes does not respond to 'run'\n");
+        // For now, just skip this call
+        meth = rb_ary_new3(2, Qnil, rb_str_new2(path));
+    } else {
+        meth = rb_funcall(cShoes, s_run, 1, app->location = rb_str_new2(path));
+        fprintf(stderr, "[SHOES] shoes_app_visit: rb_funcall returned\n");
+    }
 
     VALUE app_block = rb_iv_get(app->self, "@main_app");
     if (!NIL_P(app_block))
@@ -994,7 +1068,12 @@ static void shoes_style_set(VALUE styles, VALUE klass, VALUE k, VALUE v) {
     ID2SYM(rb_intern("" # k)), rb_str_new2("" # v))
 
 void shoes_app_reset_styles(shoes_app *app) {
+    fprintf(stderr, "[SHOES] shoes_app_reset_styles: Starting\n");
     app->styles = rb_hash_new();
+    
+    // TODO: These constants need to be defined first
+    // For now, skip the styles to avoid crashes
+#if 0
     STYLE(cBanner,      size, 48);
     STYLE(cTitle,       size, 34);
     STYLE(cSubtitle,    size, 26);
@@ -1016,6 +1095,8 @@ void shoes_app_reset_styles(shoes_app *app) {
     STYLE(cSup,         size,   x-small);
     STYLE(cSub,         rise,   -10);
     STYLE(cSub,         size,   x-small);
+#endif
+    fprintf(stderr, "[SHOES] shoes_app_reset_styles: Done\n");
 }
 
 void shoes_app_style(shoes_app *app, VALUE klass, VALUE hsh) {
