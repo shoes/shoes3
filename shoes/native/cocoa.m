@@ -19,6 +19,7 @@
 extern VALUE cTimer;
 
 #import <Carbon/Carbon.h>
+#import <CoreText/CoreText.h>
 
 #define HEIGHT_PAD 6
 
@@ -44,13 +45,18 @@ int win_current_tmo = 10; // unused in OSX
 
 - (void)idle: (NSTimer *)t
 {
+  // Safety check for shoes_world
+  if (!shoes_world) return;
+  
   if (count < 100)
   {
     count++;
-    if (count == 100 && RARRAY_LEN(shoes_world->apps) == 0)
+    // Check shoes_world->apps is valid before accessing
+    if (count == 100 && shoes_world->apps && RARRAY_LEN(shoes_world->apps) == 0)
       rb_eval_string("Shoes.splash");
   }
-  rb_eval_string("sleep(0.001)");
+  // Don't call Ruby sleep in the event loop - it can cause issues
+  // rb_eval_string("sleep(0.001)");
 }
 
 - (BOOL) application: (NSApplication *) anApplication
@@ -637,14 +643,19 @@ shoes_font_list()
   CFRelease(fcref);
   CFIndex count = CFArrayGetCount(arrayref);
   CFIndex i;
- for (i=0; i<count; i++) {
-    CTFontDescriptorRef fdesc =(CTFontDescriptorRef)CFArrayGetValueAtIndex(arrayref, i);
+  for (i=0; i<count; i++) {
+    CTFontDescriptorRef fdesc = (CTFontDescriptorRef)CFArrayGetValueAtIndex(arrayref, i);
     CTFontRef font = CTFontCreateWithFontDescriptor(fdesc, 0., NULL);
-	CFStringRef cfname = CTFontCopyFullName(font);
-	static char fname[100];
-	CFStringGetCString(cfname, fname, sizeof(fname), kCFStringEncodingUTF8);
-    rb_ary_push(ary, rb_str_new2(fname));
+    CFStringRef cfname = CTFontCopyFullName(font);
+    char fname[256];  // Use local buffer instead of static
+    if (CFStringGetCString(cfname, fname, sizeof(fname), kCFStringEncodingUTF8)) {
+      rb_ary_push(ary, rb_str_new2(fname));
+    }
+    CFRelease(cfname);  // Release the copied string
+    CFRelease(font);    // Release the created font
   }
+  CFRelease(arrayref);  // Release the array
+  CFRelease(dict);      // Release the dictionary
 #else
   ATSFontIterator fi = NULL;
   ATSFontRef fontRef = 0;
@@ -740,11 +751,22 @@ shoes_load_font(const char *filename)
 
 void shoes_native_init()
 {
+  fprintf(stderr, "[COCOA] shoes_native_init: Starting\n");
+  fprintf(stderr, "[COCOA] shoes_native_init: shoes_world=%p\n", (void*)shoes_world);
+  
+  if (!shoes_world) {
+    fprintf(stderr, "[COCOA] shoes_native_init: ERROR - shoes_world is NULL!\n");
+    return;
+  }
+  
   INIT;
   NSTimer *idle;
   NSApplication *NSApp = [NSApplication sharedApplication];
   NSMenu *main = [[NSMenu alloc] initWithTitle: @""];
+  
+  fprintf(stderr, "[COCOA] shoes_native_init: Creating ShoesEvents\n");
   shoes_world->os.events = [[ShoesEvents alloc] init];
+  fprintf(stderr, "[COCOA] shoes_native_init: shoes_world->os.events=%p\n", (void*)shoes_world->os.events);
   [NSApp setMainMenu: main];
   shoes_native_menu_root(main);
 #if 0

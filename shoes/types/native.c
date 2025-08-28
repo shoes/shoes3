@@ -1,5 +1,6 @@
 #include "shoes/types/native.h"
 #include "shoes/types/event.h"
+#include "shoes/types/radio.h"
 
 // ruby
 VALUE cNative;

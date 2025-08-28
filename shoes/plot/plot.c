@@ -557,10 +557,10 @@ VALUE shoes_plot_get_actual_top(VALUE self) {
 // --- fun with vector and png ---
 //typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
 
-cairo_surface_function_t *get_vector_surface(char *format) {
-    if (strcmp(format, "pdf") == 0) return & cairo_pdf_surface_create;
-    if (strcmp(format, "ps") == 0)  return & cairo_ps_surface_create;
-    if (strcmp(format, "svg") == 0) return & cairo_svg_surface_create;
+cairo_surface_function_t get_vector_surface(char *format) {
+    if (strcmp(format, "pdf") == 0) return cairo_pdf_surface_create;
+    if (strcmp(format, "ps") == 0)  return cairo_ps_surface_create;
+    if (strcmp(format, "svg") == 0) return cairo_svg_surface_create;
     return NULL;
 }
 
@@ -575,8 +575,10 @@ cairo_surface_t *build_surface(VALUE self, double scale, int *result, char *file
 
     int w = (int)(NUM2INT(shoes_plot_get_actual_width(self))*scale);
     int h = (int)(NUM2INT(shoes_plot_get_actual_height(self))*scale);
-    if (format != NULL)
-        surf = get_vector_surface(format)(filename, w, h);
+    if (format != NULL) {
+        cairo_surface_function_t func = get_vector_surface(format);
+        surf = func ? func(filename, w, h) : NULL;
+    }
     else
         surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w, h);
     cr = cairo_create(surf);

@@ -96,6 +96,10 @@ int osx_cshoes_launch = 0; 		// extern in app.h
 // create the bridge object before Ruby is initialized called from
 // world.c 
 void shoes_osx_setup_stdout() {
+  // Temporarily disable stdout redirection for debugging
+  bridge = NULL;
+  return;
+  
   if (osx_cshoes_launch) {
     bridge = NULL;
   } else {

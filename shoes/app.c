@@ -452,12 +452,23 @@ shoes_code shoes_app_open(shoes_app *app, char *path) {
 }
 
 shoes_code shoes_app_loop() {
-    if (shoes_world->mainloop)
+    fprintf(stderr, "[SHOES] shoes_app_loop: Starting\n");
+    if (shoes_world->mainloop) {
+        fprintf(stderr, "[SHOES] shoes_app_loop: Already in mainloop, returning\n");
         return SHOES_OK;
+    }
+
+    // Check if we have any apps to display
+    if (RARRAY_LEN(shoes_world->apps) == 0) {
+        fprintf(stderr, "[SHOES] shoes_app_loop: No apps to display, exiting\n");
+        return SHOES_OK;
+    }
 
     shoes_world->mainloop = TRUE;
     INFO("RUNNING LOOP.\n");
+    fprintf(stderr, "[SHOES] shoes_app_loop: Calling shoes_native_loop\n");
     shoes_native_loop();
+    fprintf(stderr, "[SHOES] shoes_app_loop: shoes_native_loop returned\n");
     return SHOES_OK;
 }
 
@@ -667,7 +678,7 @@ shoes_code shoes_app_motion(shoes_app *app, int x, int y, int mods) {
       shoes_canvas_send_motion(app->canvas, x, y, Qnil, modifiers);
     return SHOES_OK;
 }
-EXTERN ID s_shift_key, s_control_key;
+extern ID s_shift_key, s_control_key;
 
 shoes_code shoes_app_click(shoes_app *app, int button, int x, int y, int mods) {
     app->mouseb = button;

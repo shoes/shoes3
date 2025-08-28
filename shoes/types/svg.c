@@ -6,7 +6,7 @@
 #include <math.h>
 #include <cairo.h>
 #include <cairo-svg.h>
-#include <rsvg.h>
+#include <librsvg/rsvg.h>
 
 #include "shoes/app.h"
 #include "shoes/canvas.h"
@@ -366,12 +366,12 @@ VALUE shoes_svg_set_dpi(VALUE self, VALUE dpi) {
     return Qnil;
 }
 
-typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
+typedef cairo_surface_t * (*cairo_surface_function_t) (const char *filename, double width, double height);
 
-static cairo_surface_function_t *get_vector_surface(char *format) {
-    if (strstr(format, "pdf") != NULL) return & cairo_pdf_surface_create;
-    if (strstr(format, "ps") != NULL)  return & cairo_ps_surface_create;
-    if (strstr(format, "svg") != NULL) return & cairo_svg_surface_create;
+static cairo_surface_function_t get_vector_surface(char *format) {
+    if (strstr(format, "pdf") != NULL) return cairo_pdf_surface_create;
+    if (strstr(format, "ps") != NULL)  return cairo_ps_surface_create;
+    if (strstr(format, "svg") != NULL) return cairo_svg_surface_create;
     return NULL;
 }
 
@@ -385,8 +385,10 @@ static cairo_surface_t *buid_surface(VALUE self, VALUE docanvas, double scale, i
     cairo_t *cr;
 
     if (docanvas == Qtrue) {
-        if (format != NULL)
-            surf = get_vector_surface(format)(filename, canvas->width*scale, canvas->height*scale);
+        if (format != NULL) {
+            cairo_surface_function_t func = get_vector_surface(format);
+            surf = func ? func(filename, canvas->width*scale, canvas->height*scale) : NULL;
+        }
         else
             surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)(canvas->width*scale), (int)(canvas->height*scale));
         cr = cairo_create(surf);

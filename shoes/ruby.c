@@ -13,9 +13,9 @@
 #include "shoes/types/settings.h"
 #include <math.h>
 
-VALUE cShoes, cApp, cDialog, cTypes, cShoesWindow, cMouse, cCanvas, cFlow;
-VALUE cStack, cMask, cWidget, cProgress, cColor, cResponse, ssNestSlot;
-VALUE cShoesMenu, cShoesMenubar, cShoesMenuItem;
+VALUE cShoes = Qnil, cApp = Qnil, cDialog = Qnil, cTypes = Qnil, cShoesWindow = Qnil, cMouse = Qnil, cCanvas = Qnil, cFlow = Qnil;
+VALUE cStack = Qnil, cMask = Qnil, cWidget = Qnil, cProgress = Qnil, cColor = Qnil, cResponse = Qnil, ssNestSlot = Qnil;
+VALUE cShoesMenu = Qnil, cShoesMenubar = Qnil, cShoesMenuItem = Qnil;
 VALUE eImageError, eInvMode, eNotImpl;
 VALUE reHEX_SOURCE, reHEX3_SOURCE, reRGB_SOURCE, reRGBA_SOURCE, reGRAY_SOURCE, reGRAYA_SOURCE, reLF;
 VALUE symAltQuest, symAltSlash, symAltDot, symAltEqual, symAltSemiColon;
@@ -39,15 +39,14 @@ static VALUE ts_each(VALUE *tmp) {
     return rb_funcall2(tmp[0], (ID)tmp[1], (int)tmp[2], (VALUE *)tmp[3]);
 }
 
+static VALUE ts_yield_block(RB_BLOCK_CALL_FUNC_ARGLIST(val, data)) {
+    return rb_yield(val);
+}
+
 VALUE ts_funcall2(VALUE obj, ID meth, int argc, VALUE *argv) {
-    VALUE tmp[4];
     if (!rb_block_given_p())
         return rb_funcall2(obj, meth, argc, argv);
-    tmp[0] = obj;
-    tmp[1] = (VALUE)meth;
-    tmp[2] = (VALUE)argc;
-    tmp[3] = (VALUE)argv;
-    return rb_iterate((VALUE(*)(VALUE))ts_each, (VALUE)tmp, CASTHOOK(rb_yield), 0);
+    return rb_block_call(obj, meth, argc, argv, ts_yield_block, Qnil);
 }
 
 #define SET_ARG(o) args->a[n] = o, n = n + 1

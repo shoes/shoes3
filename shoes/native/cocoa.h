@@ -50,7 +50,7 @@ void create_edit_menu(NSMenu *main);
 void create_window_menu(NSMenu *main);
 void create_help_menu(NSMenu *main);
 void shoes_native_view_supplant(NSView *from, NSView *to);
-void gettimeofday(void *ts, void *extra);
+// void gettimeofday(void *ts, void *extra);  // Commented out - conflicts with system header
 NSMutableDictionary *shoes_attr_dict(VALUE attr);
 
 #define VK_ESCAPE 53
