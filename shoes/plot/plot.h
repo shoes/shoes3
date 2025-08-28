@@ -124,7 +124,7 @@ typedef struct {
     PangoLayout **layouts;  // array
 } radar_chart_t;
 
-typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
+typedef cairo_surface_t * (*cairo_surface_function_t) (const char *filename, double width, double height);
 
 extern void shoes_plot_line_draw(cairo_t *, shoes_place *, shoes_plot *);
 extern void shoes_plot_column_draw(cairo_t *, shoes_place *, shoes_plot *);

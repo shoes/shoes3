@@ -136,18 +136,29 @@ main(argc, argv)
 #else
   code = shoes_init(path);
 #endif
+  fprintf(stderr, "[MAIN] shoes_init returned code=%d\n", code);
   if (code != SHOES_OK)
     goto done;
+  
+  fprintf(stderr, "[MAIN] Calling shoes_set_argv\n");
   shoes_set_argv(argc - 1, &argv[1]);
+  
+  fprintf(stderr, "[MAIN] Calling shoes_start\n");
   code = shoes_start(path, "/", debug);
-  if (code != SHOES_OK)
+  fprintf(stderr, "[MAIN] shoes_start returned code=%d\n", code);
+  if (code != SHOES_OK) {
+    fprintf(stderr, "[MAIN] code != SHOES_OK, going to done\n");
     goto done;
+  }
 
 done:
+  fprintf(stderr, "[MAIN] At done label\n");
 #ifdef SHOES_WIN32
   if (path != NULL)
     SHOE_FREE(path);
 #endif
+  fprintf(stderr, "[MAIN] Calling shoes_final\n");
   shoes_final();
+  fprintf(stderr, "[MAIN] shoes_final returned\n");
   return 0;
 }

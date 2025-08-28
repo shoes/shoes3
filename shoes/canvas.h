@@ -15,7 +15,7 @@
 
 #include "shoes/config.h"
 #include "shoes/code.h"
-#include <rsvg.h>
+#include <librsvg/rsvg.h>
 
 struct _shoes_app;
 

@@ -82,8 +82,8 @@ arch_2_sdk = {'x86_64-darwin18' => 'MacOSX10.14.sdk', # Mojave
 SHOES_TGT_ARCH = RbConfig::CONFIG['arch']
 SHOES_GEM_ARCH = arch_2_gem[RbConfig::CONFIG['arch']]
 #osxsdk = arch_2_sdk[RbConfig::CONFIG['arch']]
-osxsdk = 'MacOSX10.12.sdk'  # 12 is as high as we can go w/o code changes
-osxminv = osxsdk[/(\d+\.\d+)/]
+osxsdk = 'MacOSX.sdk'  # Use the default SDK symlink
+osxminv = '10.15'  # Set a reasonable minimum version
 
 $stderr.puts "arch #{SHOES_TGT_ARCH} -> #{SHOES_GEM_ARCH}"
 
@@ -107,12 +107,12 @@ libdll = "#{ShoesDeps}/lib"
 # nothing much is going to change for 10.10 deps - don't bother with pkg-config
 # because it does go wrong in this situation.
 GLIB_CFLAGS   = "-I#{ShoesDeps}/include/glib-2.0 -I#{ShoesDeps}/lib/glib-2.0/include"
-GLIB_CFLAGS << " -I#{ShoesDeps}/include/librsvg-2.0/librsvg -I#{ShoesDeps}/include/gdk-pixbuf-2.0/"
+GLIB_CFLAGS << " -I#{ShoesDeps}/include/librsvg-2.0 -I#{ShoesDeps}/include/gdk-pixbuf-2.0/"
 GLIB_LDFLAGS  = "-L#{ShoesDeps}/lib -lglib-2.0 -lgobject-2.0 -lintl #{ShoesDeps}/lib/librsvg-2.2.dylib"
 GLIB_LDFLAGS << " -lyaml-0.2"
 CAIRO_CFLAGS  = "-I#{ShoesDeps}/include/cairo"
 CAIRO_LDFLAGS = "-L#{ShoesDeps}/lib -lcairo"
-PANGO_CFLAGS  = "-I#{ShoesDeps}/include/pango-1.0"
+PANGO_CFLAGS  = "-I#{ShoesDeps}/include/pango-1.0 -I#{ShoesDeps}/include/harfbuzz"
 PANGO_LDFLAGS = "-L#{ShoesDeps}/lib -lpango-1.0"
 #RUBY_CFLAGS   = "-I#{EXT_RUBY}/include/ruby-2.3.0/x86_64-darwin14 -I#{EXT_RUBY}/include/ruby-2.3.0 "
 RUBY_CFLAGS =`pkg-config --cflags "#{pkgruby}"`.strip+" "
@@ -140,7 +140,7 @@ if ignore_deprecations
   LINUX_CFLAGS << " -Wno-deprecated-declarations"
 end
 
-OSX_ARCH = '-arch x86_64'
+OSX_ARCH = '-arch arm64'  # Build for Apple Silicon
 
 ENV['CC'] = CC
 ENV['TGT_RUBY_PATH'] = EXT_RUBY
@@ -157,14 +157,9 @@ LINUX_LIBS << " -L#{TGT_DIR} #{CAIRO_LDFLAGS} #{PANGO_LDFLAGS} #{GLIB_LDFLAGS}"
 # Sigh - shoesdeps and homebrew versions can be out of sync.
 # The following dylibs (may) need explicit copying.
 SOLOCS = {
-  'libcurl.dylib'    => "/usr/lib/libcurl.4.dylib",
-  'libxml2.2.dylib' => "/usr/lib/libxml2.2.dylib",
-  'libexpat.1.dylib' => "/usr/lib/libexpat.1.dylib",
-  'libz.1.dylib'  => "/usr/lib/libz.1.dylib",
   'libgobject-2.0.0.dylib' => "#{libdll}/libgobject-2.0.0.dylib",
   'libgdk_pixbuf-2.0.0.dylib' => "#{libdll}/libgdk_pixbuf-2.0.0.dylib",
   'libgio-2.0.0.dylib' => "#{libdll}/libgio-2.0.0.dylib",
-  'libgmodule-2.0.0.dylib' => "#{libdll}/libgmodule-2.0.0.dylib",
-  'libcroco-0.6.3.dylib' => "#{libdll}/libcroco-0.6.3.dylib",
+  'libgmodule-2.0.0.dylib' => "#{libdll}/libgmodule-2.0.0.dylib"
 }
 

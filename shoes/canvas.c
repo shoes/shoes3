@@ -652,13 +652,13 @@ static void shoes_canvas_memdraw(VALUE self, VALUE block) {
     DRAW(self, canvas->app, rb_funcall(block, s_call, 0));
 }
 
-typedef cairo_public cairo_surface_t * (cairo_surface_function_t) (const char *filename, double width, double height);
+typedef cairo_surface_t * (*cairo_surface_function_t) (const char *filename, double width, double height);
 
-static cairo_surface_function_t * shoes_get_snapshot_surface(VALUE _format) {
+static cairo_surface_function_t shoes_get_snapshot_surface(VALUE _format) {
     ID format = SYM2ID (_format);
-    if (format == rb_intern ("pdf"))  return & cairo_pdf_surface_create;
-    if (format == rb_intern ("ps"))   return & cairo_ps_surface_create;
-    if (format == rb_intern ("svg"))  return & cairo_svg_surface_create;
+    if (format == rb_intern ("pdf"))  return cairo_pdf_surface_create;
+    if (format == rb_intern ("ps"))   return cairo_ps_surface_create;
+    if (format == rb_intern ("svg"))  return cairo_svg_surface_create;
     return NULL;
 }
 
@@ -678,8 +678,8 @@ VALUE shoes_canvas_snapshot(int argc, VALUE *argv, VALUE self) {
                  ":format=>:pdf|:ps|:svg}, &block)\n");
     } else {
         const char      * filename = RSTRING_PTR(_filename);
-        cairo_surface_t * surface  = shoes_get_snapshot_surface(_format)
-                                     (filename, canvas->width, canvas->height);
+        cairo_surface_function_t func = shoes_get_snapshot_surface(_format);
+        cairo_surface_t * surface  = func ? func(filename, canvas->width, canvas->height) : NULL;
         if (surface == NULL) {
             rb_raise(rb_eArgError, "Failed to create %s surface for file %s\n",
                      RSTRING_PTR(rb_inspect(_format)),

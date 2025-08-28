@@ -82,21 +82,21 @@ VALUE shoes_text_view_append (VALUE self, VALUE text) {
     return ret; //TODO: should return updated internal insertion point
 }
 
-VALUE shoes_text_view_insert (VALUE self, VALUE args) {
+VALUE shoes_text_view_insert (int argc, VALUE *argv, VALUE self) {
     // parse args
     return Qnil;
 }
 
-VALUE shoes_text_view_delete( VALUE self, VALUE args) {
-    return args;
+VALUE shoes_text_view_delete( VALUE self, VALUE start, VALUE end) {
+    return Qnil;
 }
 
-VALUE shoes_text_view_get(VALUE self, VALUE args) {
-    return args;
+VALUE shoes_text_view_get(VALUE self, VALUE start, VALUE end) {
+    return Qnil;
 }
 
-VALUE shoes_text_view_create_insertion(VALUE self, VALUE args) {
-    return args;
+VALUE shoes_text_view_create_insertion(VALUE self, VALUE name, VALUE position) {
+    return Qnil;
 }
 
 VALUE shoes_text_view_current_insertion(VALUE self) {
